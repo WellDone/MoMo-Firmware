@@ -14,7 +14,7 @@ _asm_enable_rtcon_write:
     RETURN
 
 ;reset the device
-_asm_reset
+_asm_reset:
     RESET
 
 .global _asm_enable_rtcon_write ;note the underscore to handle C name mangling rules

@@ -46,9 +46,9 @@ void handle_device(command_params *params)
 
     cmd = get_param_string(params, 0);
 
-    if (strcmp(cmd, "reset"))
+    if (strcmp(cmd, "reset") == 0)
     {
-        sends("Resetting device...\n")
+        sends("Resetting the device...\n");
         asm_reset();
     }
 }

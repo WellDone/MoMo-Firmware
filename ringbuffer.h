@@ -13,7 +13,7 @@ typedef struct
 } ringbuffer;
 
 void ringbuffer_create(ringbuffer *out, void *data, unsigned int size, unsigned int length);
-void ringbuffer_push(ringbuffer *buf, void *data, unsigned int count);
+void ringbuffer_push(ringbuffer *buf, void *data);
 void ringbuffer_pop(ringbuffer *buf, void *out);
 unsigned int ringbuffer_count(ringbuffer *buf);
 unsigned int ringbuffer_empty(ringbuffer *buf);
