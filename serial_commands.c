@@ -18,6 +18,7 @@ void register_command_handlers()
     register_command("led", handle_led);
     register_command("echo", handle_echo_params);
     register_command("device", handle_device);
+    register_command("rtcc", handle_rtcc);
 }
 
 /*

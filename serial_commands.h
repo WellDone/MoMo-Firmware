@@ -28,5 +28,6 @@ char *get_param_string(command_params *params, unsigned int i);
 void handle_led(command_params *params);
 void handle_echo_params(command_params *params);
 void handle_device(command_params *params);
+void handle_rtcc(command_params *params);
 
 #endif

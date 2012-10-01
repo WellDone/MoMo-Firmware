@@ -5,13 +5,17 @@
 
 ;Magic incantation to allow writing to the rtcon
 _asm_enable_rtcon_write:
-    MOV NVMKEY, W1
-    MOV #0x55, W2
-    MOV W2, [W1]
-    MOV #0xAA, W3
-    MOV W3, [W1]
-    BSET RCFGCAL, #13
-    RETURN
+    PUSH w7
+    PUSH w8
+    DISI #5 ;Disable interrupts for 5 instructions
+    MOV #0x55, w7
+    MOV w7, _NVMKEY
+    MOV #0xAA, w8
+    MOV w8, _NVMKEY
+    BSET _RCFGCAL, #13
+    POP w8
+    POP w7
+
 
 ;reset the device
 _asm_reset:

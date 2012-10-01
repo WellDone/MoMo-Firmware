@@ -23,11 +23,14 @@
       <itemPath>interrupts.h</itemPath>
       <itemPath>serial.c</itemPath>
       <itemPath>serial_commands.h</itemPath>
-      <itemPath>command_setup.h</itemPath>
       <itemPath>serial_commands.c</itemPath>
       <itemPath>command_handlers.c</itemPath>
       <itemPath>ringbuffer.c</itemPath>
       <itemPath>ringbuffer.h</itemPath>
+      <itemPath>common.h</itemPath>
+      <itemPath>serial.h</itemPath>
+      <itemPath>utilities.c</itemPath>
+      <itemPath>utilities.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -78,7 +81,7 @@
         <property key="enable-unroll-loops" value="false"/>
         <property key="extra-include-directories" value="lib/inc;lib/inc/devices"/>
         <property key="isolate-each-function" value="false"/>
-        <property key="optimization-level" value="0"/>
+        <property key="optimization-level" value="s"/>
         <property key="post-instruction-scheduling" value="default"/>
         <property key="pre-instruction-scheduling" value="default"/>
         <property key="preprocessor-macros" value=""/>
@@ -105,11 +108,46 @@
         <property key="warning-level" value="emit-warnings"/>
       </C30-AS>
       <C30-LD>
+        <property key="boot-eeprom" value="no_eeprom"/>
+        <property key="boot-flash" value="no_flash"/>
+        <property key="boot-ram" value="no_ram"/>
+        <property key="boot-write-protect" value="no_write_protect"/>
+        <property key="enable-check-sections" value="false"/>
+        <property key="enable-data-init" value="true"/>
+        <property key="enable-default-isr" value="true"/>
+        <property key="enable-handles" value="true"/>
+        <property key="enable-pack-data" value="true"/>
+        <property key="extra-lib-directories" value=""/>
+        <property key="general-code-protect" value="no_code_protect"/>
+        <property key="general-write-protect" value="no_write_protect"/>
+        <property key="generate-cross-reference-file" value="false"/>
+        <property key="heap-size" value=""/>
+        <property key="input-libraries" value=""/>
+        <property key="linker-symbols" value=""/>
+        <property key="map-file" value=""/>
+        <property key="preprocessor-macros" value=""/>
+        <property key="remove-unused-sections" value="false"/>
+        <property key="report-memory-usage" value="true"/>
+        <property key="secure-eeprom" value="no_eeprom"/>
+        <property key="secure-flash" value="no_flash"/>
+        <property key="secure-ram" value="no_ram"/>
+        <property key="secure-write-protect" value="no_write_protect"/>
+        <property key="stack-size" value=""/>
+        <property key="symbol-stripping" value=""/>
+        <property key="trace-symbols" value=""/>
+        <property key="warn-section-align" value="false"/>
       </C30-LD>
       <C30Global>
+        <property key="fast-math" value="false"/>
+        <property key="legacy-libc" value="false"/>
+        <property key="output-file-format" value="elf"/>
       </C30Global>
       <PICkit2PlatformTool>
+        <property key="pk2settings.3state" value="false"/>
+        <property key="pk2settings.preserveee" value="false"/>
         <property key="pk2settings.setvddvoltage" value="3,25"/>
+        <property key="pk2settings.userpgmexec" value="true"/>
+        <property key="pk2settings.usetargetpower" value="false"/>
       </PICkit2PlatformTool>
     </conf>
   </confs>

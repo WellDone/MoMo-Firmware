@@ -141,6 +141,13 @@ void sends(char *msg)
 
     while (sending)
         ;
+
+    //Even after we stop filling the transmit FIFO, wait until the last bit is
+    //shifted out.  Fixes a bug where the device reset command will not be
+    //able to send the last 4 bits of its message because the device resets
+    //with those characters in the transmit shift register.
+    while (_TRMT)
+        ;
 }
 
 void sendf(char *fmt, ...)
@@ -149,7 +156,7 @@ void sendf(char *fmt, ...)
     va_list argp;
     va_start(argp, fmt);
 
-    vsnprintf(send_buffer, UART_BUFFER_SIZE, fmt, argp);
+    sprintf_small(send_buffer, UART_BUFFER_SIZE, fmt, argp);
 
     va_end(argp);
 
@@ -157,4 +164,7 @@ void sendf(char *fmt, ...)
     sending = 1;
 
     U1TXREG = send_buffer[0];
+
+    while (sending)
+        ;
 }

@@ -27,6 +27,8 @@ unsigned int rtcc_enabled()
 
 void configure_rtcc()
 {
+    _RTCCMD = 0; //Make sure power to the rtcc is enabled.
+
     if (!_RTCWREN)
         asm_enable_rtcon_write();
 
@@ -55,7 +57,7 @@ void configure_rtcc_oscillator()
  * if that happened
  */
 
-void set_rtcc_time(rtcc_time *time)
+void rtcc_set_time(rtcc_time *time)
 {
     unsigned int old_status = rtcc_enabled();
 
@@ -75,7 +77,7 @@ void set_rtcc_time(rtcc_time *time)
         enable_rtcc();
 }
 
-void get_rtcc_time(rtcc_time *time)
+void rtcc_get_time(rtcc_time *time)
 {
     rtcc_time first_read;
 
@@ -117,12 +119,12 @@ void get_rtcc_time_unsafe(rtcc_time *time)
 
 unsigned char from_bcd(unsigned char val)
 {
-    return ( (val/10*16) + (val%10) );
+    return ((val&0xF0) >> 4)*10 + (val&0x0F);
 }
 
 unsigned char to_bcd(unsigned char val)
 {
-    return ( (val/16*10) + (val%16) );
+    return ((val/10) << 4) | (val%10);
 }
 
 void __attribute__((interrupt,no_auto_psv)) handle_alarm()
