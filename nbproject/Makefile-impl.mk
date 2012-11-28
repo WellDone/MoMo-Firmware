@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=DataLogger
+PROJECTNAME=welldone-nozzle
 
 # Active Configuration
 DEFAULTCONF=default

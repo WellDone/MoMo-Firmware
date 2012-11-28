@@ -29,5 +29,6 @@ void handle_led(command_params *params);
 void handle_echo_params(command_params *params);
 void handle_device(command_params *params);
 void handle_rtcc(command_params *params);
+void handle_gsm(command_params *params);
 
 #endif

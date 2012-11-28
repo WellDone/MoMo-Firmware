@@ -31,22 +31,35 @@ void blink_light()
 
 int main(void) {
     unsigned short i,j;
-    uart_parameters params;
+    uart_parameters params_uart1;
+    uart_parameters params_uart2;
 
     _ODA0 = 0; //Enable open drain
     _TRISA0 = 0; //Configure as output
     _LATA0 = 1; //Set high initially
+    
+    _TRISA1 = 0; // This is the GSM ONKEY
+    _LATA1 = 1; // Set to HIGH, we will draw it LOW to trigger a power-on
+
+    _TRISA2 = 1; // This is the "Ready for AT commands" status input
+    _TRISA3 = 1; // This is the "Sevice ready" status input
 
     configure_interrupts();
-    //configure_rtcc();
-    //enable_rtcc();
-    //set_recurring_task(EverySecond, blink_light);
+    configure_rtcc();
+    enable_rtcc();
+    set_recurring_task(EverySecond, blink_light);
 
-    params.baud = 57600;
-    params.hw_flowcontrol = 0;
-    params.parity = NoParity;
+    params_uart1.baud = 57600;
+    params_uart1.hw_flowcontrol = 0;
+    params_uart1.parity = NoParity;
+    configure_uart( UART1, &params_uart1 );
+    //init_debug();
 
-    configure_uart(&params);
+    //init_gsm();
+    params_uart2.baud = 115200;
+    params_uart2.hw_flowcontrol = 0;
+    params_uart2.parity = NoParity;
+    configure_uart( UART2, &params_uart2 );
 
     register_command_handlers(); //register the serial commands that we respond to.
 
@@ -55,7 +68,9 @@ int main(void) {
     sends("PIC 24f16ka101> ");
 
     while(1)
-        ;
+    {
+        asm( sleep );
+    }
 
     return (EXIT_SUCCESS);
 }

@@ -47,6 +47,11 @@ void configure_rtcc()
 void configure_rtcc_oscillator()
 {
     _SOSCEN = 1;
+
+    unsigned int externalOscillator = 0b100; // << 12?
+    __builtin_write_OSCCONH( externalOscillator );
+    __builtin_write_OSCCONL( externalOscillator );
+    _OSWEN = 1;
     //Perhaps additional oscillator configuration?
 }
 
@@ -159,4 +164,20 @@ void set_recurring_task(AlarmRepeatTime repeat, alarm_handler routine)
      //install_isr(&desc); FIXME: fix this
 
      _ALRMEN = 1; //Enable the recurring task
+}
+
+void wait( unsigned int milliseconds )
+{
+    isr_descriptor desc = RTCC_ISR_DESCRIPTOR;
+    if ( !_RTCWREN)
+        asm_enable_rtcon_write();
+
+    _ALRMEN = 0;
+    _CHIME = 0;
+
+    _ALRMPTR = 0b10;
+    ALRMVAL = PACKWORD(to_bcd(1), to_bcd(1));
+
+    _ARPT = 0x01;
+    _AMASK =
 }
