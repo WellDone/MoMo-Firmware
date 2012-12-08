@@ -70,9 +70,9 @@ void process_command()
      if (known_commands[i] == 0)
      {
        //We've loooked through all the commands we know how to handle and not found it, punt.
-       sends("Unknown command: ");
-       sends(command_buffer);
-       sends("\n");
+       sends(U2, "Unknown command: ");
+       sends(U2, command_buffer);
+       sends(U2, "\n");
        break;
      }
      else if(strcmp(command_buffer, known_commands[i])==0)
@@ -118,7 +118,7 @@ char *get_param_string(command_params *params, unsigned int i)
 
   if (i >= params->num_params)
   {
-    sends("Invalid parameter number, too large.\n");
+    sends(U2, "Invalid parameter number, too large.\n");
     return 0;
   }
  

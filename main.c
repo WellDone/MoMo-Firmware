@@ -49,28 +49,28 @@ int main(void) {
     enable_rtcc();
     set_recurring_task(EverySecond, blink_light);
 
-    params_uart1.baud = 57600;
-    params_uart1.hw_flowcontrol = 0;
-    params_uart1.parity = NoParity;
-    configure_uart( UART1, &params_uart1 );
+    //params_uart1.baud = 57600;
+    //params_uart1.hw_flowcontrol = 0;
+    //params_uart1.parity = NoParity;
+    //configure_uart( U1, &params_uart1 );
     //init_debug();
 
     //init_gsm();
-    params_uart2.baud = 115200;
+    params_uart2.baud = 57600;
     params_uart2.hw_flowcontrol = 0;
     params_uart2.parity = NoParity;
-    configure_uart( UART2, &params_uart2 );
+    configure_uart( U2, &params_uart2 );
 
     register_command_handlers(); //register the serial commands that we respond to.
 
     //Extend the welcome mat
-    sends("Device reset complete.\n");
-    sends("PIC 24f16ka101> ");
+    sends( U2, "Device reset complete.\n");
+    sends( U2, "PIC 24f16ka101> ");
 
     while(1)
-    {
-        asm( sleep );
-    }
+    {;}
+    //    //asm( sleep );
+    //}
 
     return (EXIT_SUCCESS);
 }

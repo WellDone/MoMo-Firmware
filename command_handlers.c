@@ -6,7 +6,7 @@ void handle_led(command_params *params)
 {
   if (params->num_params < 1)
   {
-    sends("You must pass either 'on' or 'off' to the led command.\n");
+    sends(U2, "You must pass either 'on' or 'off' to the led command.\n");
     return;
   }
 
@@ -17,7 +17,7 @@ void handle_led(command_params *params)
   else if(strcmp("off", cmd) == 0)
     _LATA0 = 0;
   else
-    sends("Invalid argument to led command.\n");
+    sends(U2, "Invalid argument to led command.\n");
 }
 
 void handle_echo_params(command_params *params)
@@ -25,13 +25,13 @@ void handle_echo_params(command_params *params)
   unsigned int i;
   
   if (params->num_params == 0)
-    sends("No parameters were passed.\n");
+    sends(U2, "No parameters were passed.\n");
   else
   {
     for (i=0; i<params->num_params; ++i)
     {
-      sends(get_param_string(params, i));
-      sends("\n");
+      sends(U2, get_param_string(params, i));
+      sends(U2, "\n");
     }
   }
 }
@@ -42,7 +42,7 @@ void handle_device(command_params *params)
 
     if (params->num_params < 1)
     {
-        sends("You must pass a subcommand to the device command.\n");
+        sends(U2, "You must pass a subcommand to the device command.\n");
         return;
     }
 
@@ -50,7 +50,7 @@ void handle_device(command_params *params)
 
     if (strcmp(cmd, "reset") == 0)
     {
-        sends("Resetting the device...\n");
+        sends(U2, "Resetting the device...\n");
         asm_reset();
     }
 }
@@ -61,7 +61,7 @@ void handle_rtcc(command_params *params)
 
     if (params->num_params < 1)
     {
-        sends("You must pass a subcommand to the rtcc command.\n");
+        sends(U2, "You must pass a subcommand to the rtcc command.\n");
         return;
     }
 
@@ -74,13 +74,13 @@ void handle_rtcc(command_params *params)
         unsigned int enabled = rtcc_enabled();
 
 
-        sendf("Realtime Clock Status: %s\n", enabled? "Enabled" : "Disabled");
+        sendf(U2, "Realtime Clock Status: %s\n", enabled? "Enabled" : "Disabled");
         rtcc_time time;
 
         rtcc_get_time(&time);
 
-        sendf("Current Time: %d/%d/%d %d:%d:%d", time.month, time.day, time.year, time.hours, time.minutes, time.seconds);
-        sends("\n"); //sendf is not synchronous
+        sendf(U2, "Current Time: %d/%d/%d %d:%d:%d", time.month, time.day, time.year, time.hours, time.minutes, time.seconds);
+        sends(U2, "\n"); //sendf is not synchronous
     }
 
     else if (strcmp(cmd, "set") == 0)
@@ -94,14 +94,14 @@ void handle_rtcc(command_params *params)
 
         if (params->num_params < 3)
         {
-            sends("usage: rtcc set mm/dd/yy hh:mm:ss\n");
+            sends(U2, "usage: rtcc set mm/dd/yy hh:mm:ss\n");
             return;
         }
 
         date = get_param_string(params, 1);
         time = get_param_string(params, 2);
 
-        sendf("Date string: %s\nTime string: %s\n", date, time);
+        sendf(U2, "Date string: %s\nTime string: %s\n", date, time);
         
 
         time_spec.month = get_2byte_number(date);
@@ -113,10 +113,10 @@ void handle_rtcc(command_params *params)
 
         m = time_spec.month;
 
-        sendf("Input month was: %d\n", m);
+        sendf(U2, "Input month was: %d\n", m);
 
         rtcc_set_time(&time_spec);
     }
     else
-        sendf("Unknown rtcc command: %s\n", cmd);
+        sendf(U2, "Unknown rtcc command: %s\n", cmd);
 }

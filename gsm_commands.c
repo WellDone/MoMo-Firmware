@@ -9,13 +9,14 @@
 
 static int gsm_at_cmd( const char* cmd )
 {
-    sends( UART2, cmd );
-    sends( UART2, "\n\r" );
+    sends( U2, cmd );
+    sends( U2, "\n\r" );
     wait( 300 );
 }
 
 static void gsm_power_on()
 {
+
     _LATA1 = 0;
     while ( _LATA2 == 1 )
         ; // READY goes high first
@@ -29,19 +30,21 @@ static void gsm_power_on()
 
 static void send_sms( const char* da, const char* message )
 {
-    sends( UART2, "AT+CMGS=\"+17078159250\"\r\n");
+    sends( U2, "AT+CMGS=\"+17078159250\"\r\n");
     wait( 300 );
-    sends( UART2, message );
-    send( UART2, 0x1A ); // send ctrl-z
+    sends( U2, message );
+    put( U2, 0x1A ); // send ctrl-z
     wait( 300 );
 
 
-    sendf("SMS sent to %s: %s", da, message );
-    sends("\n");
+    sendf(U1, "SMS sent to %s: %s", da, message );
+    sends(U1, "\n");
 }
 
 static void gsm_on()
 {
+    _LATA3 = 1;
+
     // TODO: Supply power to the module first, when that's supported
     if ( _LATA2 == 0 )
     {
@@ -54,14 +57,14 @@ static void gsm_on()
       wait( 800 ); //TODO: Sleep until the "READY" light is on
       if ( _LATA2 == 0 )
       {
-        sends("The GSM module failed to power up.");
+        sends(U1, "The GSM module failed to power up.");
         return;
       }
-      sends("The GSM module is now ON!");
+      sends(U1, "The GSM module is now ON!");
     }
     else
     {
-      sends("The GSM module is already on.");
+      sends(U1, "The GSM module is already on.");
       return;
     }
 }
@@ -76,14 +79,14 @@ static void gsm_off()
         wait( 500 ); //TODO: Sleep until the "READY" light is off
         if ( _LATA2 == 1 )
         {
-            sends("The GSM module failed to power down.");
+            sends(U1, "The GSM module failed to power down.");
             return;
         }
-        sends("GSM module turned off.");
+        sends(U1, "GSM module turned off.");
     }
     else
     {
-        sends("The GSM module is already off.");
+        sends(U1, "The GSM module is already off.");
     }
 }
 
@@ -91,7 +94,7 @@ void handle_gsm(command_params *params)
 {
   if (params->num_params < 1)
   {
-    sends("You must pass a function (i.e. 'send') to the gsm command.\n");
+    sends(U1, "You must pass a function (i.e. 'send') to the gsm command.\n");
     return;
   }
 
@@ -109,14 +112,14 @@ void handle_gsm(command_params *params)
   {
     if (params->num_params < 3)
     {
-      sends("You must pass a number and message to the 'gsm send' command.\n");
+      sends(U1, "You must pass a number and message to the 'gsm send' command.\n");
       return;
     }
     send_sms( get_param_string(params,1), get_param_string(params,2) );
   }
   else
   {
-    sends("Invalid argument to gsm command.\n");
+    sends(U1, "Invalid argument to gsm command.\n");
   }
 }
 

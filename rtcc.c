@@ -166,7 +166,7 @@ void set_recurring_task(AlarmRepeatTime repeat, alarm_handler routine)
      _ALRMEN = 1; //Enable the recurring task
 }
 
-void wait( unsigned int milliseconds )
+/*void wait( unsigned int milliseconds )
 {
     isr_descriptor desc = RTCC_ISR_DESCRIPTOR;
     if ( !_RTCWREN)
@@ -179,5 +179,11 @@ void wait( unsigned int milliseconds )
     ALRMVAL = PACKWORD(to_bcd(1), to_bcd(1));
 
     _ARPT = 0x01;
-    _AMASK =
+    _AMASK = 0x00;
+}*/
+
+#define HZ
+void wait( unsigned int milliseconds )
+{
+
 }

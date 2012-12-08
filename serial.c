@@ -1,33 +1,11 @@
 #include "serial.h"
 #include <string.h>
 #include <stdarg.h>
-#include <PIC24F_plib.h>
 
 #define CALC_BAUDHI(baud)     (unsigned int)((CLOCKSPEED/(4*baud))-1)    //Assumes hi speed
 #define CALC_BAUDLO(baud)     (unsigned int)((CLOCKSPEED/(16*baud))-1)    //Assumes low speed
 #define HIBAUDMIN             CLOCKSPEED/(16L*65536L)
 #define CALC_BAUD(baud)       ( baud > HIBAUDMIN )?CALC_BAUDHI:CALC_BAUDLO
-
-//Define ISR Vectors for UART1
-#define U1RX_ISR_DESCRIPTOR (isr_descriptor){ \
-                                0b100,        \
-                                0,            \
-                                (unsigned int*)IEC0,         \
-                                (unsigned int*)IPC2,        \
-                                (unsigned int*)IFS0,         \
-                                11,           \
-                                12,            \
-                                11}
-
-#define U1TX_ISR_DESCRIPTOR (isr_descriptor){ \
-                                0b100,        \
-                                0,            \
-                                (unsigned int*)IEC0,         \
-                                (unsigned int*)IPC3,        \
-                                (unsigned int*)IFS0,         \
-                                12,           \
-                                0,            \
-                                12}
 
 typedef struct
 {
@@ -42,9 +20,13 @@ typedef struct
 
 static UART_STATUS uart_stats[2];
 
+#define u1stat uart_stats[0]
+#define u2stat uart_stats[1]
+
+extern char* command_buffer;
+
 void configure_uart1(uart_parameters *params)
 {
-    OpenUART1();
     //calculate the appropriate baud setting
     if (params->baud > HIBAUDMIN)
     {
@@ -70,12 +52,12 @@ void configure_uart1(uart_parameters *params)
     U1MODEbits.STSEL = 0; //1 stop bit
 
     //setup the interrupts
-    rcv_cursor = rcv_buffer;
-    rcv_buffer[0] = '\0';
+    u1stat.rcv_cursor = u1stat.rcv_buffer;
+    u1stat.rcv_buffer[0] = '\0';
 
-    send_cursor = send_buffer;
-    send_buffer[0] = '\0';
-    sending = 0;
+    u1stat.send_cursor = u1stat.send_buffer;
+    u1stat.send_buffer[0] = '\0';
+    u1stat.sending = 0;
 
     U1STAbits.UTXISEL1 = 1; //Transmit interrupt when FIFO becomes empty
     U1STAbits.UTXISEL0 = 0;
@@ -163,21 +145,18 @@ void configure_uart( UARTPort port, uart_parameters *params)
 {
     switch ( port )
     {
-        case UART1:
-            OpenUART1( UART_EN,
-                       UART_TX_ENABLE,
-                       CALC_BAUD( params->baud ) );
-            ConfigIntUART1( UART_RX_INT_PR2 | UART_TX_INT_PR2 )
+        case U1:
+            configure_uart1( params );
             break;
-        case UART2:
-            
+        case U2:
+            configure_uart2( params );
             break;
     }
 }
 
-static UART_STATUS& GetStatus( UARTPort port )
+static UART_STATUS* GetStatus( UARTPort port )
 {
-    return uart_stats[port];
+    return &uart_stats[port];
 }
 
 //Interrupt Handlers
@@ -187,33 +166,45 @@ void _RXInterrupt( UART_STATUS* stat)
 
     while(U1STAbits.URXDA == 1)
     {
-        if (stat.rcv_cursor == stat.rcv_buffer+UART_BUFFER_SIZE)
+        if (stat->rcv_cursor == stat->rcv_buffer+UART_BUFFER_SIZE)
         {
-            stat.rcv_cursor = stat.rcv_buffer;
-            sends("Command too long.\n");
+            stat->rcv_cursor = stat->rcv_buffer;
+            sends( U2, "Command too long.\n");
 
         }
 
-        *(stat.rcv_cursor) = U1RXREG;
+        *(stat->rcv_cursor) = U1RXREG;
 
         //Check if we've received an entire command
-        if (*stat.rcv_cursor == '\n')
+        if (*stat->rcv_cursor == '\n')
         {
-            *stat.rcv_cursor = '\0';
-            strncpy(command_buffer, stat.rcv_buffer, UART_BUFFER_SIZE);
+            *stat->rcv_cursor = '\0';
+            strncpy(command_buffer, stat->rcv_buffer, UART_BUFFER_SIZE);
 
             //FIXME: move this to a task executed in the main loop
             process_command();
 
             //Reset everything and send a command prompt
-            stat.rcv_cursor = stat.rcv_buffer;
-            sends("PIC 24f16ka101> ");
+            stat->rcv_cursor = stat->rcv_buffer;
+            sends( U2, "PIC 24f16ka101> ");
 
             break;
         }   
 
-        stat.rcv_cursor = stat.rcv_cursor+1;
+        stat->rcv_cursor = stat->rcv_cursor+1;
     }
+}
+
+void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
+{
+    _RXInterrupt( &u1stat );
+    IFS0bits.U1RXIF = 0; //Clear IFS flag
+}
+
+void __attribute__((interrupt,no_auto_psv)) _U2RXInterrupt()
+{
+    _RXInterrupt( &u2stat );
+    IFS1bits.U2RXIF = 0; //Clear IFS flag
 }
 
 void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt()
@@ -229,42 +220,52 @@ void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt()
         if (*u1stat.send_cursor == '\0')
             u1stat.sending = 0;
     }
-    
+
+    IFS0bits.U1TXIF = 0; //Clear IFS flag
+}
+void __attribute__((interrupt,no_auto_psv)) _U2TXInterrupt()
+{
+    if (u2stat.sending)
+    {
+        if (*u2stat.send_cursor != '\0')
+        {
+            while (_UTXBF == 0 && *u2stat.send_cursor != '\0')
+                U2TXREG = *u2stat.send_cursor++;
+        }
+
+        if (*u2stat.send_cursor == '\0')
+            u2stat.sending = 0;
+    }
+
     IFS0bits.U1TXIF = 0; //Clear IFS flag
 }
 
-void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
+void put( UARTPort port, const char c )
 {
-    _RXInterrupt( GetStatus( UART1 ) );
-    IFS0bits.U1RXIF = 0; //Clear IFS flag
-}
-
-void put( UARTPort port, char c )
-{
-    UART_STATUS& stat = GetStatus( port );
-    stat.sending = 0;
-    while ( stat.send_cursor == stat.send_buffer + UART_BUFFER_SIZE )
+    UART_STATUS* stat = GetStatus( port );
+    stat->sending = 0;
+    while ( stat->send_cursor == stat->send_buffer + UART_BUFFER_SIZE )
         ; //TODO: Do this better.
-    *stat.send_cursor = c;
+    *stat->send_cursor = c;
 }
 
-void send(UARTPort port, char *msg)
+void send(UARTPort port, const char *msg)
 {
-    UART_STATUS& stat = GetStatus( port );
-    stat.sending = 0;
-    strncpy(stat.send_buffer, msg, UART_BUFFER_SIZE);
-    stat.send_cursor = stat.send_buffer+1;
-    stat.sending = 1;
+    UART_STATUS* stat = GetStatus( port );
+    stat->sending = 0;
+    strncpy(stat->send_buffer, msg, UART_BUFFER_SIZE);
+    stat->send_cursor = stat->send_buffer+1;
+    stat->sending = 1;
 
-    U1TXREG = stat.send_buffer[0];
+    U1TXREG = stat->send_buffer[0];
 }
 
-void sends(UARTPort port, char *msg)
+void sends(UARTPort port, const char *msg)
 {
-    send(msg);
+    send(port, msg);
 
-    UART_STATUS& stat = GetStatus( port );
-    while (stat.sending)
+    UART_STATUS* stat = GetStatus( port );
+    while (stat->sending)
         ;
 
     //Even after we stop filling the transmit FIFO, wait until the last bit is
@@ -275,22 +276,22 @@ void sends(UARTPort port, char *msg)
         ;
 }
 
-void sendf(UARTPort port, char *fmt, ...)
+void sendf(UARTPort port, const char *fmt, ...)
 {
-    UART_STATUS& stat = GetStatus( port );
-    stat.sending = 0;
+    UART_STATUS* stat = GetStatus( port );
+    stat->sending = 0;
     va_list argp;
     va_start(argp, fmt);
 
-    sprintf_small(stat.send_buffer, UART_BUFFER_SIZE, fmt, argp);
+    sprintf_small(stat->send_buffer, UART_BUFFER_SIZE, fmt, argp);
 
     va_end(argp);
 
-    stat.send_cursor = stat.send_buffer+1;
-    stat.sending = 1;
+    stat->send_cursor = stat->send_buffer+1;
+    stat->sending = 1;
 
-    U1TXREG = stat.send_buffer[0];
+    U1TXREG = stat->send_buffer[0];
 
-    while (stat.sending)
+    while (stat->sending)
         ;
 }

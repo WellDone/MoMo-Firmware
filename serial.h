@@ -17,8 +17,8 @@ typedef enum
 
 typedef enum
 {
-    UART1 = 0,
-    UART2 = 1
+    U1 = 0,
+    U2 = 1
 } UARTPort;
 
 typedef enum
@@ -36,10 +36,10 @@ typedef struct
 } uart_parameters;
 
 void configure_uart( UARTPort port, uart_parameters *params);
-void putc( UARTPort port, char c );
-void send( UARTPort port, char *msg );
-void sends( UARTPort port, char *msg ); //Blocking send function
-void sendf( UARTPort port, char *fmt, ... );
+void put( UARTPort port, const char c );
+void send( UARTPort port, const char *msg );
+void sends( UARTPort port, const char *msg ); //Blocking send function
+void sendf( UARTPort port, const char *fmt, ... );
 
 int read( UARTPort port, char** buffer, const char* stopString );
 int readln( UARTPort port, char** buffer );
