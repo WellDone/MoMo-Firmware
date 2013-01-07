@@ -7,14 +7,19 @@
 #include "serial_commands.h"
 #include <string.h>
 
-char command_buffer[UART_BUFFER_SIZE];
+volatile char __attribute__((space(data))) command_buffer[UART_BUFFER_SIZE];
+volatile int  __attribute__((space(data))) cmd_ready;
 
-char *known_commands[MAX_COMMANDS];
-CommandHandler command_handlers[MAX_COMMANDS];
+char __attribute__((space(data))) *known_commands[MAX_COMMANDS+1];
+CommandHandler __attribute__((space(data))) command_handlers[MAX_COMMANDS+1];
 
+extern UART_STATUS uart_stats[2];
 
 void register_command_handlers()
 {
+    command_buffer[0] = '\0';
+    cmd_ready = 0;
+    
     register_command("led", handle_led);
     register_command("echo", handle_echo_params);
     register_command("device", handle_device);
@@ -41,6 +46,22 @@ void register_command(char *cmd, CommandHandler handler)
   //Sentinal value so we know there are no more valid commands in the array
   known_commands[i] = 0;
   command_handlers[i] = 0;
+}
+
+/*
+ * Check if there are any commands pending and if so, process them.
+ */
+void process_commands_task()
+{
+    if (cmd_ready)
+    {
+        strncpy(command_buffer, uart_stats[1].rcv_buffer, UART_BUFFER_SIZE);
+        process_command();
+
+        sends( U2, "PIC 24f16ka101> ");
+
+        cmd_ready = 0;
+    }
 }
 
 /*
@@ -72,7 +93,7 @@ void process_command()
        //We've loooked through all the commands we know how to handle and not found it, punt.
        sends(U2, "Unknown command: ");
        sends(U2, command_buffer);
-       sends(U2, "\n");
+       sends(U2, "\r\n");
        break;
      }
      else if(strcmp(command_buffer, known_commands[i])==0)
@@ -118,7 +139,7 @@ char *get_param_string(command_params *params, unsigned int i)
 
   if (i >= params->num_params)
   {
-    sends(U2, "Invalid parameter number, too large.\n");
+    sends(U2, "Invalid parameter number, too large.\r\n");
     return 0;
   }
  

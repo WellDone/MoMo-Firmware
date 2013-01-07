@@ -76,110 +76,110 @@ ifeq ($(TYPE_IMAGE), DEBUG_RUN)
 ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/main.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  main.c  -o ${OBJECTDIR}/main.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  main.c  -o ${OBJECTDIR}/main.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/main.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/rtcc.o: rtcc.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/rtcc.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  rtcc.c  -o ${OBJECTDIR}/rtcc.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/rtcc.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  rtcc.c  -o ${OBJECTDIR}/rtcc.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/rtcc.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/rtcc.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/interrupts.o: interrupts.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/interrupts.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  interrupts.c  -o ${OBJECTDIR}/interrupts.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/interrupts.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  interrupts.c  -o ${OBJECTDIR}/interrupts.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/interrupts.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/interrupts.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/serial.o: serial.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/serial.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  serial.c  -o ${OBJECTDIR}/serial.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/serial.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  serial.c  -o ${OBJECTDIR}/serial.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/serial.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/serial.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/serial_commands.o: serial_commands.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/serial_commands.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  serial_commands.c  -o ${OBJECTDIR}/serial_commands.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/serial_commands.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  serial_commands.c  -o ${OBJECTDIR}/serial_commands.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/serial_commands.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/serial_commands.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/command_handlers.o: command_handlers.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/command_handlers.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  command_handlers.c  -o ${OBJECTDIR}/command_handlers.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/command_handlers.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  command_handlers.c  -o ${OBJECTDIR}/command_handlers.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/command_handlers.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/command_handlers.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/ringbuffer.o: ringbuffer.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/ringbuffer.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ringbuffer.c  -o ${OBJECTDIR}/ringbuffer.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/ringbuffer.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ringbuffer.c  -o ${OBJECTDIR}/ringbuffer.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/ringbuffer.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/ringbuffer.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/utilities.o: utilities.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/utilities.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  utilities.c  -o ${OBJECTDIR}/utilities.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/utilities.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  utilities.c  -o ${OBJECTDIR}/utilities.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/utilities.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/utilities.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/gsm_commands.o: gsm_commands.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/gsm_commands.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  gsm_commands.c  -o ${OBJECTDIR}/gsm_commands.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/gsm_commands.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  gsm_commands.c  -o ${OBJECTDIR}/gsm_commands.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/gsm_commands.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/gsm_commands.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 else
 ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/main.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  main.c  -o ${OBJECTDIR}/main.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main.o.d"        -g -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  main.c  -o ${OBJECTDIR}/main.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main.o.d"        -g -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/main.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/rtcc.o: rtcc.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/rtcc.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  rtcc.c  -o ${OBJECTDIR}/rtcc.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/rtcc.o.d"        -g -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  rtcc.c  -o ${OBJECTDIR}/rtcc.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/rtcc.o.d"        -g -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/rtcc.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/interrupts.o: interrupts.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/interrupts.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  interrupts.c  -o ${OBJECTDIR}/interrupts.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/interrupts.o.d"        -g -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  interrupts.c  -o ${OBJECTDIR}/interrupts.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/interrupts.o.d"        -g -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/interrupts.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/serial.o: serial.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/serial.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  serial.c  -o ${OBJECTDIR}/serial.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/serial.o.d"        -g -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  serial.c  -o ${OBJECTDIR}/serial.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/serial.o.d"        -g -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/serial.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/serial_commands.o: serial_commands.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/serial_commands.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  serial_commands.c  -o ${OBJECTDIR}/serial_commands.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/serial_commands.o.d"        -g -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  serial_commands.c  -o ${OBJECTDIR}/serial_commands.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/serial_commands.o.d"        -g -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/serial_commands.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/command_handlers.o: command_handlers.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/command_handlers.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  command_handlers.c  -o ${OBJECTDIR}/command_handlers.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/command_handlers.o.d"        -g -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  command_handlers.c  -o ${OBJECTDIR}/command_handlers.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/command_handlers.o.d"        -g -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/command_handlers.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/ringbuffer.o: ringbuffer.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/ringbuffer.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  ringbuffer.c  -o ${OBJECTDIR}/ringbuffer.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/ringbuffer.o.d"        -g -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  ringbuffer.c  -o ${OBJECTDIR}/ringbuffer.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/ringbuffer.o.d"        -g -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/ringbuffer.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/utilities.o: utilities.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/utilities.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  utilities.c  -o ${OBJECTDIR}/utilities.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/utilities.o.d"        -g -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  utilities.c  -o ${OBJECTDIR}/utilities.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/utilities.o.d"        -g -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/utilities.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 ${OBJECTDIR}/gsm_commands.o: gsm_commands.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
 	@${RM} ${OBJECTDIR}/gsm_commands.o.d 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  gsm_commands.c  -o ${OBJECTDIR}/gsm_commands.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/gsm_commands.o.d"        -g -omf=elf -Os -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	${MP_CC} $(MP_EXTRA_CC_PRE)  gsm_commands.c  -o ${OBJECTDIR}/gsm_commands.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/gsm_commands.o.d"        -g -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/gsm_commands.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 endif

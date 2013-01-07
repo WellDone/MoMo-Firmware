@@ -35,6 +35,17 @@ typedef struct
     ParitySettings parity;
 } uart_parameters;
 
+typedef struct
+{
+    volatile char rcv_buffer[UART_BUFFER_SIZE];
+    volatile char send_buffer[UART_BUFFER_SIZE];
+
+    volatile char *rcv_cursor;
+    volatile unsigned char receiving;
+    volatile char *send_cursor;
+    volatile unsigned char sending;
+} UART_STATUS;
+
 void configure_uart( UARTPort port, uart_parameters *params);
 void put( UARTPort port, const char c );
 void send( UARTPort port, const char *msg );

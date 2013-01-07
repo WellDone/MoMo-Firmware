@@ -19,6 +19,8 @@ void register_command(char *cmd, CommandHandler handler);
 void register_command_handlers();
 void process_command();
 
+void process_commands_task();
+
 void fill_param_struct(command_params *params, char *buff);
 
 //Convenience functions for command handlers

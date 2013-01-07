@@ -37,7 +37,7 @@ void configure_rtcc()
     _ALRMEN = 0; //Don't set an alarm
     _CHIME = 0; //Don't chime
 
-    configure_rtcc_oscillator();
+    //configure_rtcc_oscillator();
 }
 
 /*

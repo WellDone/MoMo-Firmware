@@ -10,7 +10,7 @@
 static int gsm_at_cmd( const char* cmd )
 {
     sends( U2, cmd );
-    sends( U2, "\n\r" );
+    sends( U2, "\r\n" );
     wait( 300 );
 }
 
