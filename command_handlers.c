@@ -2,6 +2,13 @@
 #include "rtcc.h"
 #include "utilities.h"
 
+int gsm_at_cmd( const char* cmd )
+{
+    sends( U1, cmd );
+    sends( U1, "\r\n" );
+    wait( 300 );
+}
+
 void handle_led(command_params *params)
 {
   if (params->num_params < 1)
@@ -34,6 +41,72 @@ void handle_echo_params(command_params *params)
       sends(U2, "\r\n");
     }
   }
+}
+
+void handle_gsm_module(command_params *params)
+{
+    char *cmd;
+
+    if (params->num_params < 1)
+    {
+        sends(U2, "You must pass a subcommand to the device command.\r\n");
+        return;
+    }
+
+    cmd = get_param_string(params, 0);
+
+    if (strcmp(cmd, "power") == 0)
+    {
+        if (params->num_params < 2)
+        {
+            sends(U2, "usage: gsm power [on|off]\r\n");
+            return;
+        }
+
+        if (strcmp(get_param_string(params, 1),"on") == 0)
+        {
+            _LATA3 = 1;
+            sends(U2, "GSM module powered on.\r\n");
+        }
+        else if (strcmp(get_param_string(params, 1),"off") == 0)
+        {
+            _LATA3 = 0;
+            sends(U2, "GSM module powered off.\r\n");
+        }
+        else
+            sends(U2, "Invalid option to gsm power command.\r\n");
+    }
+
+    if (strcmp(cmd, "module") == 0)
+    {
+        if (params->num_params < 2)
+        {
+            sends(U2, "usage: gsm module [on|off]\r\n");
+            return;
+        }
+
+        if (strcmp(get_param_string(params, 1),"on") == 0)
+        {
+            _LATB9 = 0;
+            sends(U2, "GSM module turned on.\r\n");
+        }
+        else if (strcmp(get_param_string(params, 1),"off") == 0)
+        {
+            _LATB9 = 1;
+            
+            gsm_at_cmd("AT+CPOF");
+            sends(U2, "GSM module turned off.\r\n");
+        }
+        else
+            sends(U2, "Invalid option to gsm module command.\r\n");
+    }
+
+    if (strcmp(cmd, "hello") == 0)
+    {
+        gsm_at_cmd( "AT" );
+        gsm_at_cmd( "AT+CMGF=1" );
+        sends(U2, "hello sent\r\n");
+    }
 }
 
 void handle_device(command_params *params)

@@ -215,6 +215,7 @@ void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt()
 
     IFS0bits.U1TXIF = 0; //Clear IFS flag
 }
+
 void __attribute__((interrupt,no_auto_psv)) _U2TXInterrupt()
 {
     if (u2stat.sending)

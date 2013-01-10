@@ -9,8 +9,8 @@
 
 static int gsm_at_cmd( const char* cmd )
 {
-    sends( U2, cmd );
-    sends( U2, "\r\n" );
+    sends( U1, cmd );
+    sends( U1, "\r\n" );
     wait( 300 );
 }
 
@@ -30,15 +30,15 @@ static void gsm_power_on()
 
 static void send_sms( const char* da, const char* message )
 {
-    sends( U2, "AT+CMGS=\"+17078159250\"\r\n");
+    sends( U1, "AT+CMGS=\"+17078159250\"\r\n");
     wait( 300 );
-    sends( U2, message );
-    put( U2, 0x1A ); // send ctrl-z
+    sends( U1, message );
+    put( U1, 0x1A ); // send ctrl-z
     wait( 300 );
 
 
-    sendf(U1, "SMS sent to %s: %s", da, message );
-    sends(U1, "\n");
+    sendf(U2, "SMS sent to %s: %s", da, message );
+    sends(U2, "\r\n");
 }
 
 static void gsm_on()

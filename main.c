@@ -25,7 +25,7 @@
 
 // FOSC
 #pragma config POSCMOD = NONE           // Primary Oscillator Configuration bits (Primary oscillator disabled)
-#pragma config OSCIOFNC = OFF           // CLKO Enable Configuration bit (CLKO output signal is active on the OSCO pin)
+#pragma config OSCIOFNC = ON           // CLKO Enable Configuration bit (CLKO output signal is active on the OSCO pin)
 #pragma config POSCFREQ = HS            // Primary Oscillator Frequency Range Configuration bits (Primary oscillator/external clock input frequency greater than 8 MHz)
 #pragma config SOSCSEL = SOSCHP         // SOSC Power Selection Configuration bits (Secondary oscillator configured for high-power operation)
 #pragma config FCKSM = CSDCMD           // Clock Switching and Monitor Selection (Both Clock Switching and Fail-safe Clock Monitor are disabled)
@@ -68,20 +68,27 @@ int main(void) {
 
     _LATA0 = 0;
     _LATA1 = 1;
+    _LATA3 = 0; //4V regulator power pin
 
 
     _TRISA0 = 0;
     _TRISA1 = 0;
+    _TRISA3 = 0;
+
+    //Configure pin controlling WISMO
+    _LATB9 = 1;
+    _ODB9 = 1;
+    _TRISB9 = 0;
 
     configure_interrupts();
     //configure_rtcc();
     //enable_rtcc();
     //set_recurring_task(EverySecond, blink_light);
 
-    //params_uart1.baud = 57600;
-    //params_uart1.hw_flowcontrol = 0;
-    //params_uart1.parity = NoParity;
-    //configure_uart( U1, &params_uart1 );
+    params_uart1.baud = 115200;
+    params_uart1.hw_flowcontrol = 0;
+    params_uart1.parity = NoParity;
+    configure_uart( U1, &params_uart1 );
     //init_debug();
 
     //init_gsm();
