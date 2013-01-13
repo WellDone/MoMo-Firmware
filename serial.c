@@ -15,13 +15,34 @@ UART_STATUS __attribute__((space(data))) uart_stats[2];
 extern char* command_buffer;
 extern int cmd_ready;
 
+void dump_gsm_buffer(void)
+{
+    int diff = u1stat.rcv_cursor - u1stat.rcv_buffer;
+    int i;
+    
+    sendf(U2, "num chars: %d\r\n", diff);
+
+    *u1stat.rcv_cursor ='\0';
+
+/*    for (i=0;i<UART_BUFFER_SIZE; ++i)
+    {
+        if (u1stat.rcv_buffer[i] == '\r')
+            u1stat.rcv_buffer[i] = 'r';
+        else if (u1stat.rcv_buffer[i] == '\n')
+            u1stat.rcv_buffer[i] = 'n';
+    }*/
+
+    sends(U2, u1stat.rcv_buffer);
+    u1stat.rcv_cursor = u1stat.rcv_buffer;
+}
+
 void configure_uart1(uart_parameters *params)
 {
     //calculate the appropriate baud setting
     if (params->baud > HIBAUDMIN)
     {
         U1MODEbits.BRGH = 1;
-        U1BRG = CALC_BAUDHI(params->baud);
+        U1BRG = 16;//69;//CALC_BAUDHI(params->baud); FIXME
     }
     else
     {
@@ -39,7 +60,7 @@ void configure_uart1(uart_parameters *params)
 
     U1MODEbits.ABAUD = 0; //don't infer baud from the line
     U1MODEbits.PDSEL = params->parity & 0b11; //set parity
-    U1MODEbits.STSEL = 0; //1 stop bit
+    U1MODEbits.STSEL = 0; //1 stop bits; CHECK
 
     //setup the interrupts
     u1stat.rcv_cursor = u1stat.rcv_buffer;
@@ -185,9 +206,22 @@ void receive_command( UART_STATUS* stat)
 
 void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 {
-   char tmp;
-    while(U2STAbits.URXDA == 1)
-        tmp = U2RXREG;
+   UART_STATUS *stat = &u1stat;
+    
+   while(U1STAbits.URXDA == 1)
+    {
+        if (stat->rcv_cursor == stat->rcv_buffer+UART_BUFFER_SIZE)
+        {
+            stat->rcv_cursor = stat->rcv_buffer;
+            sends( U2, "GSM buffer full.\r\n");
+
+        }
+
+        *(stat->rcv_cursor) = U1RXREG;
+        //U2TXREG = *(stat->rcv_cursor); //echo first four characters
+
+        stat->rcv_cursor = stat->rcv_cursor+1;
+    }
    
     IFS0bits.U1RXIF = 0; //Clear IFS flag
 }

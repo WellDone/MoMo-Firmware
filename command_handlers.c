@@ -97,15 +97,37 @@ void handle_gsm_module(command_params *params)
             gsm_at_cmd("AT+CPOF");
             sends(U2, "GSM module turned off.\r\n");
         }
+        else if (strcmp(get_param_string(params, 1), "dump") == 0)
+        {
+            dump_gsm_buffer();
+        }
+        else if (strcmp(get_param_string(params, 1), "slow") == 0)
+        {
+            gsm_at_cmd("AT+IPR=38400");
+        }
         else
             sends(U2, "Invalid option to gsm module command.\r\n");
     }
 
     if (strcmp(cmd, "hello") == 0)
     {
-        gsm_at_cmd( "AT" );
-        gsm_at_cmd( "AT+CMGF=1" );
+        gsm_at_cmd( "AT+ICF?" );
+        //gsm_at_cmd( "AT+CMGF=1" );
         sends(U2, "hello sent\r\n");
+    }
+
+    else if (strcmp(cmd, "baud") == 0)
+    {
+        sendf(U2, "BRG1 Value: %d\r\n", U1BRG);
+    }
+    else if (strcmp(cmd, "test") == 0)
+    {
+        sends(U1, "U\r");
+    }
+    else if (strcmp(cmd, "pattern") == 0)
+    {
+        char cmd[4] = {0xFF,0x00,'\r','\0'};
+        sends(U1, cmd);
     }
 }
 

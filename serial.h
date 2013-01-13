@@ -47,6 +47,7 @@ typedef struct
 } UART_STATUS;
 
 void configure_uart( UARTPort port, uart_parameters *params);
+void dump_gsm_buffer(void);
 void put( UARTPort port, const char c );
 void send( UARTPort port, const char *msg );
 void sends( UARTPort port, const char *msg ); //Blocking send function

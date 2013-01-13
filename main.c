@@ -20,8 +20,8 @@
 #pragma config GCP = OFF                // General Segment Code Flash Code Protection bit (No protection)
 
 // FOSCSEL
-#pragma config FNOSC = FRC              // Oscillator Select (8 MHz FRC oscillator (FRC))
-#pragma config IESO = OFF               // Internal External Switch Over bit (Internal External Switchover mode disabled (Two-Speed Start-up disabled))
+#pragma config FNOSC = FRCPLL           // Oscillator Select (8 MHz FRC oscillator (FRC)) with PLL
+#pragma config IESO  = OFF              // Internal External Switch Over bit (Internal External Switchover mode disabled (Two-Speed Start-up disabled))
 
 // FOSC
 #pragma config POSCMOD = NONE           // Primary Oscillator Configuration bits (Primary oscillator disabled)
@@ -80,6 +80,9 @@ int main(void) {
     _ODB9 = 1;
     _TRISB9 = 0;
 
+    //Disable div-by-2
+    //CLKDIV = 0;
+
     configure_interrupts();
     //configure_rtcc();
     //enable_rtcc();
@@ -107,8 +110,9 @@ int main(void) {
     while(1)
     {
         //Do periodic tasks
+        _LATA0 = !_LATA0;
         process_commands_task();
-        }
+    }
 
     return (EXIT_SUCCESS);
 }
