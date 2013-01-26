@@ -1,0 +1,22 @@
+[Eagle]
+Version="06 04 00"
+Platform="Mac OS X"
+Serial="62191E841E-LSR-WLM-1EL"
+Globals="Globals"
+Desktop="Desktop"
+
+[Globals]
+AutoSaveProject=1
+UsedLibrary="/Applications/EAGLE-6.4.0/lbr/rcl.lbr"
+UsedLibrary="/Applications/EAGLE-6.4.0/lbr/supply1.lbr"
+UsedLibrary="/Users/timburke/Documents/eagle/GSM Daughterboard/components.lbr"
+
+[Win_1]
+Type="Control Panel"
+Loc="313 225 1317 817"
+State=2
+Number=0
+
+[Desktop]
+Screen="1680 1050"
+Window="Win_1"
