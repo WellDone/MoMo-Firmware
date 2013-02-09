@@ -1,18 +1,13 @@
+#define SENS_BUF_SIZE 384
+
 //start based on interrupt
 void wake_int();
 
+//sample sensor. Returns after pulling data from sensor and storing it into
+//buffer SENS_BUF
+void sample_sensor();
 
-//store data
-void store_data();
+//Configure interrupts for sensor wakeup
+void configure_wakeup_interrupt();
 
-
-//gather data
-
-int gather_data();
-  
-//See if middle conductors are conducting
-void is_mid();
-
-//See if high conductors are conducting
-void is_high();
-
+extern unsigned int sensor_buf[SENS_BUF_SIZE] __attribute__((space(dma)));
