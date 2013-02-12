@@ -1,4 +1,3 @@
-#define SENS_BUF_SIZE 384
 
 //start based on interrupt
 void wake_int();
@@ -10,4 +9,5 @@ void sample_sensor();
 //Configure interrupts for sensor wakeup
 void configure_wakeup_interrupt();
 
-//extern unsigned int sensor_buf[SENS_BUF_SIZE] __attribute__((space(dma)));
+//space to put sampled data
+extern unsigned int sensor_buf[5];

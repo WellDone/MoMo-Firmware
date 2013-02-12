@@ -4,44 +4,191 @@
 #include <p24F16KA101.h>
 #include "rtcc.h"
 #include "sensor.h"
-//#include "asm_routines.s"
+#define I2C1_RETRY_MAX 5
+#define I2C_TIMEOUT 10000 //test this, may not need timeout
 
+//#include "asm_routines.s"
+volatile unsigned char I2C1_RX_BUF[16];
+volatile unsigned char I2C1_TX_BUF[16];
+volatile unsigned char I2C1_RTC_RX_BUF[20];
+volatile unsigned char I2C1_RTC_TX_BUF[20];
+volatile unsigned char I2C2_RX_BUF[4];
+volatile unsigned char I2C2_TX_BUF[4];
+
+volatile char I2C1_NACK_F;	//if no ack, be 1
+volatile char I2C1_MASTER_F;	//if occured i2c interrupt as master, 1
+
+volatile char I2C2_NACK_F;	//if no ack, be 1
+volatile char I2C2_MASTER_F;	//if occured i2c interrupt as master, 1
 //start based on interrupt
 //void wake_int()
 
+//
+char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
+{
+	unsigned char state = 0, retrycnt = 0, datacnt = 0;
+	unsigned int timeout_cnt=0;
+
+	while(timeout_cnt++ < I2C_TIMEOUT)
+	{
+		switch(state)
+		{
+		//Start I2C
+		case 0:
+			I2C1CONbits.SEN = 1;
+			state++;
+			break;
+
+		//Send Slave Address with a read indication
+		case 1:
+			if(I2C1_MASTER_F == 1)
+			{
+				I2C1_MASTER_F = 0;
+				I2C1TRN = (((slave_address & 0x7F) << 1 ) | 0x01);
+				state++;
+			}
+			break;
+
+		//Wait for ACK
+		case 2:
+			if(I2C1_MASTER_F == 1)
+			{
+				I2C1_MASTER_F = 0;
+				if(I2C1STATbits.ACKSTAT == 1)
+				{
+					I2C1_NACK_F = 1;
+					if(retrycnt < I2C1_RETRY_MAX)state = 7;
+					else state = 9;
+				}
+				else
+				{
+					I2C1_NACK_F = 0;
+					retrycnt = 0;
+					state++;
+				}
+			}
+			break;
+
+		//Receive Enable
+		case 3:
+			I2C1CONbits.RCEN = 1;
+			state++;
+			break;
+
+		//Receive Data1
+		case 4:
+			if(I2C1_MASTER_F == 1)
+			{
+				I2C1_MASTER_F = 0;
+				I2C1_RX_BUF[datacnt] = I2C1RCV;
+				I2C1CONbits.ACKEN = 1;
+				I2C1CONbits.ACKDT = 0;
+				datacnt++;
+				state++;
+			}
+			break;
+		
+		//Receive Enable
+		case 5:
+			if(I2C1_MASTER_F == 1)
+			{
+				I2C1_MASTER_F = 0;
+				I2C1CONbits.RCEN = 1;
+				if(datacnt < n_bytes - 1)state = 4;
+				else if(datacnt >= n_bytes - 1)state = 6;
+			}	
+			break; 
+			
+		//Receive Data2
+		case 6:
+			if(I2C1_MASTER_F == 1)
+			{
+				I2C1_MASTER_F = 0;
+				I2C1_RX_BUF[datacnt] = I2C1RCV;
+				I2C1CONbits.ACKEN = 1;
+				I2C1CONbits.ACKDT = 1;
+				state = 11;
+			}
+			break;
+
+		//Stop to Retry
+		case 7:
+			I2C1CONbits.PEN = 1; //STOP I2C
+			state++;
+			break;
+
+		//Retry
+		case 8:
+			if(I2C1_MASTER_F == 1)
+			{
+				I2C1_MASTER_F = 0;
+				retrycnt++;
+				state = 0;
+			}
+			break;
+
+		//Error EXIT
+		case 9:
+			I2C1CONbits.PEN = 1; //STOP I2C
+			state++;
+			break;
+		
+		//Error EXIT
+		case 10:
+			if(I2C1_MASTER_F == 1)
+			{
+				I2C1_MASTER_F = 0;
+				return 0;
+			}
+			break;
+
+		//Normal EXIT
+		case 11:
+			if(I2C1_MASTER_F == 1)
+			{
+				I2C1_MASTER_F = 0;
+				I2C1CONbits.PEN = 1; //STOP I2C
+				state++;
+			}
+			break;
+
+		//Normal EXIT
+		case 12:
+			if(I2C1_MASTER_F == 1)
+			{
+				I2C1_MASTER_F = 0;
+				return 1;
+			}
+			break;
+		}
+	}	
+
+	return 0;
+}
 
 void sample_sensor() {
 
   int cur_time;
   int end_time;
-  int write_data[3];
+  rtcc_time temp_rtc_time;
   //if interrupt, start service routine
-  /*write_data[0] = rtc_time(); //first byte is the time sampling started
+  rtcc_get_time(*temp_rtc_time);
+  sensor_buf[0] = (temp_rtc_time.seconds) | (temp_rtc_time.minutes << 8) | 
+    (temp_rtc_time.hours << 16); //first byte is the time sampling started
+  sensor_buf[1] = (temp_rtc_time.day) | (temp_rtc_time.weekday << 8) | 
+    (temp_rtc_time.month << 16) | (temp_rtc_time.year << 24);
+
   while(!I2C_read()); //while accesses fail, keep sampling
-  write_data[1] = i2c_data(); //second byte is number of pulses
-  write_data[2] = rtc_time(); //last byte is end time
-*/
-  //return write_data; //return to write to memory
+
+  sensor_buf[2] = i2c_data(); //second byte is number of pulses
+
+  rtcc_get_time(*temp_rtc_time); //last two bytes are ending time
+  sensor_buf[3] = (temp_rtc_time.seconds) | (temp_rtc_time.minutes << 8) | 
+    (temp_rtc_time.hours << 16); 
+  sensor_buf[4] = (temp_rtc_time.day) | (temp_rtc_time.weekday << 8) | 
+    (temp_rtc_time.month << 16) | (temp_rtc_time.year << 24);
+
 }
-
-  //Write header
-  //mem_write(cur_time);
- // mem_write(DATA_TRANSFER);
-  //record interval
-//  cur_time = RTC_cur_time();
-
-  /*while (is_active()) {
-    wait_5sec();
-  }*/
-  
-  //return to main loop
-  
- // end_time = RTC_cur_time();
-  
-  //mem_write(cur_time - end_time);
-  //mem_write(get_mid_flag());
-  //mem_write(get_high_flag());
-
 
 void configure_wakeup_interrupt() {
     _INT2EP = 1; //set INT2 for negedge detect
