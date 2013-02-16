@@ -6,8 +6,8 @@ void wake_int();
 //buffer SENS_BUF
 void sample_sensor();
 
-//Configure interrupts for sensor wakeup
-void configure_wakeup_interrupt();
+//Configure sensor: interrupt for wakeup, I2C, timeout
+void configure_sensor();
 
-//space to put sampled data
-extern unsigned int sensor_buf[5];
+//I2C Master Read
+char I2C_READ(unsigned char slave_address, unsigned char n_bytes);
