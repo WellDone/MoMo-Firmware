@@ -105,6 +105,46 @@ void handle_gsm_module(command_params *params)
         {
             gsm_at_cmd("AT+IPR=38400");
         }
+        else if (strcmp(get_param_string(params, 1), "send") == 0)
+        {
+            if (params->num_params >= 3)
+            {
+                gsm_at_cmd(get_param_string(params,2));
+                sends(U2, "command sent\r\n");
+            }
+            else
+                sends(U2, "usage: gsm module send <cmd>\r\n");
+        }
+        else if (strcmp(get_param_string(params, 1), "msg") == 0)
+        {
+            if (params->num_params >= 3)
+            {
+                sends(U1, "AT+CMGS=\"");
+                sends(U1, get_param_string(params,2));
+                sends(U1, "\"\r");
+
+            }
+            else
+                sends(U2, "usage: gsm module msg <address>\r\n");
+        }
+        else if (strcmp(get_param_string(params, 1), "msgend") == 0)
+        {
+            //gsm_at_cmd("AT+CMGF=1");
+            gsm_at_cmd("Just a friendly heads up, WellDone has sensed that pump #21 needs repair.\x1A");
+            //gsm_at_cmd("Hello World!\x1A");
+
+        }
+        else if (strcmp(get_param_string(params, 1), "msgwell") == 0)
+        {
+            if (params->num_params >= 3)
+            {
+                sends(U1, get_param_string(params,2));
+                sends(U1, "\x1A");
+
+            }
+            else
+                sends(U2, "usage: gsm module msgwell <status>\r\n");
+        }
         else
             sends(U2, "Invalid option to gsm module command.\r\n");
     }
@@ -120,6 +160,25 @@ void handle_gsm_module(command_params *params)
     {
         sendf(U2, "BRG1 Value: %d\r\n", U1BRG);
     }
+    else if (strcmp(cmd, "report") == 0)
+        {
+            if (params->num_params >= 2)
+            {
+                unsigned int i=0;
+                sends(U1, "AT+CMGS=\"");
+                sends(U1, "+15107358486");
+                sends(U1, "\"\r");
+
+                //delay
+                for (i=0; i<65000; ++i)
+                    ;
+
+                sends(U1, get_param_string(params,1));
+                sends(U1, "\x1A");
+            }
+            else
+                sends(U2, "usage: gsm report <status>\r\n");
+        }
     else if (strcmp(cmd, "test") == 0)
     {
         sends(U1, "U\r");
