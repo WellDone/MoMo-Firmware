@@ -1,53 +1,57 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pic12lf1822.h>
+#include "main.h"
+#include <xc.h>
+//#include "asm_routines.s"
 
-int main() {
-//wakeup from interrupt
-  configure_I2C();
-  configure_interrupts();
-  configure_IO();
-  while(1) {
-    go_to_sleep();
-    disable_interrupts();
-    while(!did_counter_change());   //if interrupt routine has stopped incrementing
-    //pulse_count, exit
-    wake_master(); // send interrupt to master PIC to start sampling over I2C
-    enable_I2C(); //starts responding to master as I2C slave
-    enable_interrupts();
+//configure watchdog to be software enabled
+#pragma config WDTE = 1 
+volatile unsigned long pulse_count = 0, prev_pulse_count = 0;
+void interrupt ISR() {
+  if (1 == PIR1bits.SSP1IF) {
+    I2C_M_FLAG = 1; //set I2C flag
+    PIR1bits.SSP1IF = 0;
+  } else if (INTCONbits.INTF == 1) {
+    pulse_count++;
+    INTCONbits.INTF = 0; //clear interrupt flag
+    asm("CLRWDT");
+  } else {
+    wdt_to = 1;
   }
 }
 
-interrupt_function {
-     pulse count++;
-}
-
-void configure_I2C() {
-  
-}
-
-//I2C slave write
-void I2C_s_write() {
-	unsigned char state = 0, retrycnt = 0, datacnt = 0;
-	unsigned int timeout_cnt=0;
-	while(timeout_cnt++ < I2C_TIMEOUT) 
-	  {
-	    switch(state) {
-	    case ADDR :
-	      if (addr == 0x0A)
-		state = ACK;
-	    case NACK :
-	    case SEND :
-	    case SUCCESS :
-	    case FAILURE :
-	    }
-	  }
-}
-
-__interrupt(type) void ISR() {
-  if (I2C_int) {
-    I2C_s_write();
-  } else {
+void main() {
+//wakeup from interrupt
+  configure_i2c_interrupts(on);
+  configure_external_interrupts(on);
+  configure_IO();
+  SLEEP();
+  while(1) {
+    //Do initial pulse_count on wakeup and initialize WDT
     pulse_count++;
+    configure_wdt(on);
+    
+    //accumulate data
+    if(!wdt_to) 
+      continue; //if interrupt is still incrementing, loop back
+
+    /* ============SEND DATA TO MASTER============ */
+    //Disable WDT
+    configure_wdt(off);
+    wdt_to = 0;
+
+    //pulse_count, exit
+    configure_i2c_interrupts(on);
+    I2C_s_write(); //send pulse_count to master
+    wake_master(); // send interrupt to master PIC to start sampling over I2C
+    /* ============SEND DATA TO MASTER============ */
+
+    //reset counts
+    SLEEP();
+    pulse_count = 0;
+    prev_pulse_count = 0;
+
   }
 }
