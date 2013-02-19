@@ -90,8 +90,6 @@ void configure_uart1(uart_parameters *params)
 
     U1MODEbits.UARTEN = 1; //Enable the uart
     U1STAbits.UTXEN = 1; //Enable transmission
-
-    _LATA0 = 0;
 }
 
 void configure_uart2(uart_parameters *params)

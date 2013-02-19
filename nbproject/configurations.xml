@@ -49,7 +49,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>PICkit2PlatformTool</platformTool>
         <languageToolchain>XC16</languageToolchain>
-        <languageToolchainVersion>1.10</languageToolchainVersion>
+        <languageToolchainVersion>1.11</languageToolchainVersion>
         <platform>4</platform>
       </toolsSet>
       <compileType>

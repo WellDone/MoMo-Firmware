@@ -65,12 +65,12 @@ void handle_gsm_module(command_params *params)
 
         if (strcmp(get_param_string(params, 1),"on") == 0)
         {
-            _LATA3 = 1;
+            _LATA0 = 1;
             sends(U2, "GSM module powered on.\r\n");
         }
         else if (strcmp(get_param_string(params, 1),"off") == 0)
         {
-            _LATA3 = 0;
+            _LATA0 = 0;
             sends(U2, "GSM module powered off.\r\n");
         }
         else
@@ -87,12 +87,12 @@ void handle_gsm_module(command_params *params)
 
         if (strcmp(get_param_string(params, 1),"on") == 0)
         {
-            _LATB9 = 0;
+            _LATA2 = 0;
             sends(U2, "GSM module turned on.\r\n");
         }
         else if (strcmp(get_param_string(params, 1),"off") == 0)
         {
-            _LATB9 = 1;
+            _LATA2 = 1;
             
             gsm_at_cmd("AT+CPOF");
             sends(U2, "GSM module turned off.\r\n");
