@@ -1,9 +1,10 @@
-
 #include <stdio.h>
-#include <stdlib.h>
 #include <p24F16KA101.h>
 #include "rtcc.h"
 #include "sensor.h"
+#include "serial_commands.h"
+#include "utilities.h"
+
 #define I2C1_RETRY_MAX 5
 #define I2C_TIMEOUT 10000 //test this, may not need timeout
 volatile unsigned char I2C1_RX_BUF[16];
@@ -80,7 +81,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 		case 0:
 			I2C1CONbits.SEN = 1;
 			state++;
-			sends("Start bit");
+			sends(U2, "Start bit");
 			break;
 
 		//Send Slave Address with a read indication
@@ -90,7 +91,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 				I2C1_MASTER_F = 0;
 				I2C1TRN = (((slave_address & 0x7F) << 1 ) | 0x01);
 				state++;
-				sends("Send addr");
+				sends(U2, "Send addr");
 			}
 			break;
 
@@ -98,18 +99,18 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 		case 2:
 			if(I2C1_MASTER_F == 1)
 			{
-			  sends("Slave ACK");
+			  sends(U2, "Slave ACK");
 				I2C1_MASTER_F = 0;
 				if(I2C1STATbits.ACKSTAT == 1)
 				{
-				  sends("NACK found");
+				  sends(U2, "NACK found");
 					I2C1_NACK_F = 1;
 					if(retrycnt < I2C1_RETRY_MAX)state = 7;
 					else state = 9;
 				}
 				else
 				{
-				  sends("ACK found");
+				  sends(U2, "ACK found");
 					I2C1_NACK_F = 0;
 					retrycnt = 0;
 					state++;
@@ -119,7 +120,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 
 		//Receive Enable
 		case 3:
-		  sends("receive enable");
+		  sends(U2, "receive enable");
 			I2C1CONbits.RCEN = 1;
 			state++;
 			break;
@@ -128,7 +129,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 		case 4:
 			if(I2C1_MASTER_F == 1)
 			{
-			  sends("receive Data1");
+			  sends(U2, "receive Data1");
 				I2C1_MASTER_F = 0;
 				I2C1_RX_BUF[datacnt] = I2C1RCV;
 				I2C1CONbits.ACKEN = 1;
@@ -142,7 +143,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 		case 5:
 			if(I2C1_MASTER_F == 1)
 			{
-			  sends("receive enable");
+			  sends(U2, "receive enable");
 				I2C1_MASTER_F = 0;
 				I2C1CONbits.RCEN = 1;
 				if(datacnt < n_bytes - 1)state = 4;
@@ -154,7 +155,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 		case 6:
 			if(I2C1_MASTER_F == 1)
 			{
-			  sends("receive Data2");
+			  sends(U2, "receive Data2");
 				I2C1_MASTER_F = 0;
 				I2C1_RX_BUF[datacnt] = I2C1RCV;
 				I2C1CONbits.ACKEN = 1;
@@ -165,7 +166,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 
 		//Stop to Retry
 		case 7:
-		  sends("stop and retry");
+		  sends(U2, "stop and retry");
 			I2C1CONbits.PEN = 1; //STOP I2C
 			state++;
 			break;
@@ -174,7 +175,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 		case 8:
 			if(I2C1_MASTER_F == 1)
 			{		
-			  sends("retry");
+			  sends(U2, "retry");
 				I2C1_MASTER_F = 0;
 				retrycnt++;
 				state = 0;
@@ -183,7 +184,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 
 		//Error EXIT
 		case 9:
-		  sends("error exit");
+		  sends(U2, "error exit");
 			I2C1CONbits.PEN = 1; //STOP I2C
 			state++;
 			break;
@@ -192,7 +193,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 		case 10:
 			if(I2C1_MASTER_F == 1)
 			{
-			  sends("error exit");
+			  sends(U2, "error exit");
 				I2C1_MASTER_F = 0;
 				return 0;
 			}
