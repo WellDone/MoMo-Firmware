@@ -10,7 +10,7 @@
 #include <p24F16KA101.h>
 #include "rtcc.h"
 #include "serial.h"
-
+#include "xc.h"
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
 #pragma config BSS = OFF                // Boot segment Protect (No boot program Flash segment)
@@ -115,4 +115,46 @@ int main(void) {
     }
 
     return (EXIT_SUCCESS);
+}
+
+void main_loop() {
+    enum { SLEEP_MODE, CHECK_INT, SENSING, MEMORY_WRITE, MEMORY_READ, GSM } state;
+    unsigned long pulse_count = 0;
+    while(1) {
+      switch(state) {
+      case SLEEP_MODE: //SLEEP mode
+	Sleep(); //put pic to sleep
+	state = CHECK_INT;
+	break;
+      case CHECK_INT: //check which interrupt woke it up
+	if(IFS1bits.INT2IF) {
+	  if (pulse_count == 200) //COMMENT THIS SHIT OUT
+	    pulse_count = 0;
+	  pulse_count++;
+	  state = SENSING; //if sensor interrupt, sample sensor
+	  IFS1bits.INT2IF = 0; //clear interrupt bit
+	}
+	else if (IFS3bits.RTCIF) {
+	  state = GSM; //if RTC interrupt transmit GSM
+	  IFS3bits.RTCIF = 0;
+	}
+	break;
+      case SENSING: 
+	sample_sensor(); //<(0.0<) Read what it says mofugga
+	state = MEMORY_WRITE;
+	break;
+      case MEMORY_WRITE:
+	mem_write();
+	state = SLEEP_MODE;
+	break;
+      case MEMORY_READ:
+	//mem_read();
+	state = GSM;
+	break;
+      case GSM:
+	//GSM send code
+	state = SLEEP_MODE;
+	break;
+      }
+      }
 }

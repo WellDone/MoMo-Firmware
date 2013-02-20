@@ -1,7 +1,9 @@
+#include <xc.h>
 #include "serial_commands.h"
 #include "rtcc.h"
 #include "utilities.h"
 #include "sensor.h"
+
 int gsm_at_cmd( const char* cmd )
 {
     sends( U1, cmd );
@@ -215,5 +217,10 @@ void handle_rtcc(command_params *params)
 }
 
 void handle_sensor(command_params *params) {
-  I2C_READ(0x0A, 4);
+  IEC1bits.INT2IE = 1; //enable interrupt
+  sends(U2, "Good night, Sweet Prince");
+  Sleep();
+  sends(U2, "I can't do that Dave");
+  IEC1bits.INT2IE = 0; //disable interrupt
 }
+
