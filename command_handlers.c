@@ -1,7 +1,7 @@
 #include "serial_commands.h"
 #include "rtcc.h"
 #include "utilities.h"
-
+#include "sensor.h"
 int gsm_at_cmd( const char* cmd )
 {
     sends( U1, cmd );
