@@ -2,7 +2,7 @@
 #ifndef __interrupts_h__
 #define __interrupts_h__
 
-#include <p24f16ka101.h>
+#include <p24F16KA101.h>
 
 typedef void (*isr_handler)();
 

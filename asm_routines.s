@@ -1,8 +1,9 @@
 
 
 
-;INCLUDE "p24f16ka101.inc"
-
+#include <p24F16KA101.inc>
+ .equiv SLEEP_MODE, 0x0000
+ .equiv IDLE_MODE, 0x0001
 ;Magic incantation to allow writing to the rtcon
 _asm_enable_rtcon_write:
     PUSH w7
@@ -21,6 +22,10 @@ _asm_enable_rtcon_write:
 _asm_reset:
     RESET
 
+_asm_sleep:
+    PWRSAV #SLEEP_MODE
+
 .global _asm_enable_rtcon_write ;note the underscore to handle C name mangling rules
 .global _asm_reset
+.global _asm_sleep
 

@@ -9,5 +9,6 @@
 #define SET_BIT(field,bitnum)    (field |= 1<<bitnum)
 
 extern void asm_reset();
+extern void asm_sleep();
 
 #endif

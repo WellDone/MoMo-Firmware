@@ -272,3 +272,7 @@ void handle_rtcc(command_params *params)
     else
         sendf(U2, "Unknown rtcc command: %s\r\n", cmd);
 }
+
+void handle_sensor(command_params *params) {
+  I2C_READ(0x0A, 4);
+}
