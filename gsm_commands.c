@@ -16,8 +16,6 @@ static int gsm_at_cmd( const char* cmd )
 
 static void gsm_power_on()
 {
-
-    _LATA1 = 0;
     while ( _LATA2 == 1 )
         ; // READY goes high first
     while ( _LATA2 == 0 )
