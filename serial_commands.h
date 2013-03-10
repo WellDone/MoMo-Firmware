@@ -34,4 +34,5 @@ void handle_rtcc(command_params *params);
 void handle_gsm(command_params *params);
 void handle_gsm_module(command_params *params);
 void handle_sensor(command_params *params);
+void handle_memory(command_params *params);
 #endif

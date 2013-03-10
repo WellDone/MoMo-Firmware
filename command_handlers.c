@@ -1,8 +1,9 @@
 #include <xc.h>
 #include "serial_commands.h"
 #include "rtcc.h"
-#include "utilities.h"
+//#include "utilities.h"
 #include "sensor.h"
+#include "memory.h"
 
 int gsm_at_cmd( const char* cmd )
 {
@@ -224,3 +225,14 @@ void handle_sensor(command_params *params) {
   IEC1bits.INT2IE = 0; //disable interrupt
 }
 
+void handle_memory(command_params *params) {
+    char* cmd;
+    cmd = get_param_string(params, 0);
+    int val;
+    if (strcmp(cmd, "write")) {
+      val = get_param_string(params, 1);
+      mem_write(val);
+    } else if (strcmp(cmd, "read")) {
+      val = mem_read();
+    }
+}

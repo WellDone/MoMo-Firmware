@@ -11,6 +11,7 @@
 #include "rtcc.h"
 #include "serial.h"
 #include "xc.h"
+#include "memory.h"
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
 #pragma config BSS = OFF                // Boot segment Protect (No boot program Flash segment)
@@ -53,6 +54,8 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
+static unsigned char SENSOR_BUF[5];
+
 void blink_light()
 {
     _LATA0 = !_LATA0;
@@ -84,6 +87,7 @@ int main(void) {
     //CLKDIV = 0;
 
     configure_interrupts();
+    configure_SPI();
     //configure_rtcc();
     //enable_rtcc();
     //set_recurring_task(EverySecond, blink_light);
@@ -144,7 +148,7 @@ void main_loop() {
 	state = MEMORY_WRITE;
 	break;
       case MEMORY_WRITE:
-	mem_write();
+	//	mem_write();
 	state = SLEEP_MODE;
 	break;
       case MEMORY_READ:

@@ -2,8 +2,11 @@
 #include <stdlib.h>
 #include <p24F16KA101.h>
 
+
 //Write to memory
-void mem_write(int addr, int val);
-void flush_eeprom();
-void clear_eeprom();
-void clear_flash();
+void mem_write(int val);
+long mem_read();
+void configure_SPI();
+static unsigned char TX_BUF[140];
+static unsigned long last_wrote;
+static unsigned long last_read;
