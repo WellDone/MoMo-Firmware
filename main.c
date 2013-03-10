@@ -60,7 +60,6 @@ void blink_light()
 {
     _LATA0 = !_LATA0;
 }
-
 int main(void) {
     uart_parameters params_uart1;
     uart_parameters params_uart2;
@@ -70,18 +69,17 @@ int main(void) {
     AD1PCFG = 0xFFFF;
 
     _LATA0 = 0;
-    _LATA1 = 1;
-    _LATA3 = 0; //4V regulator power pin
+    _LATA1 = 0;
 
 
     _TRISA0 = 0;
     _TRISA1 = 0;
-    _TRISA3 = 0;
+    _TRISA3 = 1; //WISMO READY PIN
 
     //Configure pin controlling WISMO
-    _LATB9 = 1;
-    _ODB9 = 1;
-    _TRISB9 = 0;
+    _LATA2 = 1;
+    _ODA2 = 1;
+    _TRISA2 = 0;
 
     //Disable div-by-2
     //CLKDIV = 0;
@@ -114,7 +112,6 @@ int main(void) {
     while(1)
     {
         //Do periodic tasks
-        _LATA0 = !_LATA0;
         process_commands_task();
     }
 
