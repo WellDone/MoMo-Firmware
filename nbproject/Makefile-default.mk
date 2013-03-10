@@ -45,11 +45,11 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/asm_routines.o ${OBJECTDIR}/rtcc.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/serial.o ${OBJECTDIR}/serial_commands.o ${OBJECTDIR}/command_handlers.o ${OBJECTDIR}/ringbuffer.o ${OBJECTDIR}/utilities.o ${OBJECTDIR}/gsm_commands.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/asm_routines.o.d ${OBJECTDIR}/rtcc.o.d ${OBJECTDIR}/interrupts.o.d ${OBJECTDIR}/serial.o.d ${OBJECTDIR}/serial_commands.o.d ${OBJECTDIR}/command_handlers.o.d ${OBJECTDIR}/ringbuffer.o.d ${OBJECTDIR}/utilities.o.d ${OBJECTDIR}/gsm_commands.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/asm_routines.o ${OBJECTDIR}/rtcc.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/serial.o ${OBJECTDIR}/serial_commands.o ${OBJECTDIR}/command_handlers.o ${OBJECTDIR}/ringbuffer.o ${OBJECTDIR}/utilities.o ${OBJECTDIR}/gsm_commands.o ${OBJECTDIR}/reset_manager.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/asm_routines.o.d ${OBJECTDIR}/rtcc.o.d ${OBJECTDIR}/interrupts.o.d ${OBJECTDIR}/serial.o.d ${OBJECTDIR}/serial_commands.o.d ${OBJECTDIR}/command_handlers.o.d ${OBJECTDIR}/ringbuffer.o.d ${OBJECTDIR}/utilities.o.d ${OBJECTDIR}/gsm_commands.o.d ${OBJECTDIR}/reset_manager.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/asm_routines.o ${OBJECTDIR}/rtcc.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/serial.o ${OBJECTDIR}/serial_commands.o ${OBJECTDIR}/command_handlers.o ${OBJECTDIR}/ringbuffer.o ${OBJECTDIR}/utilities.o ${OBJECTDIR}/gsm_commands.o
+OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/asm_routines.o ${OBJECTDIR}/rtcc.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/serial.o ${OBJECTDIR}/serial_commands.o ${OBJECTDIR}/command_handlers.o ${OBJECTDIR}/ringbuffer.o ${OBJECTDIR}/utilities.o ${OBJECTDIR}/gsm_commands.o ${OBJECTDIR}/reset_manager.o
 
 
 CFLAGS=
@@ -127,6 +127,12 @@ ${OBJECTDIR}/gsm_commands.o: gsm_commands.c  nbproject/Makefile-${CND_CONF}.mk
 	${MP_CC} $(MP_EXTRA_CC_PRE)  gsm_commands.c  -o ${OBJECTDIR}/gsm_commands.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/gsm_commands.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/gsm_commands.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
+${OBJECTDIR}/reset_manager.o: reset_manager.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} ${OBJECTDIR} 
+	@${RM} ${OBJECTDIR}/reset_manager.o.d 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  reset_manager.c  -o ${OBJECTDIR}/reset_manager.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/reset_manager.o.d"        -g -D__DEBUG -D__MPLAB_DEBUGGER_PICKIT2=1  -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	@${FIXDEPS} "${OBJECTDIR}/reset_manager.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
 else
 ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
@@ -181,6 +187,12 @@ ${OBJECTDIR}/gsm_commands.o: gsm_commands.c  nbproject/Makefile-${CND_CONF}.mk
 	@${RM} ${OBJECTDIR}/gsm_commands.o.d 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  gsm_commands.c  -o ${OBJECTDIR}/gsm_commands.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/gsm_commands.o.d"        -g -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/gsm_commands.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/reset_manager.o: reset_manager.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} ${OBJECTDIR} 
+	@${RM} ${OBJECTDIR}/reset_manager.o.d 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  reset_manager.c  -o ${OBJECTDIR}/reset_manager.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/reset_manager.o.d"        -g -omf=elf -O0 -I"lib/inc" -I"lib/inc/devices" -msmart-io=1 -msfr-warn=off
+	@${FIXDEPS} "${OBJECTDIR}/reset_manager.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 endif
 

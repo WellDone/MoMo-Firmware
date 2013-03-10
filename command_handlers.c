@@ -276,6 +276,6 @@ void handle_rtcc(command_params *params)
 }
 
 void handle_sensor(command_params *params) {
-  I2C_READ(0x0A, 4);
+  //I2C_READ(0x0A, 4);
   sends(U2, "I2C read exit");
 }
