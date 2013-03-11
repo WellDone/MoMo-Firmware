@@ -1,5 +1,8 @@
 #include "memory.h"
 #include "sensor.h"
+#include "serial_commands.h"
+#include "rtcc.h"
+
 //Buffer to read SPI to
 static unsigned char TX_BUF[140];
 static unsigned long next_free;
@@ -27,22 +30,26 @@ void mem_write(int val) {
   //send address bytes MSB first
   for(i = 2; i > 0; i--) { 
     SPI1BUF = (next_free > i * 8) & 0xFF;
+    timeout_ct = 0;
     while((SPI1STATbits.SPITBF) && timeout_ct < 1000)
       timeout_ct++; //wait while busy
-    if (timeout_ct == 1000);
-      //      sends(U2, "Memory timed out on address");
+    sendf(U2, "timeout_ct = %d\r\n", timeout_ct);
+    if (timeout_ct == 1000)
+      sends(U2, "Memory timed out on address\r\n");
   }
 
   //send values LSB first (because have to correspond to addresses)
   timeout_ct = 0;
   for(i = 0; i < 3; i++) { 
-    SPI1BUF = val >> i * 8; 
+    SPI1BUF = val >> i * 8;
+    timeout_ct = 0;
     while((SPI1STATbits.SPITBF) && timeout_ct < 1000)
       timeout_ct++; //wait while busy
-    if (timeout_ct == 1000);
-      //      sends(U2, "Memory timed out on data");
+    sendf(U2, "timeout_ct = %d\r\n", timeout_ct);
+    if (timeout_ct == 1000)
+      sends(U2, "Memory timed out on data\r\n");
   }
-
+  SPI1STATbits.SPIEN = 0;
   //finish
   next_free++;
 }
@@ -63,24 +70,29 @@ long mem_read() {
   //send address bytes MSB first
   for(i = 2; i > 0; i--) { 
     SPI1BUF = (next_read > i * 8) & 0xFF;
+    timeout_ct = 0;
     while((SPI1STATbits.SPITBF) && timeout_ct < 1000)
       timeout_ct++; //wait while busy
-    if (timeout_ct == 1000);
-      //      sends(U2, "Memory timed out on address");
+    sendf(U2, "timeout_ct = %d\r\n", timeout_ct);
+    if (timeout_ct == 1000)
+      sends(U2, "Memory timed out on address\r\n");
   }
 
   //send values LSB first (because have to correspond to addresses)
   timeout_ct = 0;
   for(i = 0; i < 3; i++) { 
     SPI1BUF = 0; //write 0 to initiate write to SPI1BUF
+    timeout_ct = 0;
     while((SPI1STATbits.SPITBF) && timeout_ct < 1000)
       timeout_ct++; //wait while busy
-    if (timeout_ct == 1000);
-      //      sends(U2, "Memory timed out on data");
+    sendf(U2, "timeout_ct = %d\r\n", timeout_ct);
+    if (timeout_ct == 1000)
+      sends(U2, "Memory timed out on data\r\n");
     val = val | ((0xFF & SPI1BUF) << i * 8);
   }
 
   //finish
+  SPI1STATbits.SPIEN = 0;
   next_read++;
   return val;
 }
