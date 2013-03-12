@@ -1,7 +1,9 @@
 #include "rtcc.h"
 #include <p24F16KA101.h>
 
-alarm_handler alarm_isr = 0;
+alarm_handler alarm_callback = 0;
+alarm_handler old_callback = 0;
+AlarmRepeatTime old_repeat_time;
 
 void enable_rtcc()
 {
@@ -134,15 +136,11 @@ unsigned char to_bcd(unsigned char val)
 
 void __attribute__((interrupt,no_auto_psv)) handle_alarm()
 {    
-    if (alarm_isr != 0)
-        alarm_isr();
-
     //FIXME clear isf
 }
 
 void set_recurring_task(AlarmRepeatTime repeat, alarm_handler routine)
 {
-    isr_descriptor desc = RTCC_ISR_DESCRIPTOR;
      if (!_RTCWREN)
         asm_enable_rtcon_write();
 
@@ -158,10 +156,6 @@ void set_recurring_task(AlarmRepeatTime repeat, alarm_handler routine)
 
      //Set the time between recurrences.
      _AMASK = repeat;
-
-     //load the ISR
-     alarm_isr = routine;
-     //install_isr(&desc); FIXME: fix this
 
      _ALRMEN = 1; //Enable the recurring task
 }

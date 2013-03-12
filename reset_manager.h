@@ -27,10 +27,15 @@ typedef enum
 
 } ResetType;
 
-typedef enum
+enum
 {
     kNoError = 0,
     kInvalidHandle = -1,
     kNoHandler = -2
 };
 
+//Functions
+unsigned int register_reset_handler(ResetType type, reset_handler handler);
+int remove_reset_handler(unsigned int handle);
+
+ResetType get_reset_type();

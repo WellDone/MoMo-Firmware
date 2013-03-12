@@ -10,6 +10,8 @@
 #include <p24F16KA101.h>
 #include "rtcc.h"
 #include "serial.h"
+#include "oscillator.h"
+#include "reset_manager.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -28,7 +30,7 @@
 #pragma config OSCIOFNC = ON           // CLKO Enable Configuration bit (CLKO output signal is active on the OSCO pin)
 #pragma config POSCFREQ = HS            // Primary Oscillator Frequency Range Configuration bits (Primary oscillator/external clock input frequency greater than 8 MHz)
 #pragma config SOSCSEL = SOSCHP         // SOSC Power Selection Configuration bits (Secondary oscillator configured for high-power operation)
-#pragma config FCKSM = CSDCMD           // Clock Switching and Monitor Selection (Both Clock Switching and Fail-safe Clock Monitor are disabled)
+#pragma config FCKSM = CSECMD           // Clock Switching and Monitor Selection (Clock switching is enabled, Fail-Safe Clock Monitor is disabled)
 
 // FWDT
 #pragma config WDTPS = PS32768          // Watchdog Timer Postscale Select bits (1:32,768)
@@ -56,30 +58,31 @@
 int main(void) {
     uart_parameters params_uart1;
     uart_parameters params_uart2;
+    ResetType type = get_reset_type();
     //int current_cpu_ipl;
     //SET_AND_SAVE_CPU_IPL(current_cpu_ipl, 7);
 
     AD1PCFG = 0xFFFF;
 
-    _LATA0 = 0;
-    _LATA1 = 0;
+    //_LATA0 = 0;
+    //_LATA1 = 0;
 
 
-    _TRISA0 = 0;
-    _TRISA1 = 0;
-    _TRISA3 = 1; //WISMO READY PIN
+    //_TRISA0 = 0;
+    //_TRISA1 = 0;
+    //_TRISA3 = 1; //WISMO READY PIN
 
     //Configure pin controlling WISMO
-    _LATA2 = 1;
-    _ODA2 = 1;
-    _TRISA2 = 0;
+    //_LATA2 = 1;
+    //_ODA2 = 1;
+    //_TRISA2 = 0;
 
     //Disable div-by-2
     //CLKDIV = 0;
 
     configure_interrupts();
-    //configure_rtcc();
-    //enable_rtcc();
+    configure_rtcc();
+    enable_rtcc();
     //set_recurring_task(EverySecond, blink_light);
 
     params_uart1.baud = 115200;
@@ -99,6 +102,7 @@ int main(void) {
 
     //Extend the welcome mat
     sends( U2, "Device reset complete.\r\n");
+    sendf( U2, "Reset type was: %d\r\n", type);
     sends( U2, "PIC 24f16ka101> ");
 
     while(1)

@@ -2,6 +2,7 @@
 #include "rtcc.h"
 #include "utilities.h"
 #include "sensor.h"
+#include "oscillator.h"
 #include <stdio.h>
 
 int gsm_at_cmd( const char* cmd )
@@ -208,6 +209,43 @@ void handle_device(command_params *params)
     {
         sends(U2, "Resetting the device...\r\n");
         asm_reset();
+    }
+    if (strcmp(cmd, "get") == 0)
+    {
+        if (params->num_params < 2)
+        {
+            sends(U2, "You must pass a subcommand to the device get command.\r\n");
+            return;
+        }
+
+        cmd = get_param_string(params, 1);
+
+        if (strcmp(cmd, "sosc") == 0)
+        {
+            int status = get_sosc_status();
+
+            if (status == 1)
+                sends(U2, "Secondary oscillator is enabled\r\n");
+            else
+                sends(U2, "Secondary oscillator is disabled\r\n");
+        }
+    }
+
+    if (strcmp(cmd, "enable") == 0)
+    {
+        if (params->num_params < 2)
+        {
+            sends(U2, "You must pass a subcommand to the device enable command.\r\n");
+            return;
+        }
+
+        cmd = get_param_string(params, 1);
+
+        if (strcmp(cmd, "sosc") == 0)
+        {
+            set_sosc_status(1);
+            sends(U2, "Secondary oscillator enabled.\r\n");
+        }
     }
 }
 

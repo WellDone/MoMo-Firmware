@@ -69,7 +69,7 @@ ResetType get_reset_type()
 {
     ResetType type = kNumResets;
 
-    if (_POR)
+    if (_POR || _BOR)
         type = kPowerOnReset;
     else if (_SLEEP)
         type = kSleepReset;
@@ -87,4 +87,6 @@ ResetType get_reset_type()
     _DPSLP = 0;
     _EXTR = 0;
     _SWR = 0;
+
+    return type;
 }
