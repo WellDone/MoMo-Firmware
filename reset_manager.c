@@ -7,9 +7,20 @@
 
 #include <p24F16KA101.h>
 #include "reset_manager.h"
+#include "rtcc.h"
+#include "serial.h"
+#include "tasks.h"
 
 //Global reset handler table
-reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] = {0};
+reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =
+{
+    {handle_poweron_reset}, //POR Reset
+    {0},                    //Reset during sleep
+    {0},                    //Wake from deep sleep
+    {0},                    //Software reset
+    {0},                    //MCLR External reset
+    {handle_all_resets}     //Call on all resets
+};
 
 /*
  * register_reset_handler
@@ -89,4 +100,45 @@ ResetType get_reset_type()
     _SWR = 0;
 
     return type;
+}
+
+void handle_reset()
+{
+    int i;
+    ResetType type = get_reset_type();
+
+    //Call common functions
+    for (i=0;i<MAX_RESETS_PER_TYPE;++i)
+    {
+        if (reset_handlers[kAllResets][i] != 0)
+            reset_handlers[kAllResets][i](type);
+    }
+
+    //Call reset-type specific functions
+    for (i=0;i<MAX_RESETS_PER_TYPE;++i)
+    {
+        if (reset_handlers[type][i] != 0)
+            reset_handlers[type][i](type);
+    }
+}
+
+void handle_all_resets(unsigned int type)
+{
+    configure_interrupts();
+    taskloop_init();
+
+    //Power-on reset resets the rtcc, so configure and enable it.
+    configure_rtcc();
+    enable_rtcc();
+    set_recurring_task(EverySecond, heartbeat);
+}
+
+void handle_poweron_reset(unsigned int type)
+{
+
+}
+
+void heartbeat(void)
+{
+    sends(U2, "still alive\r\n");
 }

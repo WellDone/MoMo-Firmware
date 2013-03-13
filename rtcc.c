@@ -1,8 +1,8 @@
 #include "rtcc.h"
 #include <p24F16KA101.h>
 
-alarm_handler alarm_callback = 0;
-alarm_handler old_callback = 0;
+task_callback alarm_callback = 0;
+task_callback old_callback = 0;
 AlarmRepeatTime old_repeat_time;
 
 void enable_rtcc()
@@ -38,23 +38,6 @@ void configure_rtcc()
     _RTCOE = 0; //Don't output the clock signal
     _ALRMEN = 0; //Don't set an alarm
     _CHIME = 0; //Don't chime
-
-    //configure_rtcc_oscillator();
-}
-
-/*
- * The RTCC requires a secondary lowspeed oscillator at 32.768 khz
- *
- */
-void configure_rtcc_oscillator()
-{
-    _SOSCEN = 1;
-
-    unsigned int externalOscillator = 0b100; // << 12?
-    __builtin_write_OSCCONH( externalOscillator );
-    __builtin_write_OSCCONL( externalOscillator );
-    _OSWEN = 1;
-    //Perhaps additional oscillator configuration?
 }
 
 /*
@@ -134,12 +117,15 @@ unsigned char to_bcd(unsigned char val)
     return ((val/10) << 4) | (val%10);
 }
 
-void __attribute__((interrupt,no_auto_psv)) handle_alarm()
+void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
 {    
-    //FIXME clear isf
+    if (alarm_callback != 0)
+        taskloop_add(alarm_callback);
+    
+    IFS3bits.RTCIF = 0;
 }
 
-void set_recurring_task(AlarmRepeatTime repeat, alarm_handler routine)
+void set_recurring_task(AlarmRepeatTime repeat, task_callback routine)
 {
      if (!_RTCWREN)
         asm_enable_rtcon_write();
@@ -156,6 +142,9 @@ void set_recurring_task(AlarmRepeatTime repeat, alarm_handler routine)
 
      //Set the time between recurrences.
      _AMASK = repeat;
+
+     //Save off the callback
+     alarm_callback = routine;
 
      _ALRMEN = 1; //Enable the recurring task
 }

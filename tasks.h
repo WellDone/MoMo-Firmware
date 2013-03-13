@@ -15,7 +15,7 @@
 
 typedef void (*task_callback)(void);
 
-typedef enum
+enum
 {
     kTaskLoopSleepBit = 0
 };

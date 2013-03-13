@@ -12,6 +12,8 @@
 #include "serial.h"
 #include "oscillator.h"
 #include "reset_manager.h"
+#include "tasks.h"
+#include "serial_commands.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -58,10 +60,7 @@
 int main(void) {
     uart_parameters params_uart1;
     uart_parameters params_uart2;
-    ResetType type = get_reset_type();
-    //int current_cpu_ipl;
-    //SET_AND_SAVE_CPU_IPL(current_cpu_ipl, 7);
-
+    
     AD1PCFG = 0xFFFF;
 
     //_LATA0 = 0;
@@ -80,16 +79,13 @@ int main(void) {
     //Disable div-by-2
     //CLKDIV = 0;
 
-    configure_interrupts();
-    configure_rtcc();
-    enable_rtcc();
-    //set_recurring_task(EverySecond, blink_light);
+    handle_reset();
+    //taskloop_add(process_commands_task);
 
     params_uart1.baud = 115200;
     params_uart1.hw_flowcontrol = 0;
     params_uart1.parity = NoParity;
     configure_uart( U1, &params_uart1 );
-    //init_debug();
 
     //init_gsm();
 
@@ -101,15 +97,16 @@ int main(void) {
     configure_uart( U2, &params_uart2 );
 
     //Extend the welcome mat
-    sends( U2, "Device reset complete.\r\n");
-    sendf( U2, "Reset type was: %d\r\n", type);
-    sends( U2, "PIC 24f16ka101> ");
 
-    while(1)
+    while (1)
     {
-        //Do periodic tasks
-        process_commands_task();
+        sends( U2, "Device reset complete.\r\n");
+        sends( U2, "PIC 24f16ka101> ");
     }
+
+
+    taskloop_loop();
+        
 
     return (EXIT_SUCCESS);
 }
