@@ -12,6 +12,7 @@ static unsigned long next_read;
 void configure_SPI() {
   SPI1CON1bits.MODE16 = 0; //communication is byte-wide
   SPI1CON1bits.MSTEN = 1; //SPI is in master mode
+  TRISBbits.RB15 = 1; //set RB15 = 
 }
 
 //Write a value to EEPROM
