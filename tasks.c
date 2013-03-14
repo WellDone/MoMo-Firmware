@@ -34,7 +34,7 @@ void taskloop_loop()
 {
     while(1)
     {
-        sends(U2, "processing one task\r\n");
+        print( "processing one task\r\n");
         while(taskloop_process_one())
             ;
 

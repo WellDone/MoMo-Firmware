@@ -5,16 +5,17 @@
  * Created on November 18, 2012, 11:50 PM
  */
 
-#include "serial_commands.h"
+#include "serial.h"
+#include "rtcc.h"
+#include "common.h"
 
-static int gsm_at_cmd( const char* cmd )
+int gsm_send_at_cmd( const char* cmd )
 {
     sends( U1, cmd );
-    sends( U1, "\r" );
-    wait( 300 );
+    sends( U1, "\r\n" );
 }
 
-static void gsm_power_on()
+/*static void gsm_power_on()
 {
     while ( _LATA2 == 1 )
         ; // READY goes high first
@@ -24,24 +25,24 @@ static void gsm_power_on()
 
     gsm_at_cmd( "AT" );
     gsm_at_cmd( "AT+CMGF=1" );
-}
+}*/
 
-static void send_sms( const char* da, const char* message )
+void gsm_send_sms( const char* destination, const char* message )
 {
-    sends( U1, "AT+CMGS=\"+17078159250\"\r\n");
-    wait( 300 );
+    sends(U1, "AT+CMGS=\"");
+    sends(U1, destination );
+    sends(U1, "\"\r");
+    wait( 300 ); // TODO: Wait for the > char on U1
     sends( U1, message );
     put( U1, 0x1A ); // send ctrl-z
-    wait( 300 );
-
-
-    sendf(U2, "SMS sent to %s: %s", da, message );
-    sends(U2, "\r\n");
 }
 
-static void gsm_on()
+void gsm_on()
 {
-    _LATA3 = 1;
+    _GSM_MODULE_POWER_ON();
+    wait( 300 );
+    _GSM_MODULE_ON = 1;
+    /*_LATA3 = 1;
 
     // TODO: Supply power to the module first, when that's supported
     if ( _LATA2 == 0 )
@@ -64,12 +65,15 @@ static void gsm_on()
     {
       sends(U1, "The GSM module is already on.");
       return;
-    }
+    }*/
 }
 
-static void gsm_off()
+void gsm_off()
 {
-    if ( _LATA2 == 1 )
+    gsm_send_at_cmd("AT+CPOF");
+    wait( 300 );
+    _GSM_MODULE_POWER_OFF();
+    /*if ( _LATA2 == 1 )
     {
         _LATA1 = 0;
         wait( 200 );
@@ -85,9 +89,10 @@ static void gsm_off()
     else
     {
         sends(U1, "The GSM module is already off.");
-    }
+    }*/
 }
 
+/*
 void handle_gsm(command_params *params)
 {
   if (params->num_params < 1)
@@ -119,7 +124,7 @@ void handle_gsm(command_params *params)
   {
     sends(U1, "Invalid argument to gsm command.\n");
   }
-}
+}*/
 
 /*
  * 

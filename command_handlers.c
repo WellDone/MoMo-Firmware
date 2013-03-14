@@ -7,20 +7,14 @@
 static unsigned long next_free;
 static unsigned long next_read;
 #include "oscillator.h"
+#include "gsm.h"
 #include <stdio.h>
-
-int gsm_at_cmd( const char* cmd )
-{
-    sends( U1, cmd );
-    sends( U1, "\r\n" );
-    wait( 300 );
-}
 
 void handle_led(command_params *params)
 {
   if (params->num_params < 1)
   {
-    sends(U2, "You must pass either 'on' or 'off' to the led command.\r\n");
+    print( "You must pass either 'on' or 'off' to the led command.\r\n");
     return;
   }
 
@@ -31,7 +25,7 @@ void handle_led(command_params *params)
   else if(strcmp("off", cmd) == 0)
     _LATA0 = 0;
   else
-    sends(U2, "Invalid argument to led command.\r\n");
+    print( "Invalid argument to led command.\r\n");
 }
 
 void handle_echo_params(command_params *params)
@@ -39,24 +33,24 @@ void handle_echo_params(command_params *params)
   unsigned int i;
 
   if (params->num_params == 0)
-    sends(U2, "No parameters were passed.\r\n");
+    print( "No parameters were passed.\r\n");
   else
   {
     for (i=0; i<params->num_params; ++i)
     {
-      sends(U2, get_param_string(params, i));
-      sends(U2, "\r\n");
+      print( get_param_string(params, i));
+      print( "\r\n");
     }
   }
 }
 
-void handle_gsm_module(command_params *params)
+void handle_gsm(command_params *params)
 {
     char *cmd;
 
     if (params->num_params < 1)
     {
-        sends(U2, "You must pass a subcommand to the device command.\r\n");
+        print( "You must pass a subcommand to the device command.\r\n");
         return;
     }
 
@@ -66,101 +60,74 @@ void handle_gsm_module(command_params *params)
     {
         if (params->num_params < 2)
         {
-            sends(U2, "usage: gsm power [on|off]\r\n");
+            print( "usage: gsm power [on|off]\r\n");
             return;
         }
 
         if (strcmp(get_param_string(params, 1),"on") == 0)
         {
-            _LATA0 = 1;
-            sends(U2, "GSM module powered on.\r\n");
+            gsm_off();
+            print( "GSM module powered on.\r\n");
         }
         else if (strcmp(get_param_string(params, 1),"off") == 0)
         {
             _LATA0 = 0;
-            sends(U2, "GSM module powered off.\r\n");
+            print( "GSM module powered off.\r\n");
         }
         else
-            sends(U2, "Invalid option to gsm power command.\r\n");
+            print( "Invalid option to gsm power command.\r\n");
     }
 
     if (strcmp(cmd, "module") == 0)
     {
         if (params->num_params < 2)
         {
-            sends(U2, "usage: gsm module [on|off]\r\n");
+            print( "usage: gsm module [on|off]\r\n");
             return;
         }
 
         if (strcmp(get_param_string(params, 1),"on") == 0)
         {
-            _LATA2 = 0;
-            sends(U2, "GSM module turned on.\r\n");
+            gsm_on();
+            print( "GSM module turned on.\r\n");
         }
         else if (strcmp(get_param_string(params, 1),"off") == 0)
         {
-            _LATA2 = 1;
-
-            gsm_at_cmd("AT+CPOF");
-            sends(U2, "GSM module turned off.\r\n");
-        }
-        else if (strcmp(get_param_string(params, 1), "dump") == 0)
-        {
-            dump_gsm_buffer();
-        }
+            gsm_off();
+            print( "GSM module turned off.\r\n");
+        }/*
         else if (strcmp(get_param_string(params, 1), "slow") == 0)
         {
             gsm_at_cmd("AT+IPR=38400");
-        }
-        else if (strcmp(get_param_string(params, 1), "send") == 0)
+        }*/
+        else if (strcmp(get_param_string(params, 1), "cmd") == 0)
         {
             if (params->num_params >= 3)
             {
-                gsm_at_cmd(get_param_string(params,2));
-                sends(U2, "command sent\r\n");
+                gsm_send_at_cmd(get_param_string(params,2));
+                print( "command sent\r\n");
             }
             else
-                sends(U2, "usage: gsm module send <cmd>\r\n");
+                print( "usage: gsm module cmd <cmd>\r\n");
         }
         else if (strcmp(get_param_string(params, 1), "msg") == 0)
         {
-            if (params->num_params >= 3)
+            if (params->num_params == 4)
             {
-                sends(U1, "AT+CMGS=\"");
-                sends(U1, get_param_string(params,2));
-                sends(U1, "\"\r");
-
+                gsm_send_sms( get_param_string(params, 2), get_param_string(params, 3) ); //TODO: Allow multi-word messages.  "quoted string" support?
             }
             else
-                sends(U2, "usage: gsm module msg <address>\r\n");
-        }
-        else if (strcmp(get_param_string(params, 1), "msgend") == 0)
-        {
-            //gsm_at_cmd("AT+CMGF=1");
-            gsm_at_cmd("Just a friendly heads up, WellDone has sensed that pump #21 needs repair.\x1A");
-            //gsm_at_cmd("Hello World!\x1A");
-
-        }
-        else if (strcmp(get_param_string(params, 1), "msgwell") == 0)
-        {
-            if (params->num_params >= 3)
-            {
-                sends(U1, get_param_string(params,2));
-                sends(U1, "\x1A");
-
-            }
-            else
-                sends(U2, "usage: gsm module msgwell <status>\r\n");
+                print( "usage: gsm module msg <address> <message>\r\n");
         }
         else
-            sends(U2, "Invalid option to gsm module command.\r\n");
+            print( "Invalid option to gsm module command.\r\n");
     }
 
     if (strcmp(cmd, "hello") == 0)
     {
-        gsm_at_cmd( "AT+ICF?" );
+        gsm_send_at_cmd( "AT+ICF?" );
         //gsm_at_cmd( "AT+CMGF=1" );
-        sends(U2, "hello sent\r\n");
+        print( "hello sent\r\n");
     }
 
     else if (strcmp(cmd, "baud") == 0)
@@ -184,7 +151,7 @@ void handle_gsm_module(command_params *params)
                 sends(U1, "\x1A");
             }
             else
-                sends(U2, "usage: gsm report <status>\r\n");
+                print( "usage: gsm report <status>\r\n");
         }
     else if (strcmp(cmd, "test") == 0)
     {
@@ -203,7 +170,7 @@ void handle_device(command_params *params)
 
     if (params->num_params < 1)
     {
-        sends(U2, "You must pass a subcommand to the device command.\r\n");
+        print( "You must pass a subcommand to the device command.\r\n");
         return;
     }
 
@@ -211,14 +178,14 @@ void handle_device(command_params *params)
 
     if (strcmp(cmd, "reset") == 0)
     {
-        sends(U2, "Resetting the device...\r\n");
+        print( "Resetting the device...\r\n");
         asm_reset();
     }
     if (strcmp(cmd, "get") == 0)
     {
         if (params->num_params < 2)
         {
-            sends(U2, "You must pass a subcommand to the device get command.\r\n");
+            print( "You must pass a subcommand to the device get command.\r\n");
             return;
         }
 
@@ -229,9 +196,9 @@ void handle_device(command_params *params)
             int status = get_sosc_status();
 
             if (status == 1)
-                sends(U2, "Secondary oscillator is enabled\r\n");
+                print( "Secondary oscillator is enabled\r\n");
             else
-                sends(U2, "Secondary oscillator is disabled\r\n");
+                print( "Secondary oscillator is disabled\r\n");
         }
     }
 
@@ -239,7 +206,7 @@ void handle_device(command_params *params)
     {
         if (params->num_params < 2)
         {
-            sends(U2, "You must pass a subcommand to the device enable command.\r\n");
+            print( "You must pass a subcommand to the device enable command.\r\n");
             return;
         }
 
@@ -248,7 +215,7 @@ void handle_device(command_params *params)
         if (strcmp(cmd, "sosc") == 0)
         {
             set_sosc_status(1);
-            sends(U2, "Secondary oscillator enabled.\r\n");
+            print( "Secondary oscillator enabled.\r\n");
         }
     }
 }
@@ -259,7 +226,7 @@ void handle_rtcc(command_params *params)
 
     if (params->num_params < 1)
     {
-        sends(U2, "You must pass a subcommand to the rtcc command.\r\n");
+        print( "You must pass a subcommand to the rtcc command.\r\n");
         return;
     }
 
@@ -291,7 +258,7 @@ void handle_rtcc(command_params *params)
 
         if (params->num_params < 3)
         {
-            sends(U2, "usage: rtcc set mm/dd/yy hh:mm:ss\r\n");
+            print( "usage: rtcc set mm/dd/yy hh:mm:ss\r\n");
             return;
         }
 
@@ -319,5 +286,5 @@ void handle_rtcc(command_params *params)
 
 void handle_sensor(command_params *params) {
   //I2C_READ(0x0A, 4);
-  sends(U2, "I2C read exit");
+  print( "I2C read exit");
 }

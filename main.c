@@ -61,10 +61,6 @@
 
 static unsigned char SENSOR_BUF[5];
 
-void blink_light()
-{
-    _LATA0 = !_LATA0;
-}
 int main(void) {
     uart_parameters params_uart1;
     uart_parameters params_uart2;
@@ -88,7 +84,7 @@ int main(void) {
     //CLKDIV = 0;
 
     configure_interrupts();
-    configure_SPI();
+    //configure_SPI();
     //configure_rtcc();
     //enable_rtcc();
     //set_recurring_task(EverySecond, blink_light);
@@ -113,8 +109,8 @@ int main(void) {
 
     while (1)
     {
-        sends( U2, "Device reset complete.\r\n");
-        sends( U2, "PIC 24f16ka101> ");
+        print( "Device reset complete.\r\n");
+        print( "PIC 24f16ka101> ");
     }
 
 
@@ -134,20 +130,20 @@ void main_loop() {
 	state = CHECK_INT;
 	break;
       case CHECK_INT: //check which interrupt woke it up
-	if(IFS1bits.INT2IF) {
+	if(SENSOR_INTERRUPT_BIT) {
 	  if (pulse_count == 200) //COMMENT THIS SHIT OUT
 	    pulse_count = 0;
 	  pulse_count++;
 	  state = SENSING; //if sensor interrupt, sample sensor
-	  IFS1bits.INT2IF = 0; //clear interrupt bit
+	  SENSOR_INTERRUPT_BIT = 0; //clear interrupt bit
 	}
-	else if (IFS3bits.RTCIF) {
+	else if (RTC_INTERRUPT_BIT) {
 	  state = GSM; //if RTC interrupt transmit GSM
-	  IFS3bits.RTCIF = 0;
+	  RTC_INTERRUPT_BIT = 0;
 	}
 	break;
       case SENSING:
-	sample_sensor(); //<(0.0<) Read what it says mofugga
+	//sample_sensor(); //<(0.0<) Read what it says mofugga
 	state = MEMORY_WRITE;
 	break;
       case MEMORY_WRITE:
