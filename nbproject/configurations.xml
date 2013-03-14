@@ -32,6 +32,12 @@
       <itemPath>utilities.c</itemPath>
       <itemPath>utilities.h</itemPath>
       <itemPath>gsm_commands.c</itemPath>
+      <itemPath>reset_manager.c</itemPath>
+      <itemPath>reset_manager.h</itemPath>
+      <itemPath>oscillator.c</itemPath>
+      <itemPath>oscillator.h</itemPath>
+      <itemPath>tasks.c</itemPath>
+      <itemPath>tasks.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

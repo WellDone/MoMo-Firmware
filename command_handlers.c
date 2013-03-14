@@ -4,8 +4,10 @@
 //#include "utilities.h"
 #include "sensor.h"
 #include "memory.h"
-static unsigned long next_free; 
+static unsigned long next_free;
 static unsigned long next_read;
+#include "oscillator.h"
+#include <stdio.h>
 
 int gsm_at_cmd( const char* cmd )
 {
@@ -35,7 +37,7 @@ void handle_led(command_params *params)
 void handle_echo_params(command_params *params)
 {
   unsigned int i;
-  
+
   if (params->num_params == 0)
     sends(U2, "No parameters were passed.\r\n");
   else
@@ -98,7 +100,7 @@ void handle_gsm_module(command_params *params)
         else if (strcmp(get_param_string(params, 1),"off") == 0)
         {
             _LATA2 = 1;
-            
+
             gsm_at_cmd("AT+CPOF");
             sends(U2, "GSM module turned off.\r\n");
         }
@@ -212,6 +214,43 @@ void handle_device(command_params *params)
         sends(U2, "Resetting the device...\r\n");
         asm_reset();
     }
+    if (strcmp(cmd, "get") == 0)
+    {
+        if (params->num_params < 2)
+        {
+            sends(U2, "You must pass a subcommand to the device get command.\r\n");
+            return;
+        }
+
+        cmd = get_param_string(params, 1);
+
+        if (strcmp(cmd, "sosc") == 0)
+        {
+            int status = get_sosc_status();
+
+            if (status == 1)
+                sends(U2, "Secondary oscillator is enabled\r\n");
+            else
+                sends(U2, "Secondary oscillator is disabled\r\n");
+        }
+    }
+
+    if (strcmp(cmd, "enable") == 0)
+    {
+        if (params->num_params < 2)
+        {
+            sends(U2, "You must pass a subcommand to the device enable command.\r\n");
+            return;
+        }
+
+        cmd = get_param_string(params, 1);
+
+        if (strcmp(cmd, "sosc") == 0)
+        {
+            set_sosc_status(1);
+            sends(U2, "Secondary oscillator enabled.\r\n");
+        }
+    }
 }
 
 void handle_rtcc(command_params *params)
@@ -247,7 +286,7 @@ void handle_rtcc(command_params *params)
         char *date, *time;
         char temp[3];
         int m;
-        
+
         temp[2] = '\0';
 
         if (params->num_params < 3)
@@ -279,26 +318,6 @@ void handle_rtcc(command_params *params)
 }
 
 void handle_sensor(command_params *params) {
-  IEC1bits.INT2IE = 1; //enable interrupt
-  sends(U2, "Good night, Sweet Prince");
-  Sleep();
-  sends(U2, "I can't do that Dave");
-  IEC1bits.INT2IE = 0; //disable interrupt
-}
-
-void handle_memory(command_params *params) {
-    char* cmd;
-    cmd = get_param_string(params, 0);
-    int val = 0;
-    sendf(U2, "handling memory\r\n");
-    if (strcmp(cmd, "write") == 0) {
-      next_read = 0xA;
-      val = get_param_string(params, 1);
-      mem_write(val);
-    } else if (strcmp(cmd, "read") == 0) {
-      next_read = next_free - 1;
-      sendf(U2, "Val previous:%d\r\n", val);
-      val = ((int) mem_read());
-      sendf(U2, "Val read:%d\r\n", val);
-    }
+  //I2C_READ(0x0A, 4);
+  sends(U2, "I2C read exit");
 }

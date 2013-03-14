@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   main.c
  * Author: timburke
  *
@@ -12,6 +12,11 @@
 #include "serial.h"
 #include "xc.h"
 #include "memory.h"
+#include "oscillator.h"
+#include "reset_manager.h"
+#include "tasks.h"
+#include "serial_commands.h"
+
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
 #pragma config BSS = OFF                // Boot segment Protect (No boot program Flash segment)
@@ -29,7 +34,7 @@
 #pragma config OSCIOFNC = ON           // CLKO Enable Configuration bit (CLKO output signal is active on the OSCO pin)
 #pragma config POSCFREQ = HS            // Primary Oscillator Frequency Range Configuration bits (Primary oscillator/external clock input frequency greater than 8 MHz)
 #pragma config SOSCSEL = SOSCHP         // SOSC Power Selection Configuration bits (Secondary oscillator configured for high-power operation)
-#pragma config FCKSM = CSDCMD           // Clock Switching and Monitor Selection (Both Clock Switching and Fail-safe Clock Monitor are disabled)
+#pragma config FCKSM = CSECMD           // Clock Switching and Monitor Selection (Clock switching is enabled, Fail-Safe Clock Monitor is disabled)
 
 // FWDT
 #pragma config WDTPS = PS32768          // Watchdog Timer Postscale Select bits (1:32,768)
@@ -63,23 +68,21 @@ void blink_light()
 int main(void) {
     uart_parameters params_uart1;
     uart_parameters params_uart2;
-    //int current_cpu_ipl;
-    //SET_AND_SAVE_CPU_IPL(current_cpu_ipl, 7);
 
     AD1PCFG = 0xFFFF;
 
-    _LATA0 = 0;
-    _LATA1 = 0;
+    //_LATA0 = 0;
+    //_LATA1 = 0;
 
 
-    _TRISA0 = 0;
-    _TRISA1 = 0;
-    _TRISA3 = 1; //WISMO READY PIN
+    //_TRISA0 = 0;
+    //_TRISA1 = 0;
+    //_TRISA3 = 1; //WISMO READY PIN
 
     //Configure pin controlling WISMO
-    _LATA2 = 1;
-    _ODA2 = 1;
-    _TRISA2 = 0;
+    //_LATA2 = 1;
+    //_ODA2 = 1;
+    //_TRISA2 = 0;
 
     //Disable div-by-2
     //CLKDIV = 0;
@@ -89,12 +92,13 @@ int main(void) {
     //configure_rtcc();
     //enable_rtcc();
     //set_recurring_task(EverySecond, blink_light);
+    handle_reset();
+    //taskloop_add(process_commands_task);
 
     params_uart1.baud = 115200;
     params_uart1.hw_flowcontrol = 0;
     params_uart1.parity = NoParity;
     configure_uart( U1, &params_uart1 );
-    //init_debug();
 
     //init_gsm();
 
@@ -106,14 +110,16 @@ int main(void) {
     configure_uart( U2, &params_uart2 );
 
     //Extend the welcome mat
-    sends( U2, "Device reset complete.\r\n");
-    sends( U2, "PIC 24f16ka101> ");
 
-    while(1)
+    while (1)
     {
-        //Do periodic tasks
-        process_commands_task();
+        sends( U2, "Device reset complete.\r\n");
+        sends( U2, "PIC 24f16ka101> ");
     }
+
+
+    taskloop_loop();
+
 
     return (EXIT_SUCCESS);
 }
@@ -140,7 +146,7 @@ void main_loop() {
 	  IFS3bits.RTCIF = 0;
 	}
 	break;
-      case SENSING: 
+      case SENSING:
 	sample_sensor(); //<(0.0<) Read what it says mofugga
 	state = MEMORY_WRITE;
 	break;
