@@ -10,24 +10,6 @@ static unsigned long next_read;
 #include "gsm.h"
 #include <stdio.h>
 
-void handle_led(command_params *params)
-{
-  if (params->num_params < 1)
-  {
-    print( "You must pass either 'on' or 'off' to the led command.\r\n");
-    return;
-  }
-
-  char *cmd = get_param_string(params,0);
-
-  if (strcmp("on", cmd) == 0)
-    _LATA0 = 1;
-  else if(strcmp("off", cmd) == 0)
-    _LATA0 = 0;
-  else
-    print( "Invalid argument to led command.\r\n");
-}
-
 void handle_echo_params(command_params *params)
 {
   unsigned int i;

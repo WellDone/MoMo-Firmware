@@ -8,7 +8,6 @@
 #ifndef __command_handlers_h__
 #define	__command_handlers_h__
 
-void handle_led(command_params *params);
 void handle_echo_params(command_params *params);
 void handle_device(command_params *params);
 void handle_rtcc(command_params *params);

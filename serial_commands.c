@@ -21,7 +21,6 @@ void register_command_handlers()
     command_buffer[0] = '\0';
     cmd_ready = 0;
     
-    register_command("led", handle_led);
     register_command("echo", handle_echo_params);
     register_command("device", handle_device);
     register_command("rtcc", handle_rtcc);
@@ -166,9 +165,10 @@ char *get_param_string(command_params *params, unsigned int i)
   {
     while (*param++ != '\0') //Skip past one parameter
       ;
-    if ( *param == '"' )
-      ++param;
   }
+
+  if ( *param == '"' || *param == ' ' )  //ignore one leading quote or space
+      ++param;
 
   return param;
 }
