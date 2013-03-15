@@ -63,24 +63,24 @@ int main(void) {
     
     AD1PCFG = 0xFFFF;
 
-    //_LATA0 = 0;
+    _LATA0 = 0;
     //_LATA1 = 0;
 
 
-    //_TRISA0 = 0;
+    _TRISA0 = 0;
     //_TRISA1 = 0;
     //_TRISA3 = 1; //WISMO READY PIN
 
     //Configure pin controlling WISMO
-    //_LATA2 = 1;
-    //_ODA2 = 1;
-    //_TRISA2 = 0;
+    _LATA3 = 1;
+    _ODA3 = 1;
+    _TRISA3 = 0;
 
     //Disable div-by-2
     //CLKDIV = 0;
 
     handle_reset();
-    //taskloop_add(process_commands_task);
+    taskloop_add(process_commands_task);
 
     params_uart1.baud = 115200;
     params_uart1.hw_flowcontrol = 0;
@@ -97,13 +97,8 @@ int main(void) {
     configure_uart( U2, &params_uart2 );
 
     //Extend the welcome mat
-
-    while (1)
-    {
-        sends( U2, "Device reset complete.\r\n");
-        sends( U2, "PIC 24f16ka101> ");
-    }
-
+    sends( U2, "Device reset complete.\r\n");
+    sends( U2, "PIC 24f16ka101> ");
 
     taskloop_loop();
         

@@ -1,6 +1,5 @@
 #include "ringbuffer.h"
 #include "common.h"
-#include <stdlib.h>
 #include <string.h>
 
 void ringbuffer_create(ringbuffer *out, void *data, unsigned int size, unsigned int length)
@@ -46,6 +45,7 @@ void ringbuffer_push(ringbuffer *buf, void *in)
 {
     unsigned int mask = buf->length - 1;
     unsigned int offset = (buf->end) & mask;
+    unsigned int i;
 
     memcpy(buf->data + offset*buf->elem_size, in, buf->elem_size);
     if (ringbuffer_full(buf))

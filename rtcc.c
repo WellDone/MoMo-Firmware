@@ -146,6 +146,8 @@ void set_recurring_task(AlarmRepeatTime repeat, task_callback routine)
      //Save off the callback
      alarm_callback = routine;
 
+     IPC15bits.RTCIP = 1;
+     IEC3bits.RTCIE = 1;
      _ALRMEN = 1; //Enable the recurring task
 }
 

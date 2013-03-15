@@ -22,10 +22,11 @@ void taskloop_set_sleep(int sleep)
 
 int taskloop_add(task_callback task)
 {
+    void *object = task;
     if (ringbuffer_full(&taskqueue.tasks))
         return 0;
 
-    ringbuffer_push(&taskqueue.tasks, (void *)task);
+    ringbuffer_push(&taskqueue.tasks, &object);
 
     return 1;
 }
@@ -34,7 +35,6 @@ void taskloop_loop()
 {
     while(1)
     {
-        sends(U2, "processing one task\r\n");
         while(taskloop_process_one())
             ;
 

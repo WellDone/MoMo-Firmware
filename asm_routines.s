@@ -16,6 +16,7 @@ _asm_enable_rtcon_write:
     BSET _RCFGCAL, #13
     POP w8
     POP w7
+    return
 
 
 ;reset the device
@@ -24,6 +25,7 @@ _asm_reset:
 
 _asm_sleep:
     PWRSAV #SLEEP_MODE
+    return
 
 .global _asm_enable_rtcon_write ;note the underscore to handle C name mangling rules
 .global _asm_reset
