@@ -27,7 +27,7 @@ void configure_external_interrupts(regflag mode) {
 
 void configure_i2c_interrupts(regflag mode) {
   if (mode == on) {
-    INTCONbits.PEIE = 1; //enable external interrupts
+    INTCONbits.PEIE = 1; //enable peripheral interrupts
     PIE1bits.SSP1IE = 1;
   }
   else {
@@ -47,7 +47,7 @@ void configure_wdt(regflag mode) {
 }
 
 void configure_IO() {
-
+  LATA0 = 1;
 }
 /*==============================================================================
   END CONFIGURATION FUNCTIONS
@@ -59,7 +59,7 @@ void configure_IO() {
 
 //I2C slave write
 void I2C_s_write() {
-  unsigned char retrycnt = 0, datacnt = 0, i2c_addr;
+  unsigned char retrycnt = 0, datacnt = 0, ir2c_addr;
   unsigned int timeout_cnt=0, byte_ct=0;
     typedef enum {ADDR, ACK} state_enum;
     state_enum state = ADDR;

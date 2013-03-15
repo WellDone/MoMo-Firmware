@@ -5,6 +5,7 @@
  */
 
 #include "serial_commands.h"
+#include "command_handlers.h"
 #include <string.h>
 
 volatile char __attribute__((space(data))) command_buffer[UART_BUFFER_SIZE];
@@ -20,13 +21,12 @@ void register_command_handlers()
     command_buffer[0] = '\0';
     cmd_ready = 0;
     
-    register_command("led", handle_led);
     register_command("echo", handle_echo_params);
     register_command("device", handle_device);
     register_command("rtcc", handle_rtcc);
-    register_command("gsm", handle_gsm_module );
-    register_command("gsm2", handle_gsm );
+    register_command("gsm", handle_gsm );
     register_command("sensor", handle_sensor);
+    //register_command("memory", handle_memory);
 }
 
 /*
@@ -60,7 +60,7 @@ void process_commands_task()
         strncpy(command_buffer, uart_stats[1].rcv_buffer, UART_BUFFER_SIZE);
         process_command();
 
-        sends( U2, "PIC 24f16ka101> ");
+        print( "PIC 24f16ka101> ");
 
         cmd_ready = 0;
     }
@@ -95,9 +95,9 @@ void process_command()
      if (known_commands[i] == 0)
      {
        //We've loooked through all the commands we know how to handle and not found it, punt.
-       sends(U2, "Unknown command: ");
-       sends(U2, command_buffer);
-       sends(U2, "\r\n");
+       print( "Unknown command: ");
+       print( command_buffer);
+       print( "\r\n");
        break;
      }
      else if(strcmp(command_buffer, known_commands[i])==0)
@@ -125,12 +125,25 @@ void fill_param_struct(command_params *params, char *buff)
   params->num_params = 1;
   params->params = buff;
 
+
+  unsigned char quoted = 0;
   while(*buff != '\0')
   {
-    if (*buff == ' ')
+    if ( *buff == ' ' && !quoted )
     {
         *buff++ = '\0'; //Convert space to null terminator and skip it
         ++params->num_params;
+    } else if ( *buff == '"' ) {
+        if ( quoted ) {
+            *buff++ = '\0';
+            if ( *buff == ' ' ) {
+                *buff++ = '"'; // Move the quote to the beginning of the next param, it will be skipped.
+            }
+            quoted = 0;
+        } else {
+            ++buff;
+            quoted = 1;
+        }
     }
 
     ++buff;
@@ -143,7 +156,7 @@ char *get_param_string(command_params *params, unsigned int i)
 
   if (i >= params->num_params)
   {
-    sends(U2, "Invalid parameter number, too large.\r\n");
+    print( "Invalid parameter number, too large.\r\n");
     return 0;
   }
  
@@ -153,6 +166,9 @@ char *get_param_string(command_params *params, unsigned int i)
     while (*param++ != '\0') //Skip past one parameter
       ;
   }
+
+  if ( *param == '"' || *param == ' ' )  //ignore one leading quote or space
+      ++param;
 
   return param;
 }

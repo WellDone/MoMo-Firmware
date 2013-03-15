@@ -32,7 +32,7 @@ void dump_gsm_buffer(void)
             u1stat.rcv_buffer[i] = 'n';
     }*/
 
-    sends(U2, u1stat.rcv_buffer);
+    print( u1stat.rcv_buffer);
     u1stat.rcv_cursor = u1stat.rcv_buffer;
 }
 
@@ -175,7 +175,7 @@ void receive_command( UART_STATUS* stat)
         if (stat->rcv_cursor == stat->rcv_buffer+UART_BUFFER_SIZE)
         {
             stat->rcv_cursor = stat->rcv_buffer;
-            sends( U2, "Command too long.\r\n");
+            print( "Command too long.\r\n");
 
         }
 
@@ -205,22 +205,22 @@ void receive_command( UART_STATUS* stat)
 void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 {
    UART_STATUS *stat = &u1stat;
-    
    while(U1STAbits.URXDA == 1)
     {
         if (stat->rcv_cursor == stat->rcv_buffer+UART_BUFFER_SIZE)
         {
             stat->rcv_cursor = stat->rcv_buffer;
-            sends( U2, "GSM buffer full.\r\n");
+            print( "GSM buffer full.\r\n");
 
         }
 
         *(stat->rcv_cursor) = U1RXREG;
         //U2TXREG = *(stat->rcv_cursor); //echo first four characters
+        put( U2, *(stat->rcv_cursor) ); //echo to debug output
 
         stat->rcv_cursor = stat->rcv_cursor+1;
     }
-   
+
     IFS0bits.U1RXIF = 0; //Clear IFS flag
 }
 

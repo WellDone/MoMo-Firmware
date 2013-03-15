@@ -31,13 +31,15 @@
       <itemPath>serial.h</itemPath>
       <itemPath>utilities.c</itemPath>
       <itemPath>utilities.h</itemPath>
-      <itemPath>gsm_commands.c</itemPath>
       <itemPath>reset_manager.c</itemPath>
       <itemPath>reset_manager.h</itemPath>
       <itemPath>oscillator.c</itemPath>
       <itemPath>oscillator.h</itemPath>
       <itemPath>tasks.c</itemPath>
       <itemPath>tasks.h</itemPath>
+      <itemPath>command_handlers.h</itemPath>
+      <itemPath>gsm.c</itemPath>
+      <itemPath>gsm.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -179,13 +181,8 @@
         <property key="oXC16glb-macros" value=""/>
         <property key="output-file-format" value="elf"/>
       </C30Global>
-      <PICkit2PlatformTool>
-        <property key="pk2settings.3state" value="false"/>
-        <property key="pk2settings.preserveee" value="false"/>
-        <property key="pk2settings.setvddvoltage" value="2.7"/>
-        <property key="pk2settings.userpgmexec" value="true"/>
-        <property key="pk2settings.usetargetpower" value="false"/>
-      </PICkit2PlatformTool>
+      <Simulator>
+      </Simulator>
     </conf>
   </confs>
 </configurationDescriptor>

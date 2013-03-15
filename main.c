@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   main.c
  * Author: timburke
  *
@@ -10,6 +10,8 @@
 #include <p24F16KA101.h>
 #include "rtcc.h"
 #include "serial.h"
+#include "xc.h"
+#include "memory.h"
 #include "oscillator.h"
 #include "reset_manager.h"
 #include "tasks.h"
@@ -57,10 +59,12 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
+static unsigned char SENSOR_BUF[5];
+
 int main(void) {
     uart_parameters params_uart1;
     uart_parameters params_uart2;
-    
+
     AD1PCFG = 0xFFFF;
 
     _LATA0 = 0;
@@ -79,6 +83,7 @@ int main(void) {
     //Disable div-by-2
     //CLKDIV = 0;
 
+    //configure_SPI();
     handle_reset();
     taskloop_add(process_commands_task);
 
@@ -96,12 +101,10 @@ int main(void) {
     params_uart2.parity = NoParity;
     configure_uart( U2, &params_uart2 );
 
-    //Extend the welcome mat
-    sends( U2, "Device reset complete.\r\n");
-    sends( U2, "PIC 24f16ka101> ");
+    print( "Device reset complete.\r\n");
+    print( "PIC 24f16ka101> ");
 
     taskloop_loop();
-        
 
     return (EXIT_SUCCESS);
 }

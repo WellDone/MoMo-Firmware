@@ -145,5 +145,5 @@ void handle_poweron_reset(unsigned int type)
 
 void heartbeat(void)
 {
-    sends(U2, "still alive\r\n");
+    print( "still alive\r\n");
 }
