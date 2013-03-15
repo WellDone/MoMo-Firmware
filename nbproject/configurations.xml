@@ -13,6 +13,10 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="Report" displayName="Report" projectFiles="true">
+        <itemPath>Report/report.c</itemPath>
+        <itemPath>Report/report.h</itemPath>
+      </logicalFolder>
       <logicalFolder name="f1" displayName="support" projectFiles="true">
       </logicalFolder>
       <itemPath>main.c</itemPath>
@@ -31,7 +35,15 @@
       <itemPath>serial.h</itemPath>
       <itemPath>utilities.c</itemPath>
       <itemPath>utilities.h</itemPath>
-      <itemPath>gsm_commands.c</itemPath>
+      <itemPath>reset_manager.c</itemPath>
+      <itemPath>reset_manager.h</itemPath>
+      <itemPath>oscillator.c</itemPath>
+      <itemPath>oscillator.h</itemPath>
+      <itemPath>tasks.c</itemPath>
+      <itemPath>tasks.h</itemPath>
+      <itemPath>command_handlers.h</itemPath>
+      <itemPath>gsm.c</itemPath>
+      <itemPath>gsm.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -39,6 +51,9 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>Report</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="default" type="2">
@@ -47,7 +62,7 @@
         <targetDevice>PIC24F16KA101</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>PICkit2PlatformTool</platformTool>
+        <platformTool>Simulator</platformTool>
         <languageToolchain>XC16</languageToolchain>
         <languageToolchainVersion>1.11</languageToolchainVersion>
         <platform>4</platform>
@@ -173,13 +188,8 @@
         <property key="oXC16glb-macros" value=""/>
         <property key="output-file-format" value="elf"/>
       </C30Global>
-      <PICkit2PlatformTool>
-        <property key="pk2settings.3state" value="false"/>
-        <property key="pk2settings.preserveee" value="false"/>
-        <property key="pk2settings.setvddvoltage" value="2.7"/>
-        <property key="pk2settings.userpgmexec" value="true"/>
-        <property key="pk2settings.usetargetpower" value="false"/>
-      </PICkit2PlatformTool>
+      <Simulator>
+      </Simulator>
     </conf>
   </confs>
 </configurationDescriptor>
