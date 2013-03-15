@@ -107,6 +107,11 @@ void handle_reset()
     int i;
     ResetType type = get_reset_type();
 
+    if (type >= kNumResets)
+    {
+        return;
+    }
+
     //Call common functions
     for (i=0;i<MAX_RESETS_PER_TYPE;++i)
     {
@@ -130,7 +135,7 @@ void handle_all_resets(unsigned int type)
     //Power-on reset resets the rtcc, so configure and enable it.
     configure_rtcc();
     enable_rtcc();
-    set_recurring_task(EverySecond, heartbeat);
+    set_recurring_task(Every10Seconds, heartbeat);
 }
 
 void handle_poweron_reset(unsigned int type)

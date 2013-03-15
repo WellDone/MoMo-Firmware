@@ -38,28 +38,6 @@ void handle_gsm(command_params *params)
 
     cmd = get_param_string(params, 0);
 
-    if (strcmp(cmd, "power") == 0)
-    {
-        if (params->num_params < 2)
-        {
-            print( "usage: gsm power [on|off]\r\n");
-            return;
-        }
-
-        if (strcmp(get_param_string(params, 1),"on") == 0)
-        {
-            gsm_off();
-            print( "GSM module powered on.\r\n");
-        }
-        else if (strcmp(get_param_string(params, 1),"off") == 0)
-        {
-            _LATA0 = 0;
-            print( "GSM module powered off.\r\n");
-        }
-        else
-            print( "Invalid option to gsm power command.\r\n");
-    }
-
     if (strcmp(cmd, "module") == 0)
     {
         if (params->num_params < 2)
@@ -77,72 +55,37 @@ void handle_gsm(command_params *params)
         {
             gsm_off();
             print( "GSM module turned off.\r\n");
-        }/*
-        else if (strcmp(get_param_string(params, 1), "slow") == 0)
-        {
-            gsm_at_cmd("AT+IPR=38400");
-        }*/
-        else if (strcmp(get_param_string(params, 1), "cmd") == 0)
-        {
-            if (params->num_params >= 3)
-            {
-                gsm_send_at_cmd(get_param_string(params,2));
-                print( "command sent\r\n");
-            }
-            else
-                print( "usage: gsm module cmd <cmd>\r\n");
-        }
-        else if (strcmp(get_param_string(params, 1), "msg") == 0)
-        {
-            if (params->num_params == 4)
-            {
-                gsm_send_sms( get_param_string(params, 2), get_param_string(params, 3) ); //TODO: Allow multi-word messages.  "quoted string" support?
-            }
-            else
-                print( "usage: gsm module msg <address> <message>\r\n");
         }
         else
             print( "Invalid option to gsm module command.\r\n");
     }
-
-    if (strcmp(cmd, "hello") == 0)
+    else if (strcmp(cmd, "cmd") == 0)
     {
-        gsm_send_at_cmd( "AT+ICF?" );
-        //gsm_at_cmd( "AT+CMGF=1" );
-        print( "hello sent\r\n");
+        if (params->num_params >= 2)
+        {
+            gsm_send_at_cmd(get_param_string(params,1));
+            print( "command sent\r\n");
+        }
+        else
+            print( "usage: gsm cmd <cmd>\r\n");
     }
-
-    else if (strcmp(cmd, "baud") == 0)
+    else if (strcmp(cmd, "msg") == 0)
     {
-        sendf(U2, "BRG1 Value: %d\r\n", U1BRG);
+        if (params->num_params == 3)
+        {
+            gsm_send_sms( get_param_string(params, 1), get_param_string(params, 2) ); //TODO: Allow multi-word messages.  "quoted string" support?
+        }
+        else
+            print( "usage: gsm msg <address> <message>\r\n");
     }
     else if (strcmp(cmd, "report") == 0)
+    {
+        if (params->num_params >= 1)
         {
-            if (params->num_params >= 2)
-            {
-                unsigned int i=0;
-                sends(U1, "AT+CMGS=\"");
-                sends(U1, "+15107358486");
-                sends(U1, "\"\r");
-
-                //delay
-                for (i=0; i<65000; ++i)
-                    ;
-
-                sends(U1, get_param_string(params,1));
-                sends(U1, "\x1A");
-            }
-            else
-                print( "usage: gsm report <status>\r\n");
+            gsm_send_sms("+15107358486", get_param_string(params,1));
         }
-    else if (strcmp(cmd, "test") == 0)
-    {
-        sends(U1, "U\r");
-    }
-    else if (strcmp(cmd, "pattern") == 0)
-    {
-        char cmd[4] = {0xFF,0x00,'\r','\0'};
-        sends(U1, cmd);
+        else
+            print( "usage: gsm report <status>\r\n");
     }
 }
 

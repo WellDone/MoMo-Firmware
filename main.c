@@ -67,29 +67,25 @@ int main(void) {
 
     AD1PCFG = 0xFFFF;
 
-    //_LATA0 = 0;
+    _LATA0 = 0;
     //_LATA1 = 0;
 
 
-    //_TRISA0 = 0;
+    _TRISA0 = 0;
     //_TRISA1 = 0;
     //_TRISA3 = 1; //WISMO READY PIN
 
     //Configure pin controlling WISMO
-    //_LATA2 = 1;
-    //_ODA2 = 1;
-    //_TRISA2 = 0;
+    _LATA3 = 1;
+    _ODA3 = 1;
+    _TRISA3 = 0;
 
     //Disable div-by-2
     //CLKDIV = 0;
 
-    configure_interrupts();
     //configure_SPI();
-    //configure_rtcc();
-    //enable_rtcc();
-    //set_recurring_task(EverySecond, blink_light);
     handle_reset();
-    //taskloop_add(process_commands_task);
+    taskloop_add(process_commands_task);
 
     params_uart1.baud = 115200;
     params_uart1.hw_flowcontrol = 0;
@@ -105,59 +101,10 @@ int main(void) {
     params_uart2.parity = NoParity;
     configure_uart( U2, &params_uart2 );
 
-    //Extend the welcome mat
-
-    while (1)
-    {
-        print( "Device reset complete.\r\n");
-        print( "PIC 24f16ka101> ");
-    }
-
+    print( "Device reset complete.\r\n");
+    print( "PIC 24f16ka101> ");
 
     taskloop_loop();
 
-
     return (EXIT_SUCCESS);
-}
-
-void main_loop() {
-    enum { SLEEP_MODE, CHECK_INT, SENSING, MEMORY_WRITE, MEMORY_READ, GSM } state;
-    unsigned long pulse_count = 0;
-    while(1) {
-      switch(state) {
-      case SLEEP_MODE: //SLEEP mode
-	Sleep(); //put pic to sleep
-	state = CHECK_INT;
-	break;
-      case CHECK_INT: //check which interrupt woke it up
-	if(SENSOR_INTERRUPT_BIT) {
-	  if (pulse_count == 200) //COMMENT THIS SHIT OUT
-	    pulse_count = 0;
-	  pulse_count++;
-	  state = SENSING; //if sensor interrupt, sample sensor
-	  SENSOR_INTERRUPT_BIT = 0; //clear interrupt bit
-	}
-	else if (RTC_INTERRUPT_BIT) {
-	  state = GSM; //if RTC interrupt transmit GSM
-	  RTC_INTERRUPT_BIT = 0;
-	}
-	break;
-      case SENSING:
-	//sample_sensor(); //<(0.0<) Read what it says mofugga
-	state = MEMORY_WRITE;
-	break;
-      case MEMORY_WRITE:
-	//	mem_write();
-	state = SLEEP_MODE;
-	break;
-      case MEMORY_READ:
-	//mem_read();
-	state = GSM;
-	break;
-      case GSM:
-	//GSM send code
-	state = SLEEP_MODE;
-	break;
-      }
-      }
 }

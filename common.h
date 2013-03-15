@@ -14,8 +14,8 @@
 
 // Input/Output and Interrupt PIN definitions
 #define _GSM_MODULE_POWER       _LATA0
-#define _GSM_MODULE_POWER_ON()  _GSM_MODULE_POWER = 0
-#define _GSM_MODULE_POWER_OFF() _GSM_MODULE_POWER = 1
+#define _GSM_MODULE_POWER_ON()  _GSM_MODULE_POWER = 1
+#define _GSM_MODULE_POWER_OFF() _GSM_MODULE_POWER = 0
 
 #define _GSM_MODULE_ON          _LATA2
 
