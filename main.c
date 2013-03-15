@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   main.c
  * Author: timburke
  *
@@ -12,6 +12,11 @@
 #include "serial.h"
 #include "xc.h"
 #include "memory.h"
+#include "oscillator.h"
+#include "reset_manager.h"
+#include "tasks.h"
+#include "serial_commands.h"
+
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
 #pragma config BSS = OFF                // Boot segment Protect (No boot program Flash segment)
@@ -29,7 +34,7 @@
 #pragma config OSCIOFNC = ON           // CLKO Enable Configuration bit (CLKO output signal is active on the OSCO pin)
 #pragma config POSCFREQ = HS            // Primary Oscillator Frequency Range Configuration bits (Primary oscillator/external clock input frequency greater than 8 MHz)
 #pragma config SOSCSEL = SOSCHP         // SOSC Power Selection Configuration bits (Secondary oscillator configured for high-power operation)
-#pragma config FCKSM = CSDCMD           // Clock Switching and Monitor Selection (Both Clock Switching and Fail-safe Clock Monitor are disabled)
+#pragma config FCKSM = CSECMD           // Clock Switching and Monitor Selection (Clock switching is enabled, Fail-Safe Clock Monitor is disabled)
 
 // FWDT
 #pragma config WDTPS = PS32768          // Watchdog Timer Postscale Select bits (1:32,768)
@@ -56,45 +61,36 @@
 
 static unsigned char SENSOR_BUF[5];
 
-void blink_light()
-{
-    _LATA0 = !_LATA0;
-}
 int main(void) {
     uart_parameters params_uart1;
     uart_parameters params_uart2;
-    //int current_cpu_ipl;
-    //SET_AND_SAVE_CPU_IPL(current_cpu_ipl, 7);
 
     AD1PCFG = 0xFFFF;
 
     _LATA0 = 0;
-    _LATA1 = 0;
+    //_LATA1 = 0;
 
 
     _TRISA0 = 0;
-    _TRISA1 = 0;
-    _TRISA3 = 1; //WISMO READY PIN
+    //_TRISA1 = 0;
+    //_TRISA3 = 1; //WISMO READY PIN
 
     //Configure pin controlling WISMO
-    _LATA2 = 1;
-    _ODA2 = 1;
-    _TRISA2 = 0;
+    _LATA3 = 1;
+    _ODA3 = 1;
+    _TRISA3 = 0;
 
     //Disable div-by-2
     //CLKDIV = 0;
 
-    configure_interrupts();
-    configure_SPI();
-    //configure_rtcc();
-    //enable_rtcc();
-    //set_recurring_task(EverySecond, blink_light);
+    //configure_SPI();
+    handle_reset();
+    taskloop_add(process_commands_task);
 
     params_uart1.baud = 115200;
     params_uart1.hw_flowcontrol = 0;
     params_uart1.parity = NoParity;
     configure_uart( U1, &params_uart1 );
-    //init_debug();
 
     //init_gsm();
 
@@ -105,57 +101,10 @@ int main(void) {
     params_uart2.parity = NoParity;
     configure_uart( U2, &params_uart2 );
 
-    //Extend the welcome mat
-    sends( U2, "Device reset complete.\r\n");
-    sends( U2, "PIC 24f16ka101> ");
+    print( "Device reset complete.\r\n");
+    print( "PIC 24f16ka101> ");
 
-    while(1)
-    {
-        //Do periodic tasks
-        process_commands_task();
-    }
+    taskloop_loop();
 
     return (EXIT_SUCCESS);
-}
-
-void main_loop() {
-    enum { SLEEP_MODE, CHECK_INT, SENSING, MEMORY_WRITE, MEMORY_READ, GSM } state;
-    unsigned long pulse_count = 0;
-    while(1) {
-      switch(state) {
-      case SLEEP_MODE: //SLEEP mode
-	Sleep(); //put pic to sleep
-	state = CHECK_INT;
-	break;
-      case CHECK_INT: //check which interrupt woke it up
-	if(IFS1bits.INT2IF) {
-	  if (pulse_count == 200) //COMMENT THIS SHIT OUT
-	    pulse_count = 0;
-	  pulse_count++;
-	  state = SENSING; //if sensor interrupt, sample sensor
-	  IFS1bits.INT2IF = 0; //clear interrupt bit
-	}
-	else if (IFS3bits.RTCIF) {
-	  state = GSM; //if RTC interrupt transmit GSM
-	  IFS3bits.RTCIF = 0;
-	}
-	break;
-      case SENSING: 
-	sample_sensor(); //<(0.0<) Read what it says mofugga
-	state = MEMORY_WRITE;
-	break;
-      case MEMORY_WRITE:
-	//	mem_write();
-	state = SLEEP_MODE;
-	break;
-      case MEMORY_READ:
-	//mem_read();
-	state = GSM;
-	break;
-      case GSM:
-	//GSM send code
-	state = SLEEP_MODE;
-	break;
-      }
-      }
 }

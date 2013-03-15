@@ -3,13 +3,13 @@
 #define __rtcc_h__
 
 #include "interrupts.h"
+#include "tasks.h"
 
 #define HIBYTE(x) ((x&0xFF00) >> 8)
 #define LOBYTE(x) (x&0xFF)
 #define PACKWORD(hi, lo) ((hi&0xFF) << 8 | (lo&0xFF))
 
 //Type Definitions
-typedef void (*alarm_handler)(void);
 typedef enum
 {
     EveryHalfSecond = 0b0000,
@@ -43,7 +43,6 @@ void disable_rtcc();
 unsigned int rtcc_enabled();
 
 void configure_rtcc();
-void configure_rtcc_oscillator();
 
 unsigned int rtcc_times_equal(rtcc_time *time1, rtcc_time *time2);
 
@@ -54,16 +53,6 @@ void rtcc_set_time(rtcc_time *time);
 void get_rtcc_time_unsafe(rtcc_time *time);
 unsigned char from_bcd(unsigned char val);
 unsigned char to_bcd(unsigned char val);
-void set_recurring_task(AlarmRepeatTime repeat, alarm_handler routine);
-
-#define RTCC_ISR_DESCRIPTOR (isr_descriptor){ \
-                                0b100,        \
-                                0,            \
-                                (unsigned int*)IEC3,         \
-                                (unsigned int*)IPC15,        \
-                                (unsigned int*)IFS3,         \
-                                14,           \
-                                8,            \
-                                14}
+void set_recurring_task(AlarmRepeatTime repeat, task_callback routine);
 
 #endif

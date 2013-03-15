@@ -17,12 +17,6 @@ typedef enum
 
 typedef enum
 {
-    U1 = 0,
-    U2 = 1
-} UARTPort;
-
-typedef enum
-{
     CallEachCharacter = 0,
     CallEachNewline
 } ReceiveSettings;
