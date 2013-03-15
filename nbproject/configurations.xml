@@ -13,6 +13,10 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="Report" displayName="Report" projectFiles="true">
+        <itemPath>Report/report.c</itemPath>
+        <itemPath>Report/report.h</itemPath>
+      </logicalFolder>
       <logicalFolder name="f1" displayName="support" projectFiles="true">
       </logicalFolder>
       <itemPath>main.c</itemPath>
@@ -31,13 +35,14 @@
       <itemPath>serial.h</itemPath>
       <itemPath>utilities.c</itemPath>
       <itemPath>utilities.h</itemPath>
-      <itemPath>gsm_commands.c</itemPath>
       <itemPath>reset_manager.c</itemPath>
       <itemPath>reset_manager.h</itemPath>
       <itemPath>oscillator.c</itemPath>
       <itemPath>oscillator.h</itemPath>
       <itemPath>tasks.c</itemPath>
       <itemPath>tasks.h</itemPath>
+      <itemPath>gsm.c</itemPath>
+      <itemPath>command_handlers.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -45,6 +50,9 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>Report</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="default" type="2">
