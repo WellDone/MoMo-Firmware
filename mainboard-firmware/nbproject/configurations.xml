@@ -4,7 +4,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>/Applications/microchip/mplabc30/v3.30c/support/PIC24F/h/p24F16KA101.h</itemPath>
+      <itemPath>lib/p24F16KA101.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -14,40 +14,40 @@
                    displayName="Source Files"
                    projectFiles="true">
       <logicalFolder name="Report" displayName="Report" projectFiles="true">
-        <itemPath>Report/report.c</itemPath>
-        <itemPath>Report/report.h</itemPath>
+        <itemPath>src/Report/report.c</itemPath>
+        <itemPath>src/Report/report.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="support" projectFiles="true">
       </logicalFolder>
-      <itemPath>main.c</itemPath>
-      <itemPath>asm_routines.s</itemPath>
-      <itemPath>rtcc.h</itemPath>
-      <itemPath>rtcc.c</itemPath>
-      <itemPath>interrupts.c</itemPath>
-      <itemPath>interrupts.h</itemPath>
-      <itemPath>serial.c</itemPath>
-      <itemPath>serial_commands.h</itemPath>
-      <itemPath>serial_commands.c</itemPath>
-      <itemPath>command_handlers.c</itemPath>
-      <itemPath>ringbuffer.c</itemPath>
-      <itemPath>ringbuffer.h</itemPath>
-      <itemPath>common.h</itemPath>
-      <itemPath>serial.h</itemPath>
-      <itemPath>utilities.c</itemPath>
-      <itemPath>utilities.h</itemPath>
-      <itemPath>reset_manager.c</itemPath>
-      <itemPath>reset_manager.h</itemPath>
-      <itemPath>oscillator.c</itemPath>
-      <itemPath>oscillator.h</itemPath>
-      <itemPath>tasks.c</itemPath>
-      <itemPath>tasks.h</itemPath>
-      <itemPath>command_handlers.h</itemPath>
-      <itemPath>gsm.c</itemPath>
-      <itemPath>gsm.h</itemPath>
-      <itemPath>sensor.c</itemPath>
-      <itemPath>sensor.h</itemPath>
-      <itemPath>memory.c</itemPath>
-      <itemPath>memory.h</itemPath>
+      <itemPath>src/main.c</itemPath>
+      <itemPath>src/asm_routines.s</itemPath>
+      <itemPath>src/rtcc.h</itemPath>
+      <itemPath>src/rtcc.c</itemPath>
+      <itemPath>src/interrupts.c</itemPath>
+      <itemPath>src/interrupts.h</itemPath>
+      <itemPath>src/serial.c</itemPath>
+      <itemPath>src/serial_commands.h</itemPath>
+      <itemPath>src/serial_commands.c</itemPath>
+      <itemPath>src/command_handlers.c</itemPath>
+      <itemPath>src/ringbuffer.c</itemPath>
+      <itemPath>src/ringbuffer.h</itemPath>
+      <itemPath>src/common.h</itemPath>
+      <itemPath>src/serial.h</itemPath>
+      <itemPath>src/utilities.c</itemPath>
+      <itemPath>src/utilities.h</itemPath>
+      <itemPath>src/reset_manager.c</itemPath>
+      <itemPath>src/reset_manager.h</itemPath>
+      <itemPath>src/oscillator.c</itemPath>
+      <itemPath>src/oscillator.h</itemPath>
+      <itemPath>src/tasks.c</itemPath>
+      <itemPath>src/tasks.h</itemPath>
+      <itemPath>src/command_handlers.h</itemPath>
+      <itemPath>src/gsm.c</itemPath>
+      <itemPath>src/gsm.h</itemPath>
+      <itemPath>src/sensor.c</itemPath>
+      <itemPath>src/sensor.h</itemPath>
+      <itemPath>src/memory.c</itemPath>
+      <itemPath>src/memory.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
