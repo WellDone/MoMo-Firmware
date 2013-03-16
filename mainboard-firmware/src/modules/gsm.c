@@ -5,7 +5,7 @@
  * Created on November 18, 2012, 11:50 PM
  */
 
-#include "serial.h"
+#include "uart.h"
 #include "rtcc.h"
 #include "common.h"
 

@@ -1,8 +1,8 @@
 //tasks.c
 
-#include "tasks.h"
+#include "task_manager.h"
 #include "common.h"
-#include "serial.h"
+#include "uart.h"
 
 task_list taskqueue;
 

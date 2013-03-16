@@ -1,7 +1,7 @@
 #ifndef __serial_commands_h__
 #define __serial_commands_h__
 
-#include "serial.h"
+#include "uart.h"
 
 #define MAX_COMMANDS 30
 

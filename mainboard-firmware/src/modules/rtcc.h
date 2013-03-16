@@ -3,7 +3,7 @@
 #define __rtcc_h__
 
 #include "interrupts.h"
-#include "tasks.h"
+#include "task_manager.h"
 
 #define HIBYTE(x) ((x&0xFF00) >> 8)
 #define LOBYTE(x) (x&0xFF)

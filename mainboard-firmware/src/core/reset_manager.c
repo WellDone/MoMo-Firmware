@@ -8,8 +8,8 @@
 #include <p24F16KA101.h>
 #include "reset_manager.h"
 #include "rtcc.h"
-#include "serial.h"
-#include "tasks.h"
+#include "uart.h"
+#include "task_manager.h"
 
 //Global reset handler table
 reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =

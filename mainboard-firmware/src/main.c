@@ -9,12 +9,12 @@
 #include <stdlib.h>
 #include <p24F16KA101.h>
 #include "rtcc.h"
-#include "serial.h"
+#include "uart.h"
 #include "xc.h"
 #include "memory.h"
 #include "oscillator.h"
 #include "reset_manager.h"
-#include "tasks.h"
+#include "task_manager.h"
 #include "serial_commands.h"
 
 // FBS

@@ -1,5 +1,5 @@
 #include "report.h"
-#include "../gsm.h"
+#include "gsm.h"
 
 #define SERVER_ADDRESS "+17078159250"
 

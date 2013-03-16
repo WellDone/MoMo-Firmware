@@ -1,62 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="62">
   <logicalFolder name="root" displayName="root" projectFiles="true">
-    <logicalFolder name="HeaderFiles"
-                   displayName="Header Files"
+    <logicalFolder name="LibHeaders"
+                   displayName="Library Headers"
                    projectFiles="true">
       <itemPath>lib/p24F16KA101.h</itemPath>
-    </logicalFolder>
-    <logicalFolder name="LinkerScript"
-                   displayName="Linker Files"
-                   projectFiles="true">
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <logicalFolder name="Report" displayName="Report" projectFiles="true">
-        <itemPath>src/Report/report.c</itemPath>
-        <itemPath>src/Report/report.h</itemPath>
+      <logicalFolder name="core" displayName="Core" projectFiles="true">
+        <itemPath>src/core/reset_manager.c</itemPath>
+        <itemPath>src/core/reset_manager.h</itemPath>
+        <itemPath>src/core/task_manager.c</itemPath>
+        <itemPath>src/core/task_manager.h</itemPath>
+        <itemPath>src/core/common.h</itemPath>
       </logicalFolder>
-      <logicalFolder name="f1" displayName="support" projectFiles="true">
+      <logicalFolder name="debug" displayName="Debug" projectFiles="true">
+        <itemPath>src/debug/command_handlers.h</itemPath>
+        <itemPath>src/debug/command_handlers.c</itemPath>
+        <itemPath>src/debug/serial_commands.h</itemPath>
+        <itemPath>src/debug/serial_commands.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="modules" displayName="Modules" projectFiles="true">
+        <itemPath>src/modules/gsm.c</itemPath>
+        <itemPath>src/modules/gsm.h</itemPath>
+        <itemPath>src/modules/memory.c</itemPath>
+        <itemPath>src/modules/memory.h</itemPath>
+        <itemPath>src/modules/oscillator.c</itemPath>
+        <itemPath>src/modules/oscillator.h</itemPath>
+        <itemPath>src/modules/rtcc.h</itemPath>
+        <itemPath>src/modules/rtcc.c</itemPath>
+        <itemPath>src/modules/sensor.c</itemPath>
+        <itemPath>src/modules/sensor.h</itemPath>
+        <itemPath>src/modules/uart.h</itemPath>
+        <itemPath>src/modules/uart.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="tasks" displayName="Tasks" projectFiles="true">
+        <itemPath>src/tasks/report.c</itemPath>
+        <itemPath>src/tasks/report.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="util" displayName="Util" projectFiles="true">
+        <itemPath>src/util/asm_sleep.s</itemPath>
+        <itemPath>src/util/interrupts.c</itemPath>
+        <itemPath>src/util/interrupts.h</itemPath>
+        <itemPath>src/util/ringbuffer.c</itemPath>
+        <itemPath>src/util/ringbuffer.h</itemPath>
+        <itemPath>src/util/utilities.c</itemPath>
+        <itemPath>src/util/utilities.h</itemPath>
       </logicalFolder>
       <itemPath>src/main.c</itemPath>
-      <itemPath>src/asm_routines.s</itemPath>
-      <itemPath>src/rtcc.h</itemPath>
-      <itemPath>src/rtcc.c</itemPath>
-      <itemPath>src/interrupts.c</itemPath>
-      <itemPath>src/interrupts.h</itemPath>
-      <itemPath>src/serial.c</itemPath>
-      <itemPath>src/serial_commands.h</itemPath>
-      <itemPath>src/serial_commands.c</itemPath>
-      <itemPath>src/command_handlers.c</itemPath>
-      <itemPath>src/ringbuffer.c</itemPath>
-      <itemPath>src/ringbuffer.h</itemPath>
-      <itemPath>src/common.h</itemPath>
-      <itemPath>src/serial.h</itemPath>
-      <itemPath>src/utilities.c</itemPath>
-      <itemPath>src/utilities.h</itemPath>
-      <itemPath>src/reset_manager.c</itemPath>
-      <itemPath>src/reset_manager.h</itemPath>
-      <itemPath>src/oscillator.c</itemPath>
-      <itemPath>src/oscillator.h</itemPath>
-      <itemPath>src/tasks.c</itemPath>
-      <itemPath>src/tasks.h</itemPath>
-      <itemPath>src/command_handlers.h</itemPath>
-      <itemPath>src/gsm.c</itemPath>
-      <itemPath>src/gsm.h</itemPath>
-      <itemPath>src/sensor.c</itemPath>
-      <itemPath>src/sensor.h</itemPath>
-      <itemPath>src/memory.c</itemPath>
-      <itemPath>src/memory.h</itemPath>
     </logicalFolder>
-    <logicalFolder name="ExternalFiles"
-                   displayName="Important Files"
-                   projectFiles="false">
-      <itemPath>Makefile</itemPath>
-    </logicalFolder>
+    <itemPath>Makefile</itemPath>
   </logicalFolder>
   <sourceRootList>
-    <Elem>Report</Elem>
+    <Elem>src</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -69,7 +67,7 @@
         <platformTool>Simulator</platformTool>
         <languageToolchain>XC16</languageToolchain>
         <languageToolchainVersion>1.11</languageToolchainVersion>
-        <platform>3</platform>
+        <platform>4</platform>
       </toolsSet>
       <compileType>
         <linkerTool>
@@ -104,7 +102,8 @@
         <property key="enable-short-double" value="false"/>
         <property key="enable-symbols" value="true"/>
         <property key="enable-unroll-loops" value="false"/>
-        <property key="extra-include-directories" value="lib/inc;lib/inc/devices"/>
+        <property key="extra-include-directories"
+                  value="./lib;./src;./src/util;./src/modules;./src/core;./src/debug;./src/tasks"/>
         <property key="isolate-each-function" value="false"/>
         <property key="keep-inline" value="false"/>
         <property key="oXC16gcc-align-arr" value="false"/>
@@ -193,6 +192,35 @@
         <property key="output-file-format" value="elf"/>
       </C30Global>
       <Simulator>
+        <property key="animationupdates.realtimewatchupdates" value="false"/>
+        <property key="animationupdates.steptime" value=""/>
+        <property key="animationupdates.updatetime" value=""/>
+        <property key="breakoptions.coreerrors" value="Ignore"/>
+        <property key="breakoptions.corewarnings" value="Ignore"/>
+        <property key="breakoptions.peripheralerrors" value="Ignore"/>
+        <property key="breakoptions.peripheralwarnings" value="Ignore"/>
+        <property key="breakoptions.stimulusmessages.notes" value="Ignore"/>
+        <property key="breakoptions.stimulusmessags.errors" value="Ignore"/>
+        <property key="breakoptions.stimulusmessags.warnings" value="Ignore"/>
+        <property key="breakoptions.wdtwarnings" value="Ignore"/>
+        <property key="codecoverage.enabled" value="Disable"/>
+        <property key="codecoverage.enableoutputtofile" value="false"/>
+        <property key="codecoverage.outputfile" value=""/>
+        <property key="oscillator.auxfrequency" value="120"/>
+        <property key="oscillator.auxfrequencyunit" value="Mega"/>
+        <property key="oscillator.frequency" value="1"/>
+        <property key="oscillator.frequencyunit" value="Mega"/>
+        <property key="performancedata.show" value="false"/>
+        <property key="periphADC1.altscl" value="false"/>
+        <property key="periphADC2.altscl" value="false"/>
+        <property key="tracecontrol.select" value="0"/>
+        <property key="tracecontrol.timestamp" value="2"/>
+        <property key="tracecontrol.tracebufmax" value="54600"/>
+        <property key="tracecontrol.tracefile" value="/Users/Austin/mpdeftrace.log"/>
+        <property key="tracecontrol.traceresetonrun" value="false"/>
+        <property key="uart1io.output" value="window"/>
+        <property key="uart1io.outputfile" value=""/>
+        <property key="uart1io.uartioenabled" value="false"/>
       </Simulator>
     </conf>
   </confs>

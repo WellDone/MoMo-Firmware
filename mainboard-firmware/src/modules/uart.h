@@ -1,7 +1,7 @@
 //serial.h
 
-#ifndef __serial_h__
-#define __serial_h__
+#ifndef __uart_h__
+#define __uart_h__
 
 #include "interrupts.h"
 #include "common.h"
