@@ -1,7 +1,0 @@
-This file should eventually contain things.
-
-TODO
-1.  Fix the alarm handler in the rtcc code to have a common interrupt handler
-    and store a pointer to the command to execute.
-2.  Add rtcc commands to serial terminal
-3.  Add SPI talking to flash memory
