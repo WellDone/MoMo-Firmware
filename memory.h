@@ -4,9 +4,9 @@
 
 
 //Write to memory
-void mem_write(int val);
-long mem_read();
+void mem_write(int addr, int val);
+long mem_read(int addr);
 void configure_SPI();
 static unsigned char TX_BUF[140];
-static unsigned long last_wrote;
-static unsigned long last_read;
+static unsigned long next_free;
+static unsigned long next_read;

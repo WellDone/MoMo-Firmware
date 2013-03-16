@@ -44,6 +44,10 @@
       <itemPath>command_handlers.h</itemPath>
       <itemPath>gsm.c</itemPath>
       <itemPath>gsm.h</itemPath>
+      <itemPath>sensor.c</itemPath>
+      <itemPath>sensor.h</itemPath>
+      <itemPath>memory.c</itemPath>
+      <itemPath>memory.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -65,7 +69,7 @@
         <platformTool>Simulator</platformTool>
         <languageToolchain>XC16</languageToolchain>
         <languageToolchainVersion>1.11</languageToolchainVersion>
-        <platform>4</platform>
+        <platform>3</platform>
       </toolsSet>
       <compileType>
         <linkerTool>

@@ -210,6 +210,27 @@ void handle_rtcc(command_params *params)
 }
 
 void handle_sensor(command_params *params) {
-  //I2C_READ(0x0A, 4);
-  print( "I2C read exit");
+  IEC1bits.INT2IE = 1; //enable interrupt
+  sends(U2, "Good night, Sweet Prince");
+  Sleep();
+  sends(U2, "I can't do that Dave");
+  IEC1bits.INT2IE = 0; //disable interrupt
+}
+
+void handle_memory(command_params *params) {
+    char* cmd;
+    cmd = get_param_string(params, 0);
+    int val = 0;
+    sendf(U2, "handling memory\r\n");
+    if (strcmp(cmd, "write") == 0) {
+      next_free = 0xA;
+      sendf(U2, "next_free = %x \r\n", next_free);
+      val = *get_param_string(params, 1);
+      mem_write(0xA, val);
+    } else if (strcmp(cmd, "read") == 0) {
+      next_read = next_free - 1;
+      sendf(U2, "Val previous:%d\r\n", val);
+      val = ((int) mem_read(0xA));
+      sendf(U2, "Val read:%d\r\n", val);
+    }
 }
