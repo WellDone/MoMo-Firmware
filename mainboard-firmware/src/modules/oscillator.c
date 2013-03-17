@@ -4,6 +4,10 @@
 #include "common.h"
 #include <p24F16KA101.h>
 
+//internal utility functions
+static inline void write_osccon_h(unsigned char value);
+static inline void write_osccon_l(unsigned char value);
+
 /*
  * pass enabled=1 to enable the secondary oscillator
  * pass enabled=0 to disable the secondary oscillator

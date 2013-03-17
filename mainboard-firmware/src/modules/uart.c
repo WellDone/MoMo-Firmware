@@ -1,4 +1,5 @@
 #include "uart.h"
+#include "utilities.h"
 #include <string.h>
 #include <stdarg.h>
 
@@ -32,7 +33,7 @@ void dump_gsm_buffer(void)
             u1stat.rcv_buffer[i] = 'n';
     }*/
 
-    print( u1stat.rcv_buffer);
+    print(u1stat.rcv_buffer);
     u1stat.rcv_cursor = u1stat.rcv_buffer;
 }
 

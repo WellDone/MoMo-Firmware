@@ -1,4 +1,5 @@
 #include "rtcc.h"
+#include <string.h>
 #include <p24F16KA101.h>
 
 task_callback alarm_callback = 0;

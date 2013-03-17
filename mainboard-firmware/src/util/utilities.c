@@ -3,6 +3,7 @@
 #include "utilities.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 unsigned char get_2byte_number(char *input)
 {
@@ -50,7 +51,7 @@ void sprintf_small(char *buffer, unsigned int len, char *fmt, va_list argp)
                 case 'd':
                 {
                     int num = va_arg(argp, int);
-                    int skip_len = itoa(buffer,len-i, num);
+                    int skip_len = itoa_small(buffer,len-i, num);
                     buffer += skip_len;
                     break;
                 }
@@ -87,7 +88,7 @@ end:
  * with support for negative numbers.
  *
  */
-int itoa(char *buf, unsigned int len, int num)
+int itoa_small(char *buf, unsigned int len, int num)
 {
     char temp[10];
     unsigned int i=9;
