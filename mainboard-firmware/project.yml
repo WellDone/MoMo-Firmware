@@ -14,13 +14,13 @@
   :test_file_prefix: test_
 
 :release_build:
-  :output: MoMo-mainboard-firmware.hex
+  :output: MoMo-mainboard-firmware.elf
   :use_assembly: TRUE
 
 :environment:
 
 :extension:
-  :executable: .hex
+  :executable: .elf
 
 :paths:
   :test:
@@ -84,7 +84,7 @@
     :arguments:
       - -mcpu=24F16KA101
       - ${1}
-      - -o "./build/release/TestBuild.out"
+      - -o "./build/release/TestBuild.elf"
       - -Wl,-Tp24F16KA101.gld,-Map=./build/release/TestOutput.map,--report-mem
   :test_fixture:
     :executable: ruby
@@ -107,25 +107,35 @@
       - -Wall
       #- -Werror
       - -Os
-      - -mlarge-code
-      - -mlarge-arrays
+      #- -g debug
   :release_assembler:
-    :executable: xc16-as
+    :executable: xc16-gcc
     :arguments:
+      - -mcpu=24F16KA101
+      - -c
       - ${1}
       - -o ${2}
+      - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
+      - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE
+      - -I"/Users/timburke/Projects/DataLogger/lib/inc/devices"
+      - -D$: COLLECTION_DEFINES_RELEASE_AND_VENDOR
+      - -Wall
+      - -Os
+      - -Wa,--no-relax
+      #- -c  -omf=elf  -Wa,-MD,"build/default/production/src/util/asm_sleep.o.d",--defsym=__MPLAB_BUILD=1,-g,--no-relax
   :release_linker:
     :executable: xc16-gcc
     :arguments:
       - -mcpu=24F16KA101
       - ${1}
       - -o ${2}
-      - -Wl,-Tp24F16KA101.gld,-Map=./build/release/MoMo-mainboard-firmware.map,--report-mem
-
+      - -Wl,-Tp24F16KA101.gld,-Map=./build/release/MoMo-mainboard-firmware.map,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem
 :plugins:
   :load_paths:
-    - vendor/ceedling/plugins
+    - tools/ceedling/plugins
+    - tools/ceedling-plugins
   :enabled:
     - stdout_pretty_tests_report
     - module_generator
+    - bin_to_hex
 ...
