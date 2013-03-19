@@ -20,13 +20,13 @@ void register_command_handlers()
 {
     command_buffer[0] = '\0';
     cmd_ready = 0;
-    
+
     register_command("echo", handle_echo_params);
     register_command("device", handle_device);
     register_command("rtcc", handle_rtcc);
     register_command("gsm", handle_gsm );
     register_command("sensor", handle_sensor);
-    //register_command("memory", handle_memory);
+    register_command("memory", handle_memory);
 }
 
 /*
@@ -159,7 +159,7 @@ char *get_param_string(command_params *params, unsigned int i)
     print( "Invalid parameter number, too large.\r\n");
     return 0;
   }
- 
+
   char *param = params->params;
   for (j=0; j<i; ++j)
   {

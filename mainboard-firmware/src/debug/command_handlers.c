@@ -1,14 +1,13 @@
 #include <xc.h>
+#include <stdio.h>
+#include <string.h>
 #include "serial_commands.h"
 #include "rtcc.h"
-//#include "utilities.h"
+#include "utilities.h"
 #include "sensor.h"
 #include "memory.h"
-static unsigned long next_free;
-static unsigned long next_read;
 #include "oscillator.h"
 #include "gsm.h"
-#include <stdio.h>
 
 void handle_echo_params(command_params *params)
 {
@@ -217,20 +216,20 @@ void handle_sensor(command_params *params) {
   IEC1bits.INT2IE = 0; //disable interrupt
 }
 
+static BYTE memory_buffer[256];
 void handle_memory(command_params *params) {
     char* cmd;
+    char* data;
+    int l = 0;
     cmd = get_param_string(params, 0);
-    int val = 0;
-    sendf(U2, "handling memory\r\n");
     if (strcmp(cmd, "write") == 0) {
-      next_free = 0xA;
-      sendf(U2, "next_free = %x \r\n", next_free);
-      val = *get_param_string(params, 1);
-      mem_write(0xA, val);
+      data = get_param_string(params,1);
+      mem_write(0x0, data, strlen(data));
     } else if (strcmp(cmd, "read") == 0) {
-      next_read = next_free - 1;
-      sendf(U2, "Val previous:%d\r\n", val);
-      val = ((int) mem_read(0xA));
-      sendf(U2, "Val read:%d\r\n", val);
+      atoi_short( get_param_string(params, 1), &l);
+      l &= 255;
+      mem_read(0x0, memory_buffer, l);
+      memory_buffer[l+1] = 0x0;
+      print(memory_buffer);
     }
 }

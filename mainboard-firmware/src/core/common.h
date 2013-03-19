@@ -5,6 +5,11 @@
 
 #define CLOCKSPEED      8000000L //F_osc / 2 (the instruction clock frequency)
 
+typedef char BYTE;
+typedef short bool;
+#define false 0;
+#define true 1;
+
 #define CLEAR_BIT(field, bitnum) ((field) &= ~(1<<bitnum))
 #define SET_BIT(field,bitnum)    ((field) |= 1<<bitnum)
 #define TOGGLE_BIT(field,bitnum) ((field) ^= 1<<bitnum)

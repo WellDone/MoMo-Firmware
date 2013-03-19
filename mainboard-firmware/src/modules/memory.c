@@ -3,100 +3,132 @@
 #include "serial_commands.h"
 #include "rtcc.h"
 
-//Buffer to read SPI to
-//static unsigned char TX_BUF[140];
-static unsigned long next_free;
-static unsigned long next_read;
+#define ENABLE_MEMORY() SPI1STATbits.SPIEN = 1
+#define DISABLE_MEMORY() SPI1STATbits.SPIEN = 0
+#define MEMORY_STATUS_BIT SPI1STATbits.SPITBF
+#define MEMORY_STATUS_OVERFLOWN SPI1STATbits.SPIROV
+#define MEMORY_STATUS_BUFFER_READ SPI1STATbits.SPIRBF
+#define MEMORY_BUFFER_REGISTER SPI1BUF
 
-//configure SPI
+#define TIMEOUT 1000
+
+//static unsigned char MEMORY_BUF[140];
+
+typedef enum {
+  WREN = 0b110,
+  WRDI = 0b100,
+  READ = 0b011,
+  PP = 0b010
+} memory_instructions;
+
+bool shift_out( BYTE data ) {
+  short timeout_ct = 0;
+  MEMORY_BUFFER_REGISTER = data && 0xFF;
+  while((MEMORY_STATUS_BIT) && timeout_ct < TIMEOUT)
+    ++timeout_ct;
+  if ( timeout_ct == 0 ) {
+    return false;
+  }
+  return true;
+}
+
+bool shift_n_out( int data, short numBytes ) { //max 4 bytes, MSB first
+  --numBytes;
+  while( numBytes > 0 ) {
+    if ( !shift_out( data && (0xFF << (numBytes<<1)) ) ) {
+      return false;
+    }
+    --numBytes;
+  }
+  return true;
+}
+
+bool shift_in( BYTE* out ) {
+  MEMORY_STATUS_OVERFLOWN = 0;
+  MEMORY_BUFFER_REGISTER = 0x00;
+
+  short timeout_ct = 0;
+  while( (!MEMORY_STATUS_BUFFER_READ) && timeout_ct < TIMEOUT )
+    ++timeout_ct;
+
+  if (MEMORY_STATUS_BUFFER_READ)
+  {
+    MEMORY_STATUS_OVERFLOWN = 0;
+
+    *out = SPI1BUF && 0xFF;
+    return true;
+  }
+  return false;
+}
+
+#define WRITE_MODE_ENABLE() shift_out( WREN )
+#define PAGE_PROGRAM_MODE() shift_out( PP )
+#define WRITE_MODE_DISABLE() shift_out( WRDI );
+#define READ_MODE() shift_out( READ );
+
 void configure_SPI() {
   SPI1CON1bits.MODE16 = 0; //communication is byte-wide
   SPI1CON1bits.MSTEN = 1; //SPI is in master mode
   TRISBbits.TRISB15 = 0;
-  TRISBbits.TRISB14 = 1; //SDI is input
+  TRISBbits.TRISB14 = 1; //SPI is in input mode (?)
   TRISBbits.TRISB13 = 0;
   TRISBbits.TRISB12 = 0;
 }
 
-//Write a value to EEPROM
-void mem_write(int addr, int val) {
-  //Write to
-  //Send WREN
-  int timeout_ct = 0;
-  int i = 0;
-  //SEND val
-  SPI1STATbits.SPIEN = 1;
-  sendf(U2, "next_free = %d \r\n", next_free);
-  SPI1BUF = 0x02;
-  while((SPI1STATbits.SPITBF) && timeout_ct < 1000)
-    timeout_ct++; //wait while busy
-
-  //send address bytes MSB first
-  for(i = 2; i > 0; i--) {
-    SPI1BUF = (next_free >> i * 8) & 0xFF;
-    timeout_ct = 0;
-    while((SPI1STATbits.SPITBF) && timeout_ct < 1000)
-      timeout_ct++; //wait while busy
-    sendf(U2, "timeout_ct = %d\r\n", timeout_ct);
-    if (timeout_ct == 1000)
-      sends(U2, "Memory timed out on address\r\n");
+// Length is capped at 256, 1 page of flash memory.
+bool mem_write(int addr, BYTE *data, unsigned int length) {
+  int i;
+  bool success = true;
+  if ( length > 256) { //TODO: bitwise-ify
+    length = 256;
   }
 
-  //send values LSB first (because have to correspond to addresses)
-  timeout_ct = 0;
-  for(i = 0; i < 3; i++) {
-    SPI1BUF = (val >> i * 8) & 0xFF;
-    timeout_ct = 0;
-    while((SPI1STATbits.SPITBF) && timeout_ct < 1000)
-      timeout_ct++; //wait while busy
-    sendf(U2, "timeout_ct = %d\r\n", timeout_ct);
-    if (timeout_ct == 1000)
-      sends(U2, "Memory timed out on data\r\n");
+  ENABLE_MEMORY();
+  WRITE_MODE_ENABLE();
+  PAGE_PROGRAM_MODE();
+
+  if ( !shift_n_out( addr, 3 ) ) {
+    print("Memory timed out while writing address\r\n");
+    success = false;
   }
-  SPI1STATbits.SPIEN = 0;
-  //finish
-  next_free++;
+
+  if ( success ) {
+    for(i = 0; i < length; ++i) {
+      if (!shift_out( data[i] )) {
+        print( "Memory timed out while writing data\r\n" );
+        success = false;
+      }
+    }
+  }
+
+  WRITE_MODE_DISABLE();
+  DISABLE_MEMORY();
+  return success;
 }
 
-long mem_read(int addr) {
-  //Write to
-  //Send WREN
-  int timeout_ct;
-  int i = 0;
-  unsigned long val = 0;
-  //SEND val
-  SPI1STATbits.SPIEN = 1;
+bool mem_read(int addr, BYTE* buf, unsigned int numBytes) {
+  BYTE* bufEnd = buf+numBytes;
+  bool success = true;
 
-  SPI1BUF = 0x02;
-  while((SPI1STATbits.SPITBF) && timeout_ct < 1000)
-    timeout_ct++; //wait while busy
-  sendf(U2, "next_read = %d \r\n", next_read);
-  //send address bytes MSB first
-  for(i = 2; i > 0; i--) {
-    SPI1BUF = (next_read >> i * 8) & 0xFF;
-    timeout_ct = 0;
-    while((SPI1STATbits.SPITBF) && timeout_ct < 1000)
-      timeout_ct++; //wait while busy
-    sendf(U2, "timeout_ct = %d\r\n", timeout_ct);
-    if (timeout_ct == 1000)
-      sends(U2, "Memory timed out on address\r\n");
+  ENABLE_MEMORY();
+  READ_MODE();
+
+  if (!shift_n_out( addr, 3 )) {
+    print("Memory timed out while writing address\r\n");
+    success = false;
   }
 
-  //send values LSB first (because have to correspond to addresses)
-  timeout_ct = 0;
-  for(i = 0; i < 3; i++) {
-    SPI1BUF = 0; //write 0 to initiate write to SPI1BUF
-    timeout_ct = 0;
-    while((SPI1STATbits.SPITBF) && timeout_ct < 1000)
-      timeout_ct++; //wait while busy
-    sendf(U2, "timeout_ct = %d\r\n", timeout_ct);
-    if (timeout_ct == 1000)
-      sends(U2, "Memory timed out on data\r\n");
-    val = val | ((0xFF & SPI1BUF) << i * 8);
+  if (success) {
+    while ( buf != bufEnd ) {
+      if (!shift_in( buf )) {
+        print("Memory timed out while reading data\r\n");
+        break;
+      }
+      ++buf;
+    }
   }
+  success = (buf == bufEnd);
 
-  //finish
-  SPI1STATbits.SPIEN = 0;
-  next_read++;
-  return val;
+  DISABLE_MEMORY();
+  return success;
 }

@@ -87,7 +87,7 @@ end:
  * with support for negative numbers.
  *
  */
-int itoa(char *buf, unsigned int len, int num)
+int itoa_short(char *buf, unsigned int len, int num)
 {
     char temp[10];
     unsigned int i=9;
@@ -114,13 +114,28 @@ int itoa(char *buf, unsigned int len, int num)
 
             temp[i--] = '0' + rem;
         }
-    
+
         if (negative)
             temp[i--] = '-';
     }
 
-    
+
     memcpy(buf, temp+i+1, 9-i-1);
 
     return 9-i-1;
+}
+
+bool atoi_short(char* buf, int* out)
+{
+    int i;
+    unsigned int *uout;
+    for ( i=0; i<strlen(buf); ++i ) {
+        if ( buf[i] == '-' && i==0 ) {
+            *uout &= 0x80000000; // -0
+        } else if ( buf[i] >= '0' && buf[i] <= '9' ) {
+            *uout += buf[i]-'0';
+        } else {
+            return false;
+        }
+    }
 }

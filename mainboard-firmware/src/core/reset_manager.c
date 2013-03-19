@@ -72,7 +72,7 @@ int remove_reset_handler(unsigned int handle)
 /*
  * get_reset_type
  * Should be called soon after reset (i.e. early in main) and determines
- * the cause of the reset.  This function may be called only once per reset 
+ * the cause of the reset.  This function may be called only once per reset
  * since it clears the associated RCON register bits.
  */
 
@@ -135,7 +135,7 @@ void handle_all_resets(unsigned int type)
     //Power-on reset resets the rtcc, so configure and enable it.
     configure_rtcc();
     enable_rtcc();
-    set_recurring_task(Every10Seconds, heartbeat);
+    //set_recurring_task(Every10Seconds, heartbeat);
 }
 
 void handle_poweron_reset(unsigned int type)
