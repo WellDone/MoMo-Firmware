@@ -52,9 +52,9 @@ void handle_adc(command_params *params)
         unsigned int channels = 0;
 
         ADD_CHANNEL(channels, 1);
-        ADD_CHANNEL(channels, kVDDReference);
-        ADD_CHANNEL(channels, kVSSReference);
+        ADD_CHANNEL(channels, 5);
         ADD_CHANNEL(channels, kBandgapReference);
+        ADD_CHANNEL(channels, kHalfBandgapReference);
 
         config.output_format = kUIntegerFormat;
         config.trigger = kInternalCounter;

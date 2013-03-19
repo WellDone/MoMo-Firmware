@@ -135,7 +135,7 @@ void handle_all_resets(unsigned int type)
     //Power-on reset resets the rtcc, so configure and enable it.
     configure_rtcc();
     enable_rtcc();
-    set_recurring_task(Every10Seconds, heartbeat);
+    //set_recurring_task(Every10Seconds, heartbeat);
 }
 
 void handle_poweron_reset(unsigned int type)
