@@ -75,6 +75,58 @@ void handle_adc(command_params *params)
         adc_enable();
         sendf(U2, "ADC Enabled, acquiring %d samples\r\n", num_samples);
     }
+    else if (strcmp(cmd, "get") == 0)
+    {
+        ADCConfig config;
+        unsigned int val;
+
+        config.output_format = kUIntegerFormat;
+        config.trigger = kInternalCounter;
+        config.reference = kVDDVSS;
+        config.enable_in_idle = 0;
+        config.sample_autostart = 1;
+        config.scan_input = 0;
+        config.alternate_muxes = 0;
+        config.autosample_wait = 0b11111;
+
+        config.oneshot = 1;
+        config.num_samples = 1;
+
+        adc_configure(&config);
+        adc_set_channel(1);
+        _PCFG1 = 0;
+        _TRISA1 = 1;
+        val = adc_convert_one();
+
+        sendf(U2, "Read: %d\r\n", val);
+    }
+    else if (strcmp(cmd, "cal") == 0)
+    {
+        ADCConfig config;
+        unsigned int val;
+
+        config.output_format = kUIntegerFormat;
+        config.trigger = kInternalCounter;
+        config.reference = kVDDVSS;
+        config.enable_in_idle = 0;
+        config.sample_autostart = 1;
+        config.scan_input = 0;
+        config.alternate_muxes = 0;
+        config.autosample_wait = 0b11111;
+
+        config.oneshot = 1;
+        config.num_samples = 1;
+
+        adc_configure(&config);
+        adc_set_channel(1);
+        _PCFG1 = 0;
+        _TRISA1 = 1;
+        _OFFCAL = 1;
+        val = adc_convert_one();
+        _OFFCAL = 0;
+
+        sendf(U2, "Canibration: %d\r\n", val);
+    }
     else if (strcmp(cmd, "read") == 0)
     {
         unsigned int i=0;

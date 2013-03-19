@@ -90,6 +90,7 @@ void adc_configure(const ADCConfig *config);
 
 void adc_setup_scan(unsigned int channels);
 void adc_set_channel(unsigned int channel);
+unsigned int adc_convert_one();
 
 void adc_set_status(unsigned int enabled);
 
