@@ -226,7 +226,7 @@ void handle_memory(command_params *params) {
       data = get_param_string(params,1);
       mem_write(0x0, data, strlen(data));
     } else if (strcmp(cmd, "read") == 0) {
-      atoi_short( get_param_string(params, 1), &l);
+      atoi_small( get_param_string(params, 1), &l);
       l &= 255;
       mem_read(0x0, memory_buffer, l);
       memory_buffer[l+1] = 0x0;

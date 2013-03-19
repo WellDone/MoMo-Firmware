@@ -34,9 +34,9 @@ typedef struct
     volatile char rcv_buffer[UART_BUFFER_SIZE];
     volatile char send_buffer[UART_BUFFER_SIZE];
 
-    volatile char *rcv_cursor;
+    volatile char volatile *rcv_cursor;
     volatile unsigned char receiving;
-    volatile char *send_cursor;
+    volatile char volatile *send_cursor;
     volatile unsigned char sending;
 } UART_STATUS;
 

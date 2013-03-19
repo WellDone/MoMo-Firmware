@@ -22,7 +22,4 @@ void ringbuffer_pop(ringbuffer *buf, void *out);
 unsigned int ringbuffer_empty(ringbuffer *buf);
 unsigned int ringbuffer_full(ringbuffer *buf);
 
-//internal utility functions
-static void ringbuffer_incr(ringbuffer *buf, unsigned int *index);
-
 #endif
