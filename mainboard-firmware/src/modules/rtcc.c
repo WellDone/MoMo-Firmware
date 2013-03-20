@@ -86,6 +86,21 @@ unsigned int rtcc_times_equal(rtcc_time *time1, rtcc_time *time2)
     return (memcmp(time1, time2, sizeof(rtcc_time))==0);
 }
 
+/*
+ * rtcc_compare_times
+ * Return -1 if time1 is sooner than time2
+ * Return 0  if time1 == time2
+ * Return +1 if time1 is after time2
+ */
+unsigned int rtcc_compare_times(rtcc_time *time1, rtcc_time *time2)
+{
+    /* TODO
+     * Check if the pic is little or big endian and the spec for memcmp
+     * if possible implement using memcmp and replace above function.
+     * reorder the rtcc_time struct in MSB first to allow this
+     */
+}
+
 void get_rtcc_time_unsafe(rtcc_time *time)
 {
     unsigned int curr;
@@ -128,28 +143,30 @@ void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
 
 void set_recurring_task(AlarmRepeatTime repeat, task_callback routine)
 {
-     if (!_RTCWREN)
+    if (!_RTCWREN)
         asm_enable_rtcon_write();
 
-     _ALRMEN = 0; //disable alarm
-     _CHIME = 1; //allow infinite repeats
+    _ALRMEN = 0; //disable alarm
+    _CHIME = 1; //allow infinite repeats
 
-     _ALRMPTR = 0b10;
-     ALRMVAL = PACKWORD(to_bcd(1), to_bcd(1)); //Set the alarm to trigger at 00:00 1/1
-     ALRMVAL = PACKWORD(to_bcd(0), to_bcd(0));
-     ALRMVAL = PACKWORD(to_bcd(0), to_bcd(0));
+    _ALRMPTR = 0b10;
+    ALRMVAL = PACKWORD(to_bcd(1), to_bcd(1)); //Set the alarm to trigger at 00:00 1/1
+    ALRMVAL = PACKWORD(to_bcd(0), to_bcd(0));
+    ALRMVAL = PACKWORD(to_bcd(0), to_bcd(0));
 
-     _ARPT = 0x01; //Repeat once but since chime is on, we'll roll over, so repeat forever
+    _ARPT = 0x01; //Repeat once but since chime is on, we'll roll over, so repeat forever
 
-     //Set the time between recurrences.
-     _AMASK = repeat;
+    //Set the time between recurrences.
+    _AMASK = repeat;
 
-     //Save off the callback
-     alarm_callback = routine;
+    //Save off the callback
+    alarm_callback = routine;
+    old_callback = 0;
 
-     IPC15bits.RTCIP = 1;
-     IEC3bits.RTCIE = 1;
-     _ALRMEN = 1; //Enable the recurring task
+
+    IPC15bits.RTCIP = 1;
+    IEC3bits.RTCIE = 1;
+    _ALRMEN = 1; //Enable the recurring task
 }
 
 /*void wait( unsigned int milliseconds )
