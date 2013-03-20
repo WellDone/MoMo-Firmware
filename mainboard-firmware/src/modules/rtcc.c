@@ -1,6 +1,7 @@
 #include "rtcc.h"
 #include <string.h>
 #include <p24F16KA101.h>
+#include "common.h"
 
 task_callback alarm_callback = 0;
 task_callback old_callback = 0;
@@ -12,7 +13,7 @@ void enable_rtcc()
         asm_enable_rtcon_write();
 
     _RTCEN = 1;
-    
+
 }
 
 void disable_rtcc()
@@ -119,10 +120,10 @@ unsigned char to_bcd(unsigned char val)
 }
 
 void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
-{    
+{
     if (alarm_callback != 0)
         taskloop_add(alarm_callback);
-    
+
     IFS3bits.RTCIF = 0;
 }
 
@@ -168,8 +169,12 @@ void set_recurring_task(AlarmRepeatTime repeat, task_callback routine)
     _AMASK = 0x00;
 }*/
 
-#define HZ
+#define HZ 1/CLOCKSPEED;
 void wait( unsigned int milliseconds )
 {
-
+    milliseconds = milliseconds * HZ;
+    milliseconds = milliseconds / 1000;
+    while (milliseconds > 0 )
+        milliseconds++;
+    print( "waited" );
 }

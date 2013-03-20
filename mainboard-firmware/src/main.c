@@ -83,7 +83,6 @@ int main(void) {
     //Disable div-by-2
     //CLKDIV = 0;
 
-    configure_SPI();
     handle_reset();
     taskloop_add(process_commands_task);
 

@@ -141,3 +141,15 @@ bool atoi_small(const char* buf, int* out)
     }
     return true;
 }
+
+void print_byte( BYTE b )
+{
+  int i;
+  for ( i=7; i>=0; --i) {
+    if ( ( b & 0b1<<i ) )
+      print("1");
+    else
+      print("0");
+  }
+  print("\r\n");
+}

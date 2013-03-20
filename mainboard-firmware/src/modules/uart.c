@@ -20,7 +20,7 @@ void dump_gsm_buffer(void)
 {
     int diff = u1stat.rcv_cursor - u1stat.rcv_buffer;
     int i;
-    
+
     sendf(U2, "num chars: %d\r\n", diff);
 
     *u1stat.rcv_cursor ='\0';
@@ -76,7 +76,7 @@ void configure_uart1(uart_parameters *params)
     U1STAbits.URXISEL  = 0b00; //Receive interrupt when any character is received
 
     //Clear receive buffer
-    while(U1STAbits.URXDA == 1) 
+    while(U1STAbits.URXDA == 1)
     {
         char Temp;
         Temp = U1RXREG;
@@ -188,16 +188,16 @@ void receive_command( UART_STATUS* stat)
             //Check if they sent \r\n and chomp it.
             if (stat->rcv_cursor != stat->rcv_buffer && *(stat->rcv_cursor-1) == '\r')
                 --stat->rcv_cursor;
-            
+
             *stat->rcv_cursor = '\0';
-            
+
             //Reset everything
             stat->rcv_cursor = stat->rcv_buffer;
 
             //Signal the main loop task to process the command
             cmd_ready = 1;
             break;
-        }   
+        }
 
         stat->rcv_cursor = stat->rcv_cursor+1;
     }
@@ -211,13 +211,13 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
         if (stat->rcv_cursor == stat->rcv_buffer+UART_BUFFER_SIZE)
         {
             stat->rcv_cursor = stat->rcv_buffer;
-            print( "GSM buffer full.\r\n");
+            //print( "GSM buffer full.\r\n");
 
         }
 
         *(stat->rcv_cursor) = U1RXREG;
         //U2TXREG = *(stat->rcv_cursor); //echo first four characters
-        put( U2, *(stat->rcv_cursor) ); //echo to debug output
+        //put( U2, *(stat->rcv_cursor) ); //echo to debug output
 
         stat->rcv_cursor = stat->rcv_cursor+1;
     }
@@ -228,7 +228,7 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 void __attribute__((interrupt,auto_psv)) _U2RXInterrupt()
 {
     receive_command( &u2stat );
-    
+
     IFS1bits.U2RXIF = 0; //Clear IFS flag
 }
 
@@ -267,11 +267,10 @@ void __attribute__((interrupt,no_auto_psv)) _U2TXInterrupt()
 
 void put( UARTPort port, const char c )
 {
-    UART_STATUS* stat = GetStatus( port );
-    stat->sending = 0;
-    while ( stat->send_cursor == stat->send_buffer + UART_BUFFER_SIZE )
-        ; //TODO: Do this better.
-    *stat->send_cursor = c;
+    char* buf[2];
+    buf[0] = c;
+    buf[1] = "\0";
+    sends( port, buf );
 }
 
 void send(UARTPort port, const char *msg)
@@ -279,7 +278,7 @@ void send(UARTPort port, const char *msg)
     //Don't send zero length strings (our logic would be wrong since send_cursor would point past the end of the string in that case.
     if (*msg == '\0')
         return;
-    
+
     UART_STATUS* stat = GetStatus( port );
     stat->sending = 0;
     strncpy(stat->send_buffer, msg, UART_BUFFER_SIZE);
