@@ -83,22 +83,18 @@ void rtcc_get_time(rtcc_time *time)
 
 unsigned int rtcc_times_equal(rtcc_time *time1, rtcc_time *time2)
 {
-    return (memcmp(time1, time2, sizeof(rtcc_time))==0);
+    return (rtcc_compare_times == 0);
 }
 
 /*
  * rtcc_compare_times
- * Return -1 if time1 is sooner than time2
+ * Return <0 if time1 is sooner than time2
  * Return 0  if time1 == time2
- * Return +1 if time1 is after time2
+ * Return >0 if time1 is after time2
  */
 unsigned int rtcc_compare_times(rtcc_time *time1, rtcc_time *time2)
 {
-    /* TODO
-     * Check if the pic is little or big endian and the spec for memcmp
-     * if possible implement using memcmp and replace above function.
-     * reorder the rtcc_time struct in MSB first to allow this
-     */
+    return memcmp(time1, time2, kTimeCompareSize);
 }
 
 void get_rtcc_time_unsafe(rtcc_time *time)
@@ -139,6 +135,11 @@ void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
         taskloop_add(alarm_callback);
     
     IFS3bits.RTCIF = 0;
+}
+
+void set_onetime_callback(AlarmRepeatTime time, task_callback routine)
+{
+    //TODO, Fill in this function
 }
 
 void set_recurring_task(AlarmRepeatTime repeat, task_callback routine)
