@@ -76,7 +76,7 @@
       - -I"$": COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR
       - -Wall
       #- -Werror  # We can't keep this on during test becuase of a CMock pointer issue
-      - -Os
+      #- -Os
       - -mlarge-code
       - -mlarge-arrays
   :test_linker:
@@ -106,7 +106,7 @@
       - -D$: COLLECTION_DEFINES_RELEASE_AND_VENDOR
       - -Wall
       #- -Werror
-      - -Os
+      #- -Os
       #- -g debug
   :release_assembler:
     :executable: xc16-gcc
@@ -120,7 +120,7 @@
       - -I"/Users/timburke/Projects/DataLogger/lib/inc/devices"
       - -D$: COLLECTION_DEFINES_RELEASE_AND_VENDOR
       - -Wall
-      - -Os
+      #- -Os
       - -Wa,--no-relax
       #- -c  -omf=elf  -Wa,-MD,"build/default/production/src/util/asm_sleep.o.d",--defsym=__MPLAB_BUILD=1,-g,--no-relax
   :release_linker:
