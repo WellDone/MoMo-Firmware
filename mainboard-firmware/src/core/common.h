@@ -3,9 +3,11 @@
 #ifndef __common_h__
 #define __common_h__
 
+#include <p24Fxxxx.h>
+#include <GenericTypeDefs.h>
+
 #define CLOCKSPEED      8000000L //F_osc / 2 (the instruction clock frequency)
 
-typedef char BYTE;
 typedef short bool;
 #define false 0;
 #define true 1;

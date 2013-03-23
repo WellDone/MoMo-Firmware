@@ -239,9 +239,11 @@ void handle_memory(command_params *params) {
       print("MEMORY READ\r\n");
       print(memory_buffer);
       print("\r\n");
-    } else if (strcmp(cmd, "readall") == 0) {
-        mem_read_all( 0x0A );
     } else if (strcmp(cmd, "clear") == 0) {
         mem_clear();
+    } else if (strcmp(cmd, "status") == 0) {
+        print_byte( mem_status() );
+    } else if (strcmp(cmd, "test") == 0) {
+        mem_test();
     }
 }

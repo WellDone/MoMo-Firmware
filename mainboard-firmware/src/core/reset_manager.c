@@ -5,7 +5,7 @@
  *
  */
 
-#include <p24F16KA101.h>
+#include "common.h"
 #include "reset_manager.h"
 #include "rtcc.h"
 #include "uart.h"

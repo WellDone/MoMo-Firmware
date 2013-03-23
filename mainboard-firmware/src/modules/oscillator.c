@@ -2,7 +2,6 @@
 
 #include "oscillator.h"
 #include "common.h"
-#include <p24F16KA101.h>
 
 //internal utility functions
 static inline void write_osccon_h(unsigned char value);

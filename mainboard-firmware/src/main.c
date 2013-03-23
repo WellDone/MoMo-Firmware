@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <p24F16KA101.h>
+#include "common.h"
 #include "rtcc.h"
 #include "uart.h"
 #include "xc.h"
@@ -102,6 +102,8 @@ int main(void) {
 
     print( "Device reset complete.\r\n");
     print( "PIC 24f16ka101> ");
+
+    configure_SPI();
 
     taskloop_loop();
 

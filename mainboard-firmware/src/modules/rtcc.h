@@ -55,4 +55,6 @@ unsigned char from_bcd(unsigned char val);
 unsigned char to_bcd(unsigned char val);
 void set_recurring_task(AlarmRepeatTime repeat, task_callback routine);
 
+void wait_ms( unsigned int milliseconds );
+
 #endif

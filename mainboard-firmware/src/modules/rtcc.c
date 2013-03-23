@@ -1,7 +1,6 @@
+#include "common.h"
 #include "rtcc.h"
 #include <string.h>
-#include <p24F16KA101.h>
-#include "common.h"
 
 task_callback alarm_callback = 0;
 task_callback old_callback = 0;
@@ -170,11 +169,10 @@ void set_recurring_task(AlarmRepeatTime repeat, task_callback routine)
 }*/
 
 #define HZ 1/CLOCKSPEED;
-void wait( unsigned int milliseconds )
+void wait_ms( unsigned int milliseconds )
 {
     milliseconds = milliseconds * HZ;
     milliseconds = milliseconds / 1000;
     while (milliseconds > 0 )
         milliseconds++;
-    print( "waited" );
 }

@@ -1,4 +1,4 @@
-#include <p24F16KA101.h>
+#include "common.h"
 #include "sensor.h"
 int test_WDT(int delay) {
   RCONbits.SWDTEN = 1; //enable Watchdog timer
