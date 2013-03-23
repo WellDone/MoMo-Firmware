@@ -19,7 +19,7 @@ typedef enum
     kEvery10Minutes = 0b0100,
     kEveryHour = 0b0101,
     kEveryDay = 0b0110,
-    kOnlyOnce = 0xFFFF
+    kNumAlarmTimes
 } AlarmRepeatTime;
 
 //Only the first 6 bytes of rtcc_time are significant for comparisons.  Don't compare the weekday
@@ -49,18 +49,21 @@ unsigned int rtcc_enabled();
 
 void configure_rtcc();
 
-unsigned int rtcc_times_equal(rtcc_time *time1, rtcc_time *time2);
-unsigned int rtcc_compare_times(rtcc_time *time1, rtcc_time *time2);
+unsigned int    rtcc_times_equal(rtcc_time *time1, rtcc_time *time2);
+unsigned int    rtcc_compare_times(rtcc_time *time1, rtcc_time *time2);
+void            rtcc_time_difference(rtcc_time *time1, rtcc_time *time2); //overwrite time2 with time2-time1 componentwise;
 
 void rtcc_get_time(rtcc_time *time);
 void rtcc_set_time(rtcc_time *time);
+void rtcc_get_alarm(rtcc_time *alarm);
 
 //Utility functions
 void get_rtcc_time_unsafe(rtcc_time *time);
 unsigned char from_bcd(unsigned char val);
 unsigned char to_bcd(unsigned char val);
 
-void set_recurring_task(AlarmRepeatTime repeat, task_callback routine);
-void set_onetime_callback(AlarmRepeatTime time, task_callback routine); //TODO: Make this function
+void         set_recurring_task(AlarmRepeatTime repeat, task_callback routine);
+void         clear_recurring_task();
+unsigned int last_alarm_frequency();
 
 #endif

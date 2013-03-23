@@ -1,5 +1,6 @@
 #include "uart.h"
 #include "utilities.h"
+#include "debug/serial_commands.h"
 #include <string.h>
 #include <stdarg.h>
 
@@ -196,6 +197,7 @@ void receive_command( UART_STATUS* stat)
 
             //Signal the main loop task to process the command
             cmd_ready = 1;
+            taskloop_add(process_commands_task);
             break;
         }   
 

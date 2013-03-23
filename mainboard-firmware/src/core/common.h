@@ -38,4 +38,7 @@ typedef enum
 extern void asm_reset();
 extern void asm_sleep();
 
+#define uninterruptible_start() __builtin_disi(0x3FFF)
+#define uninterruptible_end()	__builtin_disi(0x0000)
+
 #endif

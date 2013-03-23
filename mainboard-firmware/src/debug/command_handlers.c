@@ -1,7 +1,7 @@
 #include <xc.h>
 #include "serial_commands.h"
 #include "rtcc.h"
-//#include "utilities.h"
+#include "utilities.h"
 #include "sensor.h"
 #include "memory.h"
 static unsigned long next_free;
@@ -10,8 +10,15 @@ static unsigned long next_read;
 #include "gsm.h"
 #include "../modules/adc.h"
 #include <stdio.h>
+#include <string.h>
+#include "../modules/scheduler.h"
+#include "../core/reset_manager.h"
 
- extern volatile unsigned int adc_buffer[kADCBufferSize];
+extern volatile unsigned int adc_buffer[kADCBufferSize];
+
+ScheduledTask test_task;
+
+
 
 void handle_echo_params(command_params *params)
 {
@@ -225,7 +232,12 @@ void handle_device(command_params *params)
         print( "Resetting the device...\r\n");
         asm_reset();
     }
-    if (strcmp(cmd, "get") == 0)
+    else if (strcmp(cmd, "schedule") == 0)
+    {
+        scheduler_schedule_task(minutebeat, kEverySecond, 5, &test_task);
+        print("Heartbeat scheduled 5 times, once per second.\r\n");
+    }
+    /*else if (strcmp(cmd, "get") == 0)
     {
         if (params->num_params < 2)
         {
@@ -245,8 +257,7 @@ void handle_device(command_params *params)
                 print( "Secondary oscillator is disabled\r\n");
         }
     }
-
-    if (strcmp(cmd, "enable") == 0)
+    else if (strcmp(cmd, "enable") == 0)
     {
         if (params->num_params < 2)
         {
@@ -260,8 +271,10 @@ void handle_device(command_params *params)
         {
             set_sosc_status(1);
             print( "Secondary oscillator enabled.\r\n");
+            return;
         }
     }
+    */
 }
 
 void handle_rtcc(command_params *params)
@@ -290,7 +303,6 @@ void handle_rtcc(command_params *params)
 
         sendf(U2, "Current Time: %d/%d/%d %d:%d:%d\r\n", time.month, time.day, time.year, time.hours, time.minutes, time.seconds);
     }
-
     else if (strcmp(cmd, "set") == 0)
     {
         rtcc_time time_spec;

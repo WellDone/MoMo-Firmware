@@ -85,7 +85,6 @@ int main(void) {
 
     //configure_SPI();
     handle_reset();
-    taskloop_add(process_commands_task);
 
     params_uart1.baud = 115200;
     params_uart1.hw_flowcontrol = 0;

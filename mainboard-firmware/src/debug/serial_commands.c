@@ -6,6 +6,7 @@
 
 #include "serial_commands.h"
 #include "command_handlers.h"
+#include "core/task_manager.h"
 #include <string.h>
 
 volatile char __attribute__((space(data))) command_buffer[UART_BUFFER_SIZE];
@@ -65,8 +66,6 @@ void process_commands_task()
 
         cmd_ready = 0;
     }
-
-    taskloop_add(process_commands_task); //Make sure we keep getting added to the list FIXME (make this interrupt driven
 }
 
 /*

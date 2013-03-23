@@ -23,7 +23,8 @@ typedef enum
     kDeepSleepReset,
     kSoftwareReset,
     kMCLRReset,
-    kAllResets,
+    kAllResetsBefore,
+    kAllResetsAfter,
     kNumResets
 
 } ResetType;
@@ -45,6 +46,5 @@ ResetType       get_reset_type();
 
 //Reset Type Handlers
 void handle_poweron_reset(unsigned int type);
-void handle_all_resets(unsigned int type);
-
-void heartbeat(void);
+void handle_all_resets_before(unsigned int type);
+void handle_all_resets_after(unsigned int type);

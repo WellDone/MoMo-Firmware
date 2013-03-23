@@ -10,17 +10,21 @@
 #include "rtcc.h"
 #include "uart.h"
 #include "task_manager.h"
+#include "modules/scheduler.h"
 
 //Global reset handler table
 reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =
 {
-    {handle_poweron_reset}, //POR Reset
-    {0},                    //Reset during sleep
-    {0},                    //Wake from deep sleep
-    {0},                    //Software reset
-    {0},                    //MCLR External reset
-    {handle_all_resets}     //Call on all resets
+    {handle_poweron_reset},     //POR Reset
+    {0},                        //Reset during sleep
+    {0},                        //Wake from deep sleep
+    {0},                        //Software reset
+    {0},                        //MCLR External reset
+    {handle_all_resets_before}, //Call on all resets (before)
+    {handle_all_resets_after}   //Call after all other reset code   
 };
+
+ScheduledTask minutetask, tenminutetask, hourtask, daytask;
 
 /*
  * register_reset_handler
@@ -115,8 +119,8 @@ void handle_reset()
     //Call common functions
     for (i=0;i<MAX_RESETS_PER_TYPE;++i)
     {
-        if (reset_handlers[kAllResets][i] != 0)
-            reset_handlers[kAllResets][i](type);
+        if (reset_handlers[kAllResetsBefore][i] != 0)
+            reset_handlers[kAllResetsBefore][i](type);
     }
 
     //Call reset-type specific functions
@@ -125,25 +129,35 @@ void handle_reset()
         if (reset_handlers[type][i] != 0)
             reset_handlers[type][i](type);
     }
+
+    for (i=0;i<MAX_RESETS_PER_TYPE;++i)
+    {
+        if (reset_handlers[kAllResetsAfter][i] != 0)
+            reset_handlers[kAllResetsAfter][i](type);
+    }
 }
 
-void handle_all_resets(unsigned int type)
+void handle_all_resets_before(unsigned int type)
 {
     configure_interrupts();
     taskloop_init();
+    scheduler_init();
 
-    //Power-on reset resets the rtcc, so configure and enable it.
-    configure_rtcc();
-    enable_rtcc();
-    //set_recurring_task(Every10Seconds, heartbeat);
+    //test scheduling code
+    //scheduler_schedule_task(minutebeat, kEverySecond, 50, &minutetask);
+    //scheduler_schedule_task(tenminutebeat, kEvery10Minutes, kScheduleForever, &tenminutetask);
+    //scheduler_schedule_task(hourbeat, kEveryHour, kScheduleForever, &hourtask);
+    //scheduler_schedule_task(daybeat, kEveryDay, kScheduleForever, &daytask);
+}
+
+void handle_all_resets_after(unsigned int type)
+{
+    //Add code that should be called after all other reset code here
 }
 
 void handle_poweron_reset(unsigned int type)
 {
-
-}
-
-void heartbeat(void)
-{
-    print( "still alive\r\n");
+    //Power-on reset resets the rtcc, so configure and enable it.
+    configure_rtcc();
+    enable_rtcc();
 }
