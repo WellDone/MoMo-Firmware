@@ -21,7 +21,6 @@ void battery_init()
 	SOLAR_VOLTAGE_OD = 1;
 	SOLAR_VOLTAGE_TRIS = 0;
 	SOLAR_VOLTAGE_DIGITAL = 1;
-	
 
 	//Store ADC configuration
     batt_adc_config.output_format = kUIntegerFormat;
