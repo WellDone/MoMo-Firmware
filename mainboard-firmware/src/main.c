@@ -100,10 +100,10 @@ int main(void) {
     params_uart2.parity = NoParity;
     configure_uart( U2, &params_uart2 );
 
+    configure_SPI();
+
     print( "Device reset complete.\r\n");
     print( "PIC 24f16ka101> ");
-
-    configure_SPI();
 
     taskloop_loop();
 

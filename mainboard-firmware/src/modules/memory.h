@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include "common.h"
 
-void configure_SPI();
+bool configure_SPI();
 
 bool mem_write( int addr, const BYTE* data, unsigned int length );
 bool mem_read( int addr, BYTE* buf, unsigned int numBytes );
 void mem_clear();
 BYTE mem_status();
-void mem_test();
+bool mem_test();
