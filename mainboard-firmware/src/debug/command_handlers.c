@@ -1,14 +1,24 @@
 #include <xc.h>
 #include "serial_commands.h"
 #include "rtcc.h"
-//#include "utilities.h"
+#include "utilities.h"
 #include "sensor.h"
 #include "memory.h"
 static unsigned long next_free;
 static unsigned long next_read;
 #include "oscillator.h"
 #include "gsm.h"
+#include "../modules/adc.h"
 #include <stdio.h>
+#include <string.h>
+#include "../core/scheduler.h"
+#include "../core/reset_manager.h"
+
+extern volatile unsigned int adc_buffer[kADCBufferSize];
+
+ScheduledTask test_task;
+
+
 
 void handle_echo_params(command_params *params)
 {
@@ -24,6 +34,122 @@ void handle_echo_params(command_params *params)
       print( "\r\n");
     }
   }
+}
+
+void handle_adc(command_params *params)
+{
+    char *cmd;
+
+    if (params->num_params < 1)
+    {
+        print( "You must pass a subcommand to the device command.\r\n");
+        return;
+    }
+
+    cmd = get_param_string(params, 0);
+
+    if (strcmp(cmd, "acquire") == 0)
+    {
+        int num_samples = 1;
+        if (params->num_params == 2)
+        {
+            num_samples = atoi(get_param_string(params, 1));
+        }
+        ADCConfig config;
+        unsigned int channels = 0;
+
+        ADD_CHANNEL(channels, 1);
+        ADD_CHANNEL(channels, 5);
+        ADD_CHANNEL(channels, kBandgapReference);
+        ADD_CHANNEL(channels, kHalfBandgapReference);
+
+        config.output_format = kUIntegerFormat;
+        config.trigger = kInternalCounter;
+        config.reference = kVDDVSS;
+        config.enable_in_idle = 0;
+        config.sample_autostart = 1;
+        config.scan_input = 0;
+        config.alternate_muxes = 0;
+        config.autosample_wait = 0b11111;
+        
+        config.oneshot = 1;
+        config.num_samples = num_samples;
+
+        adc_configure(&config);
+        adc_setup_scan(channels);
+        _PCFG1 = 0;
+        _TRISA1 = 1;
+        adc_enable();
+        sendf(U2, "ADC Enabled, acquiring %d samples\r\n", num_samples);
+    }
+    else if (strcmp(cmd, "get") == 0)
+    {
+        ADCConfig config;
+        unsigned int val;
+
+        config.output_format = kUIntegerFormat;
+        config.trigger = kInternalCounter;
+        config.reference = kVDDVSS;
+        config.enable_in_idle = 0;
+        config.sample_autostart = 1;
+        config.scan_input = 0;
+        config.alternate_muxes = 0;
+        config.autosample_wait = 0b11111;
+
+        config.oneshot = 1;
+        config.num_samples = 1;
+
+        adc_configure(&config);
+        adc_set_channel(1);
+        _PCFG1 = 0;
+        _TRISA1 = 1;
+        val = adc_convert_one();
+
+        sendf(U2, "Read: %d\r\n", val);
+    }
+    else if (strcmp(cmd, "cal") == 0)
+    {
+        ADCConfig config;
+        unsigned int val;
+
+        config.output_format = kUIntegerFormat;
+        config.trigger = kInternalCounter;
+        config.reference = kVDDVSS;
+        config.enable_in_idle = 0;
+        config.sample_autostart = 1;
+        config.scan_input = 0;
+        config.alternate_muxes = 0;
+        config.autosample_wait = 0b11111;
+
+        config.oneshot = 1;
+        config.num_samples = 1;
+
+        adc_configure(&config);
+        adc_set_channel(1);
+        _PCFG1 = 0;
+        _TRISA1 = 1;
+        _OFFCAL = 1;
+        val = adc_convert_one();
+        _OFFCAL = 0;
+
+        sendf(U2, "Canibration: %d\r\n", val);
+    }
+    else if (strcmp(cmd, "read") == 0)
+    {
+        unsigned int i=0;
+        sends(U2, "Dumping ADC buffer\r\n");
+        for (i=0; i<kADCBufferSize; ++i)
+        {
+            sendf(U2, "Reading %d: %d\r\n", i, adc_buffer[i]);
+        }
+    }
+    else if (strcmp(cmd, "disable") == 0)
+    {
+        adc_disable();
+        sends(U2, "ADC Disabled\r\n");
+    }
+    else
+        sendf(U2, "Unknown adc command: %s", cmd);
 }
 
 void handle_gsm(command_params *params)
@@ -106,7 +232,11 @@ void handle_device(command_params *params)
         print( "Resetting the device...\r\n");
         asm_reset();
     }
-    if (strcmp(cmd, "get") == 0)
+    else if (strcmp(cmd, "rtype") == 0)
+    {
+            sendf(U2, "Last reset type: %d\r\n", last_reset_type());
+    }
+    /*else if (strcmp(cmd, "get") == 0)
     {
         if (params->num_params < 2)
         {
@@ -126,8 +256,7 @@ void handle_device(command_params *params)
                 print( "Secondary oscillator is disabled\r\n");
         }
     }
-
-    if (strcmp(cmd, "enable") == 0)
+    else if (strcmp(cmd, "enable") == 0)
     {
         if (params->num_params < 2)
         {
@@ -141,8 +270,10 @@ void handle_device(command_params *params)
         {
             set_sosc_status(1);
             print( "Secondary oscillator enabled.\r\n");
+            return;
         }
     }
+    */
 }
 
 void handle_rtcc(command_params *params)
@@ -171,7 +302,6 @@ void handle_rtcc(command_params *params)
 
         sendf(U2, "Current Time: %d/%d/%d %d:%d:%d\r\n", time.month, time.day, time.year, time.hours, time.minutes, time.seconds);
     }
-
     else if (strcmp(cmd, "set") == 0)
     {
         rtcc_time time_spec;
@@ -204,6 +334,11 @@ void handle_rtcc(command_params *params)
         sendf(U2, "Input month was: %d\r\n", m);
 
         rtcc_set_time(&time_spec);
+    }
+    else if (strcmp(cmd, "enable") == 0)
+    {
+        enable_rtcc();
+        print("RTCC Enabled\r\n");
     }
     else
         sendf(U2, "Unknown rtcc command: %s\r\n", cmd);

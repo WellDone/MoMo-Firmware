@@ -6,10 +6,12 @@
 
 #include "serial_commands.h"
 #include "command_handlers.h"
+#include "core/task_manager.h"
 #include <string.h>
 
 volatile char __attribute__((space(data))) command_buffer[UART_BUFFER_SIZE];
 volatile int  __attribute__((space(data))) cmd_ready;
+volatile int cmd_received = 0;
 
 char __attribute__((space(data))) *known_commands[MAX_COMMANDS+1];
 CommandHandler __attribute__((space(data))) command_handlers[MAX_COMMANDS+1];
@@ -26,6 +28,7 @@ void register_command_handlers()
     register_command("rtcc", handle_rtcc);
     register_command("gsm", handle_gsm );
     register_command("sensor", handle_sensor);
+    register_command("adc", handle_adc);
     //register_command("memory", handle_memory);
 }
 
@@ -64,8 +67,6 @@ void process_commands_task()
 
         cmd_ready = 0;
     }
-
-    taskloop_add(process_commands_task); //Make sure we keep getting added to the list FIXME (make this interrupt driven
 }
 
 /*
