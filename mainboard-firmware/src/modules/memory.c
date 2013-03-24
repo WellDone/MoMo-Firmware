@@ -2,11 +2,10 @@
 #include "rtcc.h"
 #include "utilities.h"
 #include "uart.h"
-//#include <spi.h>
 
 #define SS_VALUE LATBbits.LATB15
-#define ENABLE_MEMORY() SS_VALUE = 0 //SPI1STATbits.SPIEN = 1
-#define DISABLE_MEMORY() SS_VALUE = 1 //SPI1STATbits.SPIEN = 0
+#define ENABLE_MEMORY() SS_VALUE = 0
+#define DISABLE_MEMORY() SS_VALUE = 1
 #define MEMORY_TX_STATUS SPI1STATbits.SPITBF
 #define MEMORY_STATUS_OVERFLOWN SPI1STATbits.SPIROV
 #define MEMORY_RX_STATUS SPI1STATbits.SPIRBF
@@ -34,14 +33,6 @@ typedef enum {
 #define ERASE_ALL() shift_out( BE )
 
 bool configure_SPI() {
- /*
-  unsigned int config1 = SPI_MODE8_ON|SPI_CKE_ON|MASTER_ENABLE_ON|SEC_PRESCAL_4_1|PRI_PRESCAL_4_1;
-  unsigned int config2 = FRAME_ENABLE_OFF;
-  unsigned int config3 = SPI_ENABLE;
-
-  OpenSPI1(config1, config2, config3);
-  */
-
   SPI1CON1bits.MODE16 = 0; //communication is byte-wide
   SPI1CON1bits.MSTEN = 1; //SPI is in master mode
   //SPI1CON1bits.PPRE = 0x0; //TODO: Choose a good clock prescalar
@@ -109,23 +100,6 @@ bool shift_n_out( int data, short num_bytes ) {
 
 bool shift_in( BYTE* out ) {
   return shift_impl( 0x00, out );
-
-/*  MEMORY_STATUS_OVERFLOWN = 0;
-  MEMORY_BUFFER_REGISTER = 0x00; //DUMMY VALUE
-
-  unsigned short count = 0;
-  while( !MEMORY_RX_STATUS && count<TIMEOUT )
-    ++count;
-
-  if (count!=TIMEOUT && MEMORY_RX_STATUS)
-  {
-    MEMORY_STATUS_OVERFLOWN = 0;
-    BYTE data = (MEMORY_BUFFER_REGISTER & 0xFF);
-    *out = data;
-    //dbg_byte_print( *out );
-    return true;
-  }
-  return false;*/
 }
 
 bool mem_test() {
@@ -151,7 +125,6 @@ bool mem_test() {
     return false;
   }
   return true;
-  //CloseSPI1();
 }
 
 // Length is capped at 256, 1 page of flash memory.
