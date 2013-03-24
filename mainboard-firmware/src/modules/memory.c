@@ -17,6 +17,7 @@
 typedef enum {
   WREN = 0b110,
   WRDI = 0b100,
+  RDID = 0b10011111,
   RDSR = 0b101,
   WRSR = 0b001,
   READ = 0b011,
@@ -25,13 +26,14 @@ typedef enum {
 } memory_instructions;
 
 #define WRITE_MODE_ENABLE() shift_out( WREN )
-#define WRITE_MODE_DISABLE() shift_out( WRDI );
-#define READ_STATUS_REGISTER() shift_out( RDSR );
+#define WRITE_MODE_DISABLE() shift_out( WRDI )
+#define READ_IDENTIFICATION() shift_out( RDID )
+#define READ_STATUS_REGISTER() shift_out( RDSR )
 #define PAGE_PROGRAM_MODE() shift_out( PP )
-#define READ_MODE() shift_out( READ );
-#define ERASE_ALL() shift_out( BE );
+#define READ_MODE() shift_out( READ )
+#define ERASE_ALL() shift_out( BE )
 
-void configure_SPI() {
+bool configure_SPI() {
  /*
   unsigned int config1 = SPI_MODE8_ON|SPI_CKE_ON|MASTER_ENABLE_ON|SEC_PRESCAL_4_1|PRI_PRESCAL_4_1;
   unsigned int config2 = FRAME_ENABLE_OFF;
@@ -54,20 +56,8 @@ void configure_SPI() {
   TRISBbits.TRISB12 = 0; // SDCK
 
   DISABLE_MEMORY(); //idle state of SS is high
-}
-
-void mem_test() {
-  print("testing...\r\n");
-
-  ENABLE_MEMORY();
-  wait_ms(1);
-
-  //TODO
-
-  wait_ms(1);
-  DISABLE_MEMORY();
-  wait_ms(1);
-  //CloseSPI1();
+  wait_ms( 1 );
+  return mem_test();
 }
 
 void dbg_byte_print( BYTE b ) {
@@ -84,9 +74,9 @@ void dbg_byte_print( BYTE b ) {
 }
 
 
-static inline bool shift_imp( BYTE data, BYTE* data_out ) {
+static inline bool shift_impl( BYTE data, BYTE* data_out ) {
   unsigned short count = 0;
-  dbg_byte_print( data );
+  //dbg_byte_print( data );
 
   while ( MEMORY_TX_STATUS && count<TIMEOUT)
     ++count;
@@ -102,7 +92,7 @@ static inline bool shift_imp( BYTE data, BYTE* data_out ) {
   return true;
 }
 bool shift_out( BYTE data ) {
-  return shift_imp( data, &data );
+  return shift_impl( data, &data );
 }
 
 //max sizeof(int) bytes, MSB first
@@ -117,7 +107,7 @@ bool shift_n_out( int data, short numBytes ) {
 }
 
 bool shift_in( BYTE* out ) {
-  return shift_imp( 0x00, out );
+  return shift_impl( 0x00, out );
 
 /*  MEMORY_STATUS_OVERFLOWN = 0;
   MEMORY_BUFFER_REGISTER = 0x00; //DUMMY VALUE
@@ -135,6 +125,32 @@ bool shift_in( BYTE* out ) {
     return true;
   }
   return false;*/
+}
+
+bool mem_test() {
+  BYTE device_info;
+  print("Testing flash memory SPI communication...\r\n");
+
+  ENABLE_MEMORY();
+  wait_ms(1);
+
+  READ_IDENTIFICATION();
+  shift_in( &device_info );
+
+  wait_ms(1);
+  DISABLE_MEMORY();
+  wait_ms(1);
+
+  print( "Memory device ID: ");
+  print_byte( device_info );
+
+  if (!device_info) {
+    print( "SPI test FAILED!!" );
+    print( "\r\n" );
+    return false;
+  }
+  return true;
+  //CloseSPI1();
 }
 
 // Length is capped at 256, 1 page of flash memory.
@@ -197,14 +213,16 @@ bool mem_read(int addr, BYTE* buf, unsigned int numBytes) {
 
 BYTE _impl_mem_status() {
   BYTE status = 0xFF;
-  READ_STATUS_REGISTER()
+  READ_STATUS_REGISTER();
   shift_in( &status );
   return status;
 }
 
 BYTE mem_status() {
   ENABLE_MEMORY();
+  wait_ms(1);
   BYTE status = _impl_mem_status();
+  wait_ms(1);
   DISABLE_MEMORY();
   return status;
 }
