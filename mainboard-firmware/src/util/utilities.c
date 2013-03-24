@@ -1,6 +1,7 @@
 //utilities.c
 
 #include "utilities.h"
+#include "uart.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -152,4 +153,9 @@ void print_byte( BYTE b )
       print("0");
   }
   print("\r\n");
+}
+
+void println( const char* msg ) {
+  print( msg );
+  print( "\r\n" );
 }
