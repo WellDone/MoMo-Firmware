@@ -14,8 +14,9 @@ UART_STATUS __attribute__((space(data))) uart_stats[2];
 #define u1stat uart_stats[0]
 #define u2stat uart_stats[1]
 
-extern char* command_buffer;
-extern int cmd_ready;
+extern volatile char* command_buffer;
+extern volatile int cmd_ready;
+extern volatile int cmd_received;
 
 void dump_gsm_buffer(void)
 {
@@ -36,6 +37,18 @@ void dump_gsm_buffer(void)
 
     print(u1stat.rcv_buffer);
     u1stat.rcv_cursor = u1stat.rcv_buffer;
+}
+
+void uart_set_disabled(UARTPort port, int status)
+{
+    if (port == U1)
+    {
+        _U1MD = status;
+    }
+    else
+    {
+        _U2MD = status;
+    }
 }
 
 void configure_uart1(uart_parameters *params)
@@ -197,6 +210,7 @@ void receive_command( UART_STATUS* stat)
 
             //Signal the main loop task to process the command
             cmd_ready = 1;
+            cmd_received = 1; //Set the global command received flag to keep the debug interface alive.
             taskloop_add(process_commands_task);
             break;
         }   
@@ -342,16 +356,16 @@ void sendf(UARTPort port, const char *fmt, ...)
 
     //Even after we stop filling the transmit FIFO, wait until the last bit is
     //shifted out.  Fixes a bug where the device reset command will not be
-    //able to send the last 4 bits of its message because the device resets
+    //able to send the last 4 bytes of its message because the device resets
     //with those characters in the transmit shift register.
     if (port == U2)
     {
-        while (U2STAbits.TRMT)
+        while (U2STAbits.TRMT == 0)
             ;
     }
     else
     {
-        while (U1STAbits.TRMT)
+        while (U1STAbits.TRMT == 0)
             ;
     }
 }

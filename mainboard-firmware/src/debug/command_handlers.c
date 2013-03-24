@@ -232,10 +232,9 @@ void handle_device(command_params *params)
         print( "Resetting the device...\r\n");
         asm_reset();
     }
-    else if (strcmp(cmd, "schedule") == 0)
+    else if (strcmp(cmd, "rtype") == 0)
     {
-        scheduler_schedule_task(minutebeat, kEverySecond, 5, &test_task);
-        print("Heartbeat scheduled 5 times, once per second.\r\n");
+            sendf(U2, "Last reset type: %d\r\n", last_reset_type());
     }
     /*else if (strcmp(cmd, "get") == 0)
     {
@@ -335,6 +334,11 @@ void handle_rtcc(command_params *params)
         sendf(U2, "Input month was: %d\r\n", m);
 
         rtcc_set_time(&time_spec);
+    }
+    else if (strcmp(cmd, "enable") == 0)
+    {
+        enable_rtcc();
+        print("RTCC Enabled\r\n");
     }
     else
         sendf(U2, "Unknown rtcc command: %s\r\n", cmd);

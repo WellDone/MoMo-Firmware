@@ -11,6 +11,7 @@
 
 volatile char __attribute__((space(data))) command_buffer[UART_BUFFER_SIZE];
 volatile int  __attribute__((space(data))) cmd_ready;
+volatile int cmd_received = 0;
 
 char __attribute__((space(data))) *known_commands[MAX_COMMANDS+1];
 CommandHandler __attribute__((space(data))) command_handlers[MAX_COMMANDS+1];

@@ -5,10 +5,8 @@
  */
 
 //Prototype for callback functions that manage resets
-//function is passed an opaque integer handle that corresponds
-//to the function's entry in the global reset manager table
-//in case the handler wishes to deregister itself (i.e. it's single
-//shot)
+//function is passed a ResetType value specifying the type
+//of reset that occurred in case it handles multiple.  
 typedef void (*reset_handler)(unsigned int);
 
 //The maximum number of handlers that can be registered for each
@@ -19,14 +17,13 @@ typedef void (*reset_handler)(unsigned int);
 typedef enum
 {
     kPowerOnReset = 0,
-    kSleepReset,
-    kDeepSleepReset,
+    kSleepReset,     //This is never set currently
+    kDeepSleepReset, //This is never set currently
     kSoftwareReset,
     kMCLRReset,
     kAllResetsBefore,
     kAllResetsAfter,
     kNumResets
-
 } ResetType;
 
 enum
@@ -42,9 +39,12 @@ int             remove_reset_handler(unsigned int handle);
 
 void            handle_reset();
 ResetType       get_reset_type();
+ResetType       last_reset_type();
 
 
 //Reset Type Handlers
 void handle_poweron_reset(unsigned int type);
+void handle_mclr_reset(unsigned int type);
+
 void handle_all_resets_before(unsigned int type);
 void handle_all_resets_after(unsigned int type);

@@ -11,6 +11,8 @@
 #include "uart.h"
 #include "task_manager.h"
 #include "modules/scheduler.h"
+#include "modules/battery.h"
+#include "debug/debug.h"
 
 //Global reset handler table
 reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =
@@ -19,12 +21,12 @@ reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =
     {0},                        //Reset during sleep
     {0},                        //Wake from deep sleep
     {0},                        //Software reset
-    {0},                        //MCLR External reset
+    {handle_mclr_reset},        //MCLR External reset
     {handle_all_resets_before}, //Call on all resets (before)
     {handle_all_resets_after}   //Call after all other reset code   
 };
 
-ScheduledTask minutetask, tenminutetask, hourtask, daytask;
+ResetType last_reset;
 
 /*
  * register_reset_handler
@@ -84,16 +86,12 @@ ResetType get_reset_type()
 {
     ResetType type = kNumResets;
 
-    if (_POR || _BOR)
-        type = kPowerOnReset;
-    else if (_SLEEP)
-        type = kSleepReset;
-    else if (_DPSLP)
-        type = kDeepSleepReset;
-    else if (_EXTR)
+    if (_EXTR)
         type = kMCLRReset;
     else if (_SWR)
         type = kSoftwareReset;
+    else if (_POR || _BOR)
+        type = kPowerOnReset;
 
     //Clear all the status flags so we don't get confused across
     //multiple resets
@@ -106,15 +104,16 @@ ResetType get_reset_type()
     return type;
 }
 
+ResetType last_reset_type()
+{
+    return last_reset;
+}
+
 void handle_reset()
 {
     int i;
     ResetType type = get_reset_type();
-
-    if (type >= kNumResets)
-    {
-        return;
-    }
+    last_reset = type;
 
     //Call common functions
     for (i=0;i<MAX_RESETS_PER_TYPE;++i)
@@ -123,13 +122,17 @@ void handle_reset()
             reset_handlers[kAllResetsBefore][i](type);
     }
 
-    //Call reset-type specific functions
-    for (i=0;i<MAX_RESETS_PER_TYPE;++i)
+    if (type < kNumResets)
     {
-        if (reset_handlers[type][i] != 0)
-            reset_handlers[type][i](type);
+        //Call reset-type specific functions
+        for (i=0;i<MAX_RESETS_PER_TYPE;++i)
+        {
+            if (reset_handlers[type][i] != 0)
+                reset_handlers[type][i](type);
+        }
     }
 
+    //Call post reset functions
     for (i=0;i<MAX_RESETS_PER_TYPE;++i)
     {
         if (reset_handlers[kAllResetsAfter][i] != 0)
@@ -139,20 +142,23 @@ void handle_reset()
 
 void handle_all_resets_before(unsigned int type)
 {
+    //Add code here that should be called before all other reset code
     configure_interrupts();
     taskloop_init();
     scheduler_init();
 
-    //test scheduling code
-    //scheduler_schedule_task(minutebeat, kEverySecond, 50, &minutetask);
-    //scheduler_schedule_task(tenminutebeat, kEvery10Minutes, kScheduleForever, &tenminutetask);
-    //scheduler_schedule_task(hourbeat, kEveryHour, kScheduleForever, &hourtask);
-    //scheduler_schedule_task(daybeat, kEveryDay, kScheduleForever, &daytask);
+    battery_init();
 }
 
 void handle_all_resets_after(unsigned int type)
 {
-    //Add code that should be called after all other reset code here
+    /*
+     * Add code that should be called after all other reset code here
+     */
+
+    //The RTCC must be enabled for scheduling tasks, so ensure that
+    if (!rtcc_enabled())
+        enable_rtcc();
 }
 
 void handle_poweron_reset(unsigned int type)
@@ -160,4 +166,9 @@ void handle_poweron_reset(unsigned int type)
     //Power-on reset resets the rtcc, so configure and enable it.
     configure_rtcc();
     enable_rtcc();
+}
+
+void handle_mclr_reset(unsigned int type)
+{
+    debug_init();
 }
