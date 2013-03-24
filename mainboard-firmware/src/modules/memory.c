@@ -65,7 +65,7 @@ void dbg_byte_print( BYTE b ) {
 }
 
 
-static inline bool shift_impl( BYTE data, BYTE* data_out ) {
+static inline bool shift_impl( const BYTE data, BYTE* data_out ) {
   unsigned short count = 0;
   //dbg_byte_print( data );
 
@@ -88,12 +88,13 @@ bool shift_out( BYTE data ) {
 
 //Shift_out the lowest num_bytes bytes of data
 //max sizeof(int) bytes, MSB first
-bool shift_n_out( int data, short num_bytes ) {
+bool shift_n_out( const int data, short num_bytes ) {
+  num_bytes = num_bytes<<3; //*=8
   while( num_bytes > 0 ) {
-    if ( !shift_out( data & (0xFF << 3*num_bytes) ) ) {
+    if ( !shift_out( (data>>num_bytes))&0xFF ) {
       return false;
     }
-    --num_bytes;
+    num_bytes -= 8;
   }
   return true;
 }
