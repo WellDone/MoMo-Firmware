@@ -24,6 +24,8 @@ typedef enum {
   BE = 0b11000111
 } memory_instructions;
 
+bool shift_out( BYTE data );
+
 #define WRITE_MODE_ENABLE() shift_out( WREN )
 #define WRITE_MODE_DISABLE() shift_out( WRDI )
 #define READ_IDENTIFICATION() shift_out( RDID )
