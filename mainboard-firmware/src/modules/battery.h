@@ -15,5 +15,6 @@
 void battery_init();
 void battery_callback();
 
-int battery_set_charging_allowed(int allowed);
+void battery_set_charging_allowed(int allowed);
+
 #endif

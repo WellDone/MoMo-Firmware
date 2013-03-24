@@ -11,7 +11,7 @@ static unsigned long next_read;
 #include "../modules/adc.h"
 #include <stdio.h>
 #include <string.h>
-#include "../modules/scheduler.h"
+#include "../core/scheduler.h"
 #include "../core/reset_manager.h"
 
 extern volatile unsigned int adc_buffer[kADCBufferSize];

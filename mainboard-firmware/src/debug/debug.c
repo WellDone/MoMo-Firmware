@@ -4,7 +4,7 @@
 #include "../core/common.h"
 #include "command_handlers.h"
 #include "../modules/uart.h"
-#include "../modules/scheduler.h"
+#include "../core/scheduler.h"
 #include "../core/reset_manager.h"
 
 extern volatile int cmd_received;

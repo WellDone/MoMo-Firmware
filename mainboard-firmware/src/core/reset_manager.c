@@ -10,7 +10,7 @@
 #include "rtcc.h"
 #include "uart.h"
 #include "task_manager.h"
-#include "modules/scheduler.h"
+#include "scheduler.h"
 #include "modules/battery.h"
 #include "debug/debug.h"
 
