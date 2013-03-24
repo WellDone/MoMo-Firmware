@@ -149,6 +149,4 @@ void scheduler_callback()
 				scheduler_list_remove(&state.tasks[i], last);
 		}
 	}
-
-
 }
