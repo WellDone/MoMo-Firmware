@@ -37,6 +37,7 @@ bool shift_out( BYTE data );
 bool configure_SPI() {
   SPI1CON1bits.MODE16 = 0; //communication is byte-wide
   SPI1CON1bits.MSTEN = 1; //SPI is in master mode
+  SPI1CON1bits.CKP = 1; //data is clocked out on high-low transition
   //SPI1CON1bits.PPRE = 0x0; //TODO: Choose a good clock prescalar
   //SPI1CON1bits.SPRE = 0x0; //TODO: Also secondary prescalar
   SPI1STATbits.SPIEN = 1; // Enable
@@ -107,6 +108,7 @@ bool shift_in( BYTE* out ) {
 
 bool mem_test() {
   BYTE device_info;
+  BYTE info2, info3;
   print("Testing flash memory SPI communication...\r\n");
 
   ENABLE_MEMORY();
@@ -114,6 +116,8 @@ bool mem_test() {
 
   READ_IDENTIFICATION();
   shift_in( &device_info );
+  shift_in( &info2 );
+  shift_in( &info3 );
 
   wait_ms(1);
   DISABLE_MEMORY();
@@ -121,6 +125,8 @@ bool mem_test() {
 
   print( "Memory device ID: ");
   print_byte( device_info );
+  print_byte( info2 );
+  print_byte( info3 );
 
   if (!device_info) {
     print( "SPI test FAILED!!" );
