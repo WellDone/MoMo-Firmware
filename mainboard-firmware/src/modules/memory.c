@@ -1,6 +1,7 @@
 #include "memory.h"
 #include "rtcc.h"
 #include "utilities.h"
+#include "uart.h"
 #include <spi.h>
 
 #define SS_VALUE LATBbits.LATB15
@@ -82,7 +83,8 @@ void dbg_byte_print( BYTE b ) {
   print_byte( b );
 }
 
-bool shift_out( BYTE data ) {
+
+static inline bool shift_imp( BYTE data, BYTE* data_out ) {
   unsigned short count = 0;
   dbg_byte_print( data );
 
@@ -96,8 +98,11 @@ bool shift_out( BYTE data ) {
   if (count==TIMEOUT)
     return false;
 
-  data = MEMORY_BUFFER_REGISTER;
+  *data_out = MEMORY_BUFFER_REGISTER;
   return true;
+}
+bool shift_out( BYTE data ) {
+  return shift_imp( data, &data );
 }
 
 //max sizeof(int) bytes, MSB first
@@ -112,8 +117,10 @@ bool shift_n_out( int data, short numBytes ) {
 }
 
 bool shift_in( BYTE* out ) {
-  MEMORY_STATUS_OVERFLOWN = 0;
-  MEMORY_BUFFER_REGISTER = 0x00;
+  return shift_imp( 0x00, out );
+
+/*  MEMORY_STATUS_OVERFLOWN = 0;
+  MEMORY_BUFFER_REGISTER = 0x00; //DUMMY VALUE
 
   unsigned short count = 0;
   while( !MEMORY_RX_STATUS && count<TIMEOUT )
@@ -127,7 +134,7 @@ bool shift_in( BYTE* out ) {
     //dbg_byte_print( *out );
     return true;
   }
-  return false;
+  return false;*/
 }
 
 // Length is capped at 256, 1 page of flash memory.
