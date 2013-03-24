@@ -91,7 +91,7 @@ bool shift_out( BYTE data ) {
 bool shift_n_out( const int data, short num_bytes ) {
   num_bytes = num_bytes<<3; //*=8
   while( num_bytes > 0 ) {
-    if ( !shift_out( (data>>num_bytes))&0xFF ) {
+    if ( !shift_out( (data>>num_bytes)&0xFF )) {
       return false;
     }
     num_bytes -= 8;
