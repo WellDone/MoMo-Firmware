@@ -2,7 +2,7 @@
 #include "rtcc.h"
 #include "utilities.h"
 #include "uart.h"
-#include <spi.h>
+//#include <spi.h>
 
 #define SS_VALUE LATBbits.LATB15
 #define ENABLE_MEMORY() SS_VALUE = 0 //SPI1STATbits.SPIEN = 1
@@ -47,11 +47,11 @@ bool configure_SPI() {
   //SPI1CON1bits.PPRE = 0x0; //TODO: Choose a good clock prescalar
   //SPI1CON1bits.SPRE = 0x0; //TODO: Also secondary prescalar
   SPI1STATbits.SPIEN = 1; // Enable
-  SPI1STATbits.SPIROV = 0;
+  SPI1STATbits.SPIROV = 0; // Clear the overflow flag.
 
   TRISBbits.TRISB15 = 0; // SS
-  TRISBbits.TRISB14 = 1; // SDI
-  AD1PCFGbits.PCFG14 = 1; // SDI
+  TRISBbits.TRISB14 = 1; // SDI (IO)
+  AD1PCFGbits.PCFG14 = 1; // SDI (analog/digital)
   TRISBbits.TRISB13 = 0; // SDO
   TRISBbits.TRISB12 = 0; // SDCK
 
@@ -95,13 +95,14 @@ bool shift_out( BYTE data ) {
   return shift_impl( data, &data );
 }
 
+//Shift_out the lowest num_bytes bytes of data
 //max sizeof(int) bytes, MSB first
-bool shift_n_out( int data, short numBytes ) {
-  while( numBytes > 0 ) {
-    if ( !shift_out( data & (0xFF << 3*numBytes) ) ) {
+bool shift_n_out( int data, short num_bytes ) {
+  while( num_bytes > 0 ) {
+    if ( !shift_out( data & (0xFF << 3*num_bytes) ) ) {
       return false;
     }
-    --numBytes;
+    --num_bytes;
   }
   return true;
 }
