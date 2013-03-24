@@ -131,7 +131,7 @@ bool shift_in( BYTE* out ) {
 }
 
 // Length is capped at 256, 1 page of flash memory.
-bool mem_write(int addr, BYTE *data, unsigned int length) {
+bool mem_write(int addr, const BYTE *data, unsigned int length) {
   int i;
   bool success = true;
   if ( length > 256) { //TODO: bitwise-ify
