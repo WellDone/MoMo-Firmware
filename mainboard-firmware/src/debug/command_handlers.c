@@ -228,14 +228,14 @@ void handle_memory(command_params *params) {
     cmd = get_param_string(params, 0);
     if (strcmp(cmd, "write") == 0) {
       data = get_param_string(params,1);
-      mem_write(0x0A, data, strlen(data));
+      mem_write(0x0A, (unsigned char*)data, strlen(data));
     } else if (strcmp(cmd, "read") == 0) {
       atoi_small( get_param_string(params, 1), &l);
       l &= 255;
       mem_read(0x0A, memory_buffer, l);
       memory_buffer[l] = 0x0;
 
-      print(memory_buffer);
+      print((const char*)memory_buffer);
       print("\r\n");
     } else if (strcmp(cmd, "erase") == 0) {
         mem_clear_all();
