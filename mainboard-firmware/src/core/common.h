@@ -5,7 +5,7 @@
 
 #include <p24Fxxxx.h>
 #include <GenericTypeDefs.h>
-
+#define DEBUG_PROMPT 	"momo v4> "
 #define CLOCKSPEED      8000000L //F_osc / 2 (the instruction clock frequency)
 
 typedef short bool;
@@ -29,6 +29,15 @@ typedef short bool;
 #define SENSOR_INTERRUPT_BIT    IFS1bits.INT2IF
 #define RTC_INTERRUPT_BIT       IFS3bits.RTCIF
 
+#define BATTERY_VOLTAGE_LATCH	_LATA1
+#define BATTERY_VOLTAGE_TRIS	_TRISA1
+#define BATTERY_VOLTAGE_DIGITAL	_PCFG1
+
+#define SOLAR_VOLTAGE_LATCH 	_LATA3
+#define SOLAR_VOLTAGE_TRIS		_TRISA3
+#define SOLAR_VOLTAGE_DIGITAL	_PCFG5
+#define SOLAR_VOLTAGE_OD		_ODA3
+
 // UART
 typedef enum
 {
@@ -44,5 +53,8 @@ typedef enum
 // Assembly helpers
 extern void asm_reset();
 extern void asm_sleep();
+
+#define uninterruptible_start() __builtin_disi(0x3FFF)
+#define uninterruptible_end()	__builtin_disi(0x0000)
 
 #endif

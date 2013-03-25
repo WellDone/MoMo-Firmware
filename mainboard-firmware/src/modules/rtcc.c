@@ -1,10 +1,10 @@
 #include "common.h"
 #include "rtcc.h"
+#include "core/common.h"
 #include <string.h>
 
 task_callback alarm_callback = 0;
-task_callback old_callback = 0;
-AlarmRepeatTime old_repeat_time;
+volatile unsigned int alarm_time = kEveryHalfSecond;
 
 void enable_rtcc()
 {
@@ -83,7 +83,28 @@ void rtcc_get_time(rtcc_time *time)
 
 unsigned int rtcc_times_equal(rtcc_time *time1, rtcc_time *time2)
 {
-    return (memcmp(time1, time2, sizeof(rtcc_time))==0);
+    return (rtcc_compare_times(time1, time2) == 0);
+}
+
+/*
+ * rtcc_compare_times
+ * Return <0 if time1 is sooner than time2
+ * Return 0  if time1 == time2
+ * Return >0 if time1 is after time2
+ */
+unsigned int rtcc_compare_times(rtcc_time *time1, rtcc_time *time2)
+{
+    return memcmp(time1, time2, kTimeCompareSize);
+}
+
+void rtcc_time_difference(rtcc_time *time1, rtcc_time *time2)
+{
+    time2->year     -= time1->year;
+    time2->month    -= time1->month;
+    time2->day      -= time1->day;
+    time2->weekday  -= time1->weekday;
+    time2->minutes  -= time1->minutes;
+    time2->seconds  -= time1->seconds;
 }
 
 void get_rtcc_time_unsafe(rtcc_time *time)
@@ -108,6 +129,25 @@ void get_rtcc_time_unsafe(rtcc_time *time)
     time->seconds = from_bcd(LOBYTE(curr));
 }
 
+void rtcc_get_alarm(rtcc_time *alarm)
+{
+    unsigned int curr;
+
+    _ALRMPTR = 0b10;
+
+    curr = ALRMVAL;
+    alarm->month = from_bcd(HIBYTE(curr));
+    alarm->day = from_bcd(LOBYTE(curr));
+
+    curr = ALRMVAL;
+    alarm->weekday = from_bcd(HIBYTE(curr));
+    alarm->hours = from_bcd(LOBYTE(curr));
+
+    curr = ALRMVAL;
+    alarm->minutes = from_bcd(HIBYTE(curr));
+    alarm->seconds = from_bcd(LOBYTE(curr));
+}
+
 unsigned char from_bcd(unsigned char val)
 {
     return ((val&0xF0) >> 4)*10 + (val&0x0F);
@@ -119,37 +159,109 @@ unsigned char to_bcd(unsigned char val)
 }
 
 void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
-{
+    unsigned int curr_t, curr_a;
+    rtcc_time diff;
+
+
+    //Check what interval we were called at
+    //compare in bcd format so that nibbles compare as ones and tens digits
+    _RTCPTR  = 0b10;
+    _ALRMPTR = 0b10;
+
+    curr_t = RTCVAL;
+    curr_a = ALRMVAL;
+    diff.month = (HIBYTE(curr_t)^HIBYTE(curr_a));
+    diff.day = (LOBYTE(curr_t)^LOBYTE(curr_a));
+
+    curr_t = RTCVAL;
+    curr_a = ALRMVAL;
+    diff.weekday = (HIBYTE(curr_t)^HIBYTE(curr_a));
+    diff.hours = (LOBYTE(curr_t)^LOBYTE(curr_a));
+
+    curr_t = RTCVAL;
+    curr_a = ALRMVAL;
+    diff.minutes = (HIBYTE(curr_t)^HIBYTE(curr_a));
+    diff.seconds = (LOBYTE(curr_t)^LOBYTE(curr_a));
+
+    //Distinguish half second and second intervals by a special bit
+    alarm_time = kEveryHalfSecond;
+
+    if (_HALFSEC == 0)
+        alarm_time = kEverySecond;
+
+    if ((diff.seconds & 0x0F) == 0)
+    {
+        //at least 10 second interval
+        if (diff.seconds == 0)
+        {
+            //at least minute interval
+            if ((diff.minutes & 0x0F) == 0)
+            {
+                //at least 10 minutes
+                if (diff.minutes == 0)
+                {
+                    //at least 1 hour
+                    if (diff.hours == 0)
+                        alarm_time = kEveryDay;
+                    else
+                        alarm_time = kEveryHour;
+                }
+                else
+                    alarm_time = kEvery10Minutes;
+            }
+            else
+                alarm_time = kEveryMinute;
+        }
+        else
+            alarm_time = kEvery10Seconds;
+    }
+
     if (alarm_callback != 0)
         taskloop_add(alarm_callback);
 
     IFS3bits.RTCIF = 0;
 }
 
+unsigned int last_alarm_frequency()
+{
+    return alarm_time;
+}
+
 void set_recurring_task(AlarmRepeatTime repeat, task_callback routine)
 {
-     if (!_RTCWREN)
+    if (!_RTCWREN)
         asm_enable_rtcon_write();
 
-     _ALRMEN = 0; //disable alarm
-     _CHIME = 1; //allow infinite repeats
+    _ALRMEN = 0; //disable alarm
+    _CHIME = 1; //allow infinite repeats
 
-     _ALRMPTR = 0b10;
-     ALRMVAL = PACKWORD(to_bcd(1), to_bcd(1)); //Set the alarm to trigger at 00:00 1/1
-     ALRMVAL = PACKWORD(to_bcd(0), to_bcd(0));
-     ALRMVAL = PACKWORD(to_bcd(0), to_bcd(0));
+    _ALRMPTR = 0b10;
+    ALRMVAL = PACKWORD(to_bcd(1), to_bcd(1)); //Set the alarm to trigger at 00:00 1/1
+    ALRMVAL = PACKWORD(to_bcd(0), to_bcd(0)); //day of week, hour
+    ALRMVAL = PACKWORD(to_bcd(0), to_bcd(0)); //minute, second
 
-     _ARPT = 0x01; //Repeat once but since chime is on, we'll roll over, so repeat forever
+    _ARPT = 0x01; //Repeat once but since chime is on, we'll roll over, so repeat forever
 
-     //Set the time between recurrences.
-     _AMASK = repeat;
+    //Set the time between recurrences.
+    _AMASK = repeat;
 
-     //Save off the callback
-     alarm_callback = routine;
+    //Save off the callback
+    alarm_callback = routine;
 
-     IPC15bits.RTCIP = 1;
-     IEC3bits.RTCIE = 1;
-     _ALRMEN = 1; //Enable the recurring task
+    IPC15bits.RTCIP = 1;
+    IEC3bits.RTCIE = 1;
+    _ALRMEN = 1; //Enable the recurring task
+}
+
+void clear_recurring_task()
+{
+    if (!_RTCWREN)
+        asm_enable_rtcon_write();
+
+    uninterruptible_start();
+    _ALRMEN = 0; //disable alarm
+    alarm_callback = 0;
+    uninterruptible_end();
 }
 
 /*void wait( unsigned int milliseconds )
