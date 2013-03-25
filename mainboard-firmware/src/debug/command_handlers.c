@@ -232,15 +232,13 @@ void handle_memory(command_params *params) {
     } else if (strcmp(cmd, "read") == 0) {
       atoi_small( get_param_string(params, 1), &l);
       l &= 255;
-      sendf(U2, "%d bytes\r\n", l);
       mem_read(0x0A, memory_buffer, l);
-      memory_buffer[l+1] = 0x0;
+      memory_buffer[l] = 0x0;
 
-      print("MEMORY READ\r\n");
       print(memory_buffer);
       print("\r\n");
-    } else if (strcmp(cmd, "clear") == 0) {
-        mem_clear();
+    } else if (strcmp(cmd, "erase") == 0) {
+        mem_clear_all();
     } else if (strcmp(cmd, "status") == 0) {
         print_byte( mem_status() );
     } else if (strcmp(cmd, "test") == 0) {
