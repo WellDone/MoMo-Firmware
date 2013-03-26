@@ -12,6 +12,7 @@
 #include "uart.h"
 #include "xc.h"
 #include "memory.h"
+#include "sensor.h"
 #include "oscillator.h"
 #include "reset_manager.h"
 #include "task_manager.h"
@@ -59,7 +60,7 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
-static unsigned char SENSOR_BUF[5];
+volatile unsigned char SENSOR_BUF[5];
 
 int main(void) {
     uart_parameters params_uart1;
@@ -88,7 +89,6 @@ int main(void) {
     params_uart1.hw_flowcontrol = 0;
     params_uart1.parity = NoParity;
     configure_uart( U1, &params_uart1 );
-
     taskloop_loop();
 
     return (EXIT_SUCCESS);

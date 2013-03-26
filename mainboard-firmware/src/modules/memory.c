@@ -10,7 +10,8 @@
 #define MEMORY_STATUS_OVERFLOWN SPI1STATbits.SPIROV
 #define MEMORY_RX_STATUS SPI1STATbits.SPIRBF
 #define MEMORY_BUFFER_REGISTER SPI1BUF
-
+#define MEMORY_INTERRUPT_FOUND _SPI1IF
+#define MEMORY_INTERRUPT_CLEAR() _SPI1IF = 0;
 #define TIMEOUT 10000
 
 #define MEMORY_ADDRESS_MASK 0xFFFFF;
@@ -46,6 +47,8 @@ bool configure_SPI() {
   //SPI1CON1bits.PPRE = 0x0; //TODO: Choose a good clock prescalar
   //SPI1CON1bits.SPRE = 0x0; //TODO: Also secondary prescalar
   SPI1STATbits.SPIEN = 1; // Enable
+  SPI1STATbits.SPIROV = 0;
+  //  _SPI1IE = 1; //SPI interrupt enable after byte has finished transmitting
   SPI1STATbits.SPIROV = 0; // Clear the overflow flag.
 
   TRISBbits.TRISB15 = 0; // SS
@@ -238,4 +241,10 @@ void mem_clear_subsection( unsigned int addr ) {
   ENABLE_MEMORY();
   ERASE_SUBSECTION();
   shift_n_out( addr, 3 );
+}
+
+void pulse_ss() {
+  ENABLE_MEMORY();
+  wait_ms(1);
+  DISABLE_MEMORY();
 }

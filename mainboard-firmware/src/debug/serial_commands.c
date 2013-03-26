@@ -29,6 +29,7 @@ void register_command_handlers()
     register_command("gsm", handle_gsm );
     register_command("sensor", handle_sensor);
     register_command("adc", handle_adc);
+    register_command("adc", handle_adc);
     register_command("memory", handle_memory);
 }
 
