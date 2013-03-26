@@ -1,8 +1,11 @@
-#include "report.h"
+#include "report_manager.h"
 #include "gsm.h"
+#include "momo_config.h"
 
-#define SERVER_ADDRESS "+17078159250"
+void post_report( sensor_event_log* log) {
+  gsm_send_sms( SERVER_ADDRESS, "TODO: read this from the log." );
+}
 
-void postReport( sensor_event_log* log) {
-    gsm_send_sms( SERVER_ADDRESS, "TODO: read this from the log." );
+void start_report_scheduling() {
+
 }
