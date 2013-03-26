@@ -15,12 +15,16 @@
         <itemPath>src/core/task_manager.c</itemPath>
         <itemPath>src/core/task_manager.h</itemPath>
         <itemPath>src/core/common.h</itemPath>
+        <itemPath>src/core/scheduler.c</itemPath>
+        <itemPath>src/core/scheduler.h</itemPath>
       </logicalFolder>
       <logicalFolder name="debug" displayName="Debug" projectFiles="true">
         <itemPath>src/debug/command_handlers.h</itemPath>
         <itemPath>src/debug/command_handlers.c</itemPath>
         <itemPath>src/debug/serial_commands.h</itemPath>
         <itemPath>src/debug/serial_commands.c</itemPath>
+        <itemPath>src/debug/debug.c</itemPath>
+        <itemPath>src/debug/debug.h</itemPath>
       </logicalFolder>
       <logicalFolder name="modules" displayName="Modules" projectFiles="true">
         <itemPath>src/modules/gsm.c</itemPath>
@@ -35,6 +39,10 @@
         <itemPath>src/modules/sensor.h</itemPath>
         <itemPath>src/modules/uart.h</itemPath>
         <itemPath>src/modules/uart.c</itemPath>
+        <itemPath>src/modules/adc.c</itemPath>
+        <itemPath>src/modules/adc.h</itemPath>
+        <itemPath>src/modules/battery.c</itemPath>
+        <itemPath>src/modules/battery.h</itemPath>
       </logicalFolder>
       <logicalFolder name="tasks" displayName="Tasks" projectFiles="true">
         <itemPath>src/tasks/report.c</itemPath>
@@ -192,6 +200,7 @@
         <property key="output-file-format" value="elf"/>
       </C30Global>
       <PICkit2PlatformTool>
+        <property key="pk2settings.setvddvoltage" value="3.25"/>
       </PICkit2PlatformTool>
     </conf>
   </confs>

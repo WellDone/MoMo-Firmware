@@ -89,7 +89,25 @@ int main(void) {
     params_uart1.hw_flowcontrol = 0;
     params_uart1.parity = NoParity;
     configure_uart( U1, &params_uart1 );
+    //init_gsm();
 
+    register_command_handlers(); //register the serial commands that we respond to.
+/*
+    print( "Device reset complete.\r\n");
+    print( "PIC 24f16ka101> ");
+
+    configure_SPI();
+    configure_sensor();
+    sample_sensor();
+    BYTE data[4];
+    static BYTE read_data[4];
+    data[0] = pulse_counts & 0xFF;
+    data[1] = (pulse_counts >> 8) & 0xFF;
+    data[2] = (pulse_counts >> 16) & 0xFF;
+    data[3] = (pulse_counts >> 24) & 0xFF;
+    mem_write(0xA, data, 4);
+    wait_ms(1);
+    mem_read(0xA, read_data, 4); */
     taskloop_loop();
 
     return (EXIT_SUCCESS);

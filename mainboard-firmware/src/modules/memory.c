@@ -46,6 +46,8 @@ void configure_SPI() {
   //SPI1CON1bits.SPRE = 0x0; //TODO: Also secondary prescalar
   SPI1STATbits.SPIEN = 1; // Enable
   SPI1STATbits.SPIROV = 0;
+  _CKP = 1;
+  _CKE = 0;
   //  _SPI1IE = 1; //SPI interrupt enable after byte has finished transmitting
 
   TRISBbits.TRISB15 = 0; // SS
