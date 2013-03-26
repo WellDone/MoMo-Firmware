@@ -1,3 +1,13 @@
+#include "common.h"
+
+#define I2C1_RETRY_MAX 5
+#define I2C_TIMEOUT 10000 //test this, may not need timeout
+volatile unsigned char I2C1_RX_BUF[16];
+volatile unsigned char I2C1_TX_BUF[16];
+
+volatile char I2C1_NACK_F;	//if no ack, be 1
+volatile char I2C1_MASTER_F;	//if occured i2c interrupt as master, 1
+
 //I2C Master Interrupt Service Routine
 void __attribute__((interrupt, no_auto_psv)) _MI2C1Interrupt(void)
 {
@@ -76,7 +86,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 				state++;
 			}
 			break;
-		
+
 		//Receive Enable
 		case 5:
 			if(I2C1_MASTER_F == 1)
@@ -86,9 +96,9 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 				I2C1CONbits.RCEN = 1;
 				if(datacnt < n_bytes - 1)state = 4;
 				else if(datacnt >= n_bytes - 1)state = 6;
-			}	
-			break; 
-			
+			}
+			break;
+
 		//Receive Data2
 		case 6:
 			if(I2C1_MASTER_F == 1)
@@ -112,7 +122,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 		//Retry
 		case 8:
 			if(I2C1_MASTER_F == 1)
-			{		
+			{
 			  sends(U2, "retry");
 				I2C1_MASTER_F = 0;
 				retrycnt++;
@@ -126,7 +136,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 			I2C1CONbits.PEN = 1; //STOP I2C
 			state++;
 			break;
-		
+
 		//Error EXIT
 		case 10:
 			if(I2C1_MASTER_F == 1)
@@ -156,7 +166,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 			}
 			break;
 		}
-	}	
+	}
 
 	return 0;
 }

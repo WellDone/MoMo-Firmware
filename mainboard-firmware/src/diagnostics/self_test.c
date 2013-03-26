@@ -11,7 +11,7 @@ int test_WDT(int delay) {
 }
 
 int test_INT2() {
-    configure_wakeup_interrupt();
+    //configure_wakeup_interrupt();
    //go to sleep
     asm_sleep();
     //on wake, print out
