@@ -13,6 +13,8 @@ volatile unsigned char I2C1_TX_BUF[16];
 volatile char I2C1_NACK_F;	//if no ack, be 1
 volatile char I2C1_MASTER_F;	//if occured i2c interrupt as master, 1
 
+static unsigned char SENSOR_BUF[5];
+
 //static unsigned char SENSOR_BUF[5];
 
 //start based on interrupt
@@ -21,16 +23,16 @@ volatile char I2C1_MASTER_F;	//if occured i2c interrupt as master, 1
 void sample_sensor() {
 
   rtcc_time temp_rtc_time;
-  
+
   /*FIRST PART OF PACKET
     ======================================== */
   //if interrupt, start service routine
   rtcc_get_time(&temp_rtc_time);
-  SENSOR_BUF[0] = ((long )temp_rtc_time.seconds) | 
-    ((long)temp_rtc_time.minutes << 8) | 
+  SENSOR_BUF[0] = ((long )temp_rtc_time.seconds) |
+    ((long)temp_rtc_time.minutes << 8) |
     ((long) temp_rtc_time.hours << 16); //first byte is the time sampling started
-  SENSOR_BUF[1] = ((long)temp_rtc_time.day) | 
-    ((long)temp_rtc_time.weekday << 8) | 
+  SENSOR_BUF[1] = ((long)temp_rtc_time.day) |
+    ((long)temp_rtc_time.weekday << 8) |
     ((long)temp_rtc_time.month << 16) | ((long)temp_rtc_time.year << 24);
 
   /*SECOND PART OF PACKET
@@ -38,18 +40,18 @@ void sample_sensor() {
   while(!I2C_READ(0x0A, 4)); //while accesses fail, keep sampling
   SENSOR_BUF[2] = I2C1_RX_BUF[0] | ((unsigned long) I2C1_RX_BUF[1] << 8) |
     ((unsigned long) I2C1_RX_BUF[2] << 16  | ((unsigned long) I2C1_RX_BUF[3] << 24))    ; //second byte is number of pulses
-  
+
   /*THIRD PART OF PACKET
     ======================================== */
-  
+
   rtcc_get_time(&temp_rtc_time);
-  SENSOR_BUF[3] = ((long )temp_rtc_time.seconds) | 
-    ((long)temp_rtc_time.minutes << 8) | 
+  SENSOR_BUF[3] = ((long )temp_rtc_time.seconds) |
+    ((long)temp_rtc_time.minutes << 8) |
     ((long) temp_rtc_time.hours << 16); //first byte is the time sampling started
-  SENSOR_BUF[4] = ((long)temp_rtc_time.day) | 
-    ((long)temp_rtc_time.weekday << 8) | 
+  SENSOR_BUF[4] = ((long)temp_rtc_time.day) |
+    ((long)temp_rtc_time.weekday << 8) |
     ((long)temp_rtc_time.month << 16) | ((long)temp_rtc_time.year << 24);
-  
+
 }
 
 void configure_wakeup_interrupt() {
@@ -138,7 +140,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 				state++;
 			}
 			break;
-		
+
 		//Receive Enable
 		case 5:
 			if(I2C1_MASTER_F == 1)
@@ -148,9 +150,9 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 				I2C1CONbits.RCEN = 1;
 				if(datacnt < n_bytes - 1)state = 4;
 				else if(datacnt >= n_bytes - 1)state = 6;
-			}	
-			break; 
-			
+			}
+			break;
+
 		//Receive Data2
 		case 6:
 			if(I2C1_MASTER_F == 1)
@@ -174,7 +176,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 		//Retry
 		case 8:
 			if(I2C1_MASTER_F == 1)
-			{		
+			{
 			  sends(U2, "retry");
 				I2C1_MASTER_F = 0;
 				retrycnt++;
@@ -188,7 +190,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 			I2C1CONbits.PEN = 1; //STOP I2C
 			state++;
 			break;
-		
+
 		//Error EXIT
 		case 10:
 			if(I2C1_MASTER_F == 1)
@@ -218,7 +220,7 @@ char I2C_READ(unsigned char slave_address, unsigned char n_bytes)
 			}
 			break;
 		}
-	}	
+	}
 
 	return 0;
 }

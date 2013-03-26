@@ -1,6 +1,5 @@
-#include "common.h"
 #include "rtcc.h"
-#include "core/common.h"
+#include "common.h"
 #include <string.h>
 
 task_callback alarm_callback = 0;
@@ -159,6 +158,7 @@ unsigned char to_bcd(unsigned char val)
 }
 
 void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
+{
     unsigned int curr_t, curr_a;
     rtcc_time diff;
 
