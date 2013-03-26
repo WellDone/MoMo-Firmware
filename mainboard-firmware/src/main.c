@@ -12,6 +12,7 @@
 #include "uart.h"
 #include "xc.h"
 #include "memory.h"
+#include "sensor.h"
 #include "oscillator.h"
 #include "reset_manager.h"
 #include "task_manager.h"
@@ -59,7 +60,7 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
-static unsigned char SENSOR_BUF[5];
+volatile unsigned char SENSOR_BUF[5];
 
 int main(void) {
     uart_parameters params_uart1;
@@ -104,8 +105,18 @@ int main(void) {
     print( "PIC 24f16ka101> ");
 
     configure_SPI();
-
-    taskloop_loop();
+    configure_sensor();
+    sample_sensor();
+    BYTE data[4];
+    BYTE read_data[4];
+    data[0] = pulse_counts & 0xFF;
+    data[1] = (pulse_counts >> 8) & 0xFF;
+    data[2] = (pulse_counts >> 16) & 0xFF;
+    data[3] = (pulse_counts >> 24) & 0xFF;
+    mem_write(0xA, data, 4);
+    wait_ms(1);
+    mem_read(0xA, read_data, 4); 
+    //taskloop_loop();
 
     return (EXIT_SUCCESS);
 }

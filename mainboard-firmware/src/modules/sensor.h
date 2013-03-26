@@ -10,7 +10,7 @@ void sample_sensor();
 void configure_sensor();
 
 //I2C Master Read
-char I2C_READ(unsigned char slave_address, unsigned char n_bytes);
+//char I2C_READ(unsigned char slave_address, unsigned char n_bytes);
 
 //space to put the sampled data
 //extern volatile unsigned long SENSOR_BUF[5];
@@ -22,4 +22,8 @@ extern volatile unsigned char I2C1_TX_BUF[16];
 extern volatile char I2C1_NACK_F;	//if no ack, be 1
 extern volatile char I2C1_MASTER_F;	//if occured i2c interrupt as master, 1
 
-static unsigned char SENSOR_BUF[5];
+extern volatile unsigned char SENSOR_BUF[5];
+extern volatile unsigned char SENSOR_FLAG;
+extern volatile unsigned char SENSOR_TIMEOUT_FLAG;
+extern volatile unsigned long pulse_counts;
+
