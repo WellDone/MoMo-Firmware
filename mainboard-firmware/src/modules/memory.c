@@ -94,31 +94,7 @@ bool shift_out( BYTE data ) {
   return shift_impl( data, &data );
 }
 
-<<<<<<< HEAD
-bool shift_cmd_out( BYTE data ) {
-  unsigned short count = 0;
-  dbg_byte_print( data );
-
-  while ( MEMORY_TX_STATUS && count<TIMEOUT)
-    ++count;
-  MEMORY_BUFFER_REGISTER = data;
-  while ( !MEMORY_INTERRUPT_FOUND && count<TIMEOUT) {
-    MEMORY_INTERRUPT_CLEAR();
-    ++count;
-  }
-
-
-  //sendf( U2, "%d\r\n", count );
-  if (count==TIMEOUT)
-    return false;
-
-  data = MEMORY_BUFFER_REGISTER;
-  return true;
-}
-
-=======
 //Shift_out the lowest num_bytes bytes of data
->>>>>>> origin/feature-memory-management
 //max sizeof(int) bytes, MSB first
 bool shift_n_out( const int data, short num_bytes ) {
   num_bytes = (num_bytes-1)<<3; //*=8
