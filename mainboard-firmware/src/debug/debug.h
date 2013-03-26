@@ -8,8 +8,8 @@
 #ifndef DEBUG_H
 #define	DEBUG_H
 
-void init_debug();
-bool debug_has_command();
+void debug_init();
+void debug_disable_unconnected();
 
 #endif	/* DEBUG_H */
 
