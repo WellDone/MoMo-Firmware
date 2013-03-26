@@ -1,11 +1,11 @@
 #include "memory.h"
 #include "rtcc.h"
 #include "utilities.h"
-#include <spi.h>
+#include "uart.h"
 
 #define SS_VALUE LATBbits.LATB15
-#define ENABLE_MEMORY() SS_VALUE = 0 //SPI1STATbits.SPIEN = 1
-#define DISABLE_MEMORY() SS_VALUE = 1 //SPI1STATbits.SPIEN = 0
+#define ENABLE_MEMORY() SS_VALUE = 0
+#define DISABLE_MEMORY() SS_VALUE = 1
 #define MEMORY_TX_STATUS SPI1STATbits.SPITBF
 #define MEMORY_STATUS_OVERFLOWN SPI1STATbits.SPIROV
 #define MEMORY_RX_STATUS SPI1STATbits.SPIRBF
@@ -14,63 +14,51 @@
 #define MEMORY_INTERRUPT_CLEAR() _SPI1IF = 0;
 #define TIMEOUT 10000
 
+#define MEMORY_ADDRESS_MASK 0xFFFFF;
+#define MEMORY_SUBSECTION_MASK 0xFF000;
+
 typedef enum {
-  WREN = 0b110,
-  WRDI = 0b100,
-  RDSR = 0b101,
-  WRSR = 0b001,
-  READ = 0b011,
-  PP = 0b010,
-  BE = 0b11000111
+  WREN = 0b00000110,
+  WRDI = 0b00000100,
+  RDID = 0b10011111,
+  RDSR = 0b00000101,
+  WRSR = 0b00000001,
+  READ = 0b00000011,
+  PP   = 0b00000010,
+  SSE  = 0b00100000,
+  BE   = 0b11000111
 } memory_instructions;
 
+bool shift_out( BYTE data );
+
 #define WRITE_MODE_ENABLE() shift_out( WREN )
-#define WRITE_MODE_DISABLE() shift_out( WRDI );
-#define READ_STATUS_REGISTER() shift_out( RDSR );
+#define WRITE_MODE_DISABLE() shift_out( WRDI )
+#define READ_IDENTIFICATION() shift_out( RDID )
+#define READ_STATUS_REGISTER() shift_out( RDSR )
 #define PAGE_PROGRAM_MODE() shift_out( PP )
-#define READ_MODE() shift_out( READ );
-#define ERASE_ALL() shift_out( BE );
+#define READ_MODE() shift_out( READ )
+#define ERASE_SUBSECTION() shift_out( SSE )
+#define ERASE_ALL() shift_out( BE )
 
-void configure_SPI() {
- /*
-  unsigned int config1 = SPI_MODE8_ON|SPI_CKE_ON|MASTER_ENABLE_ON|SEC_PRESCAL_4_1|PRI_PRESCAL_4_1;
-  unsigned int config2 = FRAME_ENABLE_OFF;
-  unsigned int config3 = SPI_ENABLE;
-
-  OpenSPI1(config1, config2, config3);
-  */
-
+bool configure_SPI() {
   SPI1CON1bits.MODE16 = 0; //communication is byte-wide
   SPI1CON1bits.MSTEN = 1; //SPI is in master mode
+  SPI1CON1bits.CKP = 1; //data is clocked out on high-low transition
   //SPI1CON1bits.PPRE = 0x0; //TODO: Choose a good clock prescalar
   //SPI1CON1bits.SPRE = 0x0; //TODO: Also secondary prescalar
   SPI1STATbits.SPIEN = 1; // Enable
   SPI1STATbits.SPIROV = 0;
-  _CKP = 1;
-  _CKE = 0;
   //  _SPI1IE = 1; //SPI interrupt enable after byte has finished transmitting
+  SPI1STATbits.SPIROV = 0; // Clear the overflow flag.
 
   TRISBbits.TRISB15 = 0; // SS
-  TRISBbits.TRISB14 = 1; // SDI
-  AD1PCFGbits.PCFG14 = 1; // SDI
+  TRISBbits.TRISB14 = 1; // SDI (IO)
+  AD1PCFGbits.PCFG14 = 1; // SDI (analog/digital)
   TRISBbits.TRISB13 = 0; // SDO
   TRISBbits.TRISB12 = 0; // SDCK
 
   DISABLE_MEMORY(); //idle state of SS is high
-}
-
-void mem_test() {
-  print("testing...\r\n");
-
-  ENABLE_MEMORY();
-  wait_ms(1);
-
-  //TODO
-
-  wait_ms(1);
-  DISABLE_MEMORY();
-  wait_ms(1);
-  //CloseSPI1();
+  return mem_test();
 }
 
 void dbg_byte_print( BYTE b ) {
@@ -86,9 +74,9 @@ void dbg_byte_print( BYTE b ) {
   print_byte( b );
 }
 
-bool shift_out( BYTE data ) {
+
+static inline bool shift_impl( const BYTE data, BYTE* data_out ) {
   unsigned short count = 0;
-  dbg_byte_print( data );
 
   while ( MEMORY_TX_STATUS && count<TIMEOUT)
     ++count;
@@ -96,14 +84,17 @@ bool shift_out( BYTE data ) {
   while ( MEMORY_RX_STATUS == 0 && count<TIMEOUT )
     ++count;
 
-  //sendf( U2, "%d\r\n", count );
   if (count==TIMEOUT)
     return false;
 
-  data = MEMORY_BUFFER_REGISTER;
+  *data_out = MEMORY_BUFFER_REGISTER;
   return true;
 }
+bool shift_out( BYTE data ) {
+  return shift_impl( data, &data );
+}
 
+<<<<<<< HEAD
 bool shift_cmd_out( BYTE data ) {
   unsigned short count = 0;
   dbg_byte_print( data );
@@ -125,46 +116,82 @@ bool shift_cmd_out( BYTE data ) {
   return true;
 }
 
+=======
+//Shift_out the lowest num_bytes bytes of data
+>>>>>>> origin/feature-memory-management
 //max sizeof(int) bytes, MSB first
-bool shift_n_out( int data, short numBytes ) {
-  while( numBytes > 0 ) {
-    if ( !shift_out( data & (0xFF << 3*numBytes) ) ) {
+bool shift_n_out( const int data, short num_bytes ) {
+  num_bytes = (num_bytes-1)<<3; //*=8
+  while( num_bytes >= 0 ) {
+    if ( !shift_out( (data>>num_bytes)&0xFF )) {
       return false;
     }
-    --numBytes;
+    num_bytes -= 8;
   }
   return true;
 }
 
 bool shift_in( BYTE* out ) {
-  MEMORY_STATUS_OVERFLOWN = 0;
-  MEMORY_BUFFER_REGISTER = 0x00;
+  return shift_impl( 0x00, out );
+}
 
-  unsigned short count = 0;
-  while( !MEMORY_RX_STATUS && count<TIMEOUT )
-    ++count;
+bool mem_test() {
+  BYTE device_info;
+  BYTE info2, info3;
+  print("Testing flash memory SPI communication...\r\n");
 
-  if (count!=TIMEOUT && MEMORY_RX_STATUS)
-  {
-    MEMORY_STATUS_OVERFLOWN = 0;
-    BYTE data = (MEMORY_BUFFER_REGISTER & 0xFF);
-    *out = data;
-    //dbg_byte_print( *out );
-    return true;
+  ENABLE_MEMORY();
+
+  READ_IDENTIFICATION();
+  shift_in( &device_info );
+  shift_in( &info2 );
+  shift_in( &info3 );
+
+  DISABLE_MEMORY();
+
+  print( "Memory device ID: ");
+  print_byte( device_info );
+  print_byte( info2 );
+  print_byte( info3 );
+
+  if (!device_info) {
+    print( "SPI test FAILED!!" );
+    print( "\r\n" );
+    return false;
   }
-  return false;
+  return true;
+}
+
+static inline void _impl_mem_status( BYTE* status) {
+  READ_STATUS_REGISTER();
+  shift_in( status );
+}
+static inline void mem_enable_write() {
+  ENABLE_MEMORY();
+  WRITE_MODE_ENABLE();
+  DISABLE_MEMORY();
+}
+static inline void mem_wait_while_writing() {
+  ENABLE_MEMORY();
+  BYTE status;
+  _impl_mem_status( &status );
+  while (status & 0b1) {
+    shift_in( &status );
+  }
+  DISABLE_MEMORY();
 }
 
 // Length is capped at 256, 1 page of flash memory.
-bool mem_write(int addr, BYTE *data, unsigned int length) {
+bool mem_write(int addr, const BYTE *data, unsigned int length) {
   int i;
   bool success = true;
   if ( length > 256) { //TODO: bitwise-ify
     length = 256;
   }
 
+  mem_wait_while_writing();
+  mem_enable_write();
   ENABLE_MEMORY();
-  WRITE_MODE_ENABLE();
   PAGE_PROGRAM_MODE();
 
   if ( !shift_n_out( addr, 3 ) ) {
@@ -213,34 +240,31 @@ bool mem_read(int addr, BYTE* buf, unsigned int numBytes) {
   return success;
 }
 
-BYTE _impl_mem_status() {
-  BYTE status = 0xFF;
-  READ_STATUS_REGISTER()
-  shift_in( &status );
-  return status;
-}
-
 BYTE mem_status() {
+  BYTE status;
   ENABLE_MEMORY();
-  BYTE status = _impl_mem_status();
+  _impl_mem_status( &status );
   DISABLE_MEMORY();
   return status;
 }
 
-void mem_clear() {
+void mem_clear_all() {
+  mem_wait_while_writing();
+  mem_enable_write();
+
   ENABLE_MEMORY();
-
-  WRITE_MODE_ENABLE();
   ERASE_ALL();
-
-  BYTE status = _impl_mem_status();
-  print_byte( status );
-  while (status & 0b1) {
-    shift_in( &status );
-    print_byte( status );
-  }
-
   DISABLE_MEMORY();
+}
+
+void mem_clear_subsection( unsigned int addr ) {
+  addr &= MEMORY_ADDRESS_MASK;
+  mem_wait_while_writing();
+  mem_enable_write();
+
+  ENABLE_MEMORY();
+  ERASE_SUBSECTION();
+  shift_n_out( addr, 3 );
 }
 
 void pulse_ss() {

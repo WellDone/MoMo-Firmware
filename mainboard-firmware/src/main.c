@@ -93,8 +93,6 @@ int main(void) {
 
     register_command_handlers(); //register the serial commands that we respond to.
 /*
-    print( "Device reset complete.\r\n");
-    print( "PIC 24f16ka101> ");
 
     configure_SPI();
     configure_sensor();
@@ -108,6 +106,15 @@ int main(void) {
     mem_write(0xA, data, 4);
     wait_ms(1);
     mem_read(0xA, read_data, 4); */
+    params_uart2.baud = 38400;
+    params_uart2.hw_flowcontrol = 0;
+    params_uart2.parity = NoParity;
+    configure_uart( U2, &params_uart2 );
+
+    configure_SPI();
+
+    print( "Device reset complete.\r\n");
+    print( "PIC 24f16ka101> ");
     taskloop_loop();
 
     return (EXIT_SUCCESS);

@@ -134,6 +134,7 @@ bool atoi_small(const char* buf, int* out)
         if ( buf[i] == '-' && i==0 ) {
             *uout &= 0x80000000; // -0
         } else if ( buf[i] >= '0' && buf[i] <= '9' ) {
+            *uout = *uout * 10;
             *uout += buf[i]-'0';
         } else {
             return false;
@@ -145,6 +146,7 @@ bool atoi_small(const char* buf, int* out)
 void print_byte( BYTE b )
 {
   int i;
+  print( "0b");
   for ( i=7; i>=0; --i) {
     if ( ( b & 0b1<<i ) )
       print("1");
