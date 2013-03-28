@@ -15,7 +15,6 @@ void flash_queue_create( flash_queue* queue,
         subsection_addr < end_address;
         subsection_addr += MEMORY_SUBSECTION_SIZE )
   {
-    print( "Cleared memory subsection\r\n" );
     mem_clear_subsection( subsection_addr );
   }
   queue->start = queue->end = queue->first_dirty_address = queue->start_address;

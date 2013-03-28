@@ -9,6 +9,17 @@
 #include "rtcc.h"
 #include "common.h"
 
+void configure_gsm() {
+    uart_parameters params_uart1;
+    _LATA0 = 0;
+    _TRISA0 = 0;
+
+    params_uart1.baud = 115200;
+    params_uart1.hw_flowcontrol = 0;
+    params_uart1.parity = NoParity;
+    configure_uart( U1, &params_uart1 );
+}
+
 void gsm_send_at_cmd( const char* cmd )
 {
     sends( U1, cmd );

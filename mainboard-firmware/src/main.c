@@ -5,19 +5,13 @@
  * Created on 9 de mayo de 2012, 22:46
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include "common.h"
-#include "rtcc.h"
-#include "uart.h"
-#include "xc.h"
-#include "memory.h"
-#include "sensor.h"
-#include "oscillator.h"
+//#include "xc.h"
 #include "reset_manager.h"
 #include "task_manager.h"
-#include "serial_commands.h"
-#include "sensor_event_log.h"
+#include "memory_manager.h"
+#include "gsm.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -61,18 +55,10 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
-volatile unsigned char SENSOR_BUF[5];
-
 int main(void) {
-    uart_parameters params_uart1;
-
     AD1PCFG = 0xFFFF;
-
-    _LATA0 = 0;
     //_LATA1 = 0;
 
-
-    _TRISA0 = 0;
     //_TRISA1 = 0;
     //_TRISA3 = 1; //WISMO READY PIN
 
@@ -83,16 +69,10 @@ int main(void) {
 
     //Disable div-by-2
     //CLKDIV = 0;
+    initializeFlashMemoryManager();
+    configure_gsm();
 
     handle_reset();
-    configure_SPI();
-    params_uart1.baud = 115200;
-    params_uart1.hw_flowcontrol = 0;
-    params_uart1.parity = NoParity;
-    configure_uart( U1, &params_uart1 );
-
-    init_sensor_event_log( MEMORY_SUBSECTION_SIZE, MEMORY_SUBSECTION_MASK );
-
     taskloop_loop();
 
     return (EXIT_SUCCESS);

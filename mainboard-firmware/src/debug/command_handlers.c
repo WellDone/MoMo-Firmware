@@ -396,17 +396,19 @@ void handle_log(command_params *params) {
     }
     const char* p = get_param_string(params,0);
     if (strcmp(p, "read") == 0) {
-        sensor_event event;
-        if ( read_sensor_events( &event, 1 ) == 0 ) {
-            print("No items in log\r\n");
-            return;
+        while ( !sensor_event_log_empty() ) {
+            sensor_event event;
+            if ( read_sensor_events( &event, 1 ) == 0 ) {
+                print("No items in log\r\n");
+                return;
+            }
+            char val[5];
+            val[0] = val[1] = val[2] = val[3] = '0';
+            val[itoa_small( val, 4, event.value)] = '\0';
+            print("Read value: ");
+            print( val );
+            print( "\r\n");
         }
-        char val[5];
-        val[0] = val[1] = val[2] = val[3] = '0';
-        val[itoa_small( val, 4, event.value)] = '\0';
-        print("Read value: ");
-        print( val );
-        print( "\r\n");
         return;
     }
     if (strcmp(p, "empty?") == 0) {

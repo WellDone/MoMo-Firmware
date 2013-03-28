@@ -1,6 +1,6 @@
 #include "report_manager.h"
 #include "gsm.h"
-#include "rtcc.h"
+#include "scheduler.h"
 #include "momo_config.h"
 #include "sensor_event_log.h"
 
@@ -50,6 +50,10 @@ void post_report() {
   gsm_send_sms( MOMO_REPORT_SERVER, (const char*)&report );
 }
 
+static ScheduledTask report_task;
 void start_report_scheduling() {
-  set_recurring_task( MOMO_REPORT_INTERVAL, post_report );
+  scheduler_schedule_task( post_report, MOMO_REPORT_INTERVAL, kScheduleForever, &report_task);
+}
+void stop_report_scheduling() {
+  scheduler_remove_task( &report_task );
 }
