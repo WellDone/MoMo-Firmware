@@ -3,7 +3,7 @@
 
 static flash_queue event_log;
 
-void init_sensor_event_log( unsigned int start_address, unsigned int max_size )
+void init_sensor_event_log( unsigned long start_address, unsigned long max_size )
 {
   flash_queue_create( &event_log, start_address, sizeof(sensor_event), max_size / sizeof(sensor_event) );
 }
@@ -29,4 +29,8 @@ unsigned int read_sensor_events( sensor_event* events, unsigned int max ) {
 
 bool sensor_event_log_empty() {
   return flash_queue_empty( &event_log );
+}
+
+unsigned long sensor_event_log_count() {
+  return flash_queue_count( &event_log );
 }

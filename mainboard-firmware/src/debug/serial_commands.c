@@ -31,6 +31,8 @@ void register_command_handlers()
     register_command("adc", handle_adc);
     register_command("adc", handle_adc);
     register_command("memory", handle_memory);
+    register_command("log", handle_log);
+    register_command("report", handle_report);
 }
 
 /*

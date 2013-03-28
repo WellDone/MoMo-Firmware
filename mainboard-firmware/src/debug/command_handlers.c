@@ -13,6 +13,8 @@
 #include <string.h>
 #include "../core/scheduler.h"
 #include "../core/reset_manager.h"
+#include "sensor_event_log.h"
+#include "report_manager.h"
 
 extern volatile unsigned int adc_buffer[kADCBufferSize];
 ScheduledTask test_task;
@@ -353,19 +355,25 @@ void handle_sensor(command_params *params) {
   IEC1bits.INT2IE = 0; //disable interrupt
 }
 
-static BYTE memory_buffer[256];
+static BYTE memory_buffer[32];
 void handle_memory(command_params *params) {
     char* cmd;
     char* data;
-    int l = 0;
+    int l = 0, addr = 0;
     cmd = get_param_string(params, 0);
     if (strcmp(cmd, "write") == 0) {
-      data = get_param_string(params,1);
-      mem_write(0x0A, (unsigned char*)data, strlen(data));
+      atoi_small( get_param_string(params, 1), &addr );
+      data = get_param_string(params,2);
+
+      mem_write(addr, (unsigned char*)data, strlen(data));
     } else if (strcmp(cmd, "read") == 0) {
-      atoi_small( get_param_string(params, 1), &l);
-      l &= 255;
-      mem_read(0x0A, memory_buffer, l);
+      if ( !atoi_small( get_param_string(params, 1), &addr ) ||
+           !atoi_small( get_param_string(params, 2), &l) ) {
+        print( "atoi failed!\r\n");
+        return;
+      }
+      l &= 0x1F;
+      mem_read(addr, memory_buffer, l);
       memory_buffer[l] = 0x0;
 
       print((const char*)memory_buffer);
@@ -376,5 +384,57 @@ void handle_memory(command_params *params) {
         print_byte( mem_status() );
     } else if (strcmp(cmd, "test") == 0) {
         mem_test();
+    } else {
+        print( "Unrecognized memory command!\r\n");
     }
+}
+
+void handle_log(command_params *params) {
+    if (params->num_params != 1) {
+        print("usage: log read/empty?/count/<value>\r\n");
+        return;
+    }
+    const char* p = get_param_string(params,0);
+    if (strcmp(p, "read") == 0) {
+        sensor_event event;
+        if ( read_sensor_events( &event, 1 ) == 0 ) {
+            print("No items in log\r\n");
+            return;
+        }
+        char val[5];
+        val[0] = val[1] = val[2] = val[3] = '0';
+        val[itoa_small( val, 4, event.value)] = '\0';
+        print("Read value: ");
+        print( val );
+        print( "\r\n");
+        return;
+    }
+    if (strcmp(p, "empty?") == 0) {
+        if ( sensor_event_log_empty() ) {
+            print( "yes\r\n");
+        } else {
+            print( "no\r\n");
+        }
+        return;
+    }
+    if (strcmp(p, "count") == 0) {
+        char val[5];
+        val[0] = val[1] = val[2] = val[3] = '0';
+        val[itoa_small( val, 4, sensor_event_log_count() )] = '\0';
+        print( val );
+        print( "\r\n");
+        return;
+    }
+    int value;
+    if ( !atoi_small( p, &value ) ) {
+        print( "atoi failed!\r\n" );
+        return;
+    }
+    rtcc_datetime time;
+    rtcc_get_time(&time);
+    log_sensor_event( momo_pulse_counter, &time, value );
+}
+
+void handle_report(command_params *params) {
+    post_report();
 }

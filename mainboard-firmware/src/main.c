@@ -17,6 +17,7 @@
 #include "reset_manager.h"
 #include "task_manager.h"
 #include "serial_commands.h"
+#include "sensor_event_log.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -89,6 +90,9 @@ int main(void) {
     params_uart1.hw_flowcontrol = 0;
     params_uart1.parity = NoParity;
     configure_uart( U1, &params_uart1 );
+
+    init_sensor_event_log( MEMORY_SUBSECTION_SIZE, MEMORY_SUBSECTION_MASK );
+
     taskloop_loop();
 
     return (EXIT_SUCCESS);
