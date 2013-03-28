@@ -4,13 +4,14 @@
 #include "sensor.h"
 #include "serial_commands.h"
 #include "utilities.h"
+#include "reporting.h"
 
 volatile unsigned char SENSOR_FLAG;
 volatile unsigned char SENSOR_TIMEOUT_FLAG;
 volatile unsigned long pulse_counts;
 
 #define SENSOR_TIMER_ON T2CONbits.TON
-#define DEFAULT_SENSOR_TIMER_CT 0x00A06800 //should be 5 seconds
+#define SENSOR_TO 0x00A06800 //should be 5 seconds
 //static unsigned char SENSOR_BUF[5];
 
 //start based on interrupt
@@ -50,11 +51,13 @@ void sample_sensor() {
 
 void configure_sensor() {
     _INT2EP = 0; //set INT2 for posedge detect
-    _T2IE = 1; //enable Timer 2 interrupts
-    _T3IE = 1; //enable Timer 3 interrupts
-    T2CONbits.TCKPS = 0;
-    T3CONbits.TCKPS = 0;
-    T2CONbits.T32 = 1; //set T2 and T3 to be one 32 bit counter
+    _T1IE = 1; //enable interrupts to begin
+    _TON = 0; //disable interrupts to begin
+    _TCKPS = 0;
+    _TMR1 = SENSOR_TO;
+    _TCS = 1;
+    _TSYNC = 0;
+    pulse_counts = 0;
 }
 
 
@@ -66,19 +69,19 @@ void goto_sleep() {
  **********************************************************************/
 //start based on interrupt
 void __attribute__((interrupt,no_auto_psv)) _INT2Interrupt() {
-//  sends(U2, "dc interrupt detected\r\n");
   _INT2IF = 0; //clear INT2 interrupt flag
-  TMR3 = 0x989;
-  TMR2 = 0x6800; //reset timer
+  _TON = 0; //disable timer for reset
+  _TMR1 = SENSOR_TO; //reset timer
+  _TON = 1; //re-enable timer
   SENSOR_FLAG = 1; //set high when interrupt detected
- // pulse_counts++;
+  pulse_counts++;
 }
 
 //timeout interrupt flag
-void __attribute__((interrupt,no_auto_psv)) _T3Interrupt() {
- // sends(U2, "dc timeout detected\r\n");
-  _T3IF = 0; //clear timer interrupt flag
-  PR3 = 0x989;
-  PR2 = 0x6800; //reset timer
+void __attribute__((interrupt,no_auto_psv)) _T1Interrupt() {
+  _T1IF = 0; //clear timer interrupt flag
+  _TON = 0; //disable timer
+  pulse_counts = 0;
+  taskloop_add();
   SENSOR_TIMEOUT_FLAG = 1;
 }
