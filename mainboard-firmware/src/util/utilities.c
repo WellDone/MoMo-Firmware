@@ -147,7 +147,6 @@ bool atoi_small(const char* buf, int* out)
 
 void print_byte( BYTE b )
 {
-  int i;
   print( "0b");
   BYTE mask = 0x80;
   while (mask!=0x0) {

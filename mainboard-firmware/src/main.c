@@ -69,7 +69,7 @@ int main(void) {
 
     //Disable div-by-2
     //CLKDIV = 0;
-    initializeFlashMemoryManager();
+    initialize_flash_memory_manager();
     configure_gsm();
 
     handle_reset();
