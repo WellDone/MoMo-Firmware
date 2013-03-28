@@ -63,7 +63,7 @@
 volatile unsigned char SENSOR_BUF[5];
 
 int main(void) {
-    uart_parameters params_uart1;
+  uart_parameters params_uart1, params_uart2;
 
     AD1PCFG = 0xFFFF;
 
@@ -91,10 +91,14 @@ int main(void) {
     configure_uart( U1, &params_uart1 );
     //init_gsm();
 
-    register_command_handlers(); //register the serial commands that we respond to.
-/*
+    params_uart2.baud = 38400;
+    params_uart2.hw_flowcontrol = 0;
+    params_uart2.parity = NoParity;
+    configure_uart( U2, &params_uart2 );
 
-    configure_SPI();
+    register_command_handlers(); //register the serial commands that we respond to.
+
+    configure_SPI(); 
     configure_sensor();
     sample_sensor();
     BYTE data[4];
@@ -105,17 +109,21 @@ int main(void) {
     data[3] = (pulse_counts >> 24) & 0xFF;
     mem_write(0xA, data, 4);
     wait_ms(1);
-    mem_read(0xA, read_data, 4); */
-    params_uart2.baud = 38400;
-    params_uart2.hw_flowcontrol = 0;
-    params_uart2.parity = NoParity;
-    configure_uart( U2, &params_uart2 );
-
+    mem_read(0xA, read_data, 4); 
     configure_SPI();
 
     print( "Device reset complete.\r\n");
     print( "PIC 24f16ka101> ");
-    taskloop_loop();
+    /*    command_params cmd;
+    cmd.num_params = 2;
+    cmd.params = "write blahblah";
+    handle_memory(cmd);
+    wait_ms(2);
+    cmd.num_params = 2;
+    cmd.params = "read 8";
+    handle_memory(cmd); */
+    
+    //taskloop_loop();
 
     return (EXIT_SUCCESS);
 }

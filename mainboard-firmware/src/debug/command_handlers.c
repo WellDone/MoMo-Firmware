@@ -367,7 +367,7 @@ void handle_memory(command_params *params) {
       atoi_small( get_param_string(params, 1), &l);
       l &= 255;
       mem_read(0x0A, memory_buffer, l);
-      memory_buffer[l] = 0x0;
+      memory_buffer[l] = 0x0; //writes null so print stops there
 
       print((const char*)memory_buffer);
       print("\r\n");
