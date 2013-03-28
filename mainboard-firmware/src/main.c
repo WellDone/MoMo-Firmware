@@ -89,6 +89,7 @@ int main(void) {
     params_uart1.hw_flowcontrol = 0;
     params_uart1.parity = NoParity;
     configure_uart( U1, &params_uart1 );
+    configure_sensor();
 
     taskloop_loop();
 
