@@ -4,7 +4,7 @@
 #include "sensor.h"
 #include "serial_commands.h"
 #include "utilities.h"
-#include "reporting.h"
+#include "report.h"
 
 volatile unsigned char SENSOR_FLAG;
 volatile unsigned char SENSOR_TIMEOUT_FLAG;
@@ -54,7 +54,7 @@ void configure_sensor() {
     _T1IE = 1; //enable interrupts to begin
     _TON = 0; //disable interrupts to begin
     _TCKPS = 0;
-    _TMR1 = SENSOR_TO;
+    TMR1 = SENSOR_TO;
     _TCS = 1;
     _TSYNC = 0;
     pulse_counts = 0;
@@ -71,7 +71,7 @@ void goto_sleep() {
 void __attribute__((interrupt,no_auto_psv)) _INT2Interrupt() {
   _INT2IF = 0; //clear INT2 interrupt flag
   _TON = 0; //disable timer for reset
-  _TMR1 = SENSOR_TO; //reset timer
+  TMR1 = SENSOR_TO; //reset timer
   _TON = 1; //re-enable timer
   SENSOR_FLAG = 1; //set high when interrupt detected
   pulse_counts++;
@@ -82,6 +82,6 @@ void __attribute__((interrupt,no_auto_psv)) _T1Interrupt() {
   _T1IF = 0; //clear timer interrupt flag
   _TON = 0; //disable timer
   pulse_counts = 0;
-  taskloop_add();
+//  taskloop_add();
   SENSOR_TIMEOUT_FLAG = 1;
 }
