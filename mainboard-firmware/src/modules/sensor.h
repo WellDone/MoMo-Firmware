@@ -22,8 +22,6 @@ extern volatile unsigned char I2C1_TX_BUF[16];
 extern volatile char I2C1_NACK_F;	//if no ack, be 1
 extern volatile char I2C1_MASTER_F;	//if occured i2c interrupt as master, 1
 
-extern volatile unsigned char SENSOR_BUF[5];
 extern volatile unsigned char SENSOR_FLAG;
 extern volatile unsigned char SENSOR_TIMEOUT_FLAG;
 extern volatile unsigned long pulse_counts;
-

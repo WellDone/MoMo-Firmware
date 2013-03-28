@@ -15,7 +15,6 @@
 #include "../core/reset_manager.h"
 
 extern volatile unsigned int adc_buffer[kADCBufferSize];
-
 ScheduledTask test_task;
 
 void handle_echo_params(command_params *params)
@@ -69,7 +68,7 @@ void handle_adc(command_params *params)
         config.scan_input = 0;
         config.alternate_muxes = 0;
         config.autosample_wait = 0b11111;
-        
+
         config.oneshot = 1;
         config.num_samples = num_samples;
 

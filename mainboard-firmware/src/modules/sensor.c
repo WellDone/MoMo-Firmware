@@ -43,7 +43,6 @@ void sample_sensor() {
   SENSOR_TIMEOUT_FLAG = 0; 
   SENSOR_TIMER_ON = 0;
   _INT2IE = 0; //Set INT2 to disable
-  
 }
 /**********************************************************************
                              CONFIG

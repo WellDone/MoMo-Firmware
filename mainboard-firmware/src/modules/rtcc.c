@@ -1,6 +1,5 @@
-#include "common.h"
 #include "rtcc.h"
-#include "core/common.h"
+#include "common.h"
 #include <string.h>
 
 task_callback alarm_callback = 0;
@@ -132,7 +131,7 @@ void get_rtcc_time_unsafe(rtcc_time *time)
 void rtcc_get_alarm(rtcc_time *alarm)
 {
     unsigned int curr;
-    
+
     _ALRMPTR = 0b10;
 
     curr = ALRMVAL;
@@ -186,7 +185,7 @@ void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
 
     //Distinguish half second and second intervals by a special bit
     alarm_time = kEveryHalfSecond;
-    
+
     if (_HALFSEC == 0)
         alarm_time = kEverySecond;
 

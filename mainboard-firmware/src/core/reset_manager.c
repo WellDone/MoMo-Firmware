@@ -23,7 +23,7 @@ reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =
     {0},                        //Software reset
     {handle_mclr_reset},        //MCLR External reset
     {handle_all_resets_before}, //Call on all resets (before)
-    {handle_all_resets_after}   //Call after all other reset code   
+    {handle_all_resets_after}   //Call after all other reset code
 };
 
 ResetType last_reset;
@@ -146,7 +146,6 @@ void handle_all_resets_before(unsigned int type)
     configure_interrupts();
     taskloop_init();
     scheduler_init();
-
     battery_init();
 }
 
