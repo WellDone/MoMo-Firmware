@@ -8,6 +8,8 @@
 #include "uart.h"
 #include "rtcc.h"
 #include "common.h"
+#include "pme.h"
+#include "gsm.h"
 
 void gsm_init()
 {
@@ -19,7 +21,6 @@ void gsm_init()
     //Set direction to out
     GSM_MODULE_ON_TRIS = 0;
     GSM_POWER_TRIS = 0;
-    
 }
 
 int gsm_send_at_cmd( const char* cmd )
@@ -44,6 +45,8 @@ void gsm_configure_serial()
 
     //Clock enter high-speed mode
 
+    peripheral_enable(kUART1Module);
+
     params_uart1.baud = 115200;
     params_uart1.hw_flowcontrol = 0;
     params_uart1.parity = NoParity;
@@ -52,12 +55,16 @@ void gsm_configure_serial()
 
 void gsm_on()
 {
-    _GSM_MODULE_POWER_ON();
+    gsm_configure_serial();
+
+    GSM_POWER_ON();
     wait_ms( 1 );
-    _GSM_MODULE_ON = 0;
+    GSM_MODULE_ON_PIN = 0;
 }
 
 void gsm_off()
 {
-    _GSM_MODULE_POWER_OFF();
+    GSM_POWER_OFF();
+    peripheral_disable(kUART1Module);
+    //Clock leave high speed mode
 }

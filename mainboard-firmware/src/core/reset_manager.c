@@ -13,6 +13,7 @@
 #include "scheduler.h"
 #include "modules/battery.h"
 #include "debug/debug.h"
+#include "../modules/pme.h"
 
 //Global reset handler table
 reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =
@@ -143,6 +144,7 @@ void handle_reset()
 void handle_all_resets_before(unsigned int type)
 {
     //Add code here that should be called before all other reset code
+    disable_unneeded_peripherals();
     configure_interrupts();
     taskloop_init();
     scheduler_init();
