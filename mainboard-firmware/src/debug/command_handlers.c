@@ -297,7 +297,7 @@ void handle_rtcc(command_params *params)
 
 
         sendf(U2, "Realtime Clock Status: %s\r\n", enabled? "Enabled" : "Disabled");
-        rtcc_time time;
+        rtcc_datetime time;
 
         rtcc_get_time(&time);
 
@@ -305,7 +305,7 @@ void handle_rtcc(command_params *params)
     }
     else if (strcmp(cmd, "set") == 0)
     {
-        rtcc_time time_spec;
+        rtcc_datetime time_spec;
         char *date, *time;
         char temp[3];
         int m;

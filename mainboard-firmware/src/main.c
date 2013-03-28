@@ -84,7 +84,7 @@ int main(void) {
     //CLKDIV = 0;
 
     handle_reset();
-
+    configure_SPI();
     params_uart1.baud = 115200;
     params_uart1.hw_flowcontrol = 0;
     params_uart1.parity = NoParity;

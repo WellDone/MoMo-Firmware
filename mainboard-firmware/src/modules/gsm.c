@@ -9,7 +9,7 @@
 #include "rtcc.h"
 #include "common.h"
 
-int gsm_send_at_cmd( const char* cmd )
+void gsm_send_at_cmd( const char* cmd )
 {
     sends( U1, cmd );
     sends( U1, "\r\n" );
