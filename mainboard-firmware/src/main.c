@@ -63,33 +63,9 @@
 volatile unsigned char SENSOR_BUF[5];
 
 int main(void) {
-  uart_parameters params_uart1, params_uart2;
-
     AD1PCFG = 0xFFFF;
 
-    _LATA0 = 0;
-    //_LATA1 = 0;
-
-
-    _TRISA0 = 0;
-    //_TRISA1 = 0;
-    //_TRISA3 = 1; //WISMO READY PIN
-
-    //Configure pin controlling WISMO
-    _LATA3 = 1;
-    _ODA3 = 1;
-    _TRISA3 = 0;
-
-    //Disable div-by-2
-    //CLKDIV = 0;
-
     handle_reset();
-
-    params_uart1.baud = 115200;
-    params_uart1.hw_flowcontrol = 0;
-    params_uart1.parity = NoParity;
-    configure_uart( U1, &params_uart1 );
-    configure_sensor();
 
     taskloop_loop();
 

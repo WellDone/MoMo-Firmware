@@ -147,6 +147,7 @@ void handle_all_resets_before(unsigned int type)
     taskloop_init();
     scheduler_init();
     battery_init();
+    gsm_init();
 }
 
 void handle_all_resets_after(unsigned int type)
