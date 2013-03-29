@@ -57,22 +57,9 @@
 
 int main(void) {
     AD1PCFG = 0xFFFF;
-    //_LATA1 = 0;
-
-    //_TRISA1 = 0;
-    //_TRISA3 = 1; //WISMO READY PIN
-
-    //Configure pin controlling WISMO
-    _LATA3 = 1; //TODO: Move somewhere else
-    _ODA3 = 1;
-    _TRISA3 = 0;
-
-    //Disable div-by-2
-    //CLKDIV = 0;
-    initialize_flash_memory_manager(); //TODO: Move to reset_manager
-    configure_gsm();
 
     handle_reset();
+
     taskloop_loop();
 
     return (EXIT_SUCCESS);
