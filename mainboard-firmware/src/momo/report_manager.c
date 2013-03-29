@@ -47,7 +47,17 @@ void construct_report()
 
 void post_report() {
   construct_report();
+  int i;
+  BYTE* ptr = &report;
+  for ( i=0; i<sizeof(sms_report); ++i );
+  {
+    print_byte( ptr );
+    ++ptr;
+  }
+  gsm_on();
   gsm_send_sms( MOMO_REPORT_SERVER, (const char*)&report );
+  //TODO: wait?
+  gsm_off();
 }
 
 static ScheduledTask report_task;

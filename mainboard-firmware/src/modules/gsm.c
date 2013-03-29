@@ -1,10 +1,4 @@
-/*
- * File:   sms_commands.c
- * Author: Austin
- *
- * Created on November 18, 2012, 11:50 PM
- */
-
+#include "gsm.h"
 #include "uart.h"
 #include "rtcc.h"
 #include "common.h"
@@ -52,12 +46,12 @@ void gsm_configure_serial()
 
 void gsm_on()
 {
-    _GSM_MODULE_POWER_ON();
+    GSM_POWER_ON();
     wait_ms( 1 );
-    _GSM_MODULE_ON = 0;
+    GSM_MODULE_ON_PIN = 0;
 }
 
 void gsm_off()
 {
-    _GSM_MODULE_POWER_OFF();
+    GSM_POWER_OFF();
 }

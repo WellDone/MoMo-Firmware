@@ -1,4 +1,4 @@
-//gsn.h
+//gsm.h
 
 #ifndef __gsm_h__
 #define __gsm_h__
@@ -6,8 +6,8 @@
 // Input/Output and Interrupt PIN definitions
 #define GSM_POWER_PIN      	_LATA0
 #define GSM_POWER_TRIS	   	_TRISA0
-#define GSM_POWER_ON()  	_GSM_MODULE_POWER_PIN = 1
-#define GSM_POWER_OFF() 	_GSM_MODULE_POWER_PIN = 0
+#define GSM_POWER_ON()  	GSM_POWER_PIN = 1
+#define GSM_POWER_OFF() 	GSM_POWER_PIN = 0
 
 #define GSM_MODULE_ON_PIN  	_LATA2
 #define GSM_MODULE_ON_TRIS	_TRISA2
