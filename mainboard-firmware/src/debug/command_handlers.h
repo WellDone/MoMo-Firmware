@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   command_handlers.h
  * Author: Austin
  *
@@ -17,6 +17,8 @@ void handle_gsm(command_params *params);
 void handle_sensor(command_params *params);
 void handle_memory(command_params *params);
 void handle_adc(command_params *params);
+void handle_log(command_params *params);
+void handle_report(command_params *params);
 
 #endif	/* __command_handlers_h__ */
 

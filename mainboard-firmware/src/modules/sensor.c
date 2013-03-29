@@ -12,6 +12,7 @@ volatile unsigned long pulse_counts;
 
 #define SENSOR_TIMER_ON T2CONbits.TON
 #define SENSOR_TO 0x09896800 //should be 5 seconds
+
 //static unsigned char SENSOR_BUF[5];
 
 //start based on interrupt
@@ -27,9 +28,9 @@ void sample_sensor() {
   pulse_counts = 0;
   PR3 = 0x050;
   PR2 = 0x6800; //reset timer
-  SENSOR_TIMER_ON = 1; 
+  SENSOR_TIMER_ON = 1;
 //  sends(U2, "dc Timer On\r\n");
-  while(!SENSOR_TIMEOUT_FLAG) { 
+  while(!SENSOR_TIMEOUT_FLAG) {
     if (i % 10 == 0) {
       i = 0;
     }
@@ -37,10 +38,10 @@ void sample_sensor() {
     if(SENSOR_FLAG) {
       SENSOR_FLAG = 0; //clear interrupt flag
       pulse_counts++;
-    } 
+    }
   }
  // sends(U2, "dc Timer On\r\n");
-  SENSOR_TIMEOUT_FLAG = 0; 
+  SENSOR_TIMEOUT_FLAG = 0;
   SENSOR_TIMER_ON = 0;
   _INT2IE = 0; //Set INT2 to disable
 }
@@ -48,18 +49,6 @@ void sample_sensor() {
                              CONFIG
  **********************************************************************/
 
-/*void configure_sensor() {
-    _INT2EP = 0; //set INT2 for posedge detect
-    _T1IE = 0; //enable interrupts to begin
-    _INT2IE = 1;
-    _TON = 0; //disable interrupts to begin
-    _TCKPS = 3;
-    PR1 = SENSOR_TO;
-   // _TCS = 1;
-  //  _TSYNC = 0;
-    pulse_counts = 0;
-}
-*/
 void configure_sensor() {
     _INT2EP = 0; //set INT2 for posedge detect
     _T3IE = 0; //enable interrupts to begin
@@ -73,9 +62,6 @@ void configure_sensor() {
     //T2CONbits.TSYNC = 0;
 
     pulse_counts = 0;
-}
-void goto_sleep() {
-  asm_sleep();
 }
 /**********************************************************************
                                 ISRs

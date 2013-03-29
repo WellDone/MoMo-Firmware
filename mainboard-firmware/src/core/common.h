@@ -8,7 +8,7 @@
 #define DEBUG_PROMPT 	"momo v4> "
 #define CLOCKSPEED      8000000L //F_osc / 2 (the instruction clock frequency)
 
-typedef short bool;
+typedef unsigned short bool;
 #define false 0;
 #define true 1;
 

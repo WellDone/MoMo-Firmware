@@ -5,18 +5,13 @@
  * Created on 9 de mayo de 2012, 22:46
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include "common.h"
-#include "rtcc.h"
-#include "uart.h"
-#include "xc.h"
-#include "memory.h"
-#include "sensor.h"
-#include "oscillator.h"
+//#include "xc.h"
 #include "reset_manager.h"
 #include "task_manager.h"
-#include "serial_commands.h"
+#include "memory_manager.h"
+#include "gsm.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -59,8 +54,6 @@
 #pragma config RTCOSC = LPRC            // RTCC Reference Clock Select bit (RTCC uses LPRC as reference clock)
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
-
-volatile unsigned char SENSOR_BUF[5];
 
 int main(void) {
     AD1PCFG = 0xFFFF;
