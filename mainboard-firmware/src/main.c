@@ -5,18 +5,10 @@
  * Created on 9 de mayo de 2012, 22:46
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include "common.h"
-#include "rtcc.h"
-#include "uart.h"
-#include "xc.h"
-#include "memory.h"
-#include "sensor.h"
-#include "oscillator.h"
 #include "reset_manager.h"
 #include "task_manager.h"
-#include "serial_commands.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
