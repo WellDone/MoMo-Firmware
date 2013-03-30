@@ -12,6 +12,7 @@
 #include "uart.h"
 #include "xc.h"
 #include "memory.h"
+#include "sensor.h"
 #include "oscillator.h"
 #include "reset_manager.h"
 #include "task_manager.h"
@@ -59,7 +60,7 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
-static unsigned char SENSOR_BUF[5];
+volatile unsigned char SENSOR_BUF[5];
 
 int main(void) {
     AD1PCFG = 0xFFFF;
