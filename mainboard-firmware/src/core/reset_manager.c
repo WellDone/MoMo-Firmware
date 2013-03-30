@@ -12,7 +12,7 @@
 #include "task_manager.h"
 #include "scheduler.h"
 #include "modules/battery.h"
-#include "debug/debug.h"
+//#include "debug/debug.h"
 
 //Global reset handler table
 reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =
@@ -173,5 +173,5 @@ void handle_poweron_reset(unsigned int type)
 
 void handle_mclr_reset(unsigned int type)
 {
-    debug_init();
+    //debug_init();
 }

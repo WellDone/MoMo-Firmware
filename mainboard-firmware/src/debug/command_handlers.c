@@ -13,8 +13,8 @@
 #include <string.h>
 #include "../core/scheduler.h"
 #include "../core/reset_manager.h"
-#include "../momo/sensor_event_log.h"
-#include "../momo/report_manager.h"
+#include "sensor_event_log.h"
+#include "report_manager.h"
 
 extern volatile unsigned int adc_buffer[kADCBufferSize];
 ScheduledTask test_task;

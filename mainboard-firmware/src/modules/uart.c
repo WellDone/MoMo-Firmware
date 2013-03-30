@@ -181,7 +181,7 @@ static UART_STATUS* GetStatus( UARTPort port )
 {
     return &uart_stats[port];
 }
-
+/*
 //Interrupt Handlers
 void receive_command( UART_STATUS* stat)
 {
@@ -218,7 +218,7 @@ void receive_command( UART_STATUS* stat)
         stat->rcv_cursor = stat->rcv_cursor+1;
     }
 }
-
+*/
 void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 {
    UART_STATUS *stat = &u1stat;

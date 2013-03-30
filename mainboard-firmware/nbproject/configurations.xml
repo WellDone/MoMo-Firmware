@@ -15,12 +15,10 @@
         <itemPath>src/core/task_manager.c</itemPath>
         <itemPath>src/core/task_manager.h</itemPath>
         <itemPath>src/core/common.h</itemPath>
+        <itemPath>src/core/scheduler.c</itemPath>
+        <itemPath>src/core/scheduler.h</itemPath>
       </logicalFolder>
       <logicalFolder name="debug" displayName="Debug" projectFiles="true">
-        <itemPath>src/debug/command_handlers.h</itemPath>
-        <itemPath>src/debug/command_handlers.c</itemPath>
-        <itemPath>src/debug/serial_commands.h</itemPath>
-        <itemPath>src/debug/serial_commands.c</itemPath>
       </logicalFolder>
       <logicalFolder name="modules" displayName="Modules" projectFiles="true">
         <itemPath>src/modules/gsm.c</itemPath>
@@ -35,6 +33,8 @@
         <itemPath>src/modules/sensor.h</itemPath>
         <itemPath>src/modules/uart.h</itemPath>
         <itemPath>src/modules/uart.c</itemPath>
+        <itemPath>src/modules/adc.c</itemPath>
+        <itemPath>src/modules/adc.h</itemPath>
       </logicalFolder>
       <logicalFolder name="tasks" displayName="Tasks" projectFiles="true">
         <itemPath>src/momo/memory_manager.c</itemPath>
