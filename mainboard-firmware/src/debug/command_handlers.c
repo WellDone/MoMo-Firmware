@@ -8,11 +8,11 @@
 #include "memory.h"
 #include "oscillator.h"
 #include "gsm.h"
-#include "../modules/adc.h"
+#include "adc.h"
 #include <stdio.h>
 #include <string.h>
-#include "../core/scheduler.h"
-#include "../core/reset_manager.h"
+#include "scheduler.h"
+#include "reset_manager.h"
 #include "sensor_event_log.h"
 #include "report_manager.h"
 

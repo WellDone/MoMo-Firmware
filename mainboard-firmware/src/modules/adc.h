@@ -8,8 +8,8 @@
 #ifndef __adc_h__
 #define __adc_h__
 
-#include "../core/task_manager.h"
-#include "../core/common.h"
+#include "task_manager.h"
+#include "common.h"
 
 //Convenience Macros
 #define adc_disable() 				adc_set_status(0)
@@ -28,7 +28,7 @@ enum
 	kNoChannelsConnected = 0b1101,
 	kHalfBandgapReference = 14,
 	kBandgapReference = 15,
-}; 
+};
 
 
 /*
@@ -45,8 +45,8 @@ typedef enum
 } ADCOutputFormat;
 
 #define kADCTriggerSourceMask 	0b111
-typedef enum 
-{  
+typedef enum
+{
 	kProgramControl = 0b000,
 	kINTOTransition = 0b001,
 	kTimer3Match = 0b010,
@@ -55,7 +55,7 @@ typedef enum
 } ADCTriggerSource;
 
 #define kADCVoltageReferenceMask 0b11
-typedef enum 
+typedef enum
 {
 	kVDDVSS = 0b000,
 	kVRefPosVSS = 0b001,

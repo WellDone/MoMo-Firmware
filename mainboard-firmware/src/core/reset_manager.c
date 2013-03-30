@@ -7,12 +7,18 @@
 
 #include "common.h"
 #include "reset_manager.h"
+
 #include "rtcc.h"
 #include "uart.h"
 #include "task_manager.h"
 #include "scheduler.h"
-#include "modules/battery.h"
-#include "debug/debug.h"
+#include "battery.h"
+#include "debug.h"
+#include "gsm.h"
+
+#include "memory_manager.h"
+#include "registration.h"
+
 
 //Global reset handler table
 reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =
@@ -148,6 +154,9 @@ void handle_all_resets_before(unsigned int type)
     scheduler_init();
     battery_init();
     gsm_init();
+
+    //TODO: Move this to MoMo-specific handler?
+    flash_memory_init();
 }
 
 void handle_all_resets_after(unsigned int type)
@@ -159,6 +168,8 @@ void handle_all_resets_after(unsigned int type)
     //The RTCC must be enabled for scheduling tasks, so ensure that
     if (!rtcc_enabled())
         enable_rtcc();
+
+    momo_register();
 }
 
 void handle_poweron_reset(unsigned int type)

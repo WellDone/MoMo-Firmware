@@ -9,7 +9,7 @@
 #ifndef __tasks_h__
 #define __tasks_h__
 
-#include "../util/ringbuffer.h"
+#include "ringbuffer.h"
 
 #define kMAXTASKS 16 //NB Must be a power of 2 since it will be used for a ringbuffer
 
@@ -24,7 +24,7 @@ typedef struct
 {
     task_callback taskdata[kMAXTASKS];
     ringbuffer tasks;
-    
+
     unsigned int flags;
 } task_list;
 

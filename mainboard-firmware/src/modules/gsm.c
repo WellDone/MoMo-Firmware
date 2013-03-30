@@ -13,7 +13,6 @@ void gsm_init()
     //Set direction to out
     GSM_MODULE_ON_TRIS = 0;
     GSM_POWER_TRIS = 0;
-
 }
 
 int gsm_send_at_cmd( const char* cmd )

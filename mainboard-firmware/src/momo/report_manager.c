@@ -20,7 +20,7 @@ static sensor_event event_buffer[EVENT_BUFFER_SIZE];
 void construct_report()
 {
   unsigned int count, i;
-  report.momo_version = MOMO_PRODUCTION_VERSION;
+  report.momo_version = MOMO_REPORT_VERSION;
   report.battery_voltage = last_battery_voltage;
 
   for ( i=0; i<24; ++i ) {
