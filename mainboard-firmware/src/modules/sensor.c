@@ -1,13 +1,10 @@
-#include <stdio.h>
-#include <p24F16KA101.h>
-#include "rtcc.h"
 #include "sensor.h"
-#include "serial_commands.h"
+#include "common.h"
 #include "utilities.h"
 
-volatile unsigned char SENSOR_FLAG;
-volatile unsigned char SENSOR_TIMEOUT_FLAG;
-volatile unsigned long pulse_counts;
+volatile static unsigned char SENSOR_FLAG;
+volatile static unsigned char SENSOR_TIMEOUT_FLAG;
+volatile static unsigned long pulse_counts;
 
 #define SENSOR_TIMER_ON T2CONbits.TON
 //static unsigned char SENSOR_BUF[5];
@@ -55,10 +52,6 @@ void configure_sensor() {
     T2CONbits.T32 = 1; //set T2 and T3 to be one 32 bit counter
 }
 
-
-void goto_sleep() {
-  asm_sleep();
-}
 /**********************************************************************
                                 ISRs
  **********************************************************************/
