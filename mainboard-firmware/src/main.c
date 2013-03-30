@@ -10,7 +10,7 @@
 //#include "xc.h"
 #include "reset_manager.h"
 #include "task_manager.h"
-#include "memory_manager.h"
+#include "../momo/memory_manager.h"
 #include "gsm.h"
 
 // FBS

@@ -41,12 +41,6 @@ void taskloop_loop()
 
         if (BIT_TEST(taskqueue.flags, kTaskLoopSleepBit))
             asm_sleep();
-	switch(cur_state) {
-	case SLEEP : 
-	  asm_sleep();
-	  next_state = WAKE;
-	case WAKE :
-	}
         
     }
 }

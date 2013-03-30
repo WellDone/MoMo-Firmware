@@ -37,8 +37,15 @@
         <itemPath>src/modules/uart.c</itemPath>
       </logicalFolder>
       <logicalFolder name="tasks" displayName="Tasks" projectFiles="true">
-        <itemPath>src/tasks/report.c</itemPath>
-        <itemPath>src/tasks/report.h</itemPath>
+        <itemPath>src/momo/memory_manager.c</itemPath>
+        <itemPath>src/momo/memory_manager.h</itemPath>
+        <itemPath>src/momo/momo_config.h</itemPath>
+        <itemPath>src/momo/registration.c</itemPath>
+        <itemPath>src/momo/registration.h</itemPath>
+        <itemPath>src/momo/report_manager.c</itemPath>
+        <itemPath>src/momo/report_manager.h</itemPath>
+        <itemPath>src/momo/sensor_event_log.c</itemPath>
+        <itemPath>src/momo/sensor_event_log.h</itemPath>
       </logicalFolder>
       <logicalFolder name="util" displayName="Util" projectFiles="true">
         <itemPath>src/util/asm_sleep.s</itemPath>
@@ -48,6 +55,8 @@
         <itemPath>src/util/ringbuffer.h</itemPath>
         <itemPath>src/util/utilities.c</itemPath>
         <itemPath>src/util/utilities.h</itemPath>
+        <itemPath>src/util/flash_queue.c</itemPath>
+        <itemPath>src/util/flash_queue.h</itemPath>
       </logicalFolder>
       <itemPath>src/main.c</itemPath>
     </logicalFolder>
@@ -67,7 +76,7 @@
         <platformTool>Simulator</platformTool>
         <languageToolchain>XC16</languageToolchain>
         <languageToolchainVersion>1.11</languageToolchainVersion>
-        <platform>4</platform>
+        <platform>3</platform>
       </toolsSet>
       <compileType>
         <linkerTool>

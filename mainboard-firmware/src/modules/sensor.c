@@ -4,7 +4,7 @@
 #include "sensor.h"
 #include "serial_commands.h"
 #include "utilities.h"
-#include "report.h"
+#include "../momo/sensor_event_log.h"
 
 volatile unsigned char SENSOR_FLAG;
 volatile unsigned char SENSOR_TIMEOUT_FLAG;
@@ -20,31 +20,6 @@ volatile unsigned long pulse_counts;
                                MAIN FUNCTIONS
  **********************************************************************/
 
-//sample sensor: increment when there's an interrupt
-void sample_sensor() {
-  int i;
-  _INT2IE = 1; //Set INT2 to enable
-  i = 0;
-  pulse_counts = 0;
-  PR3 = 0x050;
-  PR2 = 0x6800; //reset timer
-  SENSOR_TIMER_ON = 1;
-//  sends(U2, "dc Timer On\r\n");
-  while(!SENSOR_TIMEOUT_FLAG) {
-    if (i % 10 == 0) {
-      i = 0;
-    }
-    i++;
-    if(SENSOR_FLAG) {
-      SENSOR_FLAG = 0; //clear interrupt flag
-      pulse_counts++;
-    }
-  }
- // sends(U2, "dc Timer On\r\n");
-  SENSOR_TIMEOUT_FLAG = 0;
-  SENSOR_TIMER_ON = 0;
-  _INT2IE = 0; //Set INT2 to disable
-}
 /**********************************************************************
                              CONFIG
  **********************************************************************/
@@ -81,11 +56,15 @@ void __attribute__((interrupt,no_auto_psv)) _INT2Interrupt() {
 
 //timeout interrupt flag
 void __attribute__((interrupt,no_auto_psv)) _T3Interrupt() {
+  sensor_type sens_type = momo_pulse_counter;
+  rtcc_datetime cur_time;
+  rtcc_get_time(&cur_time);
   _T3IF = 0; //clear timer interrupt flag
   T2CONbits.TON = 0; //disable timer
   _T2IE = 0;
   _T3IE = 0;
+
+  log_sensor_event(sens_type, &cur_time, pulse_counts);
   pulse_counts = 0;
-//  taskloop_add();
   SENSOR_TIMEOUT_FLAG = 1;
 }
