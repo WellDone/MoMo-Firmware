@@ -14,6 +14,7 @@
 #include "modules/battery.h"
 #include "debug/debug.h"
 #include "../modules/pme.h"
+#include "../modules/gsm.h"
 
 //Global reset handler table
 reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =

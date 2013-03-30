@@ -21,7 +21,7 @@ void set_oscillator_speed(OscillatorSpeedSelector speed)
     if (curr == speed)
         return;
 
-    uninterruptible_start()
+    uninterruptible_start();
 
     oscconh = OSCCONH;
     oscconl = OSCCONL;
@@ -46,7 +46,7 @@ void set_oscillator_speed(OscillatorSpeedSelector speed)
         _RCDIV = kLowSpeedClockDiv;
 
 
-    uninterruptible_end()
+    uninterruptible_end();
 }
 
 /*
