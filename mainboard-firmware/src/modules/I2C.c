@@ -1,4 +1,5 @@
 #include "common.h"
+#include "uart.h"
 
 #define I2C1_RETRY_MAX 5
 #define I2C_TIMEOUT 10000 //test this, may not need timeout
