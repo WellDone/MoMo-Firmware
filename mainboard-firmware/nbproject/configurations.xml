@@ -35,6 +35,8 @@
         <itemPath>src/modules/uart.c</itemPath>
         <itemPath>src/modules/adc.c</itemPath>
         <itemPath>src/modules/adc.h</itemPath>
+        <itemPath>src/modules/battery.c</itemPath>
+        <itemPath>src/modules/battery.h</itemPath>
       </logicalFolder>
       <logicalFolder name="tasks" displayName="Tasks" projectFiles="true">
         <itemPath>src/momo/memory_manager.c</itemPath>

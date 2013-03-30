@@ -181,7 +181,7 @@ static UART_STATUS* GetStatus( UARTPort port )
 {
     return &uart_stats[port];
 }
-/*
+/* dlc
 //Interrupt Handlers
 void receive_command( UART_STATUS* stat)
 {
@@ -243,7 +243,7 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 
 void __attribute__((interrupt,auto_psv)) _U2RXInterrupt()
 {
-    receive_command( &u2stat );
+  //    receive_command( &u2stat ); dlc
 
     IFS1bits.U2RXIF = 0; //Clear IFS flag
 }
