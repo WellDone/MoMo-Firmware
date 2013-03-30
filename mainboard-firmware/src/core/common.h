@@ -5,7 +5,6 @@
 
 #include <p24Fxxxx.h>
 #include <GenericTypeDefs.h>
-#define DEBUG_PROMPT 	"momo v4> "
 #define CLOCKSPEED      8000000L //F_osc / 2 (the instruction clock frequency)
 
 typedef unsigned short bool;

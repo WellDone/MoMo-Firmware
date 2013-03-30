@@ -3,6 +3,7 @@
 #include "scheduler.h"
 #include "momo_config.h"
 #include "sensor_event_log.h"
+#include "utilities.h"
 
 #define EVENT_BUFFER_SIZE 24
 typedef struct { //103
@@ -48,10 +49,10 @@ void construct_report()
 void post_report() {
   construct_report();
   int i;
-  BYTE* ptr = &report;
+  BYTE* ptr = (BYTE*)&report;
   for ( i=0; i<sizeof(sms_report); ++i );
   {
-    print_byte( ptr );
+    print_byte( *ptr );
     ++ptr;
   }
   gsm_on();
