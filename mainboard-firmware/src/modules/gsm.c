@@ -3,6 +3,18 @@
 #include "rtcc.h"
 #include "common.h"
 
+// Input/Output and Interrupt PIN definitions
+#define GSM_POWER_PIN       _LATA0
+#define GSM_POWER_TRIS      _TRISA0
+#define GSM_POWER_ON()        GSM_POWER_PIN = 1
+#define GSM_POWER_OFF()       GSM_POWER_PIN = 0
+
+#define GSM_MODULE_ON_PIN   _LATA2
+#define GSM_MODULE_ON_TRIS  _TRISA2
+#define GSM_MODULE_ON_OD      _ODA2
+#define GSM_MODULE_ON()     GSM_MODULE_ON_PIN = 0
+#define GSM_MODULE_OFF()     GSM_MODULE_ON_PIN = 1
+
 void gsm_init()
 {
     //Configure pins to control WISMO power and module enable
@@ -22,7 +34,7 @@ void gsm_configure_serial()
 {
     uart_parameters params_uart1;
 
-    //Clock enter high-speed mode
+    //TODO: Clock enter high-speed mode
 
     params_uart1.baud = 115200;
     params_uart1.hw_flowcontrol = 0;
@@ -43,7 +55,13 @@ void gsm_send_sms( const char* destination, const char* message )
     sends(U1, "\"\r");
     wait_ms( 1 ); // TODO: Wait for the > char on U1
     sends( U1, message );
-    put( U1, 0x1A ); // send ctrl-z
+    put( U1, 0x1A ); // ASCII ctrl-z = 0x1A
+}
+
+bool gsm_check_SIM()
+{
+    //TODO: implement
+    return true;
 }
 
 void gsm_on()
@@ -52,6 +70,19 @@ void gsm_on()
     wait_ms( 1 );
     GSM_MODULE_ON();
     uart_set_disabled(U1, 0);
+}
+
+GSMStatus gsm_status()
+{
+    GSMStatus status = gsm_status_off;
+    if ( GSM_POWER_PIN == 1 && GSM_MODULE_ON_PIN == 0 )
+    {
+        if ( gsm_check_SIM() )
+            status = gsm_status_ready;
+        else
+            status = gsm_status_on;
+    }
+    return status;
 }
 
 void gsm_off()
