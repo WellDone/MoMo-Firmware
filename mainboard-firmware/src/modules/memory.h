@@ -7,7 +7,7 @@
 #define MEMORY_SUBSECTION_ADDR(num) (MEMORY_SUBSECTION_SIZE*num)
 #define MEMORY_ADDRESS_MASK 0xFFFFFL
 
-bool configure_SPI();
+void configure_SPI();
 
 bool mem_write( unsigned long addr, const BYTE* data, unsigned int length );
 bool mem_read( unsigned long addr, BYTE* buf, unsigned int numBytes );

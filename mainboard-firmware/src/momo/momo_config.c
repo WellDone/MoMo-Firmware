@@ -22,7 +22,7 @@ void reset_momo_state()
 void load_momo_state()
 {
   mem_read( momo_config_memory_address, (BYTE*)&current_momo_state, sizeof(MoMoState) );
-  if ( current_momo_state.version == 0x0 )
+  if ( current_momo_state.version == 0xFFFF )
   {
     reset_momo_state();
   }

@@ -35,7 +35,7 @@ bool shift_out( BYTE data );
 #define ERASE_SUBSECTION() shift_out( SSE )
 #define ERASE_ALL() shift_out( BE )
 
-bool configure_SPI() {
+void configure_SPI() {
   SPI1CON1bits.MODE16 = 0; //communication is byte-wide
   SPI1CON1bits.MSTEN = 1; //SPI is in master mode
   SPI1CON1bits.CKP = 1; //data is clocked out on high-low transition
@@ -51,7 +51,6 @@ bool configure_SPI() {
   TRISBbits.TRISB12 = 0; // SDCK
 
   DISABLE_MEMORY(); //idle state of SS is high
-  return mem_test();
 }
 
 static inline bool shift_impl( BYTE data, BYTE* data_out ) {

@@ -207,14 +207,9 @@ void handle_gsm(command_params *params)
     {
         dump_gsm_buffer();
     }
-    else if (strcmp(cmd, "report") == 0)
+    else if (strcmp(cmd, "status") == 0)
     {
-        if (params->num_params >= 1)
-        {
-            gsm_send_sms("+15107358486", get_param_string(params,1));
-        }
-        else
-            print( "usage: gsm report <status>\r\n");
+        print_byte( gsm_status() );
     }
 }
 
