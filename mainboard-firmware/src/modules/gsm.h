@@ -15,7 +15,7 @@
 
 void gsm_init();
 
-int gsm_send_at_cmd( const char* cmd );
+void gsm_send_at_cmd( const char* cmd );
 void gsm_send_sms( const char* destination, const char* message );
 
 void gsm_on();

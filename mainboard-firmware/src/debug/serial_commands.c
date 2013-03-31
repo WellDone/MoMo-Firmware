@@ -7,6 +7,7 @@
 #include "serial_commands.h"
 #include "command_handlers.h"
 #include "core/task_manager.h"
+#include "debug.h"
 #include <string.h>
 
 volatile char __attribute__((space(data))) command_buffer[UART_BUFFER_SIZE];
@@ -30,6 +31,8 @@ void register_command_handlers()
     register_command("sensor", handle_sensor);
     register_command("adc", handle_adc);
     register_command("memory", handle_memory);
+    register_command("log", handle_log);
+    register_command("report", handle_report);
 }
 
 /*
@@ -63,7 +66,7 @@ void process_commands_task()
         strncpy(command_buffer, uart_stats[1].rcv_buffer, UART_BUFFER_SIZE);
         process_command();
 
-        print( "PIC 24f16ka101> ");
+        print( DEBUG_PROMPT );
 
         cmd_ready = 0;
     }

@@ -1,8 +1,8 @@
 #ifndef __adc_h__
 #define __adc_h__
 
-#include "../core/task_manager.h"
-#include "../core/common.h"
+#include "task_manager.h"
+#include "common.h"
 
 //Convenience Macros
 #define adc_disable() 				adc_set_status(0)

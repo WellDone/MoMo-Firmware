@@ -1,4 +1,5 @@
 #include "utilities.h"
+#include "uart.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -126,6 +127,7 @@ int itoa_small(char *buf, unsigned int len, int num)
 
 bool atoi_small(const char* buf, int* out)
 {
+    *out = 0x0;
     int i;
     unsigned int *uout = (unsigned int*) out;
     for ( i=0; i<strlen(buf); ++i ) {
@@ -143,13 +145,19 @@ bool atoi_small(const char* buf, int* out)
 
 void print_byte( BYTE b )
 {
-  int i;
   print( "0b");
-  for ( i=7; i>=0; --i) {
-    if ( ( b & 0b1<<i ) )
+  BYTE mask = 0x80;
+  while (mask!=0x0) {
+    if ( ( b & mask ) )
       print("1");
     else
       print("0");
+    mask = mask >> 1;
   }
   print("\r\n");
+}
+
+void println( const char* msg ) {
+  print( msg );
+  print( "\r\n" );
 }

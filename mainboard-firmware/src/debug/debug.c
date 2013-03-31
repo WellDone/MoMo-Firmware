@@ -1,9 +1,9 @@
 #include "debug.h"
-#include "../core/common.h"
+#include "common.h"
 #include "command_handlers.h"
-#include "../modules/uart.h"
-#include "../core/scheduler.h"
-#include "../core/reset_manager.h"
+#include "uart.h"
+#include "scheduler.h"
+#include "reset_manager.h"
 
 extern volatile int cmd_received;
 

@@ -14,9 +14,23 @@ void gsm_init()
     GSM_MODULE_ON_TRIS = 0;
     GSM_POWER_TRIS = 0;
 
+    gsm_configure_serial();
+    uart_set_disabled(U1, 1);
 }
 
-int gsm_send_at_cmd( const char* cmd )
+void gsm_configure_serial()
+{
+    uart_parameters params_uart1;
+
+    //Clock enter high-speed mode
+
+    params_uart1.baud = 115200;
+    params_uart1.hw_flowcontrol = 0;
+    params_uart1.parity = NoParity;
+    configure_uart( U1, &params_uart1 );
+}
+
+void gsm_send_at_cmd( const char* cmd )
 {
     sends( U1, cmd );
     sends( U1, "\r\n" );
@@ -32,26 +46,16 @@ void gsm_send_sms( const char* destination, const char* message )
     put( U1, 0x1A ); // send ctrl-z
 }
 
-void gsm_configure_serial()
-{
-    uart_parameters params_uart1;
-
-    //Clock enter high-speed mode
-
-    params_uart1.baud = 115200;
-    params_uart1.hw_flowcontrol = 0;
-    params_uart1.parity = NoParity;
-    configure_uart( U1, &params_uart1 );
-}
-
 void gsm_on()
 {
     GSM_POWER_ON();
     wait_ms( 1 );
     GSM_MODULE_ON();
+    uart_set_disabled(U1, 0);
 }
 
 void gsm_off()
 {
     GSM_POWER_OFF();
+    uart_set_disabled(U1, 1);
 }
