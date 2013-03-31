@@ -1,10 +1,3 @@
-/*
- * File:   sms_commands.c
- * Author: Austin
- *
- * Created on November 18, 2012, 11:50 PM
- */
-
 #include "gsm.h"
 #include "uart.h"
 #include "rtcc.h"

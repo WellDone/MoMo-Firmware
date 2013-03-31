@@ -1,5 +1,3 @@
-//scheduler.c
-
 #include "scheduler.h"
 #include "core/common.h"
 
@@ -71,7 +69,7 @@ void scheduler_update_rate()
 void scheduler_list_insert(ScheduledTask **list, ScheduledTask *task)
 {
 	uninterruptible_start();
-	
+
 	if (*list == 0)
 	{
 		*list = task;

@@ -1,5 +1,3 @@
-//tasks.c
-
 #include "task_manager.h"
 #include "common.h"
 #include "uart.h"
@@ -40,7 +38,7 @@ void taskloop_loop()
 
         if (BIT_TEST(taskqueue.flags, kTaskLoopSleepBit))
             asm_sleep();
-        
+
     }
 }
 int taskloop_process_one()

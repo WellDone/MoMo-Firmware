@@ -1,5 +1,3 @@
-//debug.c
-
 #include "debug.h"
 #include "../core/common.h"
 #include "command_handlers.h"

@@ -1,10 +1,3 @@
-/* 
- * File:   command_handlers.h
- * Author: Austin
- *
- * Created on March 14, 2013, 5:10 AM
- */
-
 #ifndef __command_handlers_h__
 #define	__command_handlers_h__
 
