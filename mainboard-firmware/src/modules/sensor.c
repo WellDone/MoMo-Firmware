@@ -1,7 +1,7 @@
 #include "sensor.h"
 #include "common.h"
 #include "utilities.h"
-#include "../momo/sensor_event_log.h"
+#include "sensor_event_log.h"
 
 volatile static unsigned char SENSOR_FLAG;
 volatile static unsigned char SENSOR_TIMEOUT_FLAG;

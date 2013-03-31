@@ -3,7 +3,6 @@
 #include "uart.h"
 
 task_list taskqueue;
-typedef enum {SLEEP, WAKE, SENSOR, MEM_WRITE, MEM_READ, GSM_SEND} state;
 void taskloop_init()
 {
     ringbuffer_create(&taskqueue.tasks, (void*)taskqueue.taskdata, sizeof(task_callback), kMAXTASKS);
@@ -31,7 +30,6 @@ int taskloop_add(task_callback task)
 
 void taskloop_loop()
 {
-  state cur_state, next_state;
     while(1)
     {
         while(taskloop_process_one())
