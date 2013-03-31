@@ -60,7 +60,8 @@ void gsm_send_sms( const char* destination, const char* message )
 
 bool gsm_check_SIM()
 {
-    //TODO: implement
+    gsm_send_at_cmd( "AT+CPIN?" );
+    //TODO: implement response parsing
     return true;
 }
 
