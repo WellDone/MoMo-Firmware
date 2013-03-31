@@ -8,6 +8,8 @@
 #include "battery.h"
 #include "debug.h"
 #include "gsm.h"
+#include "oscillator.h"
+#include "sensor.h"
 
 #include "memory_manager.h"
 #include "registration.h"
