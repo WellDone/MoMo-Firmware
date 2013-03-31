@@ -1,12 +1,15 @@
 #include "sensor.h"
 #include "common.h"
 #include "utilities.h"
+#include "../momo/sensor_event_log.h"
 
 volatile static unsigned char SENSOR_FLAG;
 volatile static unsigned char SENSOR_TIMEOUT_FLAG;
 volatile static unsigned long pulse_counts;
 
 #define SENSOR_TIMER_ON T2CONbits.TON
+#define SENSOR_TO 0x09896800 //should be 5 seconds
+
 //static unsigned char SENSOR_BUF[5];
 
 //start based on interrupt
@@ -14,62 +17,51 @@ volatile static unsigned long pulse_counts;
                                MAIN FUNCTIONS
  **********************************************************************/
 
-//sample sensor: increment when there's an interrupt
-void sample_sensor() {
-  int i;
-  _INT2IE = 1; //Set INT2 to enable
-  i = 0;
-  pulse_counts = 0;
-  PR3 = 0x989;
-  PR2 = 0x6800; //reset timer
-  SENSOR_TIMER_ON = 1;
-//  sends(U2, "dc Timer On\r\n");
-  while(!SENSOR_TIMEOUT_FLAG) {
-    if (i % 10 == 0) {
-      i = 0;
-    }
-    i++;
-    if(SENSOR_FLAG) {
-      SENSOR_FLAG = 0; //clear interrupt flag
-      pulse_counts++;
-    }
-  }
- // sends(U2, "dc Timer On\r\n");
-  SENSOR_TIMEOUT_FLAG = 0;
-  SENSOR_TIMER_ON = 0;
-  _INT2IE = 0; //Set INT2 to disable
-}
 /**********************************************************************
                              CONFIG
  **********************************************************************/
 
 void configure_sensor() {
     _INT2EP = 0; //set INT2 for posedge detect
-    _T2IE = 1; //enable Timer 2 interrupts
-    _T3IE = 1; //enable Timer 3 interrupts
-    T2CONbits.TCKPS = 0;
-    T3CONbits.TCKPS = 0;
-    T2CONbits.T32 = 1; //set T2 and T3 to be one 32 bit counter
-}
+    _T3IE = 0; //enable interrupts to begin
+    _INT2IE = 1;
+    T2CONbits.TON = 0; //disable interrupts to begin
+    PR2 = SENSOR_TO & 0xFFFF;
+    PR3 = (SENSOR_TO >> 16) & 0xFFFF;
+    _T32 = 1;
+    T2CONbits.TCKPS0 = 1;
+    //T2CONbits.TCS = 1;
+    //T2CONbits.TSYNC = 0;
 
+    pulse_counts = 0;
+}
 /**********************************************************************
                                 ISRs
  **********************************************************************/
 //start based on interrupt
 void __attribute__((interrupt,no_auto_psv)) _INT2Interrupt() {
-//  sends(U2, "dc interrupt detected\r\n");
   _INT2IF = 0; //clear INT2 interrupt flag
-  PR3 = 0x989;
-  PR2 = 0x6800; //reset timer
+  T2CONbits.TON = 0; //disable timer for reset
+  TMR2 = 0; //reset timer
+  TMR3 = 0;
+  T2CONbits.TON = 1; //re-enable timer
+  _T2IE = 1;
+  _T3IE = 1;
   SENSOR_FLAG = 1; //set high when interrupt detected
- // pulse_counts++;
+  pulse_counts++;
 }
 
 //timeout interrupt flag
 void __attribute__((interrupt,no_auto_psv)) _T3Interrupt() {
- // sends(U2, "dc timeout detected\r\n");
+  sensor_type sens_type = momo_pulse_counter;
+  rtcc_datetime cur_time;
+  rtcc_get_time(&cur_time);
   _T3IF = 0; //clear timer interrupt flag
-  PR3 = 0x989;
-  PR2 = 0x6800; //reset timer
+  T2CONbits.TON = 0; //disable timer
+  _T2IE = 0;
+  _T3IE = 0;
+
+  log_sensor_event(sens_type, &cur_time, pulse_counts);
+  pulse_counts = 0;
   SENSOR_TIMEOUT_FLAG = 1;
 }
