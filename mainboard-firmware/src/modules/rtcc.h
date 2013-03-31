@@ -80,6 +80,6 @@ void         set_recurring_task(AlarmRepeatTime repeat, task_callback routine);
 void         clear_recurring_task();
 unsigned int last_alarm_frequency();
 
-void wait_ms( unsigned int milliseconds );
+void wait_ms( unsigned long milliseconds );
 
 #endif

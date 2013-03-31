@@ -280,11 +280,11 @@ void clear_recurring_task()
     _AMASK = 0x00;
 }*/
 
-#define HZ 1/CLOCKSPEED;
-void wait_ms( unsigned int milliseconds )
+void wait_ms( unsigned long milliseconds )
 {
-    milliseconds = milliseconds * HZ;
+    volatile unsigned long tick = 0;
+    milliseconds = milliseconds * CLOCKSPEED;
     milliseconds = milliseconds / 1000;
-    while (milliseconds > 0 )
-        milliseconds++;
+    while ( tick!=milliseconds )
+        tick++;
 }

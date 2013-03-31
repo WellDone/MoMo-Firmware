@@ -6,28 +6,28 @@
 // Input/Output and Interrupt PIN definitions
 #define GSM_POWER_PIN       _LATA0
 #define GSM_POWER_TRIS      _TRISA0
-#define GSM_POWER_ON()        GSM_POWER_PIN = 1
-#define GSM_POWER_OFF()       GSM_POWER_PIN = 0
+#define GSM_POWER_ON()      GSM_POWER_PIN = 0
+#define GSM_POWER_OFF()     GSM_POWER_PIN = 1
 
 #define GSM_MODULE_ON_PIN   _LATA2
 #define GSM_MODULE_ON_TRIS  _TRISA2
-#define GSM_MODULE_ON_OD      _ODA2
+#define GSM_MODULE_ON_OD    _ODA2
 #define GSM_MODULE_ON()     GSM_MODULE_ON_PIN = 0
-#define GSM_MODULE_OFF()     GSM_MODULE_ON_PIN = 1
+#define GSM_MODULE_OFF()    GSM_MODULE_ON_PIN = 1
 
 void gsm_init()
 {
-    //Configure pins to control WISMO power and module enable
-    GSM_POWER_PIN = 0;
-    GSM_MODULE_ON_PIN = 1;
-    GSM_MODULE_ON_OD = 1;
-
     //Set direction to out
     GSM_MODULE_ON_TRIS = 0;
     GSM_POWER_TRIS = 0;
 
+    //Configure pins to control WISMO power and module enable
+    GSM_MODULE_ON_OD = 1;
+    GSM_POWER_OFF();
+    GSM_MODULE_OFF();
+
     gsm_configure_serial();
-    uart_set_disabled(U1, 1);
+    //uart_set_disabled(U1, 1);
 }
 
 void gsm_configure_serial()
@@ -68,9 +68,9 @@ bool gsm_check_SIM()
 void gsm_on()
 {
     GSM_POWER_ON();
-    wait_ms( 1 );
+    //wait_ms( 10000 );
     GSM_MODULE_ON();
-    uart_set_disabled(U1, 0);
+    //uart_set_disabled(U1, 0);
 }
 
 GSMStatus gsm_status()
@@ -89,5 +89,6 @@ GSMStatus gsm_status()
 void gsm_off()
 {
     GSM_POWER_OFF();
-    uart_set_disabled(U1, 1);
+    GSM_MODULE_OFF();
+    //uart_set_disabled(U1, 1);
 }
