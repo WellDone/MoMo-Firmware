@@ -20,7 +20,7 @@ typedef struct {
 } sensor_event;
 
 void init_sensor_event_log( unsigned long start_address, unsigned long max_size );
-void log_sensor_event( sensor_type type, const rtcc_datetime* timestamp, unsigned int value );
+void log_sensor_event( sensor_type type, const rtcc_datetime* timestamp, unsigned long value );
 unsigned int read_sensor_events( sensor_event* events, unsigned int max );
 bool sensor_event_log_empty();
 unsigned long sensor_event_log_count();

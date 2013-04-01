@@ -10,9 +10,10 @@ volatile static unsigned long pulse_counts;
 #define SENSOR_TIMER_ON T2CONbits.TON
 #define SENSOR_TO 0x09896800 //should be 5 seconds
 
-//static unsigned char SENSOR_BUF[5];
+#define EVENT_BUF_SIZE 5
+unsigned long sensor_event_buf_data[EVENT_BUF_SIZE];
+ringbuffer sensor_event_buf;
 
-//start based on interrupt
 /**********************************************************************
                                MAIN FUNCTIONS
  **********************************************************************/
@@ -34,6 +35,18 @@ void configure_sensor() {
     //T2CONbits.TSYNC = 0;
 
     pulse_counts = 0;
+    ringbuffer_create( &sensor_event_buf, sensor_event_buf_data, sizeof(unsigned long), EVENT_BUF_SIZE);
+}
+
+void save_event()
+{
+  rtcc_datetime cur_time;
+  rtcc_get_time(&cur_time);
+
+  unsigned long saved_pulse_count;
+  ringbuffer_pop( &sensor_event_buf, saved_pulse_count );
+
+  log_sensor_event(momo_pulse_counter, &cur_time, saved_pulse_count);
 }
 /**********************************************************************
                                 ISRs
@@ -51,17 +64,21 @@ void __attribute__((interrupt,no_auto_psv)) _INT2Interrupt() {
   pulse_counts++;
 }
 
+void queue_save_event()
+{
+  ringbuffer_push( &sensor_event_buf, &pulse_counts );
+  taskloop_add( save_event );
+}
+
 //timeout interrupt flag
 void __attribute__((interrupt,no_auto_psv)) _T3Interrupt() {
-  sensor_type sens_type = momo_pulse_counter;
-  rtcc_datetime cur_time;
-  rtcc_get_time(&cur_time);
   _T3IF = 0; //clear timer interrupt flag
   T2CONbits.TON = 0; //disable timer
   _T2IE = 0;
   _T3IE = 0;
 
-  log_sensor_event(sens_type, &cur_time, pulse_counts);
+  queue_save_event();
+
   pulse_counts = 0;
   SENSOR_TIMEOUT_FLAG = 1;
 }

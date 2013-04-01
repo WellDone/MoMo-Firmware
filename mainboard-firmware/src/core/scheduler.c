@@ -28,7 +28,7 @@ void scheduler_schedule_task(task_callback func, AlarmRepeatTime freq, unsigned 
 
 		//Sanity check, ensure the old frequency makes sense
 		if (old_freq < kNumAlarmTimes)
-			scheduler_list_remove(&state.tasks[old_freq], saved_task)
+			scheduler_list_remove(&state.tasks[old_freq], saved_task);
 	}
 
 	saved_task->callback = func;
