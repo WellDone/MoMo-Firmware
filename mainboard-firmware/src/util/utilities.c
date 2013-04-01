@@ -1,6 +1,5 @@
-//utilities.c
-
 #include "utilities.h"
+#include "uart.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -21,7 +20,7 @@ unsigned char get_2byte_number(char *input)
  * decimal numbers because apparently vsnprintf is takes 75% of the pic's
  * memory.
  */
-void sprintf_small(char *buffer, unsigned int len, char *fmt, va_list argp)
+void sprintf_small(char *buffer, unsigned int len, const char *fmt, va_list argp)
 {
     unsigned int i=0;
 
@@ -115,13 +114,50 @@ int itoa_small(char *buf, unsigned int len, int num)
 
             temp[i--] = '0' + rem;
         }
-    
+
         if (negative)
             temp[i--] = '-';
     }
 
-    
+
     memcpy(buf, temp+i+1, 9-i-1);
 
     return 9-i-1;
+}
+
+bool atoi_small(const char* buf, int* out)
+{
+    *out = 0x0;
+    int i;
+    unsigned int *uout = (unsigned int*) out;
+    for ( i=0; i<strlen(buf); ++i ) {
+        if ( buf[i] == '-' && i==0 ) {
+            *uout &= 0x80000000; // -0
+        } else if ( buf[i] >= '0' && buf[i] <= '9' ) {
+            *uout = *uout * 10;
+            *uout += buf[i]-'0';
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
+void print_byte( BYTE b )
+{
+  print( "0b");
+  BYTE mask = 0x80;
+  while (mask!=0x0) {
+    if ( ( b & mask ) )
+      print("1");
+    else
+      print("0");
+    mask = mask >> 1;
+  }
+  print("\r\n");
+}
+
+void println( const char* msg ) {
+  print( msg );
+  print( "\r\n" );
 }

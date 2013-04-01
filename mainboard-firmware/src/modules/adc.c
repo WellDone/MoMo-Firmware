@@ -1,10 +1,3 @@
-/*
- * adc.c
- * Code for handling the Pic24 ADC Module
- * Author: Tim Burke
- * Created: 3/16/2013
- */
-
 #include "adc.h"
 #include <p24F16KA101.h>
 
@@ -23,7 +16,7 @@ void adc_configure(const ADCConfig *config)
 	_ASAM 	= config->sample_autostart;
 	_VCFG 	= config->reference;
 	_CSCNA 	= config->scan_input;
-	_SMPI 	= kADCInterruptRate; 
+	_SMPI 	= kADCInterruptRate;
 	_BUFM 	= 1; //Enable double buffering with 2 8 sample buffers
 	_ALTS	= 0; //Only sample MUX A (don't use MUX B ever)
 	_ADRC 	= 1; //Use the internal clock (b/c the oscillator speed of the PIC can change)
@@ -31,7 +24,7 @@ void adc_configure(const ADCConfig *config)
 
 	//Setup interupt
 	_AD1IF = 0; //Clear interrupt flag
-	_AD1IE = 1; //Enable interrupt	
+	_AD1IE = 1; //Enable interrupt
 	_AD1IP = 1; //Low priority interrupt
 
 	if (config->oneshot)
@@ -61,7 +54,7 @@ unsigned int adc_convert_one()
     adc_disable();
 
     value = ADC1BUF0;
-    
+
     //Set everything back to the way it was (this needs to stay synced with adc_configure
     _AD1IE = 1;
     _SMPI = kADCInterruptRate;
@@ -73,7 +66,7 @@ unsigned int adc_convert_one()
 void adc_setup_scan(unsigned int channels)
 {
 	AD1CSSL = channels;
-        
+
 	//Set corresponding ports to analog and enable bg reference if any
 	AD1PCFG &= ~channels;
 
@@ -117,7 +110,7 @@ void __attribute__((interrupt,no_auto_psv)) _ADC1Interrupt()
 	}
 
 	if (oneshot)
-		adc_disable();	
+		adc_disable();
 
 	if (adc_callback)
 		taskloop_add(adc_callback);

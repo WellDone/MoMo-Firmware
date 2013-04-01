@@ -1,12 +1,14 @@
-//oscillator.c
-
 #include "oscillator.h"
 #include "common.h"
-#include <p24F16KA101.h>
 
 //internal utility functions
 static inline void write_osccon_h(unsigned char value);
 static inline void write_osccon_l(unsigned char value);
+
+void oscillator_init()
+{
+    set_sosc_status(1); //Secondary oscillator always needs to be enabled
+}
 
 /*
  * pass enabled=1 to enable the secondary oscillator

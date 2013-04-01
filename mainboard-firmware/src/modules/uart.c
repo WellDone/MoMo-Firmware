@@ -1,8 +1,9 @@
 #include "uart.h"
 #include "utilities.h"
-#include "debug/serial_commands.h"
+#include "serial_commands.h"
 #include <string.h>
 #include <stdarg.h>
+#include "task_manager.h"
 
 #define CALC_BAUDHI(baud)     (unsigned int)((CLOCKSPEED/(4*baud))-1)    //Assumes hi speed
 #define CALC_BAUDLO(baud)     (unsigned int)((CLOCKSPEED/(16*baud))-1)    //Assumes low speed
@@ -21,19 +22,21 @@ extern volatile int cmd_received;
 void dump_gsm_buffer(void)
 {
     int diff = u1stat.rcv_cursor - u1stat.rcv_buffer;
-    int i;
-    
+
     sendf(U2, "num chars: %d\r\n", diff);
 
     *u1stat.rcv_cursor ='\0';
 
-/*    for (i=0;i<UART_BUFFER_SIZE; ++i)
+/*
+    int i;
+    for (i=0;i<UART_BUFFER_SIZE; ++i)
     {
         if (u1stat.rcv_buffer[i] == '\r')
             u1stat.rcv_buffer[i] = 'r';
         else if (u1stat.rcv_buffer[i] == '\n')
             u1stat.rcv_buffer[i] = 'n';
-    }*/
+    }
+*/
 
     print(u1stat.rcv_buffer);
     u1stat.rcv_cursor = u1stat.rcv_buffer;
@@ -90,7 +93,7 @@ void configure_uart1(uart_parameters *params)
     U1STAbits.URXISEL  = 0b00; //Receive interrupt when any character is received
 
     //Clear receive buffer
-    while(U1STAbits.URXDA == 1) 
+    while(U1STAbits.URXDA == 1)
     {
         char Temp;
         Temp = U1RXREG;
@@ -202,9 +205,9 @@ void receive_command( UART_STATUS* stat)
             //Check if they sent \r\n and chomp it.
             if (stat->rcv_cursor != stat->rcv_buffer && *(stat->rcv_cursor-1) == '\r')
                 --stat->rcv_cursor;
-            
+
             *stat->rcv_cursor = '\0';
-            
+
             //Reset everything
             stat->rcv_cursor = stat->rcv_buffer;
 
@@ -213,7 +216,7 @@ void receive_command( UART_STATUS* stat)
             cmd_received = 1; //Set the global command received flag to keep the debug interface alive.
             taskloop_add(process_commands_task);
             break;
-        }   
+        }
 
         stat->rcv_cursor = stat->rcv_cursor+1;
     }
@@ -244,7 +247,7 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 void __attribute__((interrupt,auto_psv)) _U2RXInterrupt()
 {
     receive_command( &u2stat );
-    
+
     IFS1bits.U2RXIF = 0; //Clear IFS flag
 }
 
@@ -283,11 +286,10 @@ void __attribute__((interrupt,no_auto_psv)) _U2TXInterrupt()
 
 void put( UARTPort port, const char c )
 {
-    UART_STATUS* stat = GetStatus( port );
-    stat->sending = 0;
-    while ( stat->send_cursor == stat->send_buffer + UART_BUFFER_SIZE )
-        ; //TODO: Do this better.
-    *stat->send_cursor = c;
+    char buf[2];
+    buf[0] = c;
+    buf[1] = '\0';
+    sends( port, buf );
 }
 
 void send(UARTPort port, const char *msg)
@@ -295,7 +297,7 @@ void send(UARTPort port, const char *msg)
     //Don't send zero length strings (our logic would be wrong since send_cursor would point past the end of the string in that case.
     if (*msg == '\0')
         return;
-    
+
     UART_STATUS* stat = GetStatus( port );
     stat->sending = 0;
     strncpy(stat->send_buffer, msg, UART_BUFFER_SIZE);

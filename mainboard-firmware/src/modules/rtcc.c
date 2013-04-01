@@ -1,7 +1,6 @@
 #include "rtcc.h"
-#include "core/common.h"
+#include "common.h"
 #include <string.h>
-#include <p24F16KA101.h>
 
 task_callback alarm_callback = 0;
 volatile unsigned int alarm_time = kEveryHalfSecond;
@@ -12,7 +11,7 @@ void enable_rtcc()
         asm_enable_rtcon_write();
 
     _RTCEN = 1;
-    
+
 }
 
 void disable_rtcc()
@@ -48,7 +47,7 @@ void configure_rtcc()
  * if that happened
  */
 
-void rtcc_set_time(rtcc_time *time)
+void rtcc_set_time(rtcc_datetime *time)
 {
     unsigned int old_status = rtcc_enabled();
 
@@ -68,20 +67,20 @@ void rtcc_set_time(rtcc_time *time)
         enable_rtcc();
 }
 
-void rtcc_get_time(rtcc_time *time)
+void rtcc_get_time(rtcc_datetime *time)
 {
-    rtcc_time first_read;
+    rtcc_datetime first_read;
 
-    get_rtcc_time_unsafe(&first_read);
-    get_rtcc_time_unsafe(time);
+    get_rtcc_datetime_unsafe(&first_read);
+    get_rtcc_datetime_unsafe(time);
 
-    if (rtcc_times_equal(&first_read, time))
+    if (rtcc_datetimes_equal(&first_read, time))
         return;
 
-    get_rtcc_time_unsafe(time);
+    get_rtcc_datetime_unsafe(time);
 }
 
-unsigned int rtcc_times_equal(rtcc_time *time1, rtcc_time *time2)
+unsigned int rtcc_datetimes_equal(rtcc_datetime *time1, rtcc_datetime *time2)
 {
     return (rtcc_compare_times(time1, time2) == 0);
 }
@@ -92,12 +91,12 @@ unsigned int rtcc_times_equal(rtcc_time *time1, rtcc_time *time2)
  * Return 0  if time1 == time2
  * Return >0 if time1 is after time2
  */
-unsigned int rtcc_compare_times(rtcc_time *time1, rtcc_time *time2)
+unsigned int rtcc_compare_times(rtcc_datetime *time1, rtcc_datetime *time2)
 {
     return memcmp(time1, time2, kTimeCompareSize);
 }
 
-void rtcc_time_difference(rtcc_time *time1, rtcc_time *time2)
+void rtcc_datetime_difference(rtcc_datetime *time1, rtcc_datetime *time2)
 {
     time2->year     -= time1->year;
     time2->month    -= time1->month;
@@ -107,7 +106,7 @@ void rtcc_time_difference(rtcc_time *time1, rtcc_time *time2)
     time2->seconds  -= time1->seconds;
 }
 
-void get_rtcc_time_unsafe(rtcc_time *time)
+void get_rtcc_datetime_unsafe(rtcc_datetime *time)
 {
     unsigned int curr;
 
@@ -129,10 +128,10 @@ void get_rtcc_time_unsafe(rtcc_time *time)
     time->seconds = from_bcd(LOBYTE(curr));
 }
 
-void rtcc_get_alarm(rtcc_time *alarm)
+void rtcc_get_alarm(rtcc_datetime *alarm)
 {
     unsigned int curr;
-    
+
     _ALRMPTR = 0b10;
 
     curr = ALRMVAL;
@@ -161,7 +160,7 @@ unsigned char to_bcd(unsigned char val)
 void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
 {
     unsigned int curr_t, curr_a;
-    rtcc_time diff;
+    rtcc_datetime diff;
 
 
     //Check what interval we were called at
@@ -186,7 +185,7 @@ void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
 
     //Distinguish half second and second intervals by a special bit
     alarm_time = kEveryHalfSecond;
-    
+
     if (_HALFSEC == 0)
         alarm_time = kEverySecond;
 
@@ -219,7 +218,7 @@ void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
 
     if (alarm_callback != 0)
         taskloop_add(alarm_callback);
-    
+
     IFS3bits.RTCIF = 0;
 }
 
@@ -281,8 +280,11 @@ void clear_recurring_task()
     _AMASK = 0x00;
 }*/
 
-#define HZ
-void wait( unsigned int milliseconds )
+void wait_ms( unsigned long milliseconds )
 {
-
+    volatile unsigned long tick = 0;
+    milliseconds = milliseconds * CLOCKSPEED;
+    milliseconds = milliseconds / 1000;
+    while ( tick!=milliseconds )
+        tick++;
 }

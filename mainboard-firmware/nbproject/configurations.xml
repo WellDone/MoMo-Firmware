@@ -15,12 +15,10 @@
         <itemPath>src/core/task_manager.c</itemPath>
         <itemPath>src/core/task_manager.h</itemPath>
         <itemPath>src/core/common.h</itemPath>
+        <itemPath>src/core/scheduler.c</itemPath>
+        <itemPath>src/core/scheduler.h</itemPath>
       </logicalFolder>
       <logicalFolder name="debug" displayName="Debug" projectFiles="true">
-        <itemPath>src/debug/command_handlers.h</itemPath>
-        <itemPath>src/debug/command_handlers.c</itemPath>
-        <itemPath>src/debug/serial_commands.h</itemPath>
-        <itemPath>src/debug/serial_commands.c</itemPath>
       </logicalFolder>
       <logicalFolder name="modules" displayName="Modules" projectFiles="true">
         <itemPath>src/modules/gsm.c</itemPath>
@@ -35,10 +33,21 @@
         <itemPath>src/modules/sensor.h</itemPath>
         <itemPath>src/modules/uart.h</itemPath>
         <itemPath>src/modules/uart.c</itemPath>
+        <itemPath>src/modules/adc.c</itemPath>
+        <itemPath>src/modules/adc.h</itemPath>
+        <itemPath>src/modules/battery.c</itemPath>
+        <itemPath>src/modules/battery.h</itemPath>
       </logicalFolder>
       <logicalFolder name="tasks" displayName="Tasks" projectFiles="true">
-        <itemPath>src/tasks/report.c</itemPath>
-        <itemPath>src/tasks/report.h</itemPath>
+        <itemPath>src/momo/memory_manager.c</itemPath>
+        <itemPath>src/momo/memory_manager.h</itemPath>
+        <itemPath>src/momo/momo_config.h</itemPath>
+        <itemPath>src/momo/registration.c</itemPath>
+        <itemPath>src/momo/registration.h</itemPath>
+        <itemPath>src/momo/report_manager.c</itemPath>
+        <itemPath>src/momo/report_manager.h</itemPath>
+        <itemPath>src/momo/sensor_event_log.c</itemPath>
+        <itemPath>src/momo/sensor_event_log.h</itemPath>
       </logicalFolder>
       <logicalFolder name="util" displayName="Util" projectFiles="true">
         <itemPath>src/util/asm_sleep.s</itemPath>
@@ -48,6 +57,8 @@
         <itemPath>src/util/ringbuffer.h</itemPath>
         <itemPath>src/util/utilities.c</itemPath>
         <itemPath>src/util/utilities.h</itemPath>
+        <itemPath>src/util/flash_queue.c</itemPath>
+        <itemPath>src/util/flash_queue.h</itemPath>
       </logicalFolder>
       <itemPath>src/main.c</itemPath>
     </logicalFolder>
@@ -67,7 +78,7 @@
         <platformTool>Simulator</platformTool>
         <languageToolchain>XC16</languageToolchain>
         <languageToolchainVersion>1.11</languageToolchainVersion>
-        <platform>4</platform>
+        <platform>3</platform>
       </toolsSet>
       <compileType>
         <linkerTool>
@@ -192,35 +203,6 @@
         <property key="output-file-format" value="elf"/>
       </C30Global>
       <Simulator>
-        <property key="animationupdates.realtimewatchupdates" value="false"/>
-        <property key="animationupdates.steptime" value=""/>
-        <property key="animationupdates.updatetime" value=""/>
-        <property key="breakoptions.coreerrors" value="Ignore"/>
-        <property key="breakoptions.corewarnings" value="Ignore"/>
-        <property key="breakoptions.peripheralerrors" value="Ignore"/>
-        <property key="breakoptions.peripheralwarnings" value="Ignore"/>
-        <property key="breakoptions.stimulusmessages.notes" value="Ignore"/>
-        <property key="breakoptions.stimulusmessags.errors" value="Ignore"/>
-        <property key="breakoptions.stimulusmessags.warnings" value="Ignore"/>
-        <property key="breakoptions.wdtwarnings" value="Ignore"/>
-        <property key="codecoverage.enabled" value="Disable"/>
-        <property key="codecoverage.enableoutputtofile" value="false"/>
-        <property key="codecoverage.outputfile" value=""/>
-        <property key="oscillator.auxfrequency" value="120"/>
-        <property key="oscillator.auxfrequencyunit" value="Mega"/>
-        <property key="oscillator.frequency" value="1"/>
-        <property key="oscillator.frequencyunit" value="Mega"/>
-        <property key="performancedata.show" value="false"/>
-        <property key="periphADC1.altscl" value="false"/>
-        <property key="periphADC2.altscl" value="false"/>
-        <property key="tracecontrol.select" value="0"/>
-        <property key="tracecontrol.timestamp" value="2"/>
-        <property key="tracecontrol.tracebufmax" value="54600"/>
-        <property key="tracecontrol.tracefile" value="/Users/Austin/mpdeftrace.log"/>
-        <property key="tracecontrol.traceresetonrun" value="false"/>
-        <property key="uart1io.output" value="window"/>
-        <property key="uart1io.outputfile" value=""/>
-        <property key="uart1io.uartioenabled" value="false"/>
       </Simulator>
     </conf>
   </confs>

@@ -1,18 +1,18 @@
-/*
- * reset_manager.c
- * This file contains routines for determining the cause of a reset and registering
- * handlers to be called when that type of resset occurs.
- *
- */
-
-#include <p24F16KA101.h>
+#include "common.h"
 #include "reset_manager.h"
+
 #include "rtcc.h"
 #include "uart.h"
 #include "task_manager.h"
 #include "scheduler.h"
-#include "modules/battery.h"
-#include "debug/debug.h"
+#include "battery.h"
+#include "debug.h"
+#include "gsm.h"
+#include "oscillator.h"
+#include "sensor.h"
+
+#include "memory_manager.h"
+#include "registration.h"
 
 //Global reset handler table
 reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =
@@ -23,7 +23,7 @@ reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =
     {0},                        //Software reset
     {handle_mclr_reset},        //MCLR External reset
     {handle_all_resets_before}, //Call on all resets (before)
-    {handle_all_resets_after}   //Call after all other reset code   
+    {handle_all_resets_after}   //Call after all other reset code
 };
 
 ResetType last_reset;
@@ -78,7 +78,7 @@ int remove_reset_handler(unsigned int handle)
 /*
  * get_reset_type
  * Should be called soon after reset (i.e. early in main) and determines
- * the cause of the reset.  This function may be called only once per reset 
+ * the cause of the reset.  This function may be called only once per reset
  * since it clears the associated RCON register bits.
  */
 
@@ -144,10 +144,15 @@ void handle_all_resets_before(unsigned int type)
 {
     //Add code here that should be called before all other reset code
     configure_interrupts();
+    oscillator_init();
+    configure_sensor();
     taskloop_init();
     scheduler_init();
-
     battery_init();
+    gsm_init();
+
+    //TODO: Move this to MoMo-specific handler?
+    flash_memory_init();
 }
 
 void handle_all_resets_after(unsigned int type)
@@ -159,6 +164,15 @@ void handle_all_resets_after(unsigned int type)
     //The RTCC must be enabled for scheduling tasks, so ensure that
     if (!rtcc_enabled())
         enable_rtcc();
+
+    //gsm_on();
+    //if ( gsm_check_SIM() ) {
+    //    momo_register();
+    //} else {
+        //TODO: Shut down when there's no SIM present...?
+    //}
+    //gsm_off();
+
 }
 
 void handle_poweron_reset(unsigned int type)

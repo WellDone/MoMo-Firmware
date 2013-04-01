@@ -1,10 +1,13 @@
-//common.h
-
 #ifndef __common_h__
 #define __common_h__
 
-#define DEBUG_PROMPT 	"momo v4> "
+#include <p24Fxxxx.h>
+#include <GenericTypeDefs.h>
 #define CLOCKSPEED      8000000L //F_osc / 2 (the instruction clock frequency)
+
+typedef unsigned short bool;
+#define false 0;
+#define true 1;
 
 #define CLEAR_BIT(field, bitnum) ((field) &= ~(1<<bitnum))
 #define SET_BIT(field,bitnum)    ((field) |= 1<<bitnum)
@@ -13,17 +16,10 @@
 //For this macro, field should be an unsigned variable because of the the right shift operator
 #define BIT_TEST(field, bitnum)  ((field & (1 << bitnum)) >> bitnum)
 
-// Input/Output and Interrupt PIN definitions
-#define _GSM_MODULE_POWER       _LATA0
-#define _GSM_MODULE_POWER_ON()  _GSM_MODULE_POWER = 1
-#define _GSM_MODULE_POWER_OFF() _GSM_MODULE_POWER = 0
-
-#define _GSM_MODULE_ON          _LATA2
-
 #define SENSOR_INTERRUPT_BIT    IFS1bits.INT2IF
 #define RTC_INTERRUPT_BIT       IFS3bits.RTCIF
 
-#define BATTERY_VOLTAGE_LATCH	_LATA1	
+#define BATTERY_VOLTAGE_LATCH	_LATA1
 #define BATTERY_VOLTAGE_TRIS	_TRISA1
 #define BATTERY_VOLTAGE_DIGITAL	_PCFG1
 

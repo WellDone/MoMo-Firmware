@@ -1,5 +1,3 @@
-//battery.c
-
 #include "battery.h"
 #include "uart.h"
 #include "scheduler.h"
@@ -9,6 +7,7 @@ static ScheduledTask battery_task;
 static ADCConfig batt_adc_config;
 
 int charging_allowed = 0;
+unsigned int last_battery_voltage = 0;
 
 void battery_init()
 {
@@ -42,22 +41,20 @@ void battery_init()
 
 void battery_callback()
 {
-	unsigned int batt;
-
 	if (!charging_allowed)
 		return;
 
 	adc_configure(&batt_adc_config);
     BATTERY_VOLTAGE_TRIS = 1;
 	BATTERY_VOLTAGE_DIGITAL = 0;
-   
+
     adc_set_channel(1);
-    batt = adc_convert_one();
+    last_battery_voltage = adc_convert_one();
 
     //Disable charging if battery voltage is greater than max charge level
-    if (batt >= kBatteryChargedLevel)
+    if (last_battery_voltage >= kBatteryChargedLevel)
     	disable_charging();
-    else if (batt < kBatteryHysteresisLevel) //Reenable charging once battery level falls below hysteresis
+    else if (last_battery_voltage < kBatteryHysteresisLevel) //Reenable charging once battery level falls below hysteresis
     	enable_charging();
 }
 

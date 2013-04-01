@@ -1,12 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <p24F16KA101.h>
+#include "common.h"
 
+#define MEMORY_SUBSECTION_MASK 0xFFFL
+#define MEMORY_SUBSECTION_SIZE 0x1000L
+#define MEMORY_SUBSECTION_ADDR(num) (MEMORY_SUBSECTION_SIZE*num)
+#define MEMORY_ADDRESS_MASK 0xFFFFFL
 
-//Write to memory
-void mem_write(int addr, int val);
-long mem_read(int addr);
 void configure_SPI();
-static unsigned char TX_BUF[140];
-static unsigned long next_free;
-static unsigned long next_read;
+
+bool mem_write( unsigned long addr, const BYTE* data, unsigned int length );
+bool mem_read( unsigned long addr, BYTE* buf, unsigned int numBytes );
+void mem_clear_subsection( unsigned int addr );
+void mem_clear_all();
+BYTE mem_status();
+bool mem_test();
