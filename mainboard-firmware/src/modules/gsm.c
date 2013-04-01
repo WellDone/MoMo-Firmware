@@ -19,8 +19,8 @@ void gsm_init()
     GSM_MODULE_ON_OD = 1;
     
     //Set direction to out
-    GSM_MODULE_ON_TRIS = 0;
     GSM_POWER_TRIS = 0;
+    GSM_MODULE_ON_TRIS = 0;
 }
 
 int gsm_send_at_cmd( const char* cmd )
@@ -34,7 +34,7 @@ void gsm_send_sms( const char* destination, const char* message )
     sends(U1, "AT+CMGS=\"");
     sends(U1, destination );
     sends(U1, "\"\r");
-    wait_ms( 1 ); // TODO: Wait for the > char on U1
+    wait_ms( 20 ); // TODO: Wait for the > char on U1
     sends( U1, message );
     put( U1, 0x1A ); // send ctrl-z
 }
@@ -57,13 +57,14 @@ void gsm_on()
 {
     gsm_configure_serial();
 
-    GSM_POWER_ON();
-    wait_ms( 1 );
+    GSM_POWER_ON(); 
+    wait_ms( 100 );
     GSM_MODULE_ON_PIN = 0;
 }
 
 void gsm_off()
 {
+    GSM_MODULE_ON_PIN=1;
     GSM_POWER_OFF();
     peripheral_disable(kUART1Module);
     //Clock leave high speed mode

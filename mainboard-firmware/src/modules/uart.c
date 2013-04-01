@@ -271,9 +271,10 @@ void __attribute__((interrupt,no_auto_psv)) _U2TXInterrupt()
 
 void put( UARTPort port, const char c )
 {
-    char* buf[2];
+    char buf[2];
+    
     buf[0] = c;
-    buf[1] = "\0";
+    buf[1] = '\0';
     sends( port, buf );
 }
 
