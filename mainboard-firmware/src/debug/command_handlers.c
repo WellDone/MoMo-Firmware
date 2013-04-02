@@ -378,7 +378,11 @@ void handle_memory(command_params *params) {
     } else if (strcmp(cmd, "status") == 0) {
         print_byte( mem_status() );
     } else if (strcmp(cmd, "test") == 0) {
-        mem_test();
+        print("Testing flash memory SPI communication...\r\n");
+        if ( !mem_test() )
+            print( "SPI test FAILED!!\r\n" );
+        else
+            print( "SPI test SUCCEEDED!!\r\n" );
     } else {
         print( "Unrecognized memory command!\r\n");
     }

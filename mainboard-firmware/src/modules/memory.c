@@ -24,6 +24,8 @@ typedef enum {
   BE   = 0b11000111
 } memory_instructions;
 
+static unsigned short memory_capacity;
+
 bool shift_out( BYTE data );
 
 #define WRITE_MODE_ENABLE() shift_out( WREN )
@@ -51,11 +53,11 @@ void configure_SPI() {
   TRISBbits.TRISB12 = 0; // SDCK
 
   DISABLE_MEMORY(); //idle state of SS is high
+  mem_test();
 }
 
 static inline bool shift_impl( BYTE data, BYTE* data_out ) {
   unsigned short count = 0;
-  //print_byte( data );
   while ( MEMORY_TX_STATUS && count<TIMEOUT)
     ++count;
   MEMORY_BUFFER_REGISTER = data;
@@ -90,29 +92,22 @@ bool shift_in( BYTE* out ) {
 }
 
 bool mem_test() {
-  BYTE device_info;
-  BYTE info2, info3;
-  print("Testing flash memory SPI communication...\r\n");
+  BYTE manufacturer_id;
+  BYTE memory_type;
 
   ENABLE_MEMORY();
 
   READ_IDENTIFICATION();
-  shift_in( &device_info );
-  shift_in( &info2 );
-  shift_in( &info3 );
+  shift_in( &manufacturer_id );
+  shift_in( &memory_type );
+  shift_in( (BYTE*)&memory_capacity );
 
   DISABLE_MEMORY();
 
-  print( "Memory device ID: ");
-  print_byte( device_info );
-  print_byte( info2 );
-  print_byte( info3 );
-
-  if (!device_info) {
-    print( "SPI test FAILED!!" );
-    print( "\r\n" );
+  if ( manufacturer_id != 0x20 || memory_type != 0x71 ) { // M25PX80 = 0x20, 0x71
     return false;
   }
+
   return true;
 }
 
@@ -202,6 +197,11 @@ BYTE mem_status() {
   _impl_mem_status( &status );
   DISABLE_MEMORY();
   return status;
+}
+
+unsigned short mem_capacity()
+{
+  return memory_capacity;
 }
 
 void mem_clear_all() {
