@@ -1,8 +1,18 @@
 #include "momo_config.h"
 #include "memory.h"
+#include "scheduler.h"
 
 MoMoState current_momo_state;
 static unsigned long momo_config_memory_address = 0;
+
+ScheduledTask flush_config_task;
+
+typedef enum {
+  kClean = 0,
+  kDirty = 1,
+  kFlushing = 2
+} ConfigState;
+volatile ConfigState config_state;
 
 void init_momo_config( unsigned int subsection_index )
 {
@@ -18,6 +28,7 @@ void reset_momo_state()
   current_momo_state.event_log_created = false;
   // current_momo_state.last_reported = 0x0 // UNINITIALIZED
   // current_momo_state.event_log = 0x0 // UNINITIALIZED
+  config_state = kClean;
 }
 void load_momo_state()
 {
@@ -27,8 +38,18 @@ void load_momo_state()
     reset_momo_state();
   }
 }
-void save_momo_state()
+void flush_config_to_memory()
 {
+  config_state = kFlushing;
   mem_clear_subsection( momo_config_memory_address );
   mem_write( momo_config_memory_address, (BYTE*)&current_momo_state, sizeof(MoMoState) );
+  config_state = kClean;
+}
+void save_momo_state()
+{
+  while ( config_state == kFlushing )
+    ;
+  if ( config_state == kClean )
+    scheduler_schedule_task( flush_config_to_memory, kEvery10Seconds, 1, &flush_config_task );
+  config_state = kDirty;
 }
