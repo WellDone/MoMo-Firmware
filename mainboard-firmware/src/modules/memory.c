@@ -41,8 +41,6 @@ void configure_SPI() {
   SPI1CON1bits.MODE16 = 0; //communication is byte-wide
   SPI1CON1bits.MSTEN = 1; //SPI is in master mode
   SPI1CON1bits.CKP = 1; //data is clocked out on high-low transition
-  //SPI1CON1bits.PPRE = 0x0; //TODO: Choose a good clock prescalar
-  //SPI1CON1bits.SPRE = 0x0; //TODO: Also secondary prescalar
   SPI1STATbits.SPIEN = 1; // Enable
   SPI1STATbits.SPIROV = 0; // Clear the overflow flag.
 
