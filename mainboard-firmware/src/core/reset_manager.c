@@ -165,14 +165,9 @@ void handle_all_resets_after(unsigned int type)
     if (!rtcc_enabled())
         enable_rtcc();
 
-    //gsm_on();
-    //if ( gsm_check_SIM() ) {
-    //    momo_register();
-    //} else {
-        //TODO: Shut down when there's no SIM present...?
-    //}
-    //gsm_off();
-
+    if ( !momo_register_and_start_reporting() ) {
+        //TODO: Power down if we failed to register.
+    }
 }
 
 void handle_poweron_reset(unsigned int type)

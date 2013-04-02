@@ -10,8 +10,13 @@ volatile static unsigned long pulse_counts;
 #define SENSOR_TIMER_ON T2CONbits.TON
 #define SENSOR_TO 0x09896800 //should be 5 seconds
 
-#define EVENT_BUF_SIZE 5
-unsigned long sensor_event_buf_data[EVENT_BUF_SIZE];
+typedef struct {
+  unsigned long value;
+  rtcc_datetime timestamp;
+} saved_sensor_event;
+
+#define EVENT_BUF_SIZE 3
+saved_sensor_event sensor_event_buf_data[EVENT_BUF_SIZE];
 ringbuffer sensor_event_buf;
 
 /**********************************************************************
@@ -35,18 +40,16 @@ void configure_sensor() {
     //T2CONbits.TSYNC = 0;
 
     pulse_counts = 0;
-    ringbuffer_create( &sensor_event_buf, sensor_event_buf_data, sizeof(unsigned long), EVENT_BUF_SIZE);
+    ringbuffer_create( &sensor_event_buf, sensor_event_buf_data, sizeof(saved_sensor_event), EVENT_BUF_SIZE );
 }
 
 void save_event()
 {
-  rtcc_datetime cur_time;
-  rtcc_get_time(&cur_time);
 
-  unsigned long saved_pulse_count;
-  ringbuffer_pop( &sensor_event_buf, saved_pulse_count );
+  saved_sensor_event event;
+  ringbuffer_pop( &sensor_event_buf, &event );
 
-  log_sensor_event(momo_pulse_counter, &cur_time, saved_pulse_count);
+  log_sensor_event(momo_pulse_counter, &event.timestamp, event.value);
 }
 /**********************************************************************
                                 ISRs
@@ -66,7 +69,10 @@ void __attribute__((interrupt,no_auto_psv)) _INT2Interrupt() {
 
 void queue_save_event()
 {
-  ringbuffer_push( &sensor_event_buf, &pulse_counts );
+  saved_sensor_event event;
+  event.value = pulse_counts;
+  rtcc_get_time(&event.timestamp);
+  ringbuffer_push( &sensor_event_buf, &event );
   taskloop_add( save_event );
 }
 
@@ -78,7 +84,6 @@ void __attribute__((interrupt,no_auto_psv)) _T3Interrupt() {
   _T3IE = 0;
 
   queue_save_event();
-
   pulse_counts = 0;
   SENSOR_TIMEOUT_FLAG = 1;
 }
