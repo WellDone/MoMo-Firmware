@@ -18,16 +18,15 @@
 void gsm_init()
 {
     //Set direction to out
-    GSM_MODULE_ON_TRIS = 0;
     GSM_POWER_TRIS = 0;
+    GSM_MODULE_ON_TRIS = 0;
 
     //Configure pins to control WISMO power and module enable
     GSM_MODULE_ON_OD = 1;
     GSM_POWER_OFF();
     GSM_MODULE_OFF();
 
-    gsm_configure_serial();
-    //uart_set_disabled(U1, 1);
+    uart_set_disabled(U1, 1);
 }
 
 void gsm_configure_serial()
@@ -53,7 +52,7 @@ void gsm_send_sms( const char* destination, const char* message )
     sends(U1, "AT+CMGS=\"");
     sends(U1, destination );
     sends(U1, "\"\r");
-    wait_ms( 1 ); // TODO: Wait for the > char on U1
+    wait_ms( 20 ); // TODO: Wait for the > char on U1
     sends( U1, message );
     put( U1, 0x1A ); // ASCII ctrl-z = 0x1A
 }
@@ -67,10 +66,12 @@ bool gsm_check_SIM()
 
 void gsm_on()
 {
+    uart_set_disabled( U1, 0 );
+    gsm_configure_serial();
+
     GSM_POWER_ON();
-    //wait_ms( 10000 );
+    wait_ms( 100 );
     GSM_MODULE_ON();
-    //uart_set_disabled(U1, 0);
 }
 
 GSMStatus gsm_status()
@@ -88,7 +89,7 @@ GSMStatus gsm_status()
 
 void gsm_off()
 {
-    GSM_POWER_OFF();
     GSM_MODULE_OFF();
-    //uart_set_disabled(U1, 1);
+    GSM_POWER_OFF();
+    uart_set_disabled( U1, 1 );
 }

@@ -20,6 +20,4 @@ void gsm_off();
 GSMStatus gsm_status();
 bool gsm_check_SIM();
 
-void gsm_configure_serial(); //Enable the UART for communicating with the GSM module
-
 #endif //__gsm_h__
