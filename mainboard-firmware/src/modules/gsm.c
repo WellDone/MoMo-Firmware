@@ -26,7 +26,7 @@ void gsm_init()
     GSM_POWER_OFF();
     GSM_MODULE_OFF();
 
-    uart_set_disabled(U1, 1);
+    gsm_disable_serial();
 }
 
 void gsm_configure_serial()
@@ -35,10 +35,19 @@ void gsm_configure_serial()
 
     //TODO: Clock enter high-speed mode
 
+    uart_set_disabled( U1, 0 );
+
     params_uart1.baud = 115200;
     params_uart1.hw_flowcontrol = 0;
     params_uart1.parity = NoParity;
     configure_uart( U1, &params_uart1 );
+}
+
+void gsm_disable_serial()
+{
+    uart_set_disabled( U1, 1 );
+
+    //TODO: Clock leave high-speed mode
 }
 
 void gsm_send_at_cmd( const char* cmd )
@@ -66,7 +75,6 @@ bool gsm_check_SIM()
 
 void gsm_on()
 {
-    uart_set_disabled( U1, 0 );
     gsm_configure_serial();
 
     GSM_POWER_ON();
@@ -89,7 +97,7 @@ GSMStatus gsm_status()
 
 void gsm_off()
 {
+    gsm_disable_serial();
     GSM_MODULE_OFF();
     GSM_POWER_OFF();
-    uart_set_disabled( U1, 1 );
 }
