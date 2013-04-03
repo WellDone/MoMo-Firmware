@@ -4,6 +4,7 @@
 #include "uart.h"
 #include "scheduler.h"
 #include "reset_manager.h"
+#include "pme.h"
 
 extern volatile int cmd_received;
 

@@ -10,6 +10,7 @@
 #include "gsm.h"
 #include "oscillator.h"
 #include "sensor.h"
+#include "pme.h"
 
 #include "memory_manager.h"
 #include "registration.h"

@@ -234,44 +234,6 @@ void handle_device(command_params *params)
     {
             sendf(U2, "Last reset type: %d\r\n", last_reset_type());
     }
-    /*else if (strcmp(cmd, "get") == 0)
-    {
-        if (params->num_params < 2)
-        {
-            print( "You must pass a subcommand to the device get command.\r\n");
-            return;
-        }
-
-        cmd = get_param_string(params, 1);
-
-        if (strcmp(cmd, "sosc") == 0)
-        {
-            int status = get_sosc_status();
-
-            if (status == 1)
-                print( "Secondary oscillator is enabled\r\n");
-            else
-                print( "Secondary oscillator is disabled\r\n");
-        }
-    }
-    else if (strcmp(cmd, "enable") == 0)
-    {
-        if (params->num_params < 2)
-        {
-            print( "You must pass a subcommand to the device enable command.\r\n");
-            return;
-        }
-
-        cmd = get_param_string(params, 1);
-
-        if (strcmp(cmd, "sosc") == 0)
-        {
-            set_sosc_status(1);
-            print( "Secondary oscillator enabled.\r\n");
-            return;
-        }
-    }
-    */
 }
 
 void handle_rtcc(command_params *params)

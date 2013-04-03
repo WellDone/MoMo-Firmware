@@ -37,7 +37,7 @@ void gsm_configure_serial()
 
     //TODO: Clock enter high-speed mode
 
-    uart_set_disabled( U1, 0 );
+    peripheral_enable(kUART1Module);
 
     params_uart1.baud = 115200;
     params_uart1.hw_flowcontrol = 0;
@@ -47,7 +47,7 @@ void gsm_configure_serial()
 
 void gsm_disable_serial()
 {
-    uart_set_disabled( U1, 1 );
+    peripheral_disable(kUART1Module);
 
     //TODO: Clock leave high-speed mode
 }
@@ -77,7 +77,6 @@ bool gsm_check_SIM()
 
 void gsm_on()
 {
-    peripheral_enable(kUART1Module);
     gsm_configure_serial();
 
     GSM_POWER_ON();
@@ -103,5 +102,4 @@ void gsm_off()
     gsm_disable_serial();
     GSM_MODULE_OFF();
     GSM_POWER_OFF();
-    peripheral_disable(kUART1Module);
 }
