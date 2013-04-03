@@ -83,7 +83,7 @@ void post_report() {
     ++ptr;
   }
   //gsm_on();
-  //gsm_send_binary_sms( MOMO_REPORT_SERVER, (BYTE*)&report, sizeof(sms_report) );
+  gsm_send_binary_sms( MOMO_REPORT_SERVER, (BYTE*)&report, sizeof(sms_report) );
   //TODO: wait?
   //gsm_off();
 }
