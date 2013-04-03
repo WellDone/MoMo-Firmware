@@ -12,6 +12,7 @@ typedef enum {
 void gsm_init();
 
 void gsm_send_at_cmd( const char* cmd );
+void gsm_send_binary_sms( const char* destination, const BYTE* data, unsigned short length );
 void gsm_send_sms( const char* destination, const char* message );
 
 void gsm_on();
@@ -19,5 +20,8 @@ void gsm_off();
 
 GSMStatus gsm_status();
 bool gsm_check_SIM();
+
+void gsm_configure_serial();
+void gsm_disable_serial();
 
 #endif //__gsm_h__
