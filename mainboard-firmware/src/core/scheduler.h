@@ -16,6 +16,8 @@
 #define kBeingScheduledBit			6
 #define kScheduleFrequencyMask		0b111
 
+#define task_frequency(task)		(task->flags & kScheduleFrequencyMask)
+
 struct ScheduledTask_t
 {
 	task_callback 	callback;

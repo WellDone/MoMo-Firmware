@@ -1,21 +1,7 @@
-/*
- * File:   main.c
- * Author: timburke
- *
- * Created on 9 de mayo de 2012, 22:46
- */
-
-#include <stdio.h>
 #include <stdlib.h>
 #include "common.h"
-#include "rtcc.h"
-#include "uart.h"
-#include "xc.h"
-#include "memory.h"
-#include "oscillator.h"
 #include "reset_manager.h"
 #include "task_manager.h"
-#include "serial_commands.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -47,7 +33,7 @@
 #pragma config PWRTEN = ON              // Power-up Timer Enable bit (PWRT enabled)
 #pragma config I2C1SEL = PRI            // Alternate I2C1 Pin Mapping bit (Default location for SCL1/SDA1 pins)
 #pragma config BORV = V18               // Brown-out Reset Voltage bits (Brown-out Reset set to lowest voltage (1.8V))
-#pragma config MCLRE = ON              // MCLR Pin Enable bit (RA5 input pin disabled; MCLR enabled)
+#pragma config MCLRE = ON               // MCLR Pin Enable bit (RA5 input pin disabled; MCLR enabled)
 
 // FICD
 #pragma config ICS = PGx1               // ICD Pin Placement Select bits (PGC1/PGD1 are used for programming and debugging the device)
@@ -58,8 +44,6 @@
 #pragma config RTCOSC = LPRC            // RTCC Reference Clock Select bit (RTCC uses LPRC as reference clock)
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
-
-static unsigned char SENSOR_BUF[5];
 
 int main(void) {
     AD1PCFG = 0xFFFF;

@@ -1,11 +1,8 @@
-//tasks.c
-
 #include "task_manager.h"
 #include "common.h"
 #include "uart.h"
 
 task_list taskqueue;
-
 void taskloop_init()
 {
     ringbuffer_create(&taskqueue.tasks, (void*)taskqueue.taskdata, sizeof(task_callback), kMAXTASKS);
@@ -40,7 +37,7 @@ void taskloop_loop()
 
         if (BIT_TEST(taskqueue.flags, kTaskLoopSleepBit))
             asm_sleep();
-        
+
     }
 }
 int taskloop_process_one()

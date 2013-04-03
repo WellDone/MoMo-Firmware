@@ -1,5 +1,3 @@
-//scheduler.c
-
 #include "scheduler.h"
 #include "core/common.h"
 
@@ -23,6 +21,16 @@ void scheduler_init()
 
 void scheduler_schedule_task(task_callback func, AlarmRepeatTime freq, unsigned char numtimes, ScheduledTask /*out*/ *saved_task)
 {
+	//If this task is already scheduled, remove it and then readd it so we don't get corruptions
+	if (BIT_TEST(saved_task->flags, kBeingScheduledBit))
+	{
+		unsigned int old_freq = task_frequency(saved_task);
+
+		//Sanity check, ensure the old frequency makes sense
+		if (old_freq < kNumAlarmTimes)
+			scheduler_list_remove(&state.tasks[old_freq], saved_task);
+	}
+
 	saved_task->callback = func;
 	saved_task->flags = 0;
 	saved_task->remaining_calls = numtimes;
@@ -71,7 +79,7 @@ void scheduler_update_rate()
 void scheduler_list_insert(ScheduledTask **list, ScheduledTask *task)
 {
 	uninterruptible_start();
-	
+
 	if (*list == 0)
 	{
 		*list = task;

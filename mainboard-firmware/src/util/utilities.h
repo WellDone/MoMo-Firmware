@@ -10,5 +10,6 @@ int itoa_small(char *buf, unsigned int len, int num);
 bool atoi_small(const char *buf, int* out);
 
 void print_byte( BYTE b );
+void println( const char* msg );
 
 #endif

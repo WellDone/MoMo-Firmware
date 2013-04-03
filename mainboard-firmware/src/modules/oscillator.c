@@ -1,5 +1,3 @@
-//oscillator.c
-
 #include "oscillator.h"
 #include "common.h"
 

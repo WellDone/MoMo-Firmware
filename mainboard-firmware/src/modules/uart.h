@@ -1,5 +1,3 @@
-//serial.h
-
 #ifndef __uart_h__
 #define __uart_h__
 

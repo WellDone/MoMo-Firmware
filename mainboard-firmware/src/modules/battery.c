@@ -1,5 +1,3 @@
-//battery.c
-
 #include "battery.h"
 #include "uart.h"
 #include "scheduler.h"
@@ -49,7 +47,7 @@ void battery_callback()
 	adc_configure(&batt_adc_config);
     BATTERY_VOLTAGE_TRIS = 1;
 	BATTERY_VOLTAGE_DIGITAL = 0;
-   
+
     adc_set_channel(1);
     last_battery_voltage = adc_convert_one();
 

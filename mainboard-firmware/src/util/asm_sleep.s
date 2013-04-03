@@ -1,6 +1,3 @@
-
-
-
 #include <p24F16KA101.inc>
  .equiv SLEEP_MODE, 0x0000
  .equiv IDLE_MODE, 0x0001
