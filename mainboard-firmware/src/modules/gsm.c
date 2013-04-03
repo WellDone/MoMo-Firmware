@@ -61,21 +61,13 @@ void gsm_send_at_cmd( const char* cmd )
 
 void gsm_send_sms( const char* destination, const char* message )
 {
-    gsm_send_binary_sms( destination, (BYTE*)message, strlen( message ) );
-}
-
-void gsm_send_binary_sms( const char* destination, const BYTE* data, unsigned short length ) {
-    unsigned short i;
     gsm_send_at_cmd( "AT+CMGF=1" );
     wait_ms( 20 );
     sends(U1, "AT+CMGS=\"");
     sends(U1, destination );
     sends(U1, "\"\r");
     wait_ms( 20 ); // TODO: Wait for the > char on U1
-    for ( i=0; i<length; ++i )
-    {
-        put( U1, data[i] );
-    }
+    sends( U1, message );
     put( U1, 0x1A ); // ASCII ctrl-z = 0x1A
 }
 

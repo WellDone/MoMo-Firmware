@@ -16,7 +16,7 @@ typedef struct {
   rtcc_datetime timestamp;
 } saved_sensor_event;
 
-#define EVENT_BUF_SIZE 3
+#define EVENT_BUF_SIZE 1
 saved_sensor_event sensor_event_buf_data[EVENT_BUF_SIZE];
 ringbuffer sensor_event_buf;
 

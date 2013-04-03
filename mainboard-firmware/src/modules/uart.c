@@ -27,17 +27,6 @@ void dump_gsm_buffer(void)
 
     *u1stat.rcv_cursor ='\0';
 
-/*
-    int i;
-    for (i=0;i<UART_BUFFER_SIZE; ++i)
-    {
-        if (u1stat.rcv_buffer[i] == '\r')
-            u1stat.rcv_buffer[i] = 'r';
-        else if (u1stat.rcv_buffer[i] == '\n')
-            u1stat.rcv_buffer[i] = 'n';
-    }
-*/
-
     print(u1stat.rcv_buffer);
     u1stat.rcv_cursor = u1stat.rcv_buffer;
 }
