@@ -42,18 +42,6 @@ void dump_gsm_buffer(void)
     u1stat.rcv_cursor = u1stat.rcv_buffer;
 }
 
-void uart_set_disabled(UARTPort port, int status)
-{
-    if (port == U1)
-    {
-        _U1MD = status;
-    }
-    else
-    {
-        _U2MD = status;
-    }
-}
-
 void configure_uart1(uart_parameters *params)
 {
     //calculate the appropriate baud setting
@@ -286,6 +274,7 @@ void __attribute__((interrupt,no_auto_psv)) _U2TXInterrupt()
 void put( UARTPort port, const char c )
 {
     char buf[2];
+
     buf[0] = c;
     buf[1] = '\0';
     sends( port, buf );

@@ -21,4 +21,7 @@ void gsm_off();
 GSMStatus gsm_status();
 bool gsm_check_SIM();
 
+void gsm_configure_serial();
+void gsm_disable_serial();
+
 #endif //__gsm_h__

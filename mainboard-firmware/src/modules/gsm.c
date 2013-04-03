@@ -2,6 +2,8 @@
 #include "uart.h"
 #include "rtcc.h"
 #include "common.h"
+#include "pme.h"
+#include "gsm.h"
 #include <string.h>
 
 // Input/Output and Interrupt PIN definitions
@@ -43,7 +45,7 @@ void gsm_configure_serial()
 
     //TODO: Clock enter high-speed mode
 
-    uart_set_disabled( U1, 0 );
+    peripheral_enable(kUART1Module);
 
     params_uart1.baud = 115200;
     params_uart1.hw_flowcontrol = 0;
@@ -51,6 +53,16 @@ void gsm_configure_serial()
     configure_uart( U1, &params_uart1 );
 }
 
+<<<<<<< HEAD
+void gsm_disable_serial()
+{
+    peripheral_disable(kUART1Module);
+
+    //TODO: Clock leave high-speed mode
+}
+
+=======
+>>>>>>> dev
 void gsm_send_at_cmd( const char* cmd )
 {
     sends( U1, cmd );
@@ -89,7 +101,7 @@ void gsm_on()
     gsm_configure_serial();
 
     GSM_POWER_ON();
-    wait_ms( 100 );
+    wait_ms( 300 );
     GSM_MODULE_ON();
 }
 
