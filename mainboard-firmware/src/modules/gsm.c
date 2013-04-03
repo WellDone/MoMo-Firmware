@@ -2,6 +2,7 @@
 #include "uart.h"
 #include "rtcc.h"
 #include "common.h"
+#include <string.h>
 
 // Input/Output and Interrupt PIN definitions
 #define GSM_POWER_PIN       _LATA0
@@ -14,6 +15,13 @@
 #define GSM_MODULE_ON_OD    _ODA2
 #define GSM_MODULE_ON()     GSM_MODULE_ON_PIN = 0
 #define GSM_MODULE_OFF()    GSM_MODULE_ON_PIN = 1
+
+void gsm_disable_serial()
+{
+    uart_set_disabled( U1, 1 );
+
+    //TODO: Clock leave high-speed mode
+}
 
 void gsm_init()
 {
@@ -43,13 +51,6 @@ void gsm_configure_serial()
     configure_uart( U1, &params_uart1 );
 }
 
-void gsm_disable_serial()
-{
-    uart_set_disabled( U1, 1 );
-
-    //TODO: Clock leave high-speed mode
-}
-
 void gsm_send_at_cmd( const char* cmd )
 {
     sends( U1, cmd );
@@ -58,11 +59,21 @@ void gsm_send_at_cmd( const char* cmd )
 
 void gsm_send_sms( const char* destination, const char* message )
 {
+    gsm_send_binary_sms( destination, (BYTE*)message, strlen( message ) );
+}
+
+void gsm_send_binary_sms( const char* destination, const BYTE* data, unsigned short length ) {
+    unsigned short i;
+    gsm_send_at_cmd( "AT+CMGF=1" );
+    wait_ms( 20 );
     sends(U1, "AT+CMGS=\"");
     sends(U1, destination );
     sends(U1, "\"\r");
     wait_ms( 20 ); // TODO: Wait for the > char on U1
-    sends( U1, message );
+    for ( i=0; i<length; ++i )
+    {
+        put( U1, data[i] );
+    }
     put( U1, 0x1A ); // ASCII ctrl-z = 0x1A
 }
 
