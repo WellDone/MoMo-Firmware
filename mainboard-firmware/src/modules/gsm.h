@@ -12,7 +12,6 @@ typedef enum {
 void gsm_init();
 
 void gsm_send_at_cmd( const char* cmd );
-void gsm_send_binary_sms( const char* destination, const BYTE* data, unsigned short length );
 void gsm_send_sms( const char* destination, const char* message );
 
 void gsm_on();

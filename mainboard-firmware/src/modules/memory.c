@@ -54,7 +54,7 @@ void configure_SPI() {
   mem_test();
 }
 
-static inline bool shift_impl( BYTE data, BYTE* data_out ) {
+static bool shift_impl( BYTE data, BYTE* data_out ) {
   unsigned short count = 0;
   while ( MEMORY_TX_STATUS && count<TIMEOUT)
     ++count;
@@ -143,14 +143,12 @@ bool mem_write(unsigned long addr, const BYTE *data, unsigned int length) {
 
   addr &= MEMORY_ADDRESS_MASK;
   if ( !shift_n_out( addr, 3 ) ) {
-    print("Memory timed out while writing address\r\n");
     success = false;
   }
 
   if ( success ) {
     for(i = 0; i < length; ++i) {
       if (!shift_out( data[i] )) {
-        print( "Memory timed out while writing data\r\n" );
         success = false;
       }
     }
@@ -169,14 +167,12 @@ bool mem_read(unsigned long addr, BYTE* buf, unsigned int numBytes) {
 
   addr &= MEMORY_ADDRESS_MASK;
   if (!shift_n_out( addr, 3 )) {
-    print("Memory timed out while writing address\r\n");
     success = false;
   }
 
   if (success) {
     while ( buf != bufEnd ) {
       if (!shift_in( buf )) {
-        print("Memory timed out while reading data\r\n");
         success = false;
         break;
       }

@@ -352,6 +352,7 @@ void handle_memory(command_params *params) {
 }
 
 void handle_log(command_params *params) {
+    char val[5];
     if (params->num_params != 1) {
         print("usage: log read/empty?/count/<value>\r\n");
         return;
@@ -364,7 +365,6 @@ void handle_log(command_params *params) {
                 print("No items in log\r\n");
                 return;
             }
-            char val[5];
             val[0] = val[1] = val[2] = val[3] = '0';
             val[itoa_small( val, 4, event.value)] = '\0';
             print("Read value: ");
@@ -382,7 +382,6 @@ void handle_log(command_params *params) {
         return;
     }
     if (strcmp(p, "count") == 0) {
-        char val[5];
         val[0] = val[1] = val[2] = val[3] = '0';
         val[itoa_small( val, 4, sensor_event_log_count() )] = '\0';
         print( val );

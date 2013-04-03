@@ -7,7 +7,7 @@
 #include "uart.h"
 #include "base64.h"
 
-#define EVENT_BUFFER_SIZE 24
+#define EVENT_BUFFER_SIZE 10
 typedef struct { //103
     unsigned char momo_version;
     unsigned int  battery_voltage; //2
@@ -37,7 +37,6 @@ void construct_report()
   count = read_sensor_events( event_buffer, 1 );
   if ( count == 0 )
   {
-    print("No events found.\r\n");
     return;
   }
   report.sensor_type = event_buffer[0].type;
@@ -54,50 +53,17 @@ void construct_report()
     }
   }
 
-  unsigned int len = base64_encode( (BYTE*)&report, sizeof(sms_report), base64_report_buffer, BASE64_REPORT_LENGTH );
-  base64_report_buffer[len] = '\0';
+  count = base64_encode( (BYTE*)&report, sizeof(sms_report), base64_report_buffer, BASE64_REPORT_LENGTH );
+  base64_report_buffer[count] = 0x0;
 }
 
 void post_report() {
-  unsigned short i;
-  print("reporting\r\n");
   construct_report();
-
-  /*
-  print( "version: ");
-  print_byte( report.momo_version );
-
-  print( "voltage: ");
-  print_byte( report.battery_voltage );
-
-  print( "sensor_type: ");
-  print_byte( report.sensor_type );
-
-  print( "date (year): ");
-  print_byte( report.date.year );
-
-  print( "date (month): ");
-  print_byte( report.date.month );
-
-  print( "date (day ): ");
-  print_byte( report.date.day );
-
-
-  BYTE* ptr = (BYTE*)&report.hourly_buckets;
-  for ( i=0; i<24; ++i )
-  {
-    char hour[3];
-    hour[itoa_small(hour,2,i)]='\0';
-    print(hour);
-    print(": ");
-    print_byte( *(++ptr) );
-    ++ptr;
-  }*/
 
   print( base64_report_buffer );
 
   //gsm_on();
-  //gsm_send_binary_sms( MOMO_REPORT_SERVER, (BYTE*)&report, sizeof(sms_report) );
+  //gsm_send_sms( MOMO_REPORT_SERVER, base64_report_buffer );
   //TODO: wait?
   //gsm_off();
 }
