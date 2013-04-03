@@ -20,7 +20,7 @@
 
 void gsm_disable_serial()
 {
-    uart_set_disabled( U1, 1 );
+    peripheral_disable( kUART1Module );
 
     //TODO: Clock leave high-speed mode
 }
@@ -53,16 +53,6 @@ void gsm_configure_serial()
     configure_uart( U1, &params_uart1 );
 }
 
-<<<<<<< HEAD
-void gsm_disable_serial()
-{
-    peripheral_disable(kUART1Module);
-
-    //TODO: Clock leave high-speed mode
-}
-
-=======
->>>>>>> dev
 void gsm_send_at_cmd( const char* cmd )
 {
     sends( U1, cmd );
