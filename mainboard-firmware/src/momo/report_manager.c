@@ -55,10 +55,10 @@ void post_report() {
         print_byte( *ptr );
         ++ptr;
     }
-    gsm_on();
+    //gsm_on();
     gsm_send_sms( MOMO_REPORT_SERVER, (const char*)&report );
     //TODO: wait?
-    gsm_off();
+    //gsm_off();
 }
 
 static ScheduledTask report_task;

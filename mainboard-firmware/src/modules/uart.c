@@ -224,7 +224,6 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 
         *(stat->rcv_cursor) = U1RXREG;
         //U2TXREG = *(stat->rcv_cursor); //echo first four characters
-        put( U2, *(stat->rcv_cursor) ); //echo to debug output
 
         stat->rcv_cursor = stat->rcv_cursor+1;
     }
