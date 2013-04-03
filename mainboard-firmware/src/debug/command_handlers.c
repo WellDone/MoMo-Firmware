@@ -344,9 +344,11 @@ void handle_rtcc(command_params *params)
 
 void handle_sensor(command_params *params) {
   sensor_event* events;
+  sendf(U2, "Sensor start : SENSOR_TO = 16%x\r\n", SENSOR_TO);
   asm_sleep();
   while(SENSOR_FLAG);
-  read_sensor_events(&events, 1);
+  sendf(U2, "%d pulses\r\n", pulse_counts);
+  read_sensor_events(events, 1);
 }
 
 static BYTE memory_buffer[32];

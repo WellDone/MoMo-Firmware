@@ -3,12 +3,13 @@
 #include "utilities.h"
 #include "sensor_event_log.h"
 
-volatile static unsigned char SENSOR_FLAG;
-volatile static unsigned char SENSOR_TIMEOUT_FLAG;
-volatile static unsigned long pulse_counts;
+//volatile static unsigned char SENSOR_FLAG;
+//volatile static unsigned char SENSOR_TIMEOUT_FLAG;
+//volatile static unsigned long pulse_counts;
 
-#define SENSOR_TIMER_ON T2CONbits.TON
-#define SENSOR_TO 0x05006800 //should be 5 seconds
+volatile unsigned char SENSOR_FLAG;
+volatile unsigned char SENSOR_TIMEOUT_FLAG;
+volatile unsigned long pulse_counts;
 
 typedef struct {
   unsigned long value;
