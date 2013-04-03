@@ -353,6 +353,8 @@ void handle_memory(command_params *params) {
 
 void handle_log(command_params *params) {
     char val[5];
+    int value;
+    rtcc_datetime time;
     if (params->num_params != 1) {
         print("usage: log read/empty?/count/<value>\r\n");
         return;
@@ -388,12 +390,11 @@ void handle_log(command_params *params) {
         print( "\r\n");
         return;
     }
-    int value;
+
     if ( !atoi_small( p, &value ) ) {
         print( "atoi failed!\r\n" );
         return;
     }
-    rtcc_datetime time;
     rtcc_get_time(&time);
     log_sensor_event( momo_pulse_counter, &time, value );
 }
