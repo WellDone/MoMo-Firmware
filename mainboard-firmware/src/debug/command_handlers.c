@@ -343,11 +343,10 @@ void handle_rtcc(command_params *params)
 }
 
 void handle_sensor(command_params *params) {
-  IEC1bits.INT2IE = 1; //enable interrupt
-  sends(U2, "Good night, Sweet Prince");
-  Sleep();
-  sends(U2, "I can't do that Dave");
-  IEC1bits.INT2IE = 0; //disable interrupt
+  sensor_event* events;
+  asm_sleep();
+  while(SENSOR_FLAG);
+  read_sensor_events(&events, 1);
 }
 
 static BYTE memory_buffer[32];

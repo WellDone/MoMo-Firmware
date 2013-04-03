@@ -8,7 +8,7 @@ volatile static unsigned char SENSOR_TIMEOUT_FLAG;
 volatile static unsigned long pulse_counts;
 
 #define SENSOR_TIMER_ON T2CONbits.TON
-#define SENSOR_TO 0x09896800 //should be 5 seconds
+#define SENSOR_TO 0x05006800 //should be 5 seconds
 
 typedef struct {
   unsigned long value;
@@ -85,5 +85,5 @@ void __attribute__((interrupt,no_auto_psv)) _T3Interrupt() {
 
   queue_save_event();
   pulse_counts = 0;
-  SENSOR_TIMEOUT_FLAG = 1;
+  SENSOR_FLAG = 0;
 }
