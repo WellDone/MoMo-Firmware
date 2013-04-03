@@ -1,6 +1,6 @@
 #include "base64.h"
 
-static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+static char encoding_table[64] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
                                 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
                                 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
@@ -8,7 +8,7 @@ static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
                                 'w', 'x', 'y', 'z', '0', '1', '2', '3',
                                 '4', '5', '6', '7', '8', '9', '+', '/'};
-static int mod_table[] = {0, 2, 1};
+static int mod_table[3] = {0, 2, 1};
 
 unsigned int base64_encode( const BYTE* data, unsigned int input_length, char* encoded_data, unsigned int out_size )
 {
@@ -31,7 +31,7 @@ unsigned int base64_encode( const BYTE* data, unsigned int input_length, char* e
       encoded_data[j++] = encoding_table[(triple >> 0 * 6) & 0x3F];
   }
 
-  for (i = 0; i < mod_table[input_length % 3]; i++)
+  for (i = 0; i < mod_table[input_length % 3]; ++i)
       encoded_data[output_length - 1 - i] = '=';
 
   return output_length;
