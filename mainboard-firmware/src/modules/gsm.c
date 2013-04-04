@@ -73,8 +73,10 @@ void gsm_send_sms( const char* destination, const char* message )
     len = strlen(message);
     if ( len > 160 )
         len = 160;
-    for ( i=0; i<len; ++i )
+    for ( i=0; i<len; ++i ) {
         put( U1, message[i] );
+        //put( U2, message[i] );
+    }
 
     put( U1, 0x1A ); // ASCII ctrl-z = 0x1A
 }

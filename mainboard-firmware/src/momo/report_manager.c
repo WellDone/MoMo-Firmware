@@ -23,7 +23,7 @@ static char base64_report_buffer[BASE64_REPORT_LENGTH+1];
 extern unsigned int last_battery_voltage;
 
 static sensor_event event_buffer[EVENT_BUFFER_SIZE];
-void construct_report()
+bool construct_report()
 {
   sms_report report;
   unsigned int count, i;
@@ -37,7 +37,7 @@ void construct_report()
   count = read_sensor_events( event_buffer, 1 );
   if ( count == 0 )
   {
-    return;
+    return false;
   }
   report.sensor_type = event_buffer[0].type;
   report.date = event_buffer[0].starttime.date;
@@ -53,18 +53,20 @@ void construct_report()
     }
   }
 
-  count = base64_encode( (BYTE*)&report, 103, base64_report_buffer, BASE64_REPORT_LENGTH );
+  count = base64_encode( (BYTE*)&report, sizeof(sms_report), base64_report_buffer, BASE64_REPORT_LENGTH );
   base64_report_buffer[count] = '\0';
+  return (count > 0);
 }
 
 void post_report() {
-  construct_report();
+  if (!construct_report())
+    return;
 
-  gsm_on();
+  //gsm_on();
   gsm_send_sms( MOMO_REPORT_SERVER, base64_report_buffer );
-  wait_ms( 500 );
+  //wait_ms( 500 );
   //TODO: wait?
-  gsm_off();
+  //gsm_off();
 }
 
 static ScheduledTask report_task;
