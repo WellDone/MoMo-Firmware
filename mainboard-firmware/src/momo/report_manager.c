@@ -49,23 +49,22 @@ void construct_report()
     {
       if ( event_buffer[i].type != report.sensor_type )
         continue;
-      report.hourly_buckets[event_buffer[0].starttime.hour] += event_buffer[0].value;
+      report.hourly_buckets[event_buffer[i].starttime.hour] += event_buffer[i].value;
     }
   }
 
-  count = base64_encode( (BYTE*)&report, sizeof(sms_report), base64_report_buffer, BASE64_REPORT_LENGTH );
-  base64_report_buffer[count] = 0x0;
+  count = base64_encode( (BYTE*)&report, 103, base64_report_buffer, BASE64_REPORT_LENGTH );
+  base64_report_buffer[count] = '\0';
 }
 
 void post_report() {
   construct_report();
 
-  print( base64_report_buffer );
-
-  //gsm_on();
-  //gsm_send_sms( MOMO_REPORT_SERVER, base64_report_buffer );
+  gsm_on();
+  gsm_send_sms( MOMO_REPORT_SERVER, base64_report_buffer );
+  wait_ms( 500 );
   //TODO: wait?
-  //gsm_off();
+  gsm_off();
 }
 
 static ScheduledTask report_task;

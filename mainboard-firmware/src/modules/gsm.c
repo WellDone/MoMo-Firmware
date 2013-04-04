@@ -61,13 +61,21 @@ void gsm_send_at_cmd( const char* cmd )
 
 void gsm_send_sms( const char* destination, const char* message )
 {
+    int i, len;
     gsm_send_at_cmd( "AT+CMGF=1" );
     wait_ms( 20 );
     sends(U1, "AT+CMGS=\"");
     sends(U1, destination );
     sends(U1, "\"\r");
     wait_ms( 20 ); // TODO: Wait for the > char on U1
-    sends( U1, message );
+    //sends( U1, message ); // UART buffer is only 99 chars.
+
+    len = strlen(message);
+    if ( len > 160 )
+        len = 160;
+    for ( i=0; i<len; ++i )
+        put( U1, message[i] );
+
     put( U1, 0x1A ); // ASCII ctrl-z = 0x1A
 }
 
