@@ -83,7 +83,6 @@ void __attribute__((interrupt,no_auto_psv)) _T3Interrupt() {
   T2CONbits.TON = 0; //disable timer
   _T2IE = 0;
   _T3IE = 0;
-  print("Interrupt Seen");
   queue_save_event();
   pulse_counts = 0;
   SENSOR_FLAG = 0;
