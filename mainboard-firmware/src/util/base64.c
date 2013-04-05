@@ -21,7 +21,7 @@ unsigned int base64_encode( const BYTE* data, unsigned int input_length, char* e
     return 0;
 
   for (i = 0, j = 0; i < input_length;) {
-      octet_a = data[i++];
+      octet_a = (i < input_length) ? data[i++] : 0;
       octet_b = (i < input_length) ? data[i++] : 0;
       octet_c = (i < input_length) ? data[i++] : 0;
 

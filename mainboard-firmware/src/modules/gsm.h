@@ -11,8 +11,10 @@ typedef enum {
 
 void gsm_init();
 
-void gsm_send_at_cmd( const char* cmd );
-void gsm_send_sms( const char* destination, const char* message );
+void gsm_receive_char( char c );
+
+bool gsm_send_at_cmd( const char* cmd );
+bool gsm_send_sms( const char* destination, const char* message );
 
 void gsm_on();
 void gsm_off();

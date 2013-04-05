@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include "task_manager.h"
+#include "gsm.h"
 
 #define CALC_BAUDHI(baud)     (unsigned int)((CLOCKSPEED/(4*baud))-1)    //Assumes hi speed
 #define CALC_BAUDLO(baud)     (unsigned int)((CLOCKSPEED/(16*baud))-1)    //Assumes low speed
@@ -207,12 +208,12 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
         if (stat->rcv_cursor == stat->rcv_buffer+UART_BUFFER_SIZE)
         {
             stat->rcv_cursor = stat->rcv_buffer;
-            print( "GSM buffer full.\r\n");
-
+            //print( "GSM buffer full.\r\n");
         }
 
         *(stat->rcv_cursor) = U1RXREG;
         //U2TXREG = *(stat->rcv_cursor); //echo first four characters
+        gsm_receive_char( *(stat->rcv_cursor) );
 
         stat->rcv_cursor = stat->rcv_cursor+1;
     }

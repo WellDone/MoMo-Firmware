@@ -5,7 +5,7 @@
 #include "flash_queue.h"
 
 #define MOMO_VERSION 4
-#define MOMO_REPORT_INTERVAL kEveryDay
+#define MOMO_REPORT_INTERVAL kEveryMinute
 #define MOMO_REPORT_SERVER "+15107358486"
 
 typedef struct {

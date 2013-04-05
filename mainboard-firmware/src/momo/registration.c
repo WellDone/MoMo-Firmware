@@ -5,7 +5,7 @@
 
 void send_gsm_registration()
 {
-  gsm_send_sms( MOMO_REPORT_SERVER, "I want to register." );
+  gsm_send_sms( "+17078159250", "I want to register." );
   current_momo_state.registered = true;
   save_momo_state();
 }
@@ -23,14 +23,14 @@ bool momo_register_and_start_reporting()
 {
   bool success = true;
   gsm_on();
-  // if ( !current_momo_state.registered ) { //For now, always re-register
+   if ( !current_momo_state.registered ) { //For now, always re-register
     if ( attempt_registration() )
     {
       success = true;
     } else {
       success = false;
     }
-  //}
+  }
   gsm_off();
 
   if (success)
