@@ -434,6 +434,6 @@ void handle_report(command_params *params) {
     post_report();
 }
 
-void handle_exit(command_params *) {
+void handle_exit(command_params *params) {
     debug_disable_unconnected();
 }
