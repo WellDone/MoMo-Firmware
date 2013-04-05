@@ -36,10 +36,7 @@ bool construct_report()
   }
 
   count = read_sensor_events( event_buffer, 1 );
-  if ( count == 0 )
-  {
-    return false;
-  }
+
   report.sensor_type = event_buffer[0].type;
   report.date = event_buffer[0].starttime.date;
   report.hourly_buckets[event_buffer[0].starttime.hour] += event_buffer[0].value;
