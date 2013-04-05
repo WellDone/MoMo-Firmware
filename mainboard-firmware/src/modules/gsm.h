@@ -4,9 +4,10 @@
 #include "common.h"
 
 typedef enum {
-  gsm_status_off   = 0,
-  gsm_status_on    = 1,
-  gsm_status_ready = 2
+  gsm_status_off        = 0,
+  gsm_status_on         = 1,
+  gsm_status_ready      = 2,
+  gsm_status_registered = 3
 } GSMStatus;
 
 void gsm_init();
@@ -16,7 +17,7 @@ void gsm_receive_char( char c );
 bool gsm_send_at_cmd( const char* cmd );
 bool gsm_send_sms( const char* destination, const char* message );
 
-void gsm_on();
+bool gsm_on();
 void gsm_off();
 
 GSMStatus gsm_status();

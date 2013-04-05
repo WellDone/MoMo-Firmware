@@ -63,15 +63,17 @@ bool gsm_send_at_cmd( const char* cmd )
     return wait_for_response( "OK", "ERROR" );
 }
 
-#define RESPONSE_MARKER_COUNT 2
-static char response_buffer[RESPONSE_MARKER_COUNT][10];
+#define RESPONSE_MARKER_COUNT 4
+#define RESPONSE_MARKER_MAX_LENGTH 16
+static char response_buffer[RESPONSE_MARKER_COUNT][RESPONSE_MARKER_MAX_LENGTH];
 static volatile bool waiting_for_response[RESPONSE_MARKER_COUNT];
 static volatile unsigned int response_buffer_index[RESPONSE_MARKER_COUNT];
+#define GSM_RESPONSE_TIMEOUT 8000000
 void gsm_receive_char( char c ) {
     unsigned int i;
     for ( i=0; i<RESPONSE_MARKER_COUNT; ++i ) {
         if ( waiting_for_response[i] && response_buffer[i][response_buffer_index[i]] == c  ) {
-            ++response_buffer_index[i];
+            response_buffer_index[i] += 1;
             if ( response_buffer[i][response_buffer_index[i]] == '\0' ) {
                 waiting_for_response[i] = false;
             }
@@ -79,13 +81,14 @@ void gsm_receive_char( char c ) {
             response_buffer_index[i] = 0;
         }
     }
+    //put( U2, c );
 }
 
 int register_response_marker( const char* marker ) {
     if ( marker == 0 )
         return -1;
     unsigned int i, len = strlen( marker );
-    if ( len > 9 )
+    if ( len > RESPONSE_MARKER_MAX_LENGTH )
         return -1;
     for ( i=0; i<RESPONSE_MARKER_COUNT; ++i ) {
         if ( !waiting_for_response[i] ) {
@@ -96,6 +99,7 @@ int register_response_marker( const char* marker ) {
             return i;
         }
     }
+    print( "Failed to register response marker.");
     return -1;
 }
 void remove_response_marker( int index ) {
@@ -111,9 +115,15 @@ bool wait_for_response( const char* success, const char* failure )
     if ( success_index == -1 )
         return false;
 
-    while ( waiting_for_response[success_index] && ( failure_index == -1 || waiting_for_response[failure_index] ) )
+    unsigned long timeout = GSM_RESPONSE_TIMEOUT;
+    while ( waiting_for_response[success_index] &&
+           ( failure_index == -1 || waiting_for_response[failure_index] ) &&
+           --timeout != 0 )
         ;
-    return !waiting_for_response[success_index];
+    bool success_found = !waiting_for_response[success_index];
+    remove_response_marker( success_index );
+    remove_response_marker( failure_index );
+    return success_found;
 }
 
 bool gsm_send_sms( const char* destination, const char* message )
@@ -149,14 +159,42 @@ bool gsm_check_SIM()
     return success;
 }
 
-void gsm_on()
+bool gsm_check_registered()
 {
+    int registered_index = register_response_marker( "+CREG: 0,1" );
+    if ( registered_index == -1 )
+        return false;
+    bool success = gsm_send_at_cmd( "AT+CREG?" ) && !waiting_for_response[registered_index];
+    remove_response_marker( registered_index );
+    return success;
+}
+
+bool wait_for_ready()
+{
+  unsigned int retry_attempts = 10;
+  if ( !gsm_check_SIM() )
+    return false;
+
+  while ( retry_attempts > 0 && !gsm_check_registered() ) {
+    --retry_attempts;
+    wait_ms( 200 );
+  }
+  return retry_attempts != 0;
+}
+
+bool gsm_on()
+{
+    bool status = false;
     gsm_configure_serial();
 
     GSM_POWER_ON();
     wait_ms( 300 );
     GSM_MODULE_ON();
-    wait_ms( 1000 );
+
+    status = wait_for_response( "+PAC", 0 ) && wait_for_ready();
+    if (!status)
+        gsm_off();
+    return status;
 }
 
 GSMStatus gsm_status()
@@ -164,10 +202,15 @@ GSMStatus gsm_status()
     GSMStatus status = gsm_status_off;
     if ( GSM_POWER_PIN == 1 && GSM_MODULE_ON_PIN == 0 )
     {
-        if ( gsm_check_SIM() )
-            status = gsm_status_ready;
-        else
+        if ( gsm_check_SIM() ) {
+            if ( gsm_check_registered() ) {
+                status = gsm_status_registered;
+            } else {
+                status = gsm_status_ready;
+            }
+        } else {
             status = gsm_status_on;
+        }
     }
     return status;
 }

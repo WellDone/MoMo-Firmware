@@ -15,6 +15,8 @@
 #include "reset_manager.h"
 #include "sensor_event_log.h"
 #include "report_manager.h"
+#include "momo_config.h"
+#include "registration.h"
 
 extern volatile unsigned int adc_buffer[kADCBufferSize];
 ScheduledTask test_task;
@@ -397,6 +399,32 @@ void handle_log(command_params *params) {
     }
     rtcc_get_time(&time);
     log_sensor_event( momo_pulse_counter, &time, value );
+}
+
+void handle_registration( command_params *params ) {
+    if ( params->num_params == 0 ) {
+        if ( current_momo_state.registered ) {
+            print( "registered\r\n" );
+        } else {
+            print( "NOT registered\r\n" );
+        }
+    }
+    else if ( strcmp( get_param_string( params, 0 ), "do" ) == 0 )
+    {
+        if (!momo_register_and_start_reporting())
+        {
+            print( "FAILED!\r\n" );
+        }
+    }
+    else if ( strcmp( get_param_string( params, 0 ), "clear" ) == 0 )
+    {
+        current_momo_state.registered = false;
+        save_momo_state();
+    }
+    else
+    {
+        print( "Unrecognized registration command.\r\n" );
+    }
 }
 
 void handle_report(command_params *params) {

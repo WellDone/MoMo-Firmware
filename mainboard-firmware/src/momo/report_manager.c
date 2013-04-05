@@ -63,9 +63,11 @@ void post_report() {
   if (!construct_report())
     return;
 
-  gsm_on();
-  gsm_send_sms( MOMO_REPORT_SERVER, base64_report_buffer ); //TODO: Retry on failure.
-  gsm_off();
+  if ( gsm_on() )
+  {
+    gsm_send_sms( MOMO_REPORT_SERVER, base64_report_buffer ); //TODO: Retry on failure?
+    gsm_off();
+  }
 }
 
 static ScheduledTask report_task = {0, 0, 0, 0};
