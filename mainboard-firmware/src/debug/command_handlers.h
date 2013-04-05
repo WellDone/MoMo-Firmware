@@ -13,6 +13,7 @@ void handle_adc(command_params *params);
 void handle_log(command_params *params);
 void handle_report(command_params *params);
 void handle_registration(command_params *params);
+void handle_exit(command_params *params);
 
 #endif	/* __command_handlers_h__ */
 

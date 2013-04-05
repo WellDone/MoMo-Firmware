@@ -175,8 +175,11 @@ void handle_gsm(command_params *params)
 
         if (strcmp(get_param_string(params, 1),"on") == 0)
         {
-            gsm_on();
-            print( "GSM module turned on.\r\n");
+            if ( gsm_on() ) {
+                print( "GSM module turned on.\r\n");
+            } else {
+                print( "FAILED!\r\n" );
+            }
         }
         else if (strcmp(get_param_string(params, 1),"off") == 0)
         {
@@ -429,4 +432,8 @@ void handle_registration( command_params *params ) {
 
 void handle_report(command_params *params) {
     post_report();
+}
+
+void handle_exit(command_params *) {
+    debug_disable_unconnected();
 }
