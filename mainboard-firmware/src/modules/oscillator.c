@@ -10,6 +10,43 @@ void oscillator_init()
     set_sosc_status(1); //Secondary oscillator always needs to be enabled
 }
 
+void set_oscillator_speed(OscillatorSpeedSelector speed)
+{
+    unsigned int curr = _COSC;
+    unsigned char oscconh;
+    unsigned char oscconl;
+
+    if (curr == speed)
+        return;
+
+    uninterruptible_start();
+
+    oscconh = OSCCONH;
+    oscconl = OSCCONL;
+
+    //select new speed
+    oscconh &= ~(0b111 << 8);
+    oscconh |= speed;
+
+    write_osccon_h(oscconh);
+
+    //If we're switching to high speed, change clkdiv first so make the PLL always between 4 and 8 mhz
+    if (speed == kHighSpeedSelect)
+        _RCDIV = kHighSpeedClockDiv;
+
+    SET_BIT(oscconl, 0);
+    write_osccon_l(oscconl);
+
+    while (_OSWEN)
+        ;
+    
+    if (speed == kLowSpeedSelect)
+        _RCDIV = kLowSpeedClockDiv;
+
+
+    uninterruptible_end();
+}
+
 /*
  * pass enabled=1 to enable the secondary oscillator
  * pass enabled=0 to disable the secondary oscillator

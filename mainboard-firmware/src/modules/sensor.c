@@ -3,16 +3,23 @@
 #include "utilities.h"
 #include "sensor_event_log.h"
 
-volatile static unsigned char SENSOR_FLAG;
-volatile static unsigned char SENSOR_TIMEOUT_FLAG;
-volatile static unsigned long pulse_counts;
+volatile static unsigned char SENSOR_FLAG; 
+volatile static unsigned char SENSOR_TIMEOUT_FLAG; 
+volatile static unsigned long pulse_counts; 
 
 #define SENSOR_TIMER_ON T2CONbits.TON
-#define SENSOR_TO 0x09896800 //should be 5 seconds
+//#define SENSOR_TO 0x04C4B400 //should be 5 seconds
+#define SENSOR_TO 0x004C4B40
 
-//static unsigned char SENSOR_BUF[5];
+typedef struct {
+  unsigned long value;
+  rtcc_datetime timestamp;
+} saved_sensor_event;
 
-//start based on interrupt
+#define EVENT_BUF_SIZE 1
+saved_sensor_event sensor_event_buf_data[EVENT_BUF_SIZE];
+ringbuffer sensor_event_buf;
+
 /**********************************************************************
                                MAIN FUNCTIONS
  **********************************************************************/
@@ -34,6 +41,16 @@ void configure_sensor() {
     //T2CONbits.TSYNC = 0;
 
     pulse_counts = 0;
+    ringbuffer_create( &sensor_event_buf, sensor_event_buf_data, sizeof(saved_sensor_event), EVENT_BUF_SIZE );
+}
+
+void save_event()
+{
+
+  saved_sensor_event event;
+  ringbuffer_pop( &sensor_event_buf, &event );
+
+  log_sensor_event(momo_pulse_counter, &event.timestamp, event.value);
 }
 /**********************************************************************
                                 ISRs
@@ -51,17 +68,22 @@ void __attribute__((interrupt,no_auto_psv)) _INT2Interrupt() {
   pulse_counts++;
 }
 
+void queue_save_event()
+{
+  saved_sensor_event event;
+  event.value = pulse_counts;
+  rtcc_get_time(&event.timestamp);
+  ringbuffer_push( &sensor_event_buf, &event );
+  taskloop_add( save_event );
+}
+
 //timeout interrupt flag
 void __attribute__((interrupt,no_auto_psv)) _T3Interrupt() {
-  sensor_type sens_type = momo_pulse_counter;
-  rtcc_datetime cur_time;
-  rtcc_get_time(&cur_time);
   _T3IF = 0; //clear timer interrupt flag
   T2CONbits.TON = 0; //disable timer
   _T2IE = 0;
   _T3IE = 0;
-
-  log_sensor_event(sens_type, &cur_time, pulse_counts);
+  queue_save_event();
   pulse_counts = 0;
-  SENSOR_TIMEOUT_FLAG = 1;
+  SENSOR_FLAG = 0;
 }

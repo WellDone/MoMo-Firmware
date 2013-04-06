@@ -33,6 +33,7 @@ void register_command_handlers()
     register_command("memory", handle_memory);
     register_command("log", handle_log);
     register_command("report", handle_report);
+    register_command("registration", handle_registration);
 }
 
 /*

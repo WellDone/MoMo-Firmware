@@ -6,7 +6,7 @@
 
 #define MOMO_VERSION 4
 #define MOMO_REPORT_INTERVAL kEveryDay
-#define MOMO_REPORT_SERVER "+17078159250"
+#define MOMO_REPORT_SERVER "+15107358486"
 
 typedef struct {
   unsigned int version;

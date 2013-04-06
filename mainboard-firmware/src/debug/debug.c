@@ -4,6 +4,7 @@
 #include "uart.h"
 #include "scheduler.h"
 #include "reset_manager.h"
+#include "pme.h"
 
 extern volatile int cmd_received;
 
@@ -13,6 +14,7 @@ void debug_init()
 {
     uart_parameters params;
 
+    peripheral_enable(kUART2Module);
     register_command_handlers(); //register the serial commands that we respond to.
 
     params.baud = 38400;
@@ -33,11 +35,11 @@ void debug_disable_unconnected()
 {
 	static int num_calls = 0;
 	//If no commands have been received, disable the debug interface
-	//Disable on the second call to make at least 10 seconds have passed.
+	//Disable on the second call to make sure at least 10 seconds have passed.
 	if (cmd_received == 0 && num_calls > 0)
 	{
 		print("Disabling debug interface");
-		uart_set_disabled(U2, 1);
+		peripheral_disable(kUART2Module);
 	}
 
 	++num_calls;

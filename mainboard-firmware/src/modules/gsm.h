@@ -4,22 +4,26 @@
 #include "common.h"
 
 typedef enum {
-  gsm_status_off   = 0,
-  gsm_status_on    = 1,
-  gsm_status_ready = 2
+  gsm_status_off        = 0,
+  gsm_status_on         = 1,
+  gsm_status_ready      = 2,
+  gsm_status_registered = 3
 } GSMStatus;
 
 void gsm_init();
 
-void gsm_send_at_cmd( const char* cmd );
-void gsm_send_sms( const char* destination, const char* message );
+void gsm_receive_char( char c );
 
-void gsm_on();
+bool gsm_send_at_cmd( const char* cmd );
+bool gsm_send_sms( const char* destination, const char* message );
+
+bool gsm_on();
 void gsm_off();
 
 GSMStatus gsm_status();
 bool gsm_check_SIM();
 
-void gsm_configure_serial(); //Enable the UART for communicating with the GSM module
+void gsm_configure_serial();
+void gsm_disable_serial();
 
 #endif //__gsm_h__

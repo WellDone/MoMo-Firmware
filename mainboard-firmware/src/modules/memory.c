@@ -24,6 +24,8 @@ typedef enum {
   BE   = 0b11000111
 } memory_instructions;
 
+static unsigned short memory_capacity;
+
 bool shift_out( BYTE data );
 
 #define WRITE_MODE_ENABLE() shift_out( WREN )
@@ -39,8 +41,6 @@ void configure_SPI() {
   SPI1CON1bits.MODE16 = 0; //communication is byte-wide
   SPI1CON1bits.MSTEN = 1; //SPI is in master mode
   SPI1CON1bits.CKP = 1; //data is clocked out on high-low transition
-  //SPI1CON1bits.PPRE = 0x0; //TODO: Choose a good clock prescalar
-  //SPI1CON1bits.SPRE = 0x0; //TODO: Also secondary prescalar
   SPI1STATbits.SPIEN = 1; // Enable
   SPI1STATbits.SPIROV = 0; // Clear the overflow flag.
 
@@ -51,11 +51,11 @@ void configure_SPI() {
   TRISBbits.TRISB12 = 0; // SDCK
 
   DISABLE_MEMORY(); //idle state of SS is high
+  mem_test();
 }
 
-static inline bool shift_impl( BYTE data, BYTE* data_out ) {
+static bool shift_impl( BYTE data, BYTE* data_out ) {
   unsigned short count = 0;
-  //print_byte( data );
   while ( MEMORY_TX_STATUS && count<TIMEOUT)
     ++count;
   MEMORY_BUFFER_REGISTER = data;
@@ -90,29 +90,22 @@ bool shift_in( BYTE* out ) {
 }
 
 bool mem_test() {
-  BYTE device_info;
-  BYTE info2, info3;
-  print("Testing flash memory SPI communication...\r\n");
+  BYTE manufacturer_id;
+  BYTE memory_type;
 
   ENABLE_MEMORY();
 
   READ_IDENTIFICATION();
-  shift_in( &device_info );
-  shift_in( &info2 );
-  shift_in( &info3 );
+  shift_in( &manufacturer_id );
+  shift_in( &memory_type );
+  shift_in( (BYTE*)&memory_capacity );
 
   DISABLE_MEMORY();
 
-  print( "Memory device ID: ");
-  print_byte( device_info );
-  print_byte( info2 );
-  print_byte( info3 );
-
-  if (!device_info) {
-    print( "SPI test FAILED!!" );
-    print( "\r\n" );
+  if ( manufacturer_id != 0x20 || memory_type != 0x71 ) { // M25PX80 = 0x20, 0x71
     return false;
   }
+
   return true;
 }
 
@@ -150,14 +143,12 @@ bool mem_write(unsigned long addr, const BYTE *data, unsigned int length) {
 
   addr &= MEMORY_ADDRESS_MASK;
   if ( !shift_n_out( addr, 3 ) ) {
-    print("Memory timed out while writing address\r\n");
     success = false;
   }
 
   if ( success ) {
     for(i = 0; i < length; ++i) {
       if (!shift_out( data[i] )) {
-        print( "Memory timed out while writing data\r\n" );
         success = false;
       }
     }
@@ -176,14 +167,12 @@ bool mem_read(unsigned long addr, BYTE* buf, unsigned int numBytes) {
 
   addr &= MEMORY_ADDRESS_MASK;
   if (!shift_n_out( addr, 3 )) {
-    print("Memory timed out while writing address\r\n");
     success = false;
   }
 
   if (success) {
     while ( buf != bufEnd ) {
       if (!shift_in( buf )) {
-        print("Memory timed out while reading data\r\n");
         success = false;
         break;
       }
@@ -202,6 +191,11 @@ BYTE mem_status() {
   _impl_mem_status( &status );
   DISABLE_MEMORY();
   return status;
+}
+
+unsigned short mem_capacity()
+{
+  return memory_capacity;
 }
 
 void mem_clear_all() {

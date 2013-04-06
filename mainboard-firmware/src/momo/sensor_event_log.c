@@ -15,7 +15,7 @@ void init_sensor_event_log( unsigned long start_address, unsigned long max_size 
   }
 }
 
-void log_sensor_event( sensor_type type, const rtcc_datetime* datetime, unsigned int value )
+void log_sensor_event( sensor_type type, const rtcc_datetime* datetime, unsigned long value )
 {
   sensor_event event;
   event.starttime.date.year = datetime->year;

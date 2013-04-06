@@ -3,7 +3,7 @@
 
 #include "uart.h"
 
-#define MAX_COMMANDS 30
+#define MAX_COMMANDS 12
 
 typedef struct
 {

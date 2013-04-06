@@ -10,6 +10,7 @@
 #include "gsm.h"
 #include "oscillator.h"
 #include "sensor.h"
+#include "pme.h"
 
 #include "memory_manager.h"
 #include "registration.h"
@@ -143,6 +144,7 @@ void handle_reset()
 void handle_all_resets_before(unsigned int type)
 {
     //Add code here that should be called before all other reset code
+    disable_unneeded_peripherals();
     configure_interrupts();
     oscillator_init();
     configure_sensor();
@@ -165,14 +167,9 @@ void handle_all_resets_after(unsigned int type)
     if (!rtcc_enabled())
         enable_rtcc();
 
-    //gsm_on();
-    //if ( gsm_check_SIM() ) {
-    //    momo_register();
-    //} else {
-        //TODO: Shut down when there's no SIM present...?
-    //}
-    //gsm_off();
-
+    if ( !momo_register_and_start_reporting() ) {
+        //TODO: Power down if we failed to register.
+    }
 }
 
 void handle_poweron_reset(unsigned int type)

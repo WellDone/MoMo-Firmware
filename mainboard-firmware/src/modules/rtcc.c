@@ -283,8 +283,7 @@ void clear_recurring_task()
 void wait_ms( unsigned long milliseconds )
 {
     volatile unsigned long tick = 0;
-    milliseconds = milliseconds * CLOCKSPEED;
-    milliseconds = milliseconds / 1000;
+    milliseconds = milliseconds * CLOCKSPEED/1000;
     while ( tick!=milliseconds )
-        tick++;
+        ++tick;
 }

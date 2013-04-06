@@ -117,7 +117,6 @@
       - -o ${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE
-      - -I"/Users/timburke/Projects/DataLogger/lib/inc/devices"
       - -D$: COLLECTION_DEFINES_RELEASE_AND_VENDOR
       - -Wall
       - -O1

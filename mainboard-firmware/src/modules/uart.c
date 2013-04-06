@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include "task_manager.h"
+#include "gsm.h"
 
 #define CALC_BAUDHI(baud)     (unsigned int)((CLOCKSPEED/(4*baud))-1)    //Assumes hi speed
 #define CALC_BAUDLO(baud)     (unsigned int)((CLOCKSPEED/(16*baud))-1)    //Assumes low speed
@@ -27,31 +28,8 @@ void dump_gsm_buffer(void)
 
     *u1stat.rcv_cursor ='\0';
 
-/*
-    int i;
-    for (i=0;i<UART_BUFFER_SIZE; ++i)
-    {
-        if (u1stat.rcv_buffer[i] == '\r')
-            u1stat.rcv_buffer[i] = 'r';
-        else if (u1stat.rcv_buffer[i] == '\n')
-            u1stat.rcv_buffer[i] = 'n';
-    }
-*/
-
     print(u1stat.rcv_buffer);
     u1stat.rcv_cursor = u1stat.rcv_buffer;
-}
-
-void uart_set_disabled(UARTPort port, int status)
-{
-    if (port == U1)
-    {
-        _U1MD = status;
-    }
-    else
-    {
-        _U2MD = status;
-    }
 }
 
 void configure_uart1(uart_parameters *params)
@@ -230,13 +208,12 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
         if (stat->rcv_cursor == stat->rcv_buffer+UART_BUFFER_SIZE)
         {
             stat->rcv_cursor = stat->rcv_buffer;
-            print( "GSM buffer full.\r\n");
-
+            //print( "GSM buffer full.\r\n");
         }
 
         *(stat->rcv_cursor) = U1RXREG;
         //U2TXREG = *(stat->rcv_cursor); //echo first four characters
-        put( U2, *(stat->rcv_cursor) ); //echo to debug output
+        gsm_receive_char( *(stat->rcv_cursor) );
 
         stat->rcv_cursor = stat->rcv_cursor+1;
     }
@@ -287,6 +264,7 @@ void __attribute__((interrupt,no_auto_psv)) _U2TXInterrupt()
 void put( UARTPort port, const char c )
 {
     char buf[2];
+
     buf[0] = c;
     buf[1] = '\0';
     sends( port, buf );

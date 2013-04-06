@@ -15,6 +15,8 @@
 #include "reset_manager.h"
 #include "sensor_event_log.h"
 #include "report_manager.h"
+#include "momo_config.h"
+#include "registration.h"
 
 extern volatile unsigned int adc_buffer[kADCBufferSize];
 ScheduledTask test_task;
@@ -173,8 +175,11 @@ void handle_gsm(command_params *params)
 
         if (strcmp(get_param_string(params, 1),"on") == 0)
         {
-            gsm_on();
-            print( "GSM module turned on.\r\n");
+            if ( gsm_on() ) {
+                print( "GSM module turned on.\r\n");
+            } else {
+                print( "FAILED!\r\n" );
+            }
         }
         else if (strcmp(get_param_string(params, 1),"off") == 0)
         {
@@ -234,44 +239,6 @@ void handle_device(command_params *params)
     {
             sendf(U2, "Last reset type: %d\r\n", last_reset_type());
     }
-    /*else if (strcmp(cmd, "get") == 0)
-    {
-        if (params->num_params < 2)
-        {
-            print( "You must pass a subcommand to the device get command.\r\n");
-            return;
-        }
-
-        cmd = get_param_string(params, 1);
-
-        if (strcmp(cmd, "sosc") == 0)
-        {
-            int status = get_sosc_status();
-
-            if (status == 1)
-                print( "Secondary oscillator is enabled\r\n");
-            else
-                print( "Secondary oscillator is disabled\r\n");
-        }
-    }
-    else if (strcmp(cmd, "enable") == 0)
-    {
-        if (params->num_params < 2)
-        {
-            print( "You must pass a subcommand to the device enable command.\r\n");
-            return;
-        }
-
-        cmd = get_param_string(params, 1);
-
-        if (strcmp(cmd, "sosc") == 0)
-        {
-            set_sosc_status(1);
-            print( "Secondary oscillator enabled.\r\n");
-            return;
-        }
-    }
-    */
 }
 
 void handle_rtcc(command_params *params)
@@ -343,11 +310,12 @@ void handle_rtcc(command_params *params)
 }
 
 void handle_sensor(command_params *params) {
-  IEC1bits.INT2IE = 1; //enable interrupt
-  sends(U2, "Good night, Sweet Prince");
-  Sleep();
-  sends(U2, "I can't do that Dave");
-  IEC1bits.INT2IE = 0; //disable interrupt
+  sensor_event* events;
+  /*  sendf(U2, "Sensor start : SENSOR_TO = 16%x\r\n", SENSOR_TO);
+  asm_sleep();
+  while(SENSOR_FLAG);
+  sendf(U2, "%d pulses\r\n", pulse_counts);
+  read_sensor_events(events, 1); */
 }
 
 static BYTE memory_buffer[32];
@@ -378,13 +346,20 @@ void handle_memory(command_params *params) {
     } else if (strcmp(cmd, "status") == 0) {
         print_byte( mem_status() );
     } else if (strcmp(cmd, "test") == 0) {
-        mem_test();
+        print("Testing flash memory SPI communication...\r\n");
+        if ( !mem_test() )
+            print( "SPI test FAILED!!\r\n" );
+        else
+            print( "SPI test SUCCEEDED!!\r\n" );
     } else {
         print( "Unrecognized memory command!\r\n");
     }
 }
 
 void handle_log(command_params *params) {
+    char val[5];
+    int value;
+    rtcc_datetime time;
     if (params->num_params != 1) {
         print("usage: log read/empty?/count/<value>\r\n");
         return;
@@ -397,7 +372,6 @@ void handle_log(command_params *params) {
                 print("No items in log\r\n");
                 return;
             }
-            char val[5];
             val[0] = val[1] = val[2] = val[3] = '0';
             val[itoa_small( val, 4, event.value)] = '\0';
             print("Read value: ");
@@ -415,21 +389,45 @@ void handle_log(command_params *params) {
         return;
     }
     if (strcmp(p, "count") == 0) {
-        char val[5];
         val[0] = val[1] = val[2] = val[3] = '0';
         val[itoa_small( val, 4, sensor_event_log_count() )] = '\0';
         print( val );
         print( "\r\n");
         return;
     }
-    int value;
+
     if ( !atoi_small( p, &value ) ) {
         print( "atoi failed!\r\n" );
         return;
     }
-    rtcc_datetime time;
     rtcc_get_time(&time);
     log_sensor_event( momo_pulse_counter, &time, value );
+}
+
+void handle_registration( command_params *params ) {
+    if ( params->num_params == 0 ) {
+        if ( current_momo_state.registered ) {
+            print( "registered\r\n" );
+        } else {
+            print( "NOT registered\r\n" );
+        }
+    }
+    else if ( strcmp( get_param_string( params, 0 ), "do" ) == 0 )
+    {
+        if (!momo_register_and_start_reporting())
+        {
+            print( "FAILED!\r\n" );
+        }
+    }
+    else if ( strcmp( get_param_string( params, 0 ), "clear" ) == 0 )
+    {
+        current_momo_state.registered = false;
+        save_momo_state();
+    }
+    else
+    {
+        print( "Unrecognized registration command.\r\n" );
+    }
 }
 
 void handle_report(command_params *params) {
