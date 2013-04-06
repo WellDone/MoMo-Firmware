@@ -7,6 +7,8 @@ void taskloop_init()
 {
     ringbuffer_create(&taskqueue.tasks, (void*)taskqueue.taskdata, sizeof(task_callback), kMAXTASKS);
     taskqueue.flags = 0;
+
+    taskloop_set_sleep(1);
 }
 
 void taskloop_set_sleep(int sleep)

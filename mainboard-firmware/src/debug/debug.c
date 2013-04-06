@@ -22,6 +22,8 @@ void debug_init()
     params.parity = NoParity;
     configure_uart(U2, &params);
 
+    taskloop_set_sleep(0); //Can't sleep with the UART
+
     print("Device reset complete.\r\n");
     sendf(U2, "Type was: %d.\r\n", last_reset_type());
     print(DEBUG_PROMPT);
@@ -40,6 +42,7 @@ void debug_disable_unconnected()
 	{
 		print("Disabling debug interface");
 		peripheral_disable(kUART2Module);
+        taskloop_set_sleep(1);
 	}
 
 	++num_calls;

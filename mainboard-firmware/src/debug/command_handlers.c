@@ -239,6 +239,11 @@ void handle_device(command_params *params)
     {
             sendf(U2, "Last reset type: %d\r\n", last_reset_type());
     }
+    else if (strcmp(cmd, "sleep") == 0)
+    {
+        print("Sleeping\r\n");
+        asm_sleep();
+    }
 }
 
 void handle_rtcc(command_params *params)
