@@ -153,8 +153,6 @@ void handle_all_resets_before(unsigned int type)
     battery_init();
     gsm_init();
 
-    taskloop_set_sleep( 1 );
-
     //TODO: Move this to MoMo-specific handler?
     flash_memory_init();
 }

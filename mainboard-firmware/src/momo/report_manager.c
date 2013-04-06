@@ -9,7 +9,7 @@
 #include "base64.h"
 #include <stdlib.h>
 
-#define EVENT_BUFFER_SIZE 10
+#define EVENT_BUFFER_SIZE 1
 typedef struct { //103
     unsigned char momo_version;
     unsigned char current_hour;
@@ -42,11 +42,14 @@ bool construct_report()
   for ( i=0; i<24; ++i ) {
     report.hourly_buckets[i] = 0;
   }
+  report.hour_count = 0;
+  report.event_count = 0;
+  report.sensor_type = 0;
 
   count = read_sensor_events( event_buffer, 1 );
 
   if ( count != 0 ) {
-    report.event_count = 1;
+    report.sensor_type = event_buffer[0].type;
 
     time1.year = event_buffer[i].starttime.date.year;
     time1.month = event_buffer[i].starttime.date.month;
@@ -55,26 +58,18 @@ bool construct_report()
     time1.minutes = event_buffer[i].starttime.minute;
     time1.seconds = 0;
 
-    report.sensor_type = event_buffer[0].type;
+    rtcc_datetime_difference( &time1, &time2 );
+    report.hour_count = 24 * time2.day + time2.hours+1;
+  }
+  while ( count != 0 ) {
+    if ( event_buffer[0].type != report.sensor_type )
+      continue;
+    report.event_count += 1;
     report.hourly_buckets[event_buffer[0].starttime.hour] += event_buffer[0].value;
 
-    while ( !sensor_event_log_empty() ) {
-      count = read_sensor_events( event_buffer, EVENT_BUFFER_SIZE );
-      for ( i = 0; i<count; )
-      {
-        if ( event_buffer[i].type != report.sensor_type )
-          continue;
-        report.hourly_buckets[event_buffer[i].starttime.hour] += event_buffer[i].value;
-        report.event_count += 1;
-      }
-    }
-
-    rtcc_datetime_difference( &time1, &time2 );
-    report.hour_count = 24 * time2.day + time2.hours;
-  } else {
-    report.hour_count = 0;
-    report.event_count = 0;
+    count = read_sensor_events( event_buffer, 1 );
   }
+
   count = base64_encode( (BYTE*)&report, 104, base64_report_buffer, BASE64_REPORT_LENGTH );
   base64_report_buffer[count] = '\0';
   return (count > 0);

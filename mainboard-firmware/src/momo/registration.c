@@ -4,8 +4,10 @@
 #include "report_manager.h"
 #include "base64.h"
 
+#define REGISTRATION_MARKER_BIT 0x80; //High bit set for registrations
+
 typedef struct {
-  unsigned char registration_marker;
+  unsigned char registration_version;
   unsigned short error_count; // TODO: Actually keep track of errors and send them up when registering.
   //unsigned int battery_voltage;
 } RegistrationMessage;
@@ -17,7 +19,8 @@ extern unsigned int last_battery_voltage;
 bool send_gsm_registration()
 {
   unsigned int count;
-  registration_message.registration_marker = 0x0;
+  registration_message.registration_version = REGISTRATION_MARKER_BIT;
+  registration_message.registration_version |= 0x0;
   registration_message.error_count = 0x0;
   //registration_message.battery_voltage = last_battery_voltage;
 
@@ -54,8 +57,11 @@ bool momo_register_and_start_reporting()
     gsm_off();
   }
 
-  if (success)
+  if (success) {
+    rtcc_datetime zero_time = {0,0,0,0,0,0,0,0};
+    rtcc_set_time( &zero_time );
     start_report_scheduling();
+  }
 
   return success;
 }

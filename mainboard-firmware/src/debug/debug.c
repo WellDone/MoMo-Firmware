@@ -40,6 +40,7 @@ void debug_disable_unconnected()
 	{
 		print("Disabling debug interface");
 		peripheral_disable(kUART2Module);
+        taskloop_set_sleep( 1 );
 	}
 
 	++num_calls;
