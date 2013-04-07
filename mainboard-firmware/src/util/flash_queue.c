@@ -77,7 +77,8 @@ unsigned int flash_queue_batchdequeue( flash_queue* queue, void* data, unsigned 
     count = queue_count;
   }
   unsigned int l = queue->elem_size * count;
-  return batchdequeue_impl( queue, &data, l ) / queue->elem_size;
+  batchdequeue_impl( queue, &data, l );
+  return count;
 }
 
 unsigned long flash_queue_count( const flash_queue* queue ) {
