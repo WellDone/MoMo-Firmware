@@ -81,7 +81,6 @@ void gsm_receive_char( char c ) {
             response_buffer_index[i] = 0;
         }
     }
-    //put( U2, c );
 }
 
 int register_response_marker( const char* marker ) {
@@ -182,19 +181,25 @@ bool wait_for_ready()
   return retry_attempts != 0;
 }
 
-bool gsm_on()
+
+void gsm_on_raw()
 {
-    bool status = false;
     gsm_configure_serial();
 
     GSM_POWER_ON();
     wait_ms( 300 );
     GSM_MODULE_ON();
+}
 
-    status = wait_for_response( "+PAC", 0 ) && wait_for_ready();
-    if (!status)
+bool gsm_on()
+{
+    gsm_on_raw();
+    if ( !wait_for_response( "+PAC", 0 ) && wait_for_ready() )
+    {
         gsm_off();
-    return status;
+        return false;
+    }
+    return true;
 }
 
 GSMStatus gsm_status()

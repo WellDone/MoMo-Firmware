@@ -5,8 +5,8 @@
 #include "flash_queue.h"
 
 #define MOMO_VERSION 4
-#define MOMO_REPORT_INTERVAL kEveryMinute
-#define MOMO_REPORT_SERVER "+15107358486"
+#define MOMO_REPORT_INTERVAL kEveryDay
+#define MOMO_REPORT_SERVER "+441143599355" //"+15107358486"
 
 typedef struct {
   unsigned int version;
@@ -22,5 +22,6 @@ void init_momo_config( unsigned int subsection_index );
 void reset_momo_state();
 void save_momo_state();
 void load_momo_state();
+void flush_config_to_memory();
 
 #endif

@@ -165,6 +165,14 @@ void handle_gsm(command_params *params)
 
     cmd = get_param_string(params, 0);
 
+    if (strcmp(cmd, "power" ) == 0)
+    {
+        if (params->num_params > 1 ) {
+            print( "No params expected." );
+            return;
+        }
+        gsm_on_raw();
+    }
     if (strcmp(cmd, "module") == 0)
     {
         if (params->num_params < 2)
