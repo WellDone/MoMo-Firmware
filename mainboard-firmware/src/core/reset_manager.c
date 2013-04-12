@@ -15,6 +15,8 @@
 #include "memory_manager.h"
 #include "registration.h"
 
+static bool mclr_triggered;
+
 //Global reset handler table
 reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =
 {
@@ -155,6 +157,8 @@ void handle_all_resets_before(unsigned int type)
 
     //TODO: Move this to MoMo-specific handler?
     flash_memory_init();
+
+    mclr_triggered = false;
 }
 
 void handle_all_resets_after(unsigned int type)
@@ -170,6 +174,10 @@ void handle_all_resets_after(unsigned int type)
     if ( !momo_register_and_start_reporting() ) {
         //TODO: Power down if we failed to register.
     }
+
+    if ( !mclr_triggered ) {
+        //taskloop_set_sleep( 1 );
+    }
 }
 
 void handle_poweron_reset(unsigned int type)
@@ -181,5 +189,6 @@ void handle_poweron_reset(unsigned int type)
 
 void handle_mclr_reset(unsigned int type)
 {
+    mclr_triggered = true;
     debug_init();
 }

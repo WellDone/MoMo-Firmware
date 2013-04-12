@@ -11,7 +11,7 @@
 
 #define EVENT_BUFFER_SIZE 1
 typedef struct { //103
-    unsigned char momo_version;
+    unsigned char report_version;
     unsigned char current_hour;
     unsigned int  battery_voltage; //2
     unsigned char hour_count;
@@ -35,7 +35,7 @@ bool construct_report()
   rtcc_datetime time1, time2;
   rtcc_get_time( &time2 );
 
-  report.momo_version = MOMO_REPORT_VERSION;
+  report.report_version = MOMO_REPORT_VERSION;
   report.current_hour = time2.hours;
   report.battery_voltage = last_battery_voltage;
 
@@ -83,6 +83,7 @@ void post_report() {
   {
     gsm_send_sms( MOMO_REPORT_SERVER, base64_report_buffer ); //TODO: Retry on failure?
     gsm_off();
+    flush_config_to_memory();
   }
 }
 
