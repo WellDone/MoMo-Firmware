@@ -138,11 +138,9 @@ void fill_param_struct(command_params *params, char *buff)
         *buff++ = '\0'; //Convert space to null terminator and skip it
         ++params->num_params;
     } else if ( *buff == '"' ) {
-        if ( quoted ) {
+        if ( quoted && *(buff+1) == ' ' ) {
             *buff++ = '\0';
-            if ( *buff == ' ' ) {
-                *buff++ = '"'; // Move the quote to the beginning of the next param, it will be skipped.
-            }
+            *buff++ = '"'; // Move the quote to the beginning of the next param, it will be skipped.
             quoted = 0;
         } else {
             ++buff;

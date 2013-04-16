@@ -170,7 +170,7 @@ bool gsm_check_registered()
 
 bool wait_for_ready()
 {
-  unsigned int retry_attempts = 10;
+  unsigned int retry_attempts = 30;
   if ( !gsm_check_SIM() )
     return false;
 
@@ -194,7 +194,7 @@ void gsm_on_raw()
 bool gsm_on()
 {
     gsm_on_raw();
-    if ( !wait_for_response( "+PAC", 0 ) && wait_for_ready() )
+    if ( !wait_for_response( "+PSSUP", 0 ) || !wait_for_ready() )
     {
         gsm_off();
         return false;
