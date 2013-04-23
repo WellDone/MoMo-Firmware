@@ -8308,7 +8308,7 @@ Source: www.kingbright.com</description>
 <part name="+3V3" library="supply1" deviceset="+3V3" device=""/>
 <part name="+3V5" library="supply1" deviceset="+3V3" device=""/>
 <part name="GND15" library="supply1" deviceset="GND" device=""/>
-<part name="R5" library="rcl" deviceset="R-US_" device="R0603" value="19K"/>
+<part name="R5" library="rcl" deviceset="R-US_" device="R0603" value="10K"/>
 <part name="R10" library="rcl" deviceset="R-US_" device="R0603" value="10K"/>
 <part name="+3V6" library="supply1" deviceset="+3V3" device=""/>
 <part name="+3V7" library="supply1" deviceset="+3V3" device=""/>
@@ -8316,6 +8316,10 @@ Source: www.kingbright.com</description>
 <part name="R11" library="rcl" deviceset="R-US_" device="R0603" value="66R"/>
 <part name="GND20" library="supply1" deviceset="GND" device=""/>
 <part name="VCC7" library="supply1" deviceset="VCCIO" device=""/>
+<part name="LED2" library="led" deviceset="LED" device="5MM"/>
+<part name="R12" library="rcl" deviceset="R-US_" device="R0603" value="66R"/>
+<part name="+3V8" library="supply1" deviceset="+3V3" device=""/>
+<part name="GND22" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -8425,6 +8429,10 @@ Source: www.kingbright.com</description>
 <instance part="R11" gate="G$1" x="81.28" y="111.76" rot="R90"/>
 <instance part="GND20" gate="1" x="81.28" y="96.52"/>
 <instance part="VCC7" gate="G$1" x="81.28" y="119.38"/>
+<instance part="LED2" gate="G$1" x="93.98" y="104.14"/>
+<instance part="R12" gate="G$1" x="93.98" y="111.76" rot="R90"/>
+<instance part="+3V8" gate="G$1" x="93.98" y="119.38"/>
+<instance part="GND22" gate="1" x="93.98" y="96.52"/>
 </instances>
 <busses>
 <bus name="PICSERIAL:PICRX1,PICTX1">
@@ -8540,6 +8548,10 @@ Source: www.kingbright.com</description>
 <segment>
 <pinref part="LED1" gate="G$1" pin="C"/>
 <pinref part="GND20" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="LED2" gate="G$1" pin="C"/>
+<pinref part="GND22" gate="1" pin="GND"/>
 </segment>
 </net>
 <net name="N$2" class="0">
@@ -8662,6 +8674,10 @@ Source: www.kingbright.com</description>
 <segment>
 <pinref part="R10" gate="G$1" pin="2"/>
 <pinref part="+3V7" gate="G$1" pin="+3V3"/>
+</segment>
+<segment>
+<pinref part="R12" gate="G$1" pin="2"/>
+<pinref part="+3V8" gate="G$1" pin="+3V3"/>
 </segment>
 </net>
 <net name="N$6" class="0">
@@ -8943,6 +8959,12 @@ Source: www.kingbright.com</description>
 <segment>
 <pinref part="LED1" gate="G$1" pin="A"/>
 <pinref part="R11" gate="G$1" pin="1"/>
+</segment>
+</net>
+<net name="N$13" class="0">
+<segment>
+<pinref part="LED2" gate="G$1" pin="A"/>
+<pinref part="R12" gate="G$1" pin="1"/>
 </segment>
 </net>
 </nets>
