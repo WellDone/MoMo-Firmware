@@ -73,6 +73,8 @@
 <hole x="79.2226" y="52.3748" drill="3.2512"/>
 <text x="29.591" y="52.197" size="1.016" layer="21">Power</text>
 <text x="77.089" y="23.368" size="1.016" layer="21">Device</text>
+<dimension x1="26.6192" y1="54.5338" x2="84.5058" y2="54.5592" x3="55.56024375" y3="59.6860125" textsize="1.778" layer="49" unit="inch" visible="yes"/>
+<dimension x1="29.5402" y1="21.971" x2="29.5148" y2="57.404" x3="21.7296125" y3="39.681909375" textsize="1.778" layer="49" unit="inch" visible="yes"/>
 </plain>
 <libraries>
 <library name="components">
