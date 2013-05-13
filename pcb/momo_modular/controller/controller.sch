@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.05" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
@@ -8211,20 +8211,6 @@ Source: www.kingbright.com</description>
 <junction x="-73.66" y="-33.02"/>
 <pinref part="U6" gate="A" pin="PGD3/SOSCI/*U2RTS/CN1/RB4"/>
 <wire x1="-73.66" y1="-15.24" x2="-78.74" y2="-15.24" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="RX" class="0">
-<segment>
-<pinref part="U6" gate="A" pin="U1RX/U1BCLK/CN6/RB2"/>
-<wire x1="-193.04" y1="-2.54" x2="-203.2" y2="-2.54" width="0.1524" layer="91"/>
-<label x="-198.12" y="-2.54" size="1.778" layer="95"/>
-</segment>
-</net>
-<net name="TX" class="0">
-<segment>
-<pinref part="U6" gate="A" pin="U1TX/INT0/CN23/RB7"/>
-<wire x1="-193.04" y1="-5.08" x2="-203.2" y2="-5.08" width="0.1524" layer="91"/>
-<label x="-198.12" y="-5.08" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="SDI" class="0">

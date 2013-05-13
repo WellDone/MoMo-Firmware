@@ -63,11 +63,11 @@ v1 (5/10/13)</text>
 <wire x1="55.8292" y1="12.1666" x2="55.8292" y2="42.6466" width="0.254" layer="21"/>
 <text x="31.877" y="40.9194" size="0.8128" layer="21">D</text>
 <text x="31.877" y="39.624" size="0.8128" layer="21">A</text>
-<dimension x1="55.88" y1="12.1158" x2="55.88" y2="42.6974" x3="58.8264" y3="27.4066" textsize="0.8128" layer="49" dtype="vertical" unit="inch" visible="yes"/>
 <wire x1="30.4292" y1="42.6466" x2="55.8292" y2="42.6466" width="0.254" layer="21"/>
 <wire x1="30.4292" y1="42.6466" x2="30.4292" y2="12.1666" width="0.254" layer="21"/>
 <wire x1="30.4292" y1="12.1666" x2="55.8292" y2="12.1666" width="0.254" layer="21"/>
-<dimension x1="30.4292" y1="42.6466" x2="55.88" y2="42.6974" x3="43.1546" y3="44.5262" textsize="0.8128" layer="21" dtype="horizontal" unit="inch" visible="yes"/>
+<dimension x1="30.4292" y1="42.6466" x2="55.8292" y2="42.6466" x3="43.1292" y3="45.6946" textsize="1.778" layer="49" dtype="horizontal" unit="inch" visible="yes"/>
+<dimension x1="55.88" y1="42.6974" x2="55.88" y2="12.1158" x3="27.0764" y3="27.4066" textsize="1.778" layer="49" dtype="vertical" unit="inch" visible="yes"/>
 </plain>
 <libraries>
 <library name="components">
@@ -1824,12 +1824,6 @@ design rules under a new name.</description>
 <wire x1="40.4236" y1="34.227" x2="40.4236" y2="33.528" width="0.254" layer="1"/>
 <wire x1="36.8142" y1="37.8364" x2="35.7632" y2="37.8364" width="0.3048" layer="1"/>
 <wire x1="36.8142" y1="37.8364" x2="37.6174" y2="37.0332" width="0.3048" layer="1"/>
-</signal>
-<signal name="RX">
-<contactref element="U6" pad="6"/>
-</signal>
-<signal name="TX">
-<contactref element="U6" pad="11"/>
 </signal>
 <signal name="SDI">
 <contactref element="U7" pad="2"/>

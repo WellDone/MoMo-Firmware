@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.05" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -2384,18 +2384,18 @@ MAX3223-MAX3243.pdf</description>
 <wire x1="1.27" y1="0" x2="1.27" y2="3.81" width="0.254" layer="48"/>
 <wire x1="3.81" y1="0" x2="3.81" y2="3.81" width="0.254" layer="48"/>
 <wire x1="6.35" y1="0" x2="6.35" y2="3.81" width="0.254" layer="48"/>
-<text x="7.62" y="-2.54" size="0.8128" layer="21">1</text>
+<text x="6.35" y="-2.54" size="0.8128" layer="21">1</text>
 </package>
 <package name="MOMO-EDGE-SMALL-2M">
 <pad name="2" x="-1.27" y="0" drill="1.1"/>
 <pad name="1" x="1.27" y="0" drill="1.1"/>
-<wire x1="2.54" y1="-1.2446" x2="2.54" y2="1.2446" width="0.127" layer="21"/>
-<wire x1="-2.54" y1="1.2446" x2="2.54" y2="1.2446" width="0.127" layer="21"/>
-<wire x1="2.54" y1="-1.2446" x2="-2.54" y2="-1.2446" width="0.127" layer="21"/>
-<wire x1="-2.54" y1="1.2446" x2="-2.54" y2="-1.2446" width="0.127" layer="21"/>
-<wire x1="-1.27" y1="0" x2="-1.27" y2="3.81" width="0.127" layer="51"/>
-<wire x1="1.27" y1="0" x2="1.27" y2="3.81" width="0.127" layer="51"/>
-<text x="2.7178" y="-1.2954" size="0.8128" layer="23">1</text>
+<wire x1="2.54" y1="-1.2446" x2="2.54" y2="1.2446" width="0.254" layer="21"/>
+<wire x1="-2.54" y1="1.2446" x2="2.54" y2="1.2446" width="0.254" layer="21"/>
+<wire x1="2.54" y1="-1.2446" x2="-2.54" y2="-1.2446" width="0.254" layer="21"/>
+<wire x1="-2.54" y1="1.2446" x2="-2.54" y2="-1.2446" width="0.254" layer="21"/>
+<wire x1="-1.27" y1="0" x2="-1.27" y2="3.81" width="0.254" layer="51"/>
+<wire x1="1.27" y1="0" x2="1.27" y2="3.81" width="0.254" layer="51"/>
+<text x="1.4478" y="-2.5654" size="0.8128" layer="23">1</text>
 </package>
 </packages>
 <symbols>
@@ -2967,18 +2967,18 @@ MAX3223-MAX3243.pdf</description>
 <text x="0.635" y="-9.525" size="1.016" layer="95">XRP7659</text>
 </symbol>
 <symbol name="DIODE">
+<wire x1="0" y1="3.81" x2="0" y2="2.54" width="0.254" layer="94"/>
 <wire x1="0" y1="2.54" x2="0" y2="1.27" width="0.254" layer="94"/>
-<wire x1="0" y1="1.27" x2="0" y2="0" width="0.254" layer="94"/>
-<wire x1="0" y1="0" x2="2.54" y2="1.27" width="0.254" layer="94"/>
-<wire x1="2.54" y1="1.27" x2="0" y2="2.54" width="0.254" layer="94"/>
-<wire x1="1.905" y1="2.54" x2="2.54" y2="2.54" width="0.254" layer="94"/>
+<wire x1="0" y1="1.27" x2="2.54" y2="2.54" width="0.254" layer="94"/>
+<wire x1="2.54" y1="2.54" x2="0" y2="3.81" width="0.254" layer="94"/>
+<wire x1="1.905" y1="3.81" x2="2.54" y2="3.81" width="0.254" layer="94"/>
+<wire x1="2.54" y1="3.81" x2="2.54" y2="2.54" width="0.254" layer="94"/>
 <wire x1="2.54" y1="2.54" x2="2.54" y2="1.27" width="0.254" layer="94"/>
-<wire x1="2.54" y1="1.27" x2="2.54" y2="0" width="0.254" layer="94"/>
-<wire x1="2.54" y1="0" x2="3.175" y2="0" width="0.254" layer="94"/>
-<wire x1="0" y1="1.27" x2="-2.54" y2="1.27" width="0.254" layer="94"/>
-<wire x1="2.54" y1="1.27" x2="5.08" y2="1.27" width="0.254" layer="94"/>
-<pin name="CATH" x="5.08" y="1.27" visible="off" length="point"/>
-<pin name="AN" x="-2.54" y="1.27" visible="off" length="point"/>
+<wire x1="2.54" y1="1.27" x2="3.175" y2="1.27" width="0.254" layer="94"/>
+<wire x1="0" y1="2.54" x2="-2.54" y2="2.54" width="0.254" layer="94"/>
+<wire x1="2.54" y1="2.54" x2="5.08" y2="2.54" width="0.254" layer="94"/>
+<pin name="CATH" x="5.08" y="2.54" visible="off" length="point"/>
+<pin name="AN" x="-2.54" y="2.54" visible="off" length="point"/>
 </symbol>
 <symbol name="MOMO-EDGE">
 <pin name="SCL" x="-2.54" y="10.16" visible="pin" length="short"/>
