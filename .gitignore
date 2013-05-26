@@ -4,3 +4,8 @@ dist/*
 build
 dist
 */nbproject/*
+
+*.b#?
+*.s#?
+*.l#?
+.DS_Store
