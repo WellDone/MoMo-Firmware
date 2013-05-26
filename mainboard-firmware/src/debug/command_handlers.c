@@ -21,6 +21,7 @@
 extern volatile unsigned int adc_buffer[kADCBufferSize];
 ScheduledTask test_task;
 
+/*
 void handle_echo_params(command_params *params)
 {
   unsigned int i;
@@ -437,3 +438,4 @@ void handle_registration( command_params *params ) {
 void handle_report(command_params *params) {
     post_report();
 }
+*/

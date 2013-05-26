@@ -24,7 +24,7 @@ void register_command_handlers()
     command_buffer[0] = '\0';
     cmd_ready = 0;
 
-    register_command("echo", handle_echo_params);
+    /*register_command("echo", handle_echo_params);
     register_command("device", handle_device);
     register_command("rtcc", handle_rtcc);
     register_command("gsm", handle_gsm );
@@ -32,7 +32,7 @@ void register_command_handlers()
     register_command("memory", handle_memory);
     register_command("log", handle_log);
     register_command("report", handle_report);
-    register_command("registration", handle_registration);
+    register_command("registration", handle_registration);*/
 }
 
 /*
