@@ -28,6 +28,18 @@ typedef enum
 	kProtocolError
 } SlaveError;
 
+typedef enum
+{
+	kInitiatingCommand = 0,
+	kTerminatingCommand,
+	kUsercodeExecuting,
+	kReceivingBuffer,
+	kSendingBuffer
+} MIBCommandState
+
+//Callback Type
+typedef void (*mib_callback)(unsigned int);
+
 #define kMIBCommandLength 	sizeof(MIBCommandPacket)
 
 typedef union
@@ -49,8 +61,10 @@ typedef struct
 	MIBCommandPacket 	 	curr_cmd;
 	unsigned int 			curr_cmd_byte;
 
-	task_callback			command_continuation; //the handler that will process this command
-	unsigned char			received_byte; //The last byte we received from the wire
+	//Command Execution Data
+	mib_callback			command_continuation; 	//the handler that processes this command
+	unsigned char			received_byte; 			//The last byte we received from the wire
+	MIBCommandState			command_state;
 } MIBState;
 
 #endif

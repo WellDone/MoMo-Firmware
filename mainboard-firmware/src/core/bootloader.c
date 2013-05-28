@@ -8,8 +8,26 @@ extern volatile MIBState mib_state;
  *
  */
 
-void __attribute__((interrupt,no_auto_psv,section(".bootloader"))) _SI2C2Interrupt()
+void __attribute__((interrupt,no_auto_psv,section(".bootloader"))) _SI2C1Interrupt()
 {
+	//If we just received a stop, end the command if there is one executing and 
+	//go back into idle mode
+	if (_P)
+	{
+		if (mib_state.receive_state == kExecutingCommandState)
+		{
+			
+		}
+		else
+		{
+			mib_state.receive_state = kIdleState;
+			mib_state.last_error = kNoError;
+		}
+
+		i2c_release_clock();
+		goto cleanup;
+	}
+
 	//If we've already received our command, this is just a command dependent byte
 	//so pass it on to the command continuation
 	if (mib_state.receive_state == kExecutingCommandState)
@@ -19,15 +37,6 @@ void __attribute__((interrupt,no_auto_psv,section(".bootloader"))) _SI2C2Interru
 
 		taskloop_add(mib_state.command_continuation);
 		//do not release clock.  This is the job of the command continuation
-		goto cleanup;
-	}
-
-	//If we just received a stop, go back into idle mode
-	if (_P)
-	{
-		mib_state.receive_state = kIdleState;
-		mib_state.last_error = kNoError;
-		i2c_release_clock();
 		goto cleanup;
 	}
 
