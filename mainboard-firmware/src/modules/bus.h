@@ -21,7 +21,7 @@ typedef enum
 
 typedef enum  
 {
-	kNoError = 0,
+	kNoI2CError = 0,
 	kMalformedCommandPacketError,
 	kUnsupportedCommandError,
 	kUnsupportedFeatureError,
@@ -35,7 +35,7 @@ typedef enum
 	kUsercodeExecuting,
 	kReceivingBuffer,
 	kSendingBuffer
-} MIBCommandState
+} MIBCommandState;
 
 //Callback Type
 typedef void (*mib_callback)(unsigned int);
@@ -66,5 +66,7 @@ typedef struct
 	unsigned char			received_byte; 			//The last byte we received from the wire
 	MIBCommandState			command_state;
 } MIBState;
+
+void bus_init();
 
 #endif

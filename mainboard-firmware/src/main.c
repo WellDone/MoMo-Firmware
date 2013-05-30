@@ -2,6 +2,8 @@
 #include "common.h"
 #include "reset_manager.h"
 #include "task_manager.h"
+#include "scheduler.h"
+#include "i2c.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -45,10 +47,41 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
+I2CMessage test_msg;
+unsigned char 	msg_data[5] = {0xFF, 0x00, 0x44, 0xAA, 0xBB};
+
+void blink_light1(void)
+{
+	_RA1 = !_RA1;
+}
+
+void send_test_message(void)
+{
+	test_msg.address = 25;
+	test_msg.data_ptr = msg_data;
+	test_msg.last_data = msg_data+5;
+
+	if (i2c_send_message(&test_msg) == -1)
+		_RA0 = 0;
+}
+
+ScheduledTask task1;
+ScheduledTask task0;
+ScheduledTask i2c;
+
 int main(void) {
     AD1PCFG = 0xFFFF;
 
+    _TRISA1 = 0;
+    _TRISA0 = 0;
+
+    _RA1 = 1;
+    _RA0 = 1;
+
     handle_reset();
+
+    scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
+    scheduler_schedule_task(send_test_message, kEverySecond, kScheduleForever, &i2c);
 
     taskloop_loop();
 

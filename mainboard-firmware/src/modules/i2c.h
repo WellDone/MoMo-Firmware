@@ -25,9 +25,11 @@ enum
 						kSMBusLevelCompliantFlag | kEnableGeneralCallFlag |			\
 						kEnableSoftwareClockStretchingFlag	)
 
-#define i2c_init_flags(conf) 		(conf->flags = 0)
-#define i2c_set_flag(conf, flag)	(conf->flags |= flag)
+#define i2c_init_flags(conf) 		((conf)->flags = 0)
+#define i2c_set_flag(conf, flag)	((conf)->flags |= flag)
 #define i2c_release_clock()			_SCLREL = 1
+#define i2c_send_start()			_SEN = 1
+#define	i2c_send_stop()				_PEN = 1
 
 typedef struct
 {
@@ -36,8 +38,41 @@ typedef struct
 	unsigned char	priority;
 } I2CConfig;
 
+typedef enum
+{
+	kMasterIdleState = 0,
+	kMasterSendingStartState,
+	kMasterSendingAddressState,
+	kMasterSendingDataState,
+	kMasterSendingChecksumState,
+	kMasterSendingStopState
+} I2CMasterState;
+
+typedef struct
+{
+	unsigned char address;
+	unsigned char *data_ptr;
+	unsigned char *last_data;
+
+	unsigned char checksum;
+} I2CMessage;
+
+typedef enum 
+{
+	kMasterSendData = 0,
+	kMasterReceiveData = 1
+} I2CMasterDirection;
+
+typedef struct
+{
+	I2CMasterState state;
+	I2CMasterDirection dir;
+	I2CMessage *curr_msg;
+} I2CMasterStatus;
+
 void i2c_configure(const I2CConfig *config);
 void i2c_enable();
 void i2c_disable();
+unsigned int i2c_send_message(I2CMessage *msg);
 
 #endif

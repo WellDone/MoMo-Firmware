@@ -10,7 +10,7 @@
 
 #include "bus.h"
 
-#define _BOOTLOADER_CODE __section(".bootloader")
+#define _BOOTLOADER_CODE 	__section(".bootloader")
 
 //Bootloader functions
 void bootloader_process_command();
