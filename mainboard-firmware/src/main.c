@@ -3,7 +3,8 @@
 #include "reset_manager.h"
 #include "task_manager.h"
 #include "scheduler.h"
-#include "i2c.h"
+#include "bus.h"
+#include "nullcallback.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -57,31 +58,36 @@ void blink_light1(void)
 
 void send_test_message(void)
 {
-	test_msg.address = 25;
-	test_msg.data_ptr = msg_data;
-	test_msg.last_data = msg_data+5;
+    static unsigned char unused;
 
-	if (i2c_send_message(&test_msg) == -1)
-		_RA0 = 0;
+	MIBCommandPacket cmd;
+
+    cmd.feature = 0x25;
+    cmd.command = 0xAA;
+
+    bus_master_sendcommand(8, &cmd, master_nullcallback, &unused);
 }
 
 ScheduledTask task1;
 ScheduledTask task0;
 ScheduledTask i2c;
 
-int main(void) {
+int main(void) 
+{
     AD1PCFG = 0xFFFF;
 
     _TRISA1 = 0;
     _TRISA0 = 0;
+    _TRISA6 = 0;
 
     _RA1 = 1;
     _RA0 = 1;
+    _RA6 = 1;
 
     handle_reset();
 
-    scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
-    scheduler_schedule_task(send_test_message, kEverySecond, kScheduleForever, &i2c);
+    //scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
+    scheduler_schedule_task(send_test_message, kEverySecond, 2, &i2c);
 
     taskloop_loop();
 

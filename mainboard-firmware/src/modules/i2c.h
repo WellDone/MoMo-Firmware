@@ -8,6 +8,7 @@
 #define __i2c_h__
 
 #include "common.h"
+#include "task_manager.h"
 
 enum
 {
@@ -29,32 +30,66 @@ enum
 #define i2c_set_flag(conf, flag)	((conf)->flags |= flag)
 #define i2c_release_clock()			_SCLREL = 1
 #define i2c_send_start()			_SEN = 1
+#define i2c_send_repeatedstart()	_RSEN = 1
 #define	i2c_send_stop()				_PEN = 1
+#define i2c_begin_receive()			_RCEN = 1
+#define i2c_send_ack()				{_ACKDT = 0; _ACKEN = 1;}
+#define i2c_send_nack()				{_ACKDT = 1; _ACKEN = 1;}
+#define i2c_received_data()			_RBF
+#define i2c_has_checksum()			(!(curr_msg->flags & kI2CMessageNoChecksum))
+#define i2c_transmit_full()			(_TBF == 1)
+
+//i2c slave conditions
+#define i2c_stop_received()			(_P == 1)
+#define i2c_address_received()		(_D_NOT_A == 0)
+
+#define kInvalidI2CAddress			0x02				//Guaranteed not to be in use by the i2c protocol
+#define i2c_address_valid(address) 	(address != kInvalidI2CAddress)
+
+
 
 typedef struct
 {
 	unsigned int 	flags;
 	unsigned char	address; //7-bit address for this device
 	unsigned char	priority;
+
+	task_callback	callback;
+	task_callback	slave_callback;
 } I2CConfig;
 
 typedef enum
 {
 	kMasterIdleState = 0,
-	kMasterSendingStartState,
-	kMasterSendingAddressState,
-	kMasterSendingDataState,
-	kMasterSendingChecksumState,
-	kMasterSendingStopState
+	kMasterSendAddressState,
+	kMasterTransferDataState,
+	kMasterSendChecksumState,
+	kMasterReceiveDataState,
+	kMasterReceiveChecksumState,
+	kMasterUserCallbackState
 } I2CMasterState;
+
+typedef enum 
+{
+	kSlaveIdleState = 0,
+	kSlaveReceivedAddressState,
+	kSlaveReceiveState,
+	kSlaveReceiveChecksumState,
+	kSlaveTransmitState,
+	kSlaveSendChecksumState,
+	kSlaveUserCallbackState
+} I2CSlaveState;
 
 typedef struct
 {
 	unsigned char address;
-	unsigned char *data_ptr;
-	unsigned char *last_data;
+	unsigned char len; //The length of the buffer pointed to by data pointer when receiving data, unused when sending
+
+	volatile unsigned char * volatile data_ptr;
+	volatile unsigned char * volatile last_data;
 
 	unsigned char checksum;
+	unsigned char flags;
 } I2CMessage;
 
 typedef enum 
@@ -67,12 +102,30 @@ typedef struct
 {
 	I2CMasterState state;
 	I2CMasterDirection dir;
-	I2CMessage *curr_msg;
 } I2CMasterStatus;
+
+typedef struct 
+{
+	I2CSlaveState state;
+} I2CSlaveStatus;
 
 void i2c_configure(const I2CConfig *config);
 void i2c_enable();
 void i2c_disable();
-unsigned int i2c_send_message(I2CMessage *msg);
+
+int i2c_send_message(volatile I2CMessage *msg);
+int i2c_receive_message(volatile I2CMessage *msg);
+
+volatile I2CMessage** i2c_select_pointer(volatile I2CMessage *msg);
+
+void i2c_start_transmission();
+void i2c_finish_transmission();
+
+void i2c_master_receivedata();
+void i2c_master_receivechecksum();
+
+void i2c_slave_receivedata();
+void i2c_slave_receivechecksum();
+I2CSlaveState i2c_slave_state();
 
 #endif

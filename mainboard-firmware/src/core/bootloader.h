@@ -5,6 +5,7 @@
  * not handled natively in the bootloader code (i.e. all commands except the ones pertaining to reflashing) are 
  * passed to the application code for processing
  */
+
 #ifndef __bootloader_h__
 #define __bootloader_h__
 
@@ -14,5 +15,7 @@
 
 //Bootloader functions
 void bootloader_process_command();
+
+//i2c slave functions
 
 #endif

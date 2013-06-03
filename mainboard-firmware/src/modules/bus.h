@@ -1,3 +1,4 @@
+
 /* bus module
  * This module implements routines and definitions related to the Momo Intermodule Bus (MIB)
  */
@@ -9,64 +10,65 @@
 #include "task_manager.h"
 #include "i2c.h"
 
-typedef enum  
-{
-	kIdleState = 0,
-	kReceivingCommandState,
-	kReceivedCommandState,
-	kProcessedCommandState,
-	kExecutingCommandState,
-	kErrorState
-} SlaveProcessingState;
+#define kBusMaxMessageSize 		40
 
-typedef enum  
+//Wellknown Command States
+enum
 {
-	kNoI2CError = 0,
-	kMalformedCommandPacketError,
-	kUnsupportedCommandError,
-	kUnsupportedFeatureError,
-	kProtocolError
-} SlaveError;
-
-typedef enum
-{
-	kInitiatingCommand = 0,
-	kTerminatingCommand,
-	kUsercodeExecuting,
-	kReceivingBuffer,
-	kSendingBuffer
-} MIBCommandState;
+	kCommandBegin = 0,
+	kCommandFinished = 127
+};
 
 //Callback Type
-typedef void (*mib_callback)(unsigned int);
+typedef int (*mib_callback)(int);
 
 #define kMIBCommandLength 	sizeof(MIBCommandPacket)
+#define kInvalidMIBHandler  (mib_callback)0
 
-typedef union
+#define bus_slave_send(buffer, len, flags)			bus_send(kInvalidI2CAddress, buffer, len, flags)
+#define bus_slave_receive(buffer, len, flags) 		bus_receive(kInvalidI2CAddress, buffer, len, flags)
+
+typedef struct
 {
-	unsigned char	  bytes[3];
-
-	struct {
-		unsigned char feature;
-		unsigned char command;
-		unsigned char checksum;
-	} sep;
+	unsigned char feature;
+	unsigned char command;
 } MIBCommandPacket;
 
 typedef struct 
 {
-	SlaveProcessingState 	receive_state;
-	SlaveError				last_error;
+	//Slave section
+	I2CMessage				slave_msg;
+	mib_callback			slave_subhandler;
+	int 					slave_substate;
 
-	MIBCommandPacket 	 	curr_cmd;
-	unsigned int 			curr_cmd_byte;
+	mib_callback			slave_handler;
+	int						slave_state;
 
-	//Command Execution Data
-	mib_callback			command_continuation; 	//the handler that processes this command
-	unsigned char			received_byte; 			//The last byte we received from the wire
-	MIBCommandState			command_state;
+	MIBCommandPacket		slave_command;
+
+	//Master section	
+	I2CMessage				master_msg;
+	mib_callback			subcommand_handler;
+	int 					subcommand_state;
+
+	mib_callback			master_handler;
+	int						master_state;
 } MIBState;
 
 void bus_init();
+
+//Command Routines
+int 			bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
+int 			bus_receive(unsigned char address, volatile unsigned char *buffer, unsigned char len, unsigned char flags);
+
+//Master Routines
+int 			bus_master_sendcommand(unsigned char address, MIBCommandPacket *cmd, mib_callback callback, unsigned char *response);
+unsigned char 	bus_master_lastaddress();
+void 			bus_master_callback();
+
+//Slave Routines
+void			bus_slave_startcommand();
+void 			bus_slave_callback();
+
 
 #endif
