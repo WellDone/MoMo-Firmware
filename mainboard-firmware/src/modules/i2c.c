@@ -125,7 +125,6 @@ int i2c_receive_message(volatile I2CMessage *msg)
 	//Check if this is a slave reception
 	if (!i2c_address_valid(msg->address))
 	{
-		_RA1 = 0;
 		slave.state = kSlaveReceiveState;
 		return 0;
 	}
@@ -214,6 +213,7 @@ void i2c_slave_receivechecksum()
 		slave.state = kSlaveUserCallbackState;
 		taskloop_add(i2c_slave_callback);
 	}
+	//TODO: Add error processing here
 
 	i2c_release_clock();
 }
@@ -271,6 +271,17 @@ void __attribute__((interrupt,no_auto_psv)) _MI2C1Interrupt()
 	_MI2C1IF = 0;
 }
 
+void i2c_master_setidle()
+{
+	master.state = kMasterIdleState;
+}
+
+void i2c_slave_setidle()
+{
+	i2c_release_clock();
+	slave.state = kSlaveIdleState;
+}
+
 I2CSlaveState i2c_slave_state()
 {
 	return slave.state;
@@ -281,21 +292,10 @@ void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt()
 	/*
 	 * Possible states
 	 * 1) Receive address when idle -> begin receiving command
-	 * 2) Receive stop -> let usercode clean up and stop
-	 * 3) Receive address when not idle -> ignore since we just care about commands without repeated starts
+	 * 2) Receive address when not idle -> ignore since we just care about commands without repeated starts
 	 */
 
-	if (i2c_stop_received())
-	{
-		if (slave.state != kSlaveIdleState)
-		{
-			//TODO: allow usercode to clean up here
-		}
-
-		slave.state = kSlaveIdleState;
-		i2c_release_clock();
-	}
-	else if ((slave.state == kSlaveIdleState) && i2c_address_received())
+	if ((slave.state == kSlaveIdleState) && i2c_address_received())
 	{
 		volatile unsigned char unused = I2C1RCV; //Clear the buffer
 		//If we're idle, this indicates a new command otherwise its a repeated start and we ignore it
@@ -304,15 +304,11 @@ void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt()
 		taskloop_add(i2c_slave_callback);  //callback has to release SCL
 	}
 	else if (slave.state == kSlaveReceiveState && i2c_received_data())
-	{
-		_RA1 = 0;
 		i2c_slave_receivedata();
-	}
 	else if (slave.state == kSlaveReceiveChecksumState && i2c_received_data())
 		i2c_slave_receivechecksum();
 	else if (slave.state == kSlaveTransmitState && !i2c_transmit_full())
 	{
-		_RA6 = 0;
 		I2C1TRN = *(slave_msg->data_ptr);
 		slave_msg->checksum += *(slave_msg->data_ptr);
 		slave_msg->data_ptr += 1;
@@ -326,12 +322,13 @@ void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt()
 	{
 		slave_msg->checksum = (~slave_msg->checksum) + 1;
 		I2C1TRN = slave_msg->checksum;
-		master.state = kSlaveUserCallbackState;
-
+		slave.state = kSlaveUserCallbackState;
 		i2c_release_clock();
 	}
 	else if (slave.state == kSlaveUserCallbackState)
+	{
 		taskloop_add(i2c_slave_callback);
-	
+	}
+
 	_SI2C1IF = 0;
 }
