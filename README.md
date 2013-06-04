@@ -1,6 +1,6 @@
 # WellDone MoMo Firmware
 
-The bulk of the code lives in momo_modules/mainboard
+A product of [WellDone.org](http://www.welldone.org).
 
 ## Directory structure breakdown ##
 
