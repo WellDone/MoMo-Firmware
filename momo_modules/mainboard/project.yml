@@ -131,8 +131,8 @@
       - -Wl,-Tp24F16KA101.gld,-Map=./build/release/MoMo-mainboard-firmware.map,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem
 :plugins:
   :load_paths:
-    - tools/ceedling/plugins
-    - tools/ceedling-plugins
+    - ../../tools/ceedling/plugins
+    - ../../tools/ceedling-plugins
   :enabled:
     - stdout_pretty_tests_report
     - module_generator
