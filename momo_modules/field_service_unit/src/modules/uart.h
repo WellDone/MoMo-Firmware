@@ -13,12 +13,6 @@ typedef enum
     NoParity = 0b00
 } ParitySettings;
 
-typedef enum
-{
-    CallEachCharacter = 0,
-    CallEachNewline
-} ReceiveSettings;
-
 typedef struct
 {
     unsigned long baud;
