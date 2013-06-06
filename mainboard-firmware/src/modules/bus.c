@@ -96,10 +96,11 @@ void bus_master_callback()
 
 void bus_slave_startcommand()
 {
-	mib_state.slave_subhandler = slave_receive_command;
-	mib_state.slave_substate = kCommandBegin;
+	mib_state.slave_subhandler = kInvalidMIBHandler;
+	mib_state.slave_substate = kCommandFinished;
 
-	mib_state.slave_handler = kInvalidMIBHandler;
+	mib_state.slave_state = kCommandBegin;
+	mib_state.slave_handler = slave_receive_command;
 
 	bus_slave_receive((unsigned char *)&mib_state.slave_command, 2, 0);
 }
@@ -113,18 +114,24 @@ void bus_slave_callback()
 		return;
 	}
 
-	if (mib_state.slave_substate == kCommandFinished)
-		mib_state.slave_subhandler = kInvalidMIBHandler;
-
 	//If we're executing a subcommand, use that handler, otherwise use master command handler
 	if (mib_state.slave_subhandler != kInvalidMIBHandler)
+	{
 		mib_state.slave_substate = mib_state.slave_subhandler(mib_state.slave_substate);
+
+		if (mib_state.slave_substate == kCommandFinished)
+			mib_state.slave_subhandler = kInvalidMIBHandler;
+	}
 	else
 	{
-		if (mib_state.slave_state == kCommandFinished)
-			mib_state.slave_handler = kInvalidMIBHandler;
-
 		if (mib_state.slave_handler != kInvalidMIBHandler)
 			mib_state.slave_state = mib_state.slave_handler(mib_state.slave_state);
+
+		if (mib_state.slave_state == kCommandFinished)
+		{
+			mib_state.slave_handler = kInvalidMIBHandler;
+			_RA6 = !_RA6;
+			i2c_slave_setidle();
+		}
 	}
 }

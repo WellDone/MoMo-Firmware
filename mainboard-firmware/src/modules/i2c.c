@@ -215,6 +215,7 @@ void i2c_slave_receivechecksum()
 	{
 		//TODO: set checksum error here
 	}
+	//TODO: Add error processing here
 
 	i2c_release_clock();
 }
@@ -298,6 +299,7 @@ void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt()
 	{
 		_RA6 = 0;
 		i2c_transmit(*(slave_msg->data_ptr));
+
 		slave_msg->checksum += *(slave_msg->data_ptr);
 		slave_msg->data_ptr += 1;
 
@@ -310,12 +312,13 @@ void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt()
 	{
 		slave_msg->checksum = (~slave_msg->checksum) + 1;
 		I2C1TRN = slave_msg->checksum;
+
 		master.state = kI2CUserCallbackState;
 
 		i2c_release_clock();
 	}
 	else if (slave.state == kI2CUserCallbackState)
 		taskloop_add(i2c_slave_callback);
-	
+
 	_SI2C1IF = 0;
 }

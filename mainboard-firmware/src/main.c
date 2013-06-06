@@ -65,7 +65,7 @@ void send_test_message(void)
     cmd.feature = 0x25;
     cmd.command = 0xAA;
 
-    bus_master_sendcommand(8, &cmd, master_nullcallback, &unused);
+    bus_master_sendcommand(9, &cmd, master_nullcallback, &unused);
 }
 
 ScheduledTask task1;
@@ -87,7 +87,7 @@ int main(void)
     handle_reset();
 
     //scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
-    scheduler_schedule_task(send_test_message, kEverySecond, 2, &i2c);
+    //scheduler_schedule_task(send_test_message, kEverySecond, kScheduleForever, &i2c);
 
     taskloop_loop();
 
