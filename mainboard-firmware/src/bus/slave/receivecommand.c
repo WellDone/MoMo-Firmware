@@ -11,7 +11,10 @@ int slave_receive_command(int state)
 		return 1;
 	}
 	else if (state == 1)
+	{
 		_RA1 = !_RA1;
+		i2c_slave_setidle();
+	}
 
 	return kCommandFinished;
 }

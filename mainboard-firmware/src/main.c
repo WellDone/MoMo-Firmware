@@ -53,7 +53,7 @@ unsigned char 	msg_data[5] = {0xFF, 0x00, 0x44, 0xAA, 0xBB};
 
 void blink_light1(void)
 {
-	_RA1 = !_RA1;
+	_RA0 = !_RA0;
 }
 
 void send_test_message(void)
@@ -86,7 +86,7 @@ int main(void)
 
     handle_reset();
 
-    //scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
+    scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
     //scheduler_schedule_task(send_test_message, kEverySecond, kScheduleForever, &i2c);
 
     taskloop_loop();

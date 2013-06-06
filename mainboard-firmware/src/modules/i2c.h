@@ -128,6 +128,7 @@ void i2c_master_setidle();
 
 void i2c_slave_receivedata();
 void i2c_slave_receivechecksum();
+void i2c_slave_setidle();
 
 I2CLogicState i2c_slave_state();
 

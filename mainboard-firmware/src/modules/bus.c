@@ -107,6 +107,8 @@ void bus_slave_startcommand()
 
 void bus_slave_callback()
 {
+	//_RA6 = !_RA6;
+
 	if (i2c_slave_state() == kI2CReceivedAddressState)
 	{
 		bus_slave_startcommand();
@@ -130,7 +132,7 @@ void bus_slave_callback()
 		if (mib_state.slave_state == kCommandFinished)
 		{
 			mib_state.slave_handler = kInvalidMIBHandler;
-			_RA6 = !_RA6;
+			//_RA6 = !_RA6;
 			i2c_slave_setidle();
 		}
 	}
