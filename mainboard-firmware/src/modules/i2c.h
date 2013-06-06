@@ -38,6 +38,7 @@ enum
 #define i2c_received_data()			_RBF
 #define i2c_has_checksum()			(!(curr_msg->flags & kI2CMessageNoChecksum))
 #define i2c_transmit_full()			(_TBF == 1)
+#define i2c_transmit(byte)			I2C1TRN = (byte)
 
 //i2c slave conditions
 #define i2c_stop_received()			(_P == 1)
@@ -60,25 +61,23 @@ typedef struct
 
 typedef enum
 {
-	kMasterIdleState = 0,
-	kMasterSendAddressState,
-	kMasterTransferDataState,
-	kMasterSendChecksumState,
-	kMasterReceiveDataState,
-	kMasterReceiveChecksumState,
-	kMasterUserCallbackState
-} I2CMasterState;
+	kI2CIdleState = 0,
+	kI2CSendAddressState,
+	kI2CReceivedAddressState,
+	kI2CSendDataState,
+	kI2CSendChecksumState,
+	kI2CReceiveDataState,
+	kI2CReceiveChecksumState,
+	kI2CUserCallbackState
+} I2CLogicState;
 
-typedef enum 
+typedef enum
 {
-	kSlaveIdleState = 0,
-	kSlaveReceivedAddressState,
-	kSlaveReceiveState,
-	kSlaveReceiveChecksumState,
-	kSlaveTransmitState,
-	kSlaveSendChecksumState,
-	kSlaveUserCallbackState
-} I2CSlaveState;
+	kI2CNoError = 0,
+	kI2CInvalidChecksum,
+	kI2CUnsupportedFeature,
+	kI2CUnknownCommand
+} I2CErrorCode;
 
 typedef struct
 {
@@ -100,13 +99,15 @@ typedef enum
 
 typedef struct
 {
-	I2CMasterState state;
-	I2CMasterDirection dir;
+	I2CLogicState 		state;
+	I2CMasterDirection 	dir;
+	I2CErrorCode		last_error;
 } I2CMasterStatus;
 
 typedef struct 
 {
-	I2CSlaveState state;
+	I2CLogicState state;
+	I2CErrorCode  last_error;
 } I2CSlaveStatus;
 
 void i2c_configure(const I2CConfig *config);
@@ -126,6 +127,6 @@ void i2c_master_receivechecksum();
 
 void i2c_slave_receivedata();
 void i2c_slave_receivechecksum();
-I2CSlaveState i2c_slave_state();
+I2CLogicState i2c_slave_state();
 
 #endif

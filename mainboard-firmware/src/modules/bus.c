@@ -13,7 +13,7 @@ void bus_init()
 {
 	I2CConfig config;
 
-	config.address = 8;
+	config.address = kControllerPICAddress;
 	config.priority = 0b010;
 	config.callback = bus_master_callback;
 	config.slave_callback = bus_slave_callback;
@@ -106,7 +106,7 @@ void bus_slave_startcommand()
 
 void bus_slave_callback()
 {
-	if (i2c_slave_state() == kSlaveReceivedAddressState)
+	if (i2c_slave_state() == kI2CReceivedAddressState)
 	{
 		bus_slave_startcommand();
 		i2c_release_clock(); 		//We clock stretched until this point

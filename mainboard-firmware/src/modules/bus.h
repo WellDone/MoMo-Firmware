@@ -11,6 +11,7 @@
 #include "i2c.h"
 
 #define kBusMaxMessageSize 		40
+#define kControllerPICAddress	0x08
 
 //Wellknown Command States
 enum

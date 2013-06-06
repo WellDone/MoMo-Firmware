@@ -44,8 +44,8 @@ void i2c_enable()
 	//enable module power
 	peripheral_enable(kI2CModule);
 
-	master.state = kMasterIdleState;
-	slave.state = kSlaveIdleState;
+	master.state = kI2CIdleState;
+	slave.state = kI2CIdleState;
 
 	unused = I2C1RCV; //Clear out receive buffer
 	_I2CEN = 1;
@@ -69,19 +69,20 @@ void i2c_disable()
 
 void i2c_start_transmission()
 {
-	if (master.state == kMasterIdleState)
+	if (master.state == kI2CIdleState)
 		i2c_send_start();
 	else
 		i2c_send_repeatedstart();
 
-	master.state = kMasterSendAddressState;
+	master.state = kI2CSendAddressState;
+	master.last_error = kI2CNoError; //Initialize last error
 }
 
 void i2c_finish_transmission()
 {
 	i2c_send_stop();
 
-	master.state = kMasterIdleState;
+	master.state = kI2CIdleState;
 }
 
 volatile I2CMessage** i2c_select_pointer(volatile I2CMessage *msg)
@@ -102,7 +103,7 @@ int i2c_send_message(volatile I2CMessage *msg)
 	//Check if this is a slave transmission
 	if (!i2c_address_valid(msg->address))
 	{
-		slave.state = kSlaveTransmitState;
+		slave.state = kI2CSendDataState;
 		return 0;
 	}
 
@@ -126,7 +127,7 @@ int i2c_receive_message(volatile I2CMessage *msg)
 	if (!i2c_address_valid(msg->address))
 	{
 		_RA1 = 0;
-		slave.state = kSlaveReceiveState;
+		slave.state = kI2CReceiveDataState;
 		return 0;
 	}
 
@@ -153,9 +154,9 @@ void i2c_master_receivedata()
 
 		//Check if we are at the end of the message
 		if ((master_msg->last_data - master_msg->data_ptr) == master_msg->len)
-			master.state = kMasterReceiveChecksumState;
+			master.state = kI2CReceiveChecksumState;
 		else
-			master.state = kMasterReceiveDataState;
+			master.state = kI2CReceiveDataState;
 
 		i2c_send_ack(); //Acknowledge all received data bytes
 	}
@@ -170,17 +171,17 @@ void i2c_master_receivechecksum()
 		unsigned char check = I2C1RCV;
 
 		master_msg->checksum = ~master_msg->checksum + 1;
+		master.state = kI2CUserCallbackState;
 
 		if (check == master_msg->checksum)
-		{
-			master.state = kMasterUserCallbackState;
-			i2c_send_ack();
-		}
+			;
 		else
 		{
-			master.state = kMasterUserCallbackState;
-			i2c_send_nack();
+			//TODO: set checksum error here
+			
 		}
+
+		i2c_send_nack(); //We are done with this read transaction, send a nack to the slave per i2c spec
 	}
 	else
 		i2c_begin_receive();
@@ -196,9 +197,7 @@ void i2c_slave_receivedata()
 
 	//Check if we are at the end of the message
 	if ((slave_msg->last_data - slave_msg->data_ptr) == slave_msg->len)
-	{
-		slave.state = kSlaveReceiveChecksumState;
-	}
+		slave.state = kI2CReceiveChecksumState;
 
 	i2c_release_clock();
 }
@@ -209,10 +208,12 @@ void i2c_slave_receivechecksum()
 
 	slave_msg->checksum = ~slave_msg->checksum + 1;
 
-	if (check == slave_msg->checksum)
+	slave.state = kI2CUserCallbackState;
+	taskloop_add(i2c_slave_callback);
+
+	if (check != slave_msg->checksum)
 	{
-		slave.state = kSlaveUserCallbackState;
-		taskloop_add(i2c_slave_callback);
+		//TODO: set checksum error here
 	}
 
 	i2c_release_clock();
@@ -220,58 +221,52 @@ void i2c_slave_receivechecksum()
 
 void __attribute__((interrupt,no_auto_psv)) _MI2C1Interrupt()
 {
+	//TODO add code for handling bus collision arbitration losses and stops
 	switch(master.state)
 	{
-		case kMasterSendAddressState:
-		if (master.dir == kMasterSendData)
-		{
-			I2C1TRN = master_msg->address;
-			master.state = kMasterTransferDataState;
-		}
-		else
-		{
-			I2C1TRN = master_msg->address;
-			master.state = kMasterReceiveDataState;
-		}
+		case kI2CSendAddressState:
+		i2c_transmit(master_msg->address);
+		master.state = (master.dir == kMasterSendData) ? kI2CSendDataState : kI2CReceiveDataState;
 		break;
 
-		case kMasterReceiveDataState:
+		case kI2CReceiveDataState:
 		i2c_master_receivedata();
 		break;
 
-		case kMasterReceiveChecksumState:
+		case kI2CReceiveChecksumState:
 		i2c_master_receivechecksum();
 		break;
 
 		//Send Logic
-		case kMasterTransferDataState:
+		case kI2CSendDataState:
 		I2C1TRN = *(master_msg->data_ptr);
 		master_msg->checksum += *(master_msg->data_ptr);
 		master_msg->data_ptr += 1;
 
 		if (master_msg->data_ptr == master_msg->last_data)
-			master.state = kMasterSendChecksumState;
+			master.state = kI2CSendChecksumState;
 		break;
 
-		case kMasterSendChecksumState:
+		case kI2CSendChecksumState:
 		master_msg->checksum = (~master_msg->checksum) + 1;
 		I2C1TRN = master_msg->checksum;
-		master.state = kMasterUserCallbackState;
+		master.state = kI2CUserCallbackState;
 		break;
 
-		case kMasterUserCallbackState:
+		case kI2CUserCallbackState:
 		//This data is now sent or received, we need to execute the callback to see what to do next
 		taskloop_add(i2c_callback); //It is the job of the user callback to decide whether to 
 		break;
 
-		case kMasterIdleState:
+		case kI2CIdleState:
+		case kI2CReceivedAddressState:
 		break;
 	}
 
 	_MI2C1IF = 0;
 }
 
-I2CSlaveState i2c_slave_state()
+I2CLogicState i2c_slave_state()
 {
 	return slave.state;
 }
@@ -281,56 +276,45 @@ void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt()
 	/*
 	 * Possible states
 	 * 1) Receive address when idle -> begin receiving command
-	 * 2) Receive stop -> let usercode clean up and stop
-	 * 3) Receive address when not idle -> ignore since we just care about commands without repeated starts
+	 * 2) Receive address when not idle -> ignore since we just care about commands without repeated starts
 	 */
 
-	if (i2c_stop_received())
-	{
-		if (slave.state != kSlaveIdleState)
-		{
-			//TODO: allow usercode to clean up here
-		}
-
-		slave.state = kSlaveIdleState;
-		i2c_release_clock();
-	}
-	else if ((slave.state == kSlaveIdleState) && i2c_address_received())
+	if ((slave.state == kI2CIdleState) && i2c_address_received())
 	{
 		volatile unsigned char unused = I2C1RCV; //Clear the buffer
 		//If we're idle, this indicates a new command otherwise its a repeated start and we ignore it
 		//and wait for the data bytes after it.
-		slave.state = kSlaveReceivedAddressState;
-		taskloop_add(i2c_slave_callback);  //callback has to release SCL
+		slave.state = kI2CReceivedAddressState;
+		taskloop_add(i2c_slave_callback);  //callback has to release SCL once it's located the appropriate command handler
 	}
-	else if (slave.state == kSlaveReceiveState && i2c_received_data())
+	else if (slave.state == kI2CReceiveDataState && i2c_received_data())
 	{
 		_RA1 = 0;
 		i2c_slave_receivedata();
 	}
-	else if (slave.state == kSlaveReceiveChecksumState && i2c_received_data())
+	else if (slave.state == kI2CReceiveChecksumState && i2c_received_data())
 		i2c_slave_receivechecksum();
-	else if (slave.state == kSlaveTransmitState && !i2c_transmit_full())
+	else if (slave.state == kI2CSendDataState && !i2c_transmit_full())
 	{
 		_RA6 = 0;
-		I2C1TRN = *(slave_msg->data_ptr);
+		i2c_transmit(*(slave_msg->data_ptr));
 		slave_msg->checksum += *(slave_msg->data_ptr);
 		slave_msg->data_ptr += 1;
 
 		if (slave_msg->data_ptr == slave_msg->last_data)
-			slave.state = kSlaveSendChecksumState;
+			slave.state = kI2CSendChecksumState;
 
 		i2c_release_clock();
 	}
-	else if (slave.state == kSlaveSendChecksumState && !i2c_transmit_full())
+	else if (slave.state == kI2CSendChecksumState && !i2c_transmit_full())
 	{
 		slave_msg->checksum = (~slave_msg->checksum) + 1;
 		I2C1TRN = slave_msg->checksum;
-		master.state = kSlaveUserCallbackState;
+		master.state = kI2CUserCallbackState;
 
 		i2c_release_clock();
 	}
-	else if (slave.state == kSlaveUserCallbackState)
+	else if (slave.state == kI2CUserCallbackState)
 		taskloop_add(i2c_slave_callback);
 	
 	_SI2C1IF = 0;
