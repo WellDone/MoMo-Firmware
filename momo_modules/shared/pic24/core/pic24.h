@@ -3,7 +3,7 @@
 
 #include <p24Fxxxx.h>
 #include "common_types.h"
-#include "assembly.h"
+#include "pic24asm.h"
 #define CLOCKSPEED      8000000L //F_osc / 2 (the instruction clock frequency)
 
 #define uninterruptible_start() __builtin_disi(0x3FFF)
