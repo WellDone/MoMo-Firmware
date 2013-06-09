@@ -16,11 +16,11 @@ void debug_init()
     params.baud = 38400;
     params.hw_flowcontrol = 0;
     params.parity = NoParity;
-    configure_uart(U2, &params);
+    configure_uart(DEBUG_UART, &params);
 
     taskloop_set_sleep(0); //Can't sleep with the UART
 
     print("Device reset complete.\r\n");
-    sendf(U2, "Type was: %d.\r\n", last_reset_type());
+    sendf(DEBUG_UART, "Type was: %d.\r\n", last_reset_type());
     print(DEBUG_PROMPT);
 }

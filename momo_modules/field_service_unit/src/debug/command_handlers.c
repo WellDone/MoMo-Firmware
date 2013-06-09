@@ -77,7 +77,7 @@ void handle_adc(command_params *params)
         _PCFG1 = 0;
         _TRISA1 = 1;
         adc_enable();
-        sendf(U2, "ADC Enabled, acquiring %d samples\r\n", num_samples);
+        sendf(DEBUG_UART, "ADC Enabled, acquiring %d samples\r\n", num_samples);
     }
     else if (strcmp(cmd, "get") == 0)
     {
@@ -102,7 +102,7 @@ void handle_adc(command_params *params)
         _TRISA1 = 1;
         val = adc_convert_one();
 
-        sendf(U2, "Read: %d\r\n", val);
+        sendf(DEBUG_UART, "Read: %d\r\n", val);
     }
     else if (strcmp(cmd, "cal") == 0)
     {
@@ -129,24 +129,24 @@ void handle_adc(command_params *params)
         val = adc_convert_one();
         _OFFCAL = 0;
 
-        sendf(U2, "Canibration: %d\r\n", val);
+        sendf(DEBUG_UART, "Calibration: %d\r\n", val);
     }
     else if (strcmp(cmd, "read") == 0)
     {
         unsigned int i=0;
-        sends(U2, "Dumping ADC buffer\r\n");
+        sends(DEBUG_UART, "Dumping ADC buffer\r\n");
         for (i=0; i<kADCBufferSize; ++i)
         {
-            sendf(U2, "Reading %d: %d\r\n", i, adc_buffer[i]);
+            sendf(DEBUG_UART, "Reading %d: %d\r\n", i, adc_buffer[i]);
         }
     }
     else if (strcmp(cmd, "disable") == 0)
     {
         adc_disable();
-        sends(U2, "ADC Disabled\r\n");
+        sends(DEBUG_UART, "ADC Disabled\r\n");
     }
     else
-        sendf(U2, "Unknown adc command: %s", cmd);
+        sendf(DEBUG_UART, "Unknown adc command: %s", cmd);
 }
 
 void handle_device(command_params *params)
@@ -168,7 +168,7 @@ void handle_device(command_params *params)
     }
     else if (strcmp(cmd, "rtype") == 0)
     {
-            sendf(U2, "Last reset type: %d\r\n", last_reset_type());
+            sendf(DEBUG_UART, "Last reset type: %d\r\n", last_reset_type());
     }
     else if (strcmp(cmd, "sleep") == 0)
     {
@@ -196,12 +196,12 @@ void handle_rtcc(command_params *params)
         unsigned int enabled = rtcc_enabled();
 
 
-        sendf(U2, "Realtime Clock Status: %s\r\n", enabled? "Enabled" : "Disabled");
+        sendf(DEBUG_UART, "Realtime Clock Status: %s\r\n", enabled? "Enabled" : "Disabled");
         rtcc_datetime time;
 
         rtcc_get_time(&time);
 
-        sendf(U2, "Current Time: %d/%d/%d %d:%d:%d\r\n", time.month, time.day, time.year, time.hours, time.minutes, time.seconds);
+        sendf(DEBUG_UART, "Current Time: %d/%d/%d %d:%d:%d\r\n", time.month, time.day, time.year, time.hours, time.minutes, time.seconds);
     }
     else if (strcmp(cmd, "set") == 0)
     {
@@ -221,7 +221,7 @@ void handle_rtcc(command_params *params)
         date = get_param_string(params, 1);
         time = get_param_string(params, 2);
 
-        sendf(U2, "Date string: %s\r\nTime string: %s\r\n", date, time);
+        sendf(DEBUG_UART, "Date string: %s\r\nTime string: %s\r\n", date, time);
 
         time_spec.month = get_2byte_number(date);
         time_spec.day = get_2byte_number(date+3);
@@ -232,7 +232,7 @@ void handle_rtcc(command_params *params)
 
         m = time_spec.month;
 
-        sendf(U2, "Input month was: %d\r\n", m);
+        sendf(DEBUG_UART, "Input month was: %d\r\n", m);
 
         rtcc_set_time(&time_spec);
     }
@@ -242,5 +242,5 @@ void handle_rtcc(command_params *params)
         print("RTCC Enabled\r\n");
     }
     else
-        sendf(U2, "Unknown rtcc command: %s\r\n", cmd);
+        sendf(DEBUG_UART, "Unknown rtcc command: %s\r\n", cmd);
 }
