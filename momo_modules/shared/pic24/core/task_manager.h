@@ -10,6 +10,7 @@
 #define __tasks_h__
 
 #include "ringbuffer.h"
+#include "rtcc.h"
 
 #define kMAXTASKS 16 //NB Must be a power of 2 since it will be used for a ringbuffer
 

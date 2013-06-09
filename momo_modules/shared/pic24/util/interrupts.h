@@ -2,7 +2,7 @@
 #ifndef __interrupts_h__
 #define __interrupts_h__
 
-#include "common.h"
+#include "pic24.h"
 
 typedef void (*isr_handler)();
 

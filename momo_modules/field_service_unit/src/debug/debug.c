@@ -1,7 +1,9 @@
 #include "debug.h"
 #include "common.h"
-#include "uart_utilities.h"
+#include "debug_utilities.h"
 #include "command_handlers.h"
+#include "task_manager.h"
+#include "reset_manager.h"
 #include "pme.h"
 
 void debug_init()

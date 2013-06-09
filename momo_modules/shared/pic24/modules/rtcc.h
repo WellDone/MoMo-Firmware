@@ -3,11 +3,12 @@
 #define __rtcc_h__
 
 #include "interrupts.h"
-#include "task_manager.h"
 
 #define HIBYTE(x) ((x&0xFF00) >> 8)
 #define LOBYTE(x) (x&0xFF)
 #define PACKWORD(hi, lo) ((hi&0xFF) << 8 | (lo&0xFF))
+
+typedef void(*alarm_callback)(void);
 
 //Type Definitions
 typedef enum
@@ -76,7 +77,7 @@ void get_rtcc_datetime_unsafe(rtcc_datetime *time);
 unsigned char from_bcd(unsigned char val);
 unsigned char to_bcd(unsigned char val);
 
-void         set_recurring_task(AlarmRepeatTime repeat, task_callback routine);
+void         set_recurring_task(AlarmRepeatTime repeat, alarm_callback routine);
 void         clear_recurring_task();
 unsigned int last_alarm_frequency();
 

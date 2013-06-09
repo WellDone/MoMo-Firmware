@@ -1,8 +1,9 @@
 #include "rtcc.h"
-#include "common.h"
+#include "pic24.h"
 #include <string.h>
+#include "task_manager.h"
 
-task_callback alarm_callback = 0;
+alarm_callback the_alarm_callback = 0;
 volatile unsigned int alarm_time = kEveryHalfSecond;
 
 void enable_rtcc()
@@ -11,7 +12,6 @@ void enable_rtcc()
         asm_enable_rtcon_write();
 
     _RTCEN = 1;
-
 }
 
 void disable_rtcc()
@@ -216,8 +216,8 @@ void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
             alarm_time = kEvery10Seconds;
     }
 
-    if (alarm_callback != 0)
-        taskloop_add(alarm_callback);
+    if (the_alarm_callback != 0)
+        taskloop_add(the_alarm_callback);
 
     IFS3bits.RTCIF = 0;
 }
@@ -227,7 +227,7 @@ unsigned int last_alarm_frequency()
     return alarm_time;
 }
 
-void set_recurring_task(AlarmRepeatTime repeat, task_callback routine)
+void set_recurring_task(AlarmRepeatTime repeat, alarm_callback routine)
 {
     if (!_RTCWREN)
         asm_enable_rtcon_write();
@@ -246,7 +246,7 @@ void set_recurring_task(AlarmRepeatTime repeat, task_callback routine)
     _AMASK = repeat;
 
     //Save off the callback
-    alarm_callback = routine;
+    the_alarm_callback = routine;
 
     IPC15bits.RTCIP = 1;
     IEC3bits.RTCIE = 1;
@@ -260,7 +260,7 @@ void clear_recurring_task()
 
     uninterruptible_start();
     _ALRMEN = 0; //disable alarm
-    alarm_callback = 0;
+    the_alarm_callback = 0;
     uninterruptible_end();
 }
 

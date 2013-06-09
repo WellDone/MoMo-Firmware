@@ -4,10 +4,11 @@
  *
  */
 
+#include "common.h"
 #include "serial_commands.h"
 #include "command_handlers.h"
 #include "task_manager.h"
-#include "uart_utilities.h"
+#include "debug_utilities.h"
 #include "debug.h"
 #include <string.h>
 

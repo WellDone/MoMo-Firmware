@@ -11,7 +11,7 @@
 #include "scheduler.h"
 #include "reset_manager.h"
 #include "assembly.h"
-#include "uart_utilities.h"
+#include "debug_utilities.h"
 
 extern volatile unsigned int adc_buffer[kADCBufferSize];
 ScheduledTask test_task;
