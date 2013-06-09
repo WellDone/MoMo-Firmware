@@ -28,6 +28,8 @@
     - -:test/support
   :source:
     - +:src/**
+    - +:../shared/pic24/**
+    - +:../shared/portable/**
   :support:
     - test/support
 

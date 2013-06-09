@@ -1,6 +1,7 @@
 #include "pme.h"
+#include "bit_utilities.h"
 
-volatile unsigned int * const pmd_map[4] = 
+volatile unsigned int * const pmd_map[4] =
 {
 	&PMD1,
 	&PMD2,

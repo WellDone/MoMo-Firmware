@@ -1,5 +1,6 @@
 #include "scheduler.h"
 #include "common.h"
+#include "bit_utilities.h"
 
 static SchedulerState state;
 

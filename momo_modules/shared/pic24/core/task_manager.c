@@ -1,6 +1,7 @@
 #include "task_manager.h"
-#include "common.h"
+#include "common_types.h"
 #include "uart.h"
+#include "utilities.h"
 
 task_list taskqueue;
 void taskloop_init()

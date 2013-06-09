@@ -2,7 +2,8 @@
 #define __utilities_h__
 
 #include <stdarg.h>
-#include "common.h"
+#include "common_types.h"
+#include "bit_utilities.h"
 
 unsigned char get_2byte_number(char *input);
 unsigned int sprintf_small(char *buffer, unsigned int len, const char *fmt, va_list argp);

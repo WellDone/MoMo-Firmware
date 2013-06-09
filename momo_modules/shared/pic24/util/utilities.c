@@ -1,5 +1,4 @@
 #include "utilities.h"
-#include "uart.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -143,23 +142,4 @@ bool atoi_small(const char* buf, int* out)
         }
     }
     return true;
-}
-
-void print_byte( BYTE b )
-{
-  print( "0b");
-  BYTE mask = 0x80;
-  while (mask!=0x0) {
-    if ( ( b & mask ) )
-      print("1");
-    else
-      print("0");
-    mask = mask >> 1;
-  }
-  print("\r\n");
-}
-
-void println( const char* msg ) {
-  print( msg );
-  print( "\r\n" );
 }

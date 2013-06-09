@@ -2,7 +2,7 @@
 #define __uart_h__
 
 #include "interrupts.h"
-#include "common.h"
+#include "common_types.h"
 #include "ringbuffer.h"
 
 #define UART_BUFFER_SIZE      99

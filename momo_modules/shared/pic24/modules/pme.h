@@ -7,7 +7,7 @@
 #ifndef __pme_h__
 #define __pme_h__
 
-#include "common.h"
+#include "pic24.h"
 
 #define kPMDRegOffset	5
 #define kPMDBitMask		0b11111

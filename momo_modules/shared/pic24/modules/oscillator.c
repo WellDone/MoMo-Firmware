@@ -1,5 +1,6 @@
 #include "oscillator.h"
-#include "common.h"
+#include "pic24.h"
+#include "utilities.h"
 
 //internal utility functions
 static inline void write_osccon_h(unsigned char value);
@@ -39,7 +40,7 @@ void set_oscillator_speed(OscillatorSpeedSelector speed)
 
     while (_OSWEN)
         ;
-    
+
     if (speed == kLowSpeedSelect)
         _RCDIV = kLowSpeedClockDiv;
 

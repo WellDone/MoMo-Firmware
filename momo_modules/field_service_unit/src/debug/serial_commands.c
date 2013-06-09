@@ -6,7 +6,8 @@
 
 #include "serial_commands.h"
 #include "command_handlers.h"
-#include "core/task_manager.h"
+#include "task_manager.h"
+#include "uart_utilities.h"
 #include "debug.h"
 #include <string.h>
 
