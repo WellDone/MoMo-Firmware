@@ -25,6 +25,7 @@ void register_command_handlers()
     register_command("adc", handle_adc);
 
     set_uart_rx_newline_callback( U2, process_commands_task, command_buffer, UART_BUFFER_SIZE );
+    print( DEBUG_PROMPT );
 }
 
 /*
@@ -55,6 +56,7 @@ static void process_commands_task(int len, bool overflown)
 {
   char *params = 0;
   unsigned int i;
+  clear_uart_rx_newline_callback( U2 );
 
   for(i=0; i<=len; ++i)
   {
@@ -89,6 +91,7 @@ static void process_commands_task(int len, bool overflown)
    }
   }
 
+  set_uart_rx_newline_callback( U2, process_commands_task, command_buffer, UART_BUFFER_SIZE );
   print( DEBUG_PROMPT );
 }
 
