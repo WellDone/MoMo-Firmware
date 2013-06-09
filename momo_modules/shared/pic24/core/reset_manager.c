@@ -1,26 +1,16 @@
 #include "reset_manager.h"
-#include "common_types.h"
-
-#include "rtcc.h"
-#include "uart.h"
-#include "task_manager.h"
-#include "scheduler.h"
-#include "debug.h"
-#include "oscillator.h"
-#include "pme.h"
-
-static bool mclr_triggered;
+#include "pic24.h"
 
 //Global reset handler table
 reset_handler reset_handlers[kNumResets][MAX_RESETS_PER_TYPE] =
 {
-    {handle_poweron_reset},     //POR Reset
-    {0},                        //Reset during sleep
-    {0},                        //Wake from deep sleep
-    {0},                        //Software reset
-    {handle_mclr_reset},        //MCLR External reset
-    {handle_all_resets_before}, //Call on all resets (before)
-    {handle_all_resets_after}   //Call after all other reset code
+    {0}, //POR Reset
+    {0}, //Reset during sleep
+    {0}, //Wake from deep sleep
+    {0}, //Software reset
+    {0}, //MCLR External reset
+    {0}, //Call on all resets (before)
+    {0}  //Call after all other reset code
 };
 
 ResetType last_reset;
@@ -135,40 +125,4 @@ void handle_reset()
         if (reset_handlers[kAllResetsAfter][i] != 0)
             reset_handlers[kAllResetsAfter][i](type);
     }
-}
-
-void handle_all_resets_before(unsigned int type)
-{
-    //Add code here that should be called before all other reset code
-    disable_unneeded_peripherals();
-    configure_interrupts();
-    oscillator_init();
-    taskloop_init();
-    scheduler_init();
-
-    mclr_triggered = false;
-}
-
-void handle_all_resets_after(unsigned int type)
-{
-    /*
-     * Add code that should be called after all other reset code here
-     */
-
-    if ( !mclr_triggered ) {
-        //taskloop_set_sleep( 1 );
-    }
-}
-
-void handle_poweron_reset(unsigned int type)
-{
-    //Power-on reset resets the rtcc, so configure and enable it.
-    configure_rtcc();
-    enable_rtcc();
-}
-
-void handle_mclr_reset(unsigned int type)
-{
-    mclr_triggered = true;
-    debug_init();
 }

@@ -2,6 +2,7 @@
 #include "common.h"
 #include "reset_manager.h"
 #include "task_manager.h"
+#include "fsu_reset_handler.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -48,8 +49,8 @@
 int main(void) {
     AD1PCFG = 0xFFFF;
 
+    register_reset_handlers();
     handle_reset();
-
     taskloop_loop();
 
     return (EXIT_SUCCESS);

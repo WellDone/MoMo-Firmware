@@ -1,6 +1,7 @@
 #include <xc.h>
 #include <stdio.h>
 #include <string.h>
+#include "common.h"
 #include "serial_commands.h"
 #include "rtcc.h"
 #include "utilities.h"
