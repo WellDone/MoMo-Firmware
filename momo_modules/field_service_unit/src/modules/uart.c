@@ -64,8 +64,8 @@ void configure_uart1(uart_parameters *params)
     U1MODEbits.UARTEN = 1; //Enable the uart
     U1STAbits.UTXEN = 1; //Enable transmission
 
-    ringbuffer_create( &U1STAT.rcv_buffer, U1STAT.rcv_buffer_data, sizeof(char), UART_BUFFER_SIZE );
-    ringbuffer_create( &U1STAT.send_buffer, U1STAT.send_buffer_data, sizeof(char), UART_BUFFER_SIZE );
+    ringbuffer_create( &U1STAT.rcv_buffer, (void*)U1STAT.rcv_buffer_data, sizeof(char), UART_BUFFER_SIZE );
+    ringbuffer_create( &U1STAT.send_buffer, (void*)U1STAT.send_buffer_data, sizeof(char), UART_BUFFER_SIZE );
     U1STAT.rx_callback = 0;
     U1STAT.rx_newline_callback = 0;
 }
@@ -118,8 +118,8 @@ void configure_uart2(uart_parameters *params)
     U2MODEbits.UARTEN = 1; //Enable the uart
     U2STAbits.UTXEN = 1; //Enable transmission
 
-    ringbuffer_create( &U1STAT.rcv_buffer, U1STAT.rcv_buffer_data, sizeof(char), UART_BUFFER_SIZE );
-    ringbuffer_create( &U1STAT.send_buffer, U1STAT.send_buffer_data, sizeof(char), UART_BUFFER_SIZE );
+    ringbuffer_create( &U1STAT.rcv_buffer, (void*)U1STAT.rcv_buffer_data, sizeof(char), UART_BUFFER_SIZE );
+    ringbuffer_create( &U1STAT.send_buffer, (void*)U1STAT.send_buffer_data, sizeof(char), UART_BUFFER_SIZE );
     U2STAT.rx_callback = 0;
     U2STAT.rx_newline_callback = 0;
 }
@@ -137,15 +137,42 @@ void configure_uart( UARTPort port, uart_parameters *params)
     }
 }
 
-static inline void std_rx_callback( UARTPort port, char data ) {
+static void std_rx_callback( UARTPort port, char data );
+static inline void std_rx_callback_task( UARTPort port ) {
     UART_STATUS* stat = STAT(port);
+    stat->rx_newline_callback( stat->rx_linebuffer_cursor-stat->rx_linebuffer, stat->rx_linebuffer_remaining == 0 );
+
+    stat->rx_linebuffer_remaining *= -1;
+    stat->rx_linebuffer_remaining += (stat->rx_linebuffer_cursor-stat->rx_linebuffer);
+    stat->rx_linebuffer_cursor = stat->rx_linebuffer;
+
+    char data;
+    while ( !ringbuffer_empty( &stat->rcv_buffer ) ) {
+        ringbuffer_pop( &stat->rcv_buffer, &data );
+        std_rx_callback( port, data );
+        if ( data == '\n' )
+            break;
+    }
+}
+static void std_rx_callback_task_U1() {
+    std_rx_callback_task( U1 );
+}
+static void std_rx_callback_task_U2() {
+    std_rx_callback_task( U2 );
+}
+
+static void std_rx_callback( UARTPort port, char data ) {
+    UART_STATUS* stat = STAT(port);
+    if ( stat->rx_linebuffer_remaining < 0 )
+        return;
     bool newline = (data=='\n');
     if (!newline) {
         *(U1STAT.rx_linebuffer_cursor++) = data;
         --(stat->rx_linebuffer_remaining);
     }
     if ( newline || stat->rx_linebuffer_remaining == 0 ) {
-        stat->rx_newline_callback( stat->rx_linebuffer_cursor-stat->rx_linebuffer, !newline );
+        taskloop_add( (port==U1)?std_rx_callback_task_U1:std_rx_callback_task_U2 );
+        stat->rx_linebuffer_remaining *= -1;
     }
 }
 static void std_rx_callback_U1( char data ) {
@@ -239,14 +266,14 @@ void transmit_one( UARTPort port ) {
 // IO Utility functions
 void put( UARTPort port, const char c )
 {
-    ringbuffer_push( &STAT(port)->send_buffer, &c );
+    ringbuffer_push( &STAT(port)->send_buffer, (void*)&c );
     transmit_one( port );
 }
 
 void send(UARTPort port, const char *msg)
 {
     while ( *(msg++) != '\0' ) {
-        ringbuffer_push( &STAT(port)->send_buffer, msg );
+        ringbuffer_push( &STAT(port)->send_buffer, (void*)msg );
     }
     transmit_one( port );
 }

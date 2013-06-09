@@ -47,7 +47,7 @@ void handle_adc(command_params *params)
         int num_samples = 1;
         if (params->num_params == 2)
         {
-            num_samples = atoi(get_param_string(params, 1));
+            atoi_small( get_param_string(params, 1), &num_samples );
         }
         ADCConfig config;
         unsigned int channels = 0;
