@@ -1,5 +1,5 @@
-#include "common.h"
 #include "reset_manager.h"
+#include "common_types.h"
 
 #include "rtcc.h"
 #include "uart.h"

@@ -1,7 +1,7 @@
 #include "rtcc.h"
 #include "pic24.h"
-#include <string.h>
 #include "task_manager.h"
+#include <string.h>
 
 alarm_callback the_alarm_callback = 0;
 volatile unsigned int alarm_time = kEveryHalfSecond;

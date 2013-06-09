@@ -1,9 +1,8 @@
 #include "uart.h"
 #include "utilities.h"
-#include "serial_commands.h"
+#include "task_manager.h"
 #include <string.h>
 #include <stdarg.h>
-#include "task_manager.h"
 
 #define CALC_BAUDHI(baud)     (unsigned int)((CLOCKSPEED/(4*baud))-1)    //Assumes hi speed
 #define CALC_BAUDLO(baud)     (unsigned int)((CLOCKSPEED/(16*baud))-1)    //Assumes low speed

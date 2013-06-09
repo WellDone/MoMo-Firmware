@@ -2,7 +2,7 @@
 #define __adc_h__
 
 #include "task_manager.h"
-#include "common.h"
+#include "bit_utilities.h"
 
 //Convenience Macros
 #define adc_disable() 				adc_set_status(0)
