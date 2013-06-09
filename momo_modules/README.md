@@ -1,12 +1,14 @@
 ### Code for individual MoMo component modules
 
+All modules must implement the [Module Interconnect Bus (MIB)](http://github.com/WellDone/MoMo-Firmware/wiki/Module-Interconnect-Bus-(MIB\)) over I2C.
+
 * `mainboard` - The main controller module
 * `field_service_unit` - The USB<->I2C bridge used to service MoMos in the field.
 
 ### Shared Code
 
-* `shared/portable` - This code (and anything it includes) should be able to run on EITHER an 8-bit pic12 or a 16-bit pic24.
 * `shared/picXX` - This code is specific to the picXX (i.e. pic12 or pic24) processor, but does not contain code specific to an individual module.
+* `shared/portable` - This code (and anything it includes) should be able to run on EITHER an 8-bit pic12 or a 16-bit pic24.
 
 ### Source Directory Structure Guidelines
 
