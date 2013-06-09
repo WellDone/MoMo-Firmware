@@ -3,6 +3,7 @@
 
 #include "interrupts.h"
 #include "common.h"
+#include "ringbuffer.h"
 
 #define UART_BUFFER_SIZE      99
 
@@ -23,23 +24,33 @@ typedef struct
 
 typedef struct
 {
-    volatile char rcv_buffer[UART_BUFFER_SIZE];
-    volatile char send_buffer[UART_BUFFER_SIZE];
+    volatile char rcv_buffer_data[UART_BUFFER_SIZE];
+    volatile char send_buffer_data[UART_BUFFER_SIZE];
 
-    volatile char volatile *rcv_cursor;
-    volatile unsigned char receiving;
-    volatile char volatile *send_cursor;
-    volatile unsigned char sending;
+    ringbuffer rcv_buffer;
+    ringbuffer send_buffer;
+
+    void(*rx_callback)(char data);
+    void(*rx_newline_callback)(int length, bool overflown);
+
+    volatile char* rx_linebuffer;
+    volatile char* rx_linebuffer_cursor;
+    volatile int   rx_linebuffer_remaining;
 } UART_STATUS;
 
 void configure_uart( UARTPort port, uart_parameters *params);
-void dump_gsm_buffer(void);
+
+void set_uart_rx_char_callback( UARTPort port, void (*callback)(char) );
+void clear_uart_rx_char_callback( UARTPort port );
+void set_uart_rx_newline_callback( UARTPort port, void (*callback)(int length, bool overflown), char *linebuffer, int buffer_length );
+void clear_uart_rx_newline_callback( UARTPort port );
+
+
 void put( UARTPort port, const char c );
 void send( UARTPort port, const char *msg );
 void sends( UARTPort port, const char *msg ); //Blocking send function
 void sendf( UARTPort port, const char *fmt, ... );
 
-int read( UARTPort port, char** buffer, const char* stopString );
-int readln( UARTPort port, char** buffer );
+unsigned int readln( UARTPort port, char* buffer, int buffer_length );
 
 #endif

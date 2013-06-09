@@ -10,8 +10,7 @@ void ringbuffer_create(ringbuffer *out, void *data, unsigned int size, unsigned 
     out->data = (unsigned char*)data;
     out->elem_size = size;
     out->length = length;
-    out->start = 0; //start points to the oldest valid data item
-    out->end = 0; //end points one past the newest valid data item
+    ringbuffer_reset( out );
 }
 
 unsigned int ringbuffer_empty(ringbuffer *buf)
@@ -35,7 +34,7 @@ void ringbuffer_pop(ringbuffer *buf, void *out)
 {
     unsigned int mask = buf->length - 1;
     unsigned int offset = (buf->start) & mask;
-   
+
     memcpy(out, buf->data + (offset*buf->elem_size), buf->elem_size);
 
     ringbuffer_incr(buf, &buf->start);
@@ -60,4 +59,8 @@ void ringbuffer_push(ringbuffer *buf, void *in)
 static void ringbuffer_incr(ringbuffer *buf, unsigned int *index)
 {
     *index = (*index+1) & (2*buf->length - 1);
+}
+void ringbuffer_reset(ringbuffer* buf) {
+    buf->start = 0; //start points to the oldest valid data item
+    buf->end = 0; //end points one past the newest valid data item
 }

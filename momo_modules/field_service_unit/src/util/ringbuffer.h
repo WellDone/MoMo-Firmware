@@ -11,7 +11,7 @@ typedef struct
     unsigned char   *data;
     unsigned int    elem_size;
     unsigned int    length;
-    
+
     unsigned int    start; //the first valid item
     unsigned int    end; //one past the last valid item
 } ringbuffer;
@@ -21,5 +21,6 @@ void ringbuffer_push(ringbuffer *buf, void *data);
 void ringbuffer_pop(ringbuffer *buf, void *out);
 unsigned int ringbuffer_empty(ringbuffer *buf);
 unsigned int ringbuffer_full(ringbuffer *buf);
+void ringbuffer_reset(ringbuffer *buf);
 
 #endif

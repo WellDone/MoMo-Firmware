@@ -20,7 +20,7 @@ unsigned char get_2byte_number(char *input)
  * decimal numbers because apparently vsnprintf is takes 75% of the pic's
  * memory.
  */
-void sprintf_small(char *buffer, unsigned int len, const char *fmt, va_list argp)
+unsigned int sprintf_small(char *buffer, unsigned int len, const char *fmt, va_list argp)
 {
     unsigned int i=0;
 
@@ -29,7 +29,7 @@ void sprintf_small(char *buffer, unsigned int len, const char *fmt, va_list argp
         if (i>=len)
         {
             buffer[len-1] = '\0';
-            return;
+            return len;
         }
 
         if (*fmt != '%')
@@ -51,6 +51,7 @@ void sprintf_small(char *buffer, unsigned int len, const char *fmt, va_list argp
                 {
                     int num = va_arg(argp, int);
                     int skip_len = itoa_small(buffer,len-i, num);
+                    i += skip_len;
                     buffer += skip_len;
                     break;
                 }
@@ -80,6 +81,7 @@ void sprintf_small(char *buffer, unsigned int len, const char *fmt, va_list argp
 
 end:
     *buffer = '\0';
+    return i;
 }
 
 /*

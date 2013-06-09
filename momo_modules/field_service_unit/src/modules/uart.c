@@ -12,13 +12,10 @@
 
 UART_STATUS __attribute__((space(data))) uart_stats[2];
 
-#define u1stat uart_stats[0]
-#define u2stat uart_stats[1]
+#define U1STAT uart_stats[0]
+#define U2STAT uart_stats[1]
 
-extern volatile char* command_buffer;
-extern volatile int cmd_ready;
-extern volatile int cmd_received;
-
+#define STAT(port) ((port==U1)?&U1STAT:&U2STAT)
 void configure_uart1(uart_parameters *params)
 {
     //calculate the appropriate baud setting
@@ -46,13 +43,6 @@ void configure_uart1(uart_parameters *params)
     U1MODEbits.STSEL = 0; //1 stop bits; CHECK
 
     //setup the interrupts
-    u1stat.rcv_cursor = u1stat.rcv_buffer;
-    u1stat.rcv_buffer[0] = '\0';
-
-    u1stat.send_cursor = u1stat.send_buffer;
-    u1stat.send_buffer[0] = '\0';
-    u1stat.sending = 0;
-
     U1STAbits.UTXISEL1 = 1; //Transmit interrupt when FIFO becomes empty
     U1STAbits.UTXISEL0 = 0;
     U1STAbits.URXISEL  = 0b00; //Receive interrupt when any character is received
@@ -73,6 +63,11 @@ void configure_uart1(uart_parameters *params)
 
     U1MODEbits.UARTEN = 1; //Enable the uart
     U1STAbits.UTXEN = 1; //Enable transmission
+
+    ringbuffer_create( &U1STAT.rcv_buffer, U1STAT.rcv_buffer_data, sizeof(char), UART_BUFFER_SIZE );
+    ringbuffer_create( &U1STAT.send_buffer, U1STAT.send_buffer_data, sizeof(char), UART_BUFFER_SIZE );
+    U1STAT.rx_callback = 0;
+    U1STAT.rx_newline_callback = 0;
 }
 
 void configure_uart2(uart_parameters *params)
@@ -102,14 +97,6 @@ void configure_uart2(uart_parameters *params)
     U2MODEbits.STSEL = 0; //1 stop bit
 
     //setup the interrupts
-    u2stat.rcv_cursor = u2stat.rcv_buffer;
-    u2stat.rcv_buffer[0] = '\0';
-    u2stat.receiving = 0;
-
-    u2stat.send_cursor = u2stat.send_buffer;
-    u2stat.send_buffer[0] = '\0';
-    u2stat.sending = 0;
-
     U2STAbits.UTXISEL1 = 1; //Transmit interrupt when FIFO becomes empty
     U2STAbits.UTXISEL0 = 0;
     U2STAbits.URXISEL  = 0b00; //Receive interrupt when any character is received
@@ -130,6 +117,11 @@ void configure_uart2(uart_parameters *params)
 
     U2MODEbits.UARTEN = 1; //Enable the uart
     U2STAbits.UTXEN = 1; //Enable transmission
+
+    ringbuffer_create( &U1STAT.rcv_buffer, U1STAT.rcv_buffer_data, sizeof(char), UART_BUFFER_SIZE );
+    ringbuffer_create( &U1STAT.send_buffer, U1STAT.send_buffer_data, sizeof(char), UART_BUFFER_SIZE );
+    U2STAT.rx_callback = 0;
+    U2STAT.rx_newline_callback = 0;
 }
 
 void configure_uart( UARTPort port, uart_parameters *params)
@@ -145,192 +137,169 @@ void configure_uart( UARTPort port, uart_parameters *params)
     }
 }
 
-static UART_STATUS* GetStatus( UARTPort port )
+static inline void std_rx_callback( UARTPort port, char data ) {
+    UART_STATUS* stat = STAT(port);
+    bool newline = (data=='\n');
+    if (!newline) {
+        *(U1STAT.rx_linebuffer_cursor++) = data;
+        --(stat->rx_linebuffer_remaining);
+    }
+    if ( newline || stat->rx_linebuffer_remaining == 0 ) {
+        stat->rx_newline_callback( stat->rx_linebuffer_cursor-stat->rx_linebuffer, !newline );
+    }
+}
+static void std_rx_callback_U1( char data ) {
+    std_rx_callback( U1, data );
+}
+static void std_rx_callback_U2( char data ) {
+    std_rx_callback( U2, data );
+}
+
+void set_uart_rx_char_callback( UARTPort port, void (*callback)(char data) ) {
+    STAT(port)->rx_callback = callback;
+}
+void clear_uart_rx_char_callback( UARTPort port ) {
+    STAT(port)->rx_callback = 0;
+}
+
+void set_uart_rx_newline_callback( UARTPort port, void (*callback)(int length, bool overflown), char *linebuffer, int buffer_length )
 {
-    return &uart_stats[port];
+    UART_STATUS* stat = STAT(port);
+    stat->rx_newline_callback = callback;
+    stat->rx_linebuffer_cursor = stat->rx_linebuffer = linebuffer;
+    stat->rx_linebuffer_remaining = buffer_length;
+    stat->rx_callback = (port==U1)?std_rx_callback_U1:std_rx_callback_U2;
+}
+void clear_uart_rx_newline_callback( UARTPort port ) {
+    STAT(port)->rx_callback = 0;
+    STAT(port)->rx_newline_callback = 0;
+}
+
+void process_RX_char( UART_STATUS* stat, char data ) {
+
+    if ( stat->rx_callback ) {
+        stat->rx_callback( data );
+        return;
+    }
+    ringbuffer_push( &stat->rcv_buffer, &data );
 }
 
 //Interrupt Handlers
-void receive_command( UART_STATUS* stat)
-{
-    while(U2STAbits.URXDA == 1)
-    {
-        if (stat->rcv_cursor == stat->rcv_buffer+UART_BUFFER_SIZE)
-        {
-            stat->rcv_cursor = stat->rcv_buffer;
-            print( "Command too long.\r\n");
-
-        }
-
-        *(stat->rcv_cursor) = U2RXREG;
-
-        //Check if we've received an entire command
-        if (*stat->rcv_cursor == '\n')
-        {
-            //Check if they sent \r\n and chomp it.
-            if (stat->rcv_cursor != stat->rcv_buffer && *(stat->rcv_cursor-1) == '\r')
-                --stat->rcv_cursor;
-
-            *stat->rcv_cursor = '\0';
-
-            //Reset everything
-            stat->rcv_cursor = stat->rcv_buffer;
-
-            //Signal the main loop task to process the command
-            cmd_ready = 1;
-            cmd_received = 1; //Set the global command received flag to keep the debug interface alive.
-            taskloop_add(process_commands_task);
-            break;
-        }
-
-        stat->rcv_cursor = stat->rcv_cursor+1;
-    }
-}
-
 void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 {
-   UART_STATUS *stat = &u1stat;
+   UART_STATUS *stat = &U1STAT;
    while(U1STAbits.URXDA == 1)
     {
-        if (stat->rcv_cursor == stat->rcv_buffer+UART_BUFFER_SIZE)
-        {
-            stat->rcv_cursor = stat->rcv_buffer;
-        }
-
-        *(stat->rcv_cursor) = U1RXREG;
-        //U2TXREG = *(stat->rcv_cursor); //echo first four characters
-
-        stat->rcv_cursor = stat->rcv_cursor+1;
+        process_RX_char( stat, U1RXREG );
     }
-
     IFS0bits.U1RXIF = 0; //Clear IFS flag
 }
 
 void __attribute__((interrupt,auto_psv)) _U2RXInterrupt()
 {
-    receive_command( &u2stat );
-
+    UART_STATUS* stat = &U2STAT;
+    while(U2STAbits.URXDA == 1)
+    {
+        process_RX_char( stat, U2RXREG );
+    }
     IFS1bits.U2RXIF = 0; //Clear IFS flag
 }
 
 void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt()
 {
-    if (u1stat.sending)
-    {
-        if (*u1stat.send_cursor != '\0')
-        {
-            while (U1STAbits.UTXBF == 0 && *u1stat.send_cursor != '\0')
-                U1TXREG = *u1stat.send_cursor++;
-        }
-
-        if (*u1stat.send_cursor == '\0')
-            u1stat.sending = 0;
+    while ( U1STAbits.UTXBF == 0 && !ringbuffer_empty( &U1STAT.send_buffer ) ) {
+        char data;
+        ringbuffer_pop( &U1STAT.send_buffer, &data );
+        U1TXREG = data;
     }
-
     IFS0bits.U1TXIF = 0; //Clear IFS flag
 }
 
 void __attribute__((interrupt,no_auto_psv)) _U2TXInterrupt()
 {
-    if (u2stat.sending)
-    {
-        if (*u2stat.send_cursor != '\0')
-        {
-            while (U2STAbits.UTXBF == 0 && *u2stat.send_cursor != '\0')
-                U2TXREG = *u2stat.send_cursor++;
-        }
-
-        if (*u2stat.send_cursor == '\0')
-            u2stat.sending = 0;
+    while ( U2STAbits.UTXBF == 0 && !ringbuffer_empty( &U2STAT.send_buffer ) ) {
+        char data;
+        ringbuffer_pop( &U2STAT.send_buffer, &data );
+        U2TXREG = data;
     }
     IFS1bits.U2TXIF = 0; //Clear IFS flag
 }
 
+void transmit_one( UARTPort port ) {
+    UART_STATUS* stat = STAT( port );
+    char data;
+    ringbuffer_pop( &stat->send_buffer, &data );
+
+    if (port == U1)
+        U1TXREG = data;
+    else
+        U2TXREG = data;
+}
+
+// IO Utility functions
 void put( UARTPort port, const char c )
 {
-    char buf[2];
-
-    buf[0] = c;
-    buf[1] = '\0';
-    sends( port, buf );
+    ringbuffer_push( &STAT(port)->send_buffer, &c );
+    transmit_one( port );
 }
 
 void send(UARTPort port, const char *msg)
 {
-    //Don't send zero length strings (our logic would be wrong since send_cursor would point past the end of the string in that case.
-    if (*msg == '\0')
-        return;
+    while ( *(msg++) != '\0' ) {
+        ringbuffer_push( &STAT(port)->send_buffer, msg );
+    }
+    transmit_one( port );
+}
 
-    UART_STATUS* stat = GetStatus( port );
-    stat->sending = 0;
-    strncpy(stat->send_buffer, msg, UART_BUFFER_SIZE);
-    stat->send_cursor = stat->send_buffer+1;
-    stat->sending = 1;
-
-    if (port == U1)
-        U1TXREG = stat->send_buffer[0];
-    else
-        U2TXREG = stat->send_buffer[0];
+static inline void wait_for_transmission( UARTPort port ) {
+    while ( !ringbuffer_empty( &STAT(port)->send_buffer ) )
+        ;
+    //Even after we stop filling the transmit FIFO, wait until the last bit is
+    //shifted out.  Fixes a bug where the device reset command will not be
+    //able to send the last 4 bytes of its message because the device resets
+    //with those characters in the transmit shift register.
+    if (port == U2) {
+        while (U2STAbits.TRMT == 0) //TRMT = 0 when buffer and shift register empty
+            ;
+    } else {
+        while (U1STAbits.TRMT == 0)
+            ;
+    }
 }
 
 void sends(UARTPort port, const char *msg)
 {
     send(port, msg);
-
-    UART_STATUS* stat = GetStatus( port );
-    while (stat->sending)
-        ;
-
-    //Even after we stop filling the transmit FIFO, wait until the last bit is
-    //shifted out.  Fixes a bug where the device reset command will not be
-    //able to send the last 4 bytes of its message because the device resets
-    //with those characters in the transmit shift register.
-    if (port == U2)
-    {
-        while (U2STAbits.TRMT == 0) //TRMT = 0 when buffer and shift register empty
-            ;
-    }
-    else
-    {
-        while (U1STAbits.TRMT == 0)
-            ;
-    }
+    wait_for_transmission( port );
 }
 
 void sendf(UARTPort port, const char *fmt, ...)
 {
-    UART_STATUS* stat = GetStatus( port );
-    stat->sending = 0;
+    UART_STATUS* stat = STAT( port );
+    while ( !ringbuffer_empty( &stat->send_buffer ) )
+        ;
     va_list argp;
     va_start(argp, fmt);
 
-    sprintf_small(stat->send_buffer, UART_BUFFER_SIZE, fmt, argp);
+    // This is a hack, but it works.
+    ringbuffer_reset( &stat->send_buffer );
+    stat->send_buffer.end += sprintf_small(stat->send_buffer_data, UART_BUFFER_SIZE, fmt, argp);
 
     va_end(argp);
 
-    stat->send_cursor = stat->send_buffer+1;
-    stat->sending = 1;
+    transmit_one( port );
+    wait_for_transmission( port );
+}
 
-    if (port == U1)
-        U1TXREG = stat->send_buffer[0];
-    else
-        U2TXREG = stat->send_buffer[0];
-
-    while (stat->sending)
+static void readln_callback_U1( int len, bool overflown ) {
+    clear_uart_rx_newline_callback( U1 );
+}
+static void readln_callback_U2( int len, bool overflown ) {
+    clear_uart_rx_newline_callback( U2 );
+}
+unsigned int readln( UARTPort port, char* buffer, int buffer_length ) {
+    set_uart_rx_newline_callback( port, (port==U1)?readln_callback_U1:readln_callback_U2, buffer, buffer_length );
+    while( STAT(port)->rx_newline_callback )
         ;
-
-    //Even after we stop filling the transmit FIFO, wait until the last bit is
-    //shifted out.  Fixes a bug where the device reset command will not be
-    //able to send the last 4 bytes of its message because the device resets
-    //with those characters in the transmit shift register.
-    if (port == U2)
-    {
-        while (U2STAbits.TRMT == 0)
-            ;
-    }
-    else
-    {
-        while (U1STAbits.TRMT == 0)
-            ;
-    }
+    return STAT(port)->rx_linebuffer_cursor - STAT(port)->rx_linebuffer;
 }

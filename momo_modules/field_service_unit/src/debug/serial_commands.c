@@ -10,24 +10,21 @@
 #include "debug.h"
 #include <string.h>
 
-volatile char __attribute__((space(data))) command_buffer[UART_BUFFER_SIZE];
-volatile int  __attribute__((space(data))) cmd_ready;
-volatile int cmd_received = 0;
+volatile char __attribute__((space(data))) command_buffer[UART_BUFFER_SIZE+1];
 
 char __attribute__((space(data))) *known_commands[MAX_COMMANDS+1];
 CommandHandler __attribute__((space(data))) command_handlers[MAX_COMMANDS+1];
 
-extern UART_STATUS uart_stats[2];
+static void process_commands_task(int len, bool overflown);
 
 void register_command_handlers()
 {
-    command_buffer[0] = '\0';
-    cmd_ready = 0;
-
     register_command("echo", handle_echo_params);
     register_command("device", handle_device);
     register_command("rtcc", handle_rtcc);
     register_command("adc", handle_adc);
+
+    set_uart_rx_newline_callback( U2, process_commands_task, command_buffer, UART_BUFFER_SIZE );
 }
 
 /*
@@ -54,62 +51,45 @@ void register_command(char *cmd, CommandHandler handler)
 /*
  * Check if there are any commands pending and if so, process them.
  */
-void process_commands_task()
+static void process_commands_task(int len, bool overflown)
 {
-    if (cmd_ready)
-    {
-        strncpy(command_buffer, uart_stats[1].rcv_buffer, UART_BUFFER_SIZE);
-        process_command();
+  char *params = 0;
+  unsigned int i;
 
-        print( DEBUG_PROMPT );
-
-        cmd_ready = 0;
-    }
-}
-
-/*
- * Process the command line currently resident in the command_buffer, parsing the parameters and calling the appropriate command handler.
- *
- */
-void process_command()
-{
-   char *params = 0;
-   unsigned int i, len;
-
-   len = strlen(command_buffer);
-
-   for(i=0; i<=len; ++i)
+  for(i=0; i<=len; ++i)
+  {
+   if (command_buffer[i] == ' ')
    {
-     if (command_buffer[i] == ' ')
-     {
-       //The command is separated from the parameters by a space, so start the params here
-       command_buffer[i] = '\0';
-       params = command_buffer + i + 1;
-       break;
-     }
+     //The command is separated from the parameters by a space, so start the params here
+     command_buffer[i] = '\0';
+     params = command_buffer + i + 1;
+     break;
    }
+  }
 
-   for (i=0; i<MAX_COMMANDS; ++i)
+  for (i=0; i<MAX_COMMANDS; ++i)
+  {
+   if (known_commands[i] == 0)
    {
-     if (known_commands[i] == 0)
-     {
-       //We've loooked through all the commands we know how to handle and not found it, punt.
-       print( "Unknown command: ");
-       print( command_buffer);
-       print( "\r\n");
-       break;
-     }
-     else if(strcmp(command_buffer, known_commands[i])==0)
-     {
-       //We have a match
-       command_params p;
-
-       fill_param_struct(&p, params);
-
-       command_handlers[i](&p);
-       break;
-     }
+     //We've loooked through all the commands we know how to handle and not found it, punt.
+     print( "Unknown command: ");
+     print( command_buffer);
+     print( "\r\n");
+     break;
    }
+   else if(strcmp(command_buffer, known_commands[i])==0)
+   {
+     //We have a match
+     command_params p;
+
+     fill_param_struct(&p, params);
+
+     command_handlers[i](&p);
+     break;
+   }
+  }
+
+  print( DEBUG_PROMPT );
 }
 
 void fill_param_struct(command_params *params, char *buff)
