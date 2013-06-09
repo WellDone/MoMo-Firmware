@@ -1,5 +1,5 @@
 #include "ringbuffer.h"
-#include "common.h"
+#include "common_types.h"
 #include <string.h>
 
 //Internal utility function prototypes
