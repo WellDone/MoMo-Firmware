@@ -39,6 +39,7 @@ enum
 #define i2c_has_checksum()			(!(curr_msg->flags & kI2CMessageNoChecksum))
 #define i2c_transmit_full()			(_TBF == 1)
 #define i2c_transmit(byte)			I2C1TRN = (byte)
+#define i2c_slave_is_read()			(_R_NOT_W == 1)
 
 //i2c slave conditions
 #define i2c_stop_received()			(_P == 1)
@@ -68,15 +69,14 @@ typedef enum
 	kI2CSendChecksumState,
 	kI2CReceiveDataState,
 	kI2CReceiveChecksumState,
-	kI2CUserCallbackState
+	kI2CUserCallbackState,
+	kI2CForceStopState 			//When a stop condition is asserted on the bus, make sure we clean up everything
 } I2CLogicState;
 
 typedef enum
 {
 	kI2CNoError = 0,
-	kI2CInvalidChecksum,
-	kI2CUnsupportedFeature,
-	kI2CUnknownCommand
+	kI2CInvalidChecksum
 } I2CErrorCode;
 
 typedef struct
@@ -90,6 +90,12 @@ typedef struct
 	unsigned char checksum;
 	unsigned char flags;
 } I2CMessage;
+
+enum
+{
+	kCallbackBeforeChecksum = 1 << 0,
+	kSendImmediately = 1 << 1
+};
 
 typedef enum 
 {
@@ -125,10 +131,13 @@ void i2c_finish_transmission();
 void i2c_master_receivedata();
 void i2c_master_receivechecksum();
 void i2c_master_setidle();
+int  i2c_master_lasterror();
 
 void i2c_slave_receivedata();
 void i2c_slave_receivechecksum();
 void i2c_slave_setidle();
+int  i2c_slave_lasterror();
+void i2c_slave_sendbyte();
 
 I2CLogicState i2c_slave_state();
 

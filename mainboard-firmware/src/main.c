@@ -4,7 +4,6 @@
 #include "task_manager.h"
 #include "scheduler.h"
 #include "bus.h"
-#include "nullcallback.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -58,14 +57,17 @@ void blink_light1(void)
 
 void send_test_message(void)
 {
-    static unsigned char unused;
+    MIBIntParameter param1;
+    MIBIntParameter param2;
+    MIBParameterHeader *params[2];
 
-	MIBCommandPacket cmd;
+    params[0] = (MIBParameterHeader*)&param1;
+    params[1] = (MIBParameterHeader*)&param2;
 
-    cmd.feature = 0x25;
-    cmd.command = 0xAA;
+    bus_init_int_param(&param1, 0xAA);
+    bus_init_int_param(&param2, 0xBB);
 
-    bus_master_sendcommand(9, &cmd, master_nullcallback, &unused);
+    bus_master_rpc(8, 0x02, 0x01, params, 2);
 }
 
 ScheduledTask task1;
