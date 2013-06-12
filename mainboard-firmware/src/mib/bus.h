@@ -45,7 +45,8 @@ typedef enum
 	kMIBSendParameters = 1,
 	kMIBReadReturnStatus,
 	kMIBReadReturnValue,
-	kMIBExecuteCallback
+	kMIBExecuteCallback,
+	kMIBFinalizeMessage
 } MIBMasterState;
 
 typedef struct 

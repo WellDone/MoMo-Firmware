@@ -47,6 +47,11 @@ unsigned char bus_master_lastaddress()
 {
 	return mib_state.master_msg.address >> 1;
 }
+void bus_master_sendreset()
+{
+	bus_send(bus_master_lastaddress(), (unsigned char *)mib_buffer, 1, 0);
+	mib_state.master_state = kMIBFinalizeMessage;
+}
 
 
 int bus_receive(unsigned char address, volatile unsigned char *buffer, unsigned char len, unsigned char flags)
@@ -82,8 +87,7 @@ void bus_master_callback()
 		if (i2c_master_lasterror() != kI2CNoError)
 		{
 			//TODO: properly handle error here by calling callback with result code;
-			bus_free_all();
-			i2c_finish_transmission();
+			bus_master_sendreset();
 		}
 		else
 		{
@@ -97,13 +101,17 @@ void bus_master_callback()
 			}
 			else
 			{
-				bus_free_all();
-				i2c_finish_transmission(); //TODO: Call rpc callback to inform of error
+				bus_master_sendreset();
 			}
 		}
 		break;
 
 		case kMIBExecuteCallback:
+		//TODO: callback with return value
+		bus_master_sendreset();
+		break;
+
+		case kMIBFinalizeMessage:
 		bus_free_all();
 		i2c_finish_transmission(); 
 		break;
@@ -290,9 +298,6 @@ void bus_slave_callback()
 		break;
 
 		case kMIBFinishCommand:
-		bus_slave_reset();
-		break;
-
 		case kMIBExecuteCommandHandler:
 		case kMIBIdleState:
 		case kMIBProtocolError:
