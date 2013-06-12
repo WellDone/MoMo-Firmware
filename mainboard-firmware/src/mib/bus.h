@@ -23,7 +23,8 @@ enum
 	kNoMIBError = 0,
 	kUnsupportedCommand = 1,
 	kWrongParameterType,
-	kParameterTooLong
+	kParameterTooLong,
+	kWrongChecksum
 };
 
 typedef enum
@@ -35,10 +36,8 @@ typedef enum
 	kMIBFinishedReceivingParameters,
 	kMIBReceivedParameterChecksum,
 	kMIBExecuteCommandHandler,
-	kMIBSendReturnValue,
-	kMIBWaitForSentReturnValue,
+	kMIBFinishCommand,
 	kMIBProtocolError,
-	kMIBFinishCommandState
 } MIBSlaveState;
 
 typedef enum 
@@ -55,7 +54,7 @@ typedef struct
 	I2CMessage				slave_msg;
 	mib_callback			slave_handler;
 	MIBSlaveState			slave_state;
-	int 					last_slave_error;
+	int 					num_reads;
 	MIBReturnValueHeader	slave_returnstatus;
 
 	MIBCommandPacket		slave_command;
@@ -85,7 +84,7 @@ int 			bus_master_rpc(unsigned char address, unsigned char feature, unsigned cha
 //Slave Routines
 void			bus_slave_startcommand();
 void 			bus_slave_callback();
-void 			bus_slave_seterror(int error);
+void 			bus_slave_seterror(unsigned char error);
 void			bus_slave_setreturn(unsigned char status, volatile MIBParameterHeader *value);
 
 #endif

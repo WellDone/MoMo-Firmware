@@ -9,8 +9,6 @@
 volatile I2CMasterStatus master;
 volatile I2CSlaveStatus  slave;
 
-volatile unsigned char last_byte;
-
 volatile I2CMessage 	 *master_msg;
 volatile I2CMessage      *slave_msg;
 
@@ -231,10 +229,7 @@ void i2c_slave_receivechecksum()
 	taskloop_add(i2c_slave_callback);
 
 	if (check != slave_msg->checksum)
-	{
-		//TODO: set checksum error here
-	}
-	//TODO: Add error processing here
+		slave.last_error = kI2CInvalidChecksum;
 
 	i2c_release_clock();
 }
@@ -295,6 +290,7 @@ I2CLogicState i2c_slave_state()
 void i2c_slave_setidle()
 {
 	slave.state = kI2CIdleState;
+	slave.last_error = kI2CNoError;
 	i2c_release_clock();
 }
 
@@ -313,44 +309,46 @@ void i2c_slave_sendbyte()
 
 void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt()
 {
+	volatile unsigned char unused;
+
 	if (i2c_address_received())
-		last_byte = I2C1RCV;
-
-	if (slave.state == kI2CIdleState && i2c_address_received() && !i2c_slave_is_read())
 	{
-		//If we're idle and a write is indicated, this indicates a new rpc call otherwise its a repeated start and we ignore it
-		//and wait for the data bytes after it.
-
-		slave.state = kI2CReceivedAddressState;
-		taskloop_add(i2c_slave_callback);  //callback has to release SCL once it's located the appropriate command handler
-	}
-	else if (i2c_address_received() && i2c_slave_is_read())
-		taskloop_add(i2c_slave_callback); //we're either being asked for a return status or a return value
-	else if (i2c_address_received() && !i2c_slave_is_read())
-		i2c_release_clock(); //Ignore address on writes
-	else if (slave.state == kI2CReceiveDataState)
-		i2c_slave_receivedata();
-	else if (slave.state == kI2CReceiveChecksumState)
-		i2c_slave_receivechecksum();
-	else if (slave.state == kI2CSendDataState)
-		i2c_slave_sendbyte();
-	else if (slave.state == kI2CSendChecksumState)
-	{
-		slave_msg->checksum = (~slave_msg->checksum) + 1;
-		I2C1TRN = slave_msg->checksum;
-
-		slave.state = kI2CUserCallbackState;
+		unused = I2C1RCV;
 		taskloop_add(i2c_slave_callback);
-
-		i2c_release_clock();
-	}
-	else if (slave.state == kI2CUserCallbackState)
-		taskloop_add(i2c_slave_callback);
-	else
+	}		
+	else 
 	{
-		last_byte = I2C1RCV;
-		i2c_release_clock(); //If we're in an error state just clock in the bytes and ignore them
-	}
+		switch(slave.state)
+		{
+			case kI2CReceiveDataState:
+			i2c_slave_receivedata();
+			break;
 
+			case kI2CReceiveChecksumState:
+			i2c_slave_receivechecksum();
+			break;
+
+			case kI2CSendDataState:
+			i2c_slave_sendbyte();
+			break;
+
+			case kI2CSendChecksumState:
+			slave_msg->checksum = (~slave_msg->checksum) + 1;
+			I2C1TRN = slave_msg->checksum;
+
+			slave.state = kI2CUserCallbackState;
+			i2c_release_clock();
+			break;
+
+			case kI2CUserCallbackState:
+			taskloop_add(i2c_slave_callback);
+			break;
+
+			default:
+			unused = I2C1RCV;
+			i2c_release_clock(); //If we're in an error state just clock in the bytes and ignore them
+		}
+	}
+	
 	_SI2C1IF = 0;
 }
