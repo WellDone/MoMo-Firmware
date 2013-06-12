@@ -3,7 +3,7 @@
 #include "reset_manager.h"
 #include "task_manager.h"
 #include "scheduler.h"
-#include "bus.h"
+#include "bus_master.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)

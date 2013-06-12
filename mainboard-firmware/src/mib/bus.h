@@ -18,13 +18,15 @@
 #define bus_slave_send(buffer, len, flags)			bus_send(kInvalidI2CAddress, buffer, len, flags)
 #define bus_slave_receive(buffer, len, flags) 		bus_receive(kInvalidI2CAddress, buffer, len, flags)
 
+//Bus error codes that can be returned
 enum
 {
 	kNoMIBError = 0,
 	kUnsupportedCommand = 1,
 	kWrongParameterType,
 	kParameterTooLong,
-	kWrongChecksum
+	kWrongChecksum,
+	kUnknownError
 };
 
 typedef enum
@@ -71,21 +73,25 @@ typedef struct
 
 } MIBState;
 
+//Configuration Routines
 void bus_init();
 
+//Allocation Routines
+volatile unsigned char * 		bus_allocate_space(unsigned int len);
+void							bus_free_all();
+
+volatile MIBParamList		*	bus_allocate_param_list(unsigned int num);
+volatile MIBIntParameter 	*	bus_allocate_int_param();
+volatile MIBBufferParameter *	bus_allocate_buffer_param(unsigned int len);
+volatile MIBReturnValueHeader *	bus_allocate_return_status();
+
+void 							bus_init_int_param(MIBIntParameter *param, int value);
+void 							bus_init_buffer_param(MIBBufferParameter *param, void *data, unsigned char len);
+
+
 //Command Routines
-int 			bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
-int 			bus_receive(unsigned char address, volatile unsigned char *buffer, unsigned char len, unsigned char flags);
+int bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
+int bus_receive(unsigned char address, volatile unsigned char *buffer, unsigned char len, unsigned char flags);
 
-//Master Routines
-unsigned char 	bus_master_lastaddress();
-void 			bus_master_callback();
-int 			bus_master_rpc(unsigned char address, unsigned char feature, unsigned char cmd, MIBParameterHeader **params, unsigned char param_count);
-
-//Slave Routines
-void			bus_slave_startcommand();
-void 			bus_slave_callback();
-void 			bus_slave_seterror(unsigned char error);
-void			bus_slave_setreturn(unsigned char status, volatile MIBParameterHeader *value);
 
 #endif

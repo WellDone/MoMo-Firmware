@@ -1,6 +1,7 @@
 //bus.c
 
-#include "bus.h"
+#include "bus_master.h"
+#include "bus_slave.h"
 #include "task_manager.h"
 #include <string.h>
 
@@ -43,17 +44,6 @@ int bus_send(unsigned char address, unsigned char *buffer, unsigned char len, un
 	return i2c_send_message(msg);
 }
 
-unsigned char bus_master_lastaddress()
-{
-	return mib_state.master_msg.address >> 1;
-}
-void bus_master_sendreset()
-{
-	bus_send(bus_master_lastaddress(), (unsigned char *)mib_buffer, 1, 0);
-	mib_state.master_state = kMIBFinalizeMessage;
-}
-
-
 int bus_receive(unsigned char address, volatile unsigned char *buffer, unsigned char len, unsigned char flags)
 {
 	volatile I2CMessage *msg = i2c_address_valid(address) ? &mib_state.master_msg : &mib_state.slave_msg;
@@ -69,240 +59,85 @@ int bus_receive(unsigned char address, volatile unsigned char *buffer, unsigned 
 	return i2c_receive_message(msg);
 }
 
-void bus_master_callback()
+volatile unsigned char *bus_allocate_space(unsigned int len)
 {
-	switch(mib_state.master_state)
-	{
-		case kMIBSendParameters:
-		bus_send(bus_master_lastaddress(), (unsigned char*)mib_buffer, mib_state.master_param_length, 0);
-		mib_state.master_state = kMIBReadReturnStatus;
-		break;
+	volatile unsigned char *allocated; 
 
-		case kMIBReadReturnStatus:
-		bus_receive(bus_master_lastaddress(), (unsigned char *)mib_buffer, sizeof(MIBReturnValueHeader), 0);
-		mib_state.master_state = kMIBReadReturnValue;
-		break;
+	if ((kBusMaxMessageSize - mib_firstfree) < len)
+		return (unsigned char *)0;
 
-		case kMIBReadReturnValue:
-		if (i2c_master_lasterror() != kI2CNoError)
-		{
-			//TODO: properly handle error here by calling callback with result code;
-			bus_master_sendreset();
-		}
-		else
-		{
-			MIBReturnValueHeader *header = (MIBReturnValueHeader *)mib_buffer;
-			mib_state.master_result = header->result;
+	allocated = &mib_buffer[mib_firstfree];
+	
+	mib_firstfree += len;
 
-			if (header->len > 0)
-			{
-				bus_receive(bus_master_lastaddress(), (unsigned char *)mib_buffer, header->len, 0);
-				mib_state.master_state = kMIBExecuteCallback;
-			}
-			else
-			{
-				bus_master_sendreset();
-			}
-		}
-		break;
-
-		case kMIBExecuteCallback:
-		//TODO: callback with return value
-		bus_master_sendreset();
-		break;
-
-		case kMIBFinalizeMessage:
-		bus_free_all();
-		i2c_finish_transmission(); 
-		break;
-	}
+	return allocated;
 }
 
-void bus_slave_startcommand()
+void bus_free_all()
 {
-	//Initialize all the state
-	mib_state.slave_state = kMIBSearchCommand;
-	mib_state.slave_handler = kInvalidMIBHandler;
-	mib_state.num_reads = 0;
-
-	bus_slave_setreturn(0, 0);
-
-	bus_slave_receive((unsigned char *)&mib_state.slave_command, 2, 0);
+	mib_firstfree = 0;
 }
 
-void bus_slave_seterror(unsigned char error)
+void bus_init_int_param(MIBIntParameter *param, int value)
 {
-	mib_state.slave_returnstatus.result = error;
-	mib_state.slave_returnstatus.len = 0;
-
-	mib_state.slave_state = kMIBProtocolError;
+	param->header.type = kMIBInt16Type;
+	param->header.len = 2;
+	param->value = value;
 }
 
-void bus_slave_setreturn(unsigned char status, volatile MIBParameterHeader *value)
+void bus_init_buffer_param(MIBBufferParameter *param, void *data, unsigned char len)
 {
-	mib_state.slave_returnstatus.result = status;
-
-	if (value == 0)
-		mib_state.slave_returnstatus.len = 0;
-	else
-		mib_state.slave_returnstatus.len = value->len + sizeof(MIBParameterHeader);
+	param->header.type = kMIBBufferType;
+	param->header.len = len;
+	param->data = data;
 }
 
-/* call with 0 to get the header, > 0 to get the value */
-void bus_slave_receiveparam(MIBParameterHeader *param, int header_or_value)
+volatile MIBReturnValueHeader *bus_allocate_return_status()
 {
-	if (header_or_value == 0)
-		bus_slave_receive((unsigned char *)&mib_state.last_param, sizeof(MIBParameterHeader), kCallbackBeforeChecksum);
-	else
-	{
-		//Make sure the type is right
-		if (mib_state.last_param.type != param->type)
-		{
-			bus_slave_seterror(kWrongParameterType);
-			return;
-		}
-		else if(mib_state.last_param.len > param->len)
-		{
-			bus_slave_seterror(kParameterTooLong);
-			return;
-		}
+	volatile MIBReturnValueHeader *ret = (volatile MIBReturnValueHeader *)bus_allocate_space(sizeof(MIBReturnValueHeader));
 
-		if (param->type == kMIBInt16Type)
-			bus_slave_receive((unsigned char *)(&((MIBIntParameter*)param)->value), param->len, kCallbackBeforeChecksum);
-		else
-			bus_slave_receive((unsigned char *)((MIBBufferParameter*)param)->data, ((MIBBufferParameter*)param)->header.len, kCallbackBeforeChecksum);
-	}
+	ret->result = 0;
+	ret->len = 0;
+
+	return ret;
 }
 
-void bus_slave_searchcommand()
+volatile MIBIntParameter *bus_allocate_int_param()
 {
-	mib_state.slave_handler = find_handler(mib_state.slave_command.feature, mib_state.slave_command.command);
-	if (mib_state.slave_handler == kInvalidMIBHandler)
-	{
-		bus_slave_seterror(kUnsupportedCommand);
-		return;
-	}
+	volatile MIBIntParameter *param = (volatile MIBIntParameter *)bus_allocate_space(sizeof(MIBIntParameter));
 
-	//Get the list of parameters that we have to receive
-	mib_state.slave_params = mib_state.slave_handler(kMIBCreateParameters, 0);
-	mib_state.slave_params->curr = 0;
-	//TODO: Handle case of inability to allocate slave_params data structure
+	if (param == 0)
+		return 0;
 
-	if (mib_state.slave_params->count > 0)
-	{
-		bus_slave_receiveparam((MIBParameterHeader*)&mib_state.slave_params[0], 0);
-		mib_state.slave_state = kMIBReceiveParameterValue;
-	}
-	else
-	{
-		//There we no parameters so jump straight to executing the command
-		mib_state.slave_state = kMIBExecuteCommandHandler;
-	}
+	param->header.type = kMIBInt16Type;
+	param->header.len = sizeof(MIBIntParameter) - sizeof(MIBParameterHeader);
+
+	return param;
 }
 
-void bus_slave_callcommand()
-{	
-	if (mib_state.slave_handler != kInvalidMIBHandler && mib_state.slave_state == kMIBExecuteCommandHandler)
-		mib_state.slave_handler(kMIBExecuteCommand, mib_state.slave_params);
-
-	//slave callback should set the return status via bus_slave_setreturn and set mib_buffer to point to the return value if any
-	bus_slave_send((unsigned char*)&mib_state.slave_returnstatus, sizeof(MIBReturnValueHeader), kSendImmediately);
-
-	//If we don't expect to send a return value, finish the command after this transmission
-	if (mib_state.slave_returnstatus.len == 0)
-		mib_state.slave_state = kMIBFinishCommand;
-}
-void bus_slave_reset()
+volatile MIBBufferParameter *bus_allocate_buffer_param(unsigned int len)
 {
-	//A write after any number of reads is a protocol reset so we reset ourselves back to idle
-	//This is a failsafe to make sure we can't get into a state where the slave locks up
-	bus_free_all();
-	mib_state.slave_state = kMIBIdleState;
-	mib_state.num_reads = 0;
-	i2c_slave_setidle();
+	volatile MIBBufferParameter *param = (volatile MIBBufferParameter *)bus_allocate_space(sizeof(MIBBufferParameter)+len);
+
+	if (param == 0)
+		return 0;
+
+	param->header.type = kMIBBufferType;
+	param->header.len = len;
+	param->data = ((unsigned char*)param) + sizeof(MIBBufferParameter);
+
+	return param;
 }
 
-void bus_slave_callback()
-{	
-	_RA6 = !_RA6;
+volatile MIBParamList *bus_allocate_param_list(unsigned int num)
+{
+	volatile MIBParamList *list = (volatile MIBParamList*)bus_allocate_space(sizeof(MIBParamList) + sizeof(MIBParameterHeader*)*num);
 
-	if (i2c_address_received())
-	{
-		if (i2c_slave_is_read())
-		{
-			mib_state.num_reads += 1;
+	if (list == 0)
+		return 0;
 
-			if (mib_state.num_reads == 1)
-			{
-				//First read is for the return status
-				bus_slave_callcommand();
-			}
-			else if (mib_state.num_reads == 2)
-			{
-				//Second read is for the return value, which if there is one should be in the mib_buffer
-				//if there wasn't one, then this is a protocol error since there shouldn't have been a second read
-				//so we can send garbage.
-				if (mib_state.slave_returnstatus.len != 0)
-					bus_slave_send((unsigned char *)mib_buffer, mib_state.slave_returnstatus.len, kSendImmediately);
-				else
-					bus_slave_send((unsigned char *)mib_buffer, 1, kSendImmediately); //protocol error so just send 1 byte, doesn't matter
-				
-				mib_state.slave_state = kMIBFinishCommand;
-			}
-		}
-		else
-		{
-			//We received a write
-			//If this is not a special situation (protocol reset or start of command) ignore the address byte
-			//and wait for the data to be clocked in.
-			
-			if (mib_state.num_reads != 0)
-				bus_slave_reset();
-			else if (mib_state.slave_state == kMIBIdleState)
-				bus_slave_startcommand(); //A write when we're idle indicates a new command
-		}
+	list->count = num;
+	list->curr = 0;
 
-		//Always release the clock.  The slave should never hold the clock forever.
-		i2c_release_clock();
-		return;
-	}
-
-	switch (mib_state.slave_state)
-	{
-		case kMIBSearchCommand:
-		bus_slave_searchcommand();
-		break;
-
-		case kMIBReceiveParameterValue:
-		bus_slave_receiveparam(mib_state.slave_params->params[mib_state.slave_params->curr], 1);
-		mib_state.slave_params->curr += 1;
-		if (mib_state.slave_params->curr == mib_state.slave_params->count)
-			mib_state.slave_state = kMIBFinishedReceivingParameters;
-		else
-			mib_state.slave_state = kMIBReceiveParameterHeader;
-		break;
-
-		case kMIBReceiveParameterHeader:
-		bus_slave_receiveparam(mib_state.slave_params->params[mib_state.slave_params->curr], 0);
-		mib_state.slave_state = kMIBReceiveParameterValue;
-		break;
-
-		case kMIBFinishedReceivingParameters:
-		mib_state.slave_state = kMIBReceivedParameterChecksum;
-		break;
-
-		case kMIBReceivedParameterChecksum:
-		mib_state.slave_state = kMIBExecuteCommandHandler;
-		/*if (i2c_slave_lasterror() != kI2CNoError)
-			bus_slave_seterror(kWrongChecksum);*/
-		break;
-
-		case kMIBFinishCommand:
-		case kMIBExecuteCommandHandler:
-		case kMIBIdleState:
-		case kMIBProtocolError:
-		break;
-	}
-
-	i2c_release_clock();
+	return list;
 }

@@ -1,8 +1,7 @@
 //mib_command.c 
 
 #include "mib_command.h"
-#include "protocol.h"
-#include "bus.h"
+#include "bus_slave.h"
 
 #define kNumFeatures 1
 #define kNumCommands 2
