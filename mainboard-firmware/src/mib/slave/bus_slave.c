@@ -7,7 +7,7 @@ extern unsigned int 			mib_firstfree;
 
 //static prototypes that are only to be used in this file
 void bus_slave_startcommand();
-void bus_slave_receiveparam(MIBParameterHeader *param, int header_or_value);
+void bus_slave_receiveparam(MIBParameterHeader *param, int header_or_value, unsigned char flag);
 void bus_slave_searchcommand();
 void bus_slave_callcommand();
 
@@ -46,10 +46,10 @@ void bus_slave_setreturn(unsigned char status, volatile MIBParameterHeader *valu
 }
 
 /* call with 0 to get the header, > 0 to get the value */
-void bus_slave_receiveparam(MIBParameterHeader *param, int header_or_value)
+void bus_slave_receiveparam(MIBParameterHeader *param, int header_or_value, unsigned char flag)
 {
 	if (header_or_value == 0)
-		bus_slave_receive((unsigned char *)&mib_state.last_param, sizeof(MIBParameterHeader), kCallbackBeforeChecksum);
+		bus_slave_receive((unsigned char *)&mib_state.last_param, sizeof(MIBParameterHeader), kCallbackBeforeChecksum|flag);
 	else
 	{
 		//Make sure the type is right
@@ -65,14 +65,20 @@ void bus_slave_receiveparam(MIBParameterHeader *param, int header_or_value)
 		}
 
 		if (param->type == kMIBInt16Type)
-			bus_slave_receive((unsigned char *)(&((MIBIntParameter*)param)->value), param->len, kCallbackBeforeChecksum);
+			bus_slave_receive((unsigned char *)(&((MIBIntParameter*)param)->value), param->len, kCallbackBeforeChecksum|flag);
 		else
-			bus_slave_receive((unsigned char *)((MIBBufferParameter*)param)->data, ((MIBBufferParameter*)param)->header.len, kCallbackBeforeChecksum);
+			bus_slave_receive((unsigned char *)((MIBBufferParameter*)param)->data, ((MIBBufferParameter*)param)->header.len, kCallbackBeforeChecksum|flag);
 	}
 }
 
 void bus_slave_searchcommand()
 {
+	if (i2c_slave_lasterror() != kI2CNoError)
+	{
+		bus_slave_seterror(kCommandChecksumError); //Make sure the parameter checksum was valid.
+		return;
+	}
+	
 	mib_state.slave_handler = find_handler(mib_state.slave_command.feature, mib_state.slave_command.command);
 	if (mib_state.slave_handler == kInvalidMIBHandler)
 	{
@@ -87,7 +93,7 @@ void bus_slave_searchcommand()
 
 	if (mib_state.slave_params->count > 0)
 	{
-		bus_slave_receiveparam((MIBParameterHeader*)&mib_state.slave_params[0], 0);
+		bus_slave_receiveparam((MIBParameterHeader*)&mib_state.slave_params[0], 0, 0);
 		mib_state.slave_state = kMIBReceiveParameterValue;
 	}
 	else
@@ -171,7 +177,7 @@ void bus_slave_callback()
 		break;
 
 		case kMIBReceiveParameterValue:
-		bus_slave_receiveparam(mib_state.slave_params->params[mib_state.slave_params->curr], 1);
+		bus_slave_receiveparam(mib_state.slave_params->params[mib_state.slave_params->curr], 1, kContinueChecksum);
 		mib_state.slave_params->curr += 1;
 		if (mib_state.slave_params->curr == mib_state.slave_params->count)
 			mib_state.slave_state = kMIBFinishedReceivingParameters;
@@ -180,7 +186,7 @@ void bus_slave_callback()
 		break;
 
 		case kMIBReceiveParameterHeader:
-		bus_slave_receiveparam(mib_state.slave_params->params[mib_state.slave_params->curr], 0);
+		bus_slave_receiveparam(mib_state.slave_params->params[mib_state.slave_params->curr], kContinueChecksum);
 		mib_state.slave_state = kMIBReceiveParameterValue;
 		break;
 
@@ -190,8 +196,8 @@ void bus_slave_callback()
 
 		case kMIBReceivedParameterChecksum:
 		mib_state.slave_state = kMIBExecuteCommandHandler;
-		/*if (i2c_slave_lasterror() != kI2CNoError)
-			bus_slave_seterror(kWrongChecksum);*/
+		if (i2c_slave_lasterror() != kI2CNoError)
+			bus_slave_seterror(kParameterChecksumError); //Make sure the parameter checksum was valid.
 		break;
 
 		case kMIBFinishCommand:

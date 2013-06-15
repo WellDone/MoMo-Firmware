@@ -124,7 +124,9 @@ int i2c_receive_message(volatile I2CMessage *msg)
 	volatile I2CMessage **msg_ptr = i2c_select_pointer(msg);
 
 	*msg_ptr = msg;
-	msg->checksum = 0;
+
+	if (!(msg->flags & kContinueChecksum))
+		msg->checksum = 0;
 
 	//Check if this is a slave reception
 	if (!i2c_address_valid(msg->address))
@@ -349,7 +351,7 @@ void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt()
 			//by default do not read bytes if we don't know what to do with them so that the master sees the 
 			//error and does a bus reset.
 			_I2COV = 0; //If the receive buffer is full we will nack, but if we don't clear the overflow we won't get any more interrupts
-			i2c_release_clock(); //If we're in an error state just clock in the bytes and ignore them
+			i2c_release_clock();
 			break;
 		}
 	}

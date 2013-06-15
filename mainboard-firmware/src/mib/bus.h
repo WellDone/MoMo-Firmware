@@ -22,10 +22,11 @@
 enum
 {
 	kNoMIBError = 0,
-	kUnsupportedCommand = 1,
+	kUnsupportedCommand,
 	kWrongParameterType,
 	kParameterTooLong,
-	kWrongChecksum,
+	kParameterChecksumError,
+	kCommandChecksumError,
 	kUnknownError
 };
 
