@@ -1,6 +1,6 @@
-build/*
 *.o
-dist/*
 build
 dist
 */nbproject/*
+*.sublime-project
+*.sublime-workspace
