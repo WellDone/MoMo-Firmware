@@ -30,33 +30,29 @@ void bus_init()
 
 int bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags)
 {
-	volatile I2CMessage *msg = i2c_address_valid(address) ? &mib_state.master_msg : &mib_state.slave_msg;
-
 	if (len > kBusMaxMessageSize)
 		return -1;
 
 	//Fill in message contents
-	msg->address = address;
-	msg->data_ptr = buffer;
-	msg->last_data = buffer + len;
-	msg->flags = flags;
+	mib_state.bus_msg.address = address;
+	mib_state.bus_msg.data_ptr = buffer;
+	mib_state.bus_msg.last_data = buffer + len;
+	mib_state.bus_msg.flags = flags;
 
-	return i2c_send_message(msg);
+	return i2c_send_message(&mib_state.bus_msg);
 }
 
 int bus_receive(unsigned char address, volatile unsigned char *buffer, unsigned char len, unsigned char flags)
 {
-	volatile I2CMessage *msg = i2c_address_valid(address) ? &mib_state.master_msg : &mib_state.slave_msg;
-
-	msg->address = address;
-	msg->data_ptr = buffer;
+	mib_state.bus_msg.address = address;
+	mib_state.bus_msg.data_ptr = buffer;
 	
-	msg->last_data = buffer;
-	msg->len = len;
+	mib_state.bus_msg.last_data = buffer;
+	mib_state.bus_msg.len = len;
 
-	msg->flags = flags;
+	mib_state.bus_msg.flags = flags;
 
-	return i2c_receive_message(msg);
+	return i2c_receive_message(&mib_state.bus_msg);
 }
 
 volatile unsigned char *bus_allocate_space(unsigned int len)

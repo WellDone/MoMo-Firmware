@@ -70,6 +70,7 @@ typedef enum
 	kI2CReceiveDataState,
 	kI2CReceiveChecksumState,
 	kI2CUserCallbackState,
+	kI2CDisabledState, 			//When the slave logic is using the bus, disable the master and vice-versa
 	kI2CForceStopState 			//When a stop condition is asserted on the bus, make sure we clean up everything
 } I2CLogicState;
 
@@ -94,7 +95,8 @@ typedef struct
 enum
 {
 	kCallbackBeforeChecksum = 1 << 0,
-	kSendImmediately = 1 << 1
+	kSendImmediately = 1 << 1,
+	kContinueChecksum = 1 << 2
 };
 
 typedef enum 
@@ -116,28 +118,32 @@ typedef struct
 	I2CErrorCode  last_error;
 } I2CSlaveStatus;
 
+//Configuration Functions
 void i2c_configure(const I2CConfig *config);
 void i2c_enable();
 void i2c_disable();
 
+//Shared Common Functions
 int i2c_send_message(volatile I2CMessage *msg);
 int i2c_receive_message(volatile I2CMessage *msg);
-
-volatile I2CMessage** i2c_select_pointer(volatile I2CMessage *msg);
 
 void i2c_start_transmission();
 void i2c_finish_transmission();
 
+//Master Functions
 void i2c_master_receivedata();
 void i2c_master_receivechecksum();
 void i2c_master_setidle();
 int  i2c_master_lasterror();
+void i2c_master_enable();
+void i2c_master_disable();
 
+//Slave Functions
 void i2c_slave_receivedata();
 void i2c_slave_receivechecksum();
 void i2c_slave_setidle();
-int  i2c_slave_lasterror();
 void i2c_slave_sendbyte();
+int  i2c_slave_lasterror();
 
 I2CLogicState i2c_slave_state();
 

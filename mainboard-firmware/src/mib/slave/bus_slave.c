@@ -24,7 +24,7 @@ void bus_slave_startcommand()
 
 	bus_slave_setreturn(kUnknownError, 0); //Make sure that if nothing else happens we return an error status.
 
-	bus_slave_receive((unsigned char *)&mib_state.slave_command, 2, 0);
+	bus_slave_receive((unsigned char *)&mib_state.bus_command, 2, 0);
 }
 
 void bus_slave_seterror(unsigned char error)
@@ -79,7 +79,7 @@ void bus_slave_searchcommand()
 		return;
 	}
 	
-	mib_state.slave_handler = find_handler(mib_state.slave_command.feature, mib_state.slave_command.command);
+	mib_state.slave_handler = find_handler(mib_state.bus_command.feature, mib_state.bus_command.command);
 	if (mib_state.slave_handler == kInvalidMIBHandler)
 	{
 		bus_slave_seterror(kUnsupportedCommand);
@@ -186,7 +186,7 @@ void bus_slave_callback()
 		break;
 
 		case kMIBReceiveParameterHeader:
-		bus_slave_receiveparam(mib_state.slave_params->params[mib_state.slave_params->curr], kContinueChecksum);
+		bus_slave_receiveparam(mib_state.slave_params->params[mib_state.slave_params->curr], 0, kContinueChecksum);
 		mib_state.slave_state = kMIBReceiveParameterValue;
 		break;
 

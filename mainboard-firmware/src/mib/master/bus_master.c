@@ -14,7 +14,7 @@ void 			bus_master_compose_params(MIBParameterHeader **params, unsigned char par
 
 unsigned char bus_master_lastaddress()
 {
-	return mib_state.master_msg.address >> 1;
+	return mib_state.bus_msg.address >> 1;
 }
 
 void bus_master_finish()
@@ -59,14 +59,14 @@ void bus_master_compose_params(MIBParameterHeader **params, unsigned char param_
 
 int bus_master_rpc(unsigned char address, unsigned char feature, unsigned char cmd, MIBParameterHeader **params, unsigned char param_count)
 {
-	mib_state.master_command.feature = feature;
-	mib_state.master_command.command = cmd;
+	mib_state.bus_command.feature = feature;
+	mib_state.bus_command.command = cmd;
 
 	mib_state.master_state = kMIBSendParameters;
 
 	bus_master_compose_params(params, param_count);
 
-	return bus_send(address, (unsigned char *)&mib_state.master_command, sizeof(MIBCommandPacket), 0);
+	return bus_send(address, (unsigned char *)&mib_state.bus_command, sizeof(MIBCommandPacket), 0);
 }
 
 void bus_master_callback()

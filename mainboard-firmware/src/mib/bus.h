@@ -54,24 +54,23 @@ typedef enum
 
 typedef struct 
 {
+	//Shared Buffers
+	I2CMessage				bus_msg;
+	MIBCommandPacket		bus_command;
+
 	//Slave section
-	I2CMessage				slave_msg;
 	mib_callback			slave_handler;
 	MIBSlaveState			slave_state;
 	int 					num_reads;
 	MIBReturnValueHeader	slave_returnstatus;
 
-	MIBCommandPacket		slave_command;
 	MIBParameterHeader 		last_param;
 	MIBParamList			*slave_params;
 
 	//Master section	
-	I2CMessage				master_msg;
 	MIBMasterState			master_state;
-	MIBCommandPacket		master_command;
 	unsigned char 			master_param_length;
 	unsigned char 			master_result;
-
 } MIBState;
 
 //Configuration Routines
@@ -88,7 +87,6 @@ volatile MIBReturnValueHeader *	bus_allocate_return_status();
 
 void 							bus_init_int_param(MIBIntParameter *param, int value);
 void 							bus_init_buffer_param(MIBBufferParameter *param, void *data, unsigned char len);
-
 
 //Command Routines
 int bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);

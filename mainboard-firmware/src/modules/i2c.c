@@ -9,9 +9,7 @@
 volatile I2CMasterStatus master;
 volatile I2CSlaveStatus  slave;
 
-volatile I2CMessage 	 *master_msg;
-volatile I2CMessage      *slave_msg;
-
+volatile I2CMessage 	 *i2c_msg;
 
 task_callback i2c_callback;
 task_callback i2c_slave_callback; 
@@ -85,19 +83,9 @@ void i2c_finish_transmission()
 	master.state = kI2CIdleState;
 }
 
-volatile I2CMessage** i2c_select_pointer(volatile I2CMessage *msg)
-{
-	if (!i2c_address_valid(msg->address))
-		return &slave_msg;
-
-	return &master_msg;
-}
-
 int i2c_send_message(volatile I2CMessage *msg)
 {
-	volatile I2CMessage **msg_ptr = i2c_select_pointer(msg);
-
-	*msg_ptr = msg;
+	i2c_msg = msg;
 	msg->checksum = 0;
 
 	//Check if this is a slave transmission
@@ -121,9 +109,7 @@ int i2c_send_message(volatile I2CMessage *msg)
 
 int i2c_receive_message(volatile I2CMessage *msg)
 {
-	volatile I2CMessage **msg_ptr = i2c_select_pointer(msg);
-
-	*msg_ptr = msg;
+	i2c_msg = msg;
 
 	if (!(msg->flags & kContinueChecksum))
 		msg->checksum = 0;
@@ -142,219 +128,4 @@ int i2c_receive_message(volatile I2CMessage *msg)
 
 	i2c_start_transmission();
 	return 0;
-}
-
-/*
- * Helper function only used in MI2C1Interrupt in order to encapsulate the receive logic
- */
-void i2c_master_receivedata()
-{
-	if (i2c_received_data())
-	{
-		unsigned char data = I2C1RCV;
-		*(master_msg->last_data) = data;
-		master_msg->checksum += data;
-		master_msg->last_data += 1;
-
-		//Check if we are at the end of the message
-		if ((master_msg->last_data - master_msg->data_ptr) == master_msg->len)
-			master.state = kI2CReceiveChecksumState;
-		else
-			master.state = kI2CReceiveDataState;
-
-		i2c_send_ack(); //Acknowledge all received data bytes
-	}
-	else
-		i2c_begin_receive();
-}
-
-int i2c_master_lasterror()
-{
-	return master.last_error;
-}
-
-int i2c_slave_lasterror()
-{
-	return slave.last_error;
-}
-
-void i2c_master_receivechecksum()
-{
-	if (i2c_received_data())
-	{
-		unsigned char check = I2C1RCV;
-
-		master_msg->checksum = ~master_msg->checksum + 1;
-		master.state = kI2CUserCallbackState;
-
-		if (check == master_msg->checksum)
-			master.last_error = kI2CNoError;
-		else
-			master.last_error = kI2CInvalidChecksum;
-
-		i2c_send_nack(); //We are done with this read transaction, send a nack to the slave per i2c spec
-	}
-	else
-		i2c_begin_receive();
-}
-
-void i2c_slave_receivedata()
-{
-	unsigned char data = I2C1RCV;
-
-	*(slave_msg->last_data) = data;
-	slave_msg->checksum += data;
-	slave_msg->last_data += 1;
-
-	//Check if we are at the end of the message
-	if ((slave_msg->last_data - slave_msg->data_ptr) == slave_msg->len)
-	{
-		slave.state = kI2CReceiveChecksumState;
-
-		if (slave_msg->flags & kCallbackBeforeChecksum)
-		{
-			taskloop_add(i2c_slave_callback);
-			return; //Don't release clock, job of callback in this case
-		}
-	}
-
-	i2c_release_clock();
-}
-
-void i2c_slave_receivechecksum()
-{
-	unsigned char check = I2C1RCV;
-
-	slave_msg->checksum = ~slave_msg->checksum + 1;
-
-	slave.state = kI2CUserCallbackState;
-	taskloop_add(i2c_slave_callback);
-
-	if (check != slave_msg->checksum)
-		slave.last_error = kI2CInvalidChecksum;
-
-	i2c_release_clock();
-}
-
-void __attribute__((interrupt,no_auto_psv)) _MI2C1Interrupt()
-{
-	//TODO add code for handling bus collision arbitration losses and stops
-	switch(master.state)
-	{
-		case kI2CSendAddressState:
-		i2c_transmit(master_msg->address);
-		master.state = (master.dir == kMasterSendData) ? kI2CSendDataState : kI2CReceiveDataState;
-		break;
-
-		case kI2CReceiveDataState:
-		i2c_master_receivedata();
-		break;
-
-		case kI2CReceiveChecksumState:
-		i2c_master_receivechecksum();
-		break;
-
-		//Send Logic
-		case kI2CSendDataState:
-		I2C1TRN = *(master_msg->data_ptr);
-		master_msg->checksum += *(master_msg->data_ptr);
-		master_msg->data_ptr += 1;
-
-		if (master_msg->data_ptr == master_msg->last_data)
-			master.state = kI2CSendChecksumState; //We will get another interrupt when this byte is done being clocked out
-		break;
-
-		case kI2CSendChecksumState:
-		master_msg->checksum = (~master_msg->checksum) + 1;
-		I2C1TRN = master_msg->checksum;
-		master.state = kI2CUserCallbackState;
-		break;
-
-		case kI2CUserCallbackState:
-		//This data is now sent or received, we need to execute the callback to see what to do next
-		taskloop_add(i2c_callback); //It is the job of the user callback to decide whether to 
-		break;
-
-		case kI2CIdleState:
-		case kI2CReceivedAddressState:
-		case kI2CForceStopState:
-		break;
-	}
-
-	_MI2C1IF = 0;
-}
-
-I2CLogicState i2c_slave_state()
-{
-	return slave.state;
-}
-
-void i2c_slave_setidle()
-{
-	slave.state = kI2CIdleState;
-	slave.last_error = kI2CNoError;
-	i2c_release_clock();
-}
-
-void i2c_slave_sendbyte()
-{
-		i2c_transmit(*(slave_msg->data_ptr));
-
-		slave_msg->checksum += *(slave_msg->data_ptr);
-		slave_msg->data_ptr += 1;
-
-		if (slave_msg->data_ptr == slave_msg->last_data)
-			slave.state = kI2CSendChecksumState;
-
-		i2c_release_clock();
-}
-
-void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt()
-{
-	volatile unsigned char unused;
-
-	if (i2c_address_received())
-	{
-		unused = I2C1RCV;
-		_I2COV = 0;
-		taskloop_add(i2c_slave_callback);
-	}		
-	else 
-	{
-		switch(slave.state)
-		{
-			case kI2CReceiveDataState:
-			i2c_slave_receivedata();
-			break;
-
-			case kI2CReceiveChecksumState:
-			i2c_slave_receivechecksum();
-			break;
-
-			case kI2CSendDataState:
-			i2c_slave_sendbyte();
-			break;
-
-			case kI2CSendChecksumState:
-			slave_msg->checksum = (~slave_msg->checksum) + 1;
-			I2C1TRN = slave_msg->checksum;
-
-			slave.state = kI2CUserCallbackState;
-			i2c_release_clock();
-			break;
-
-			case kI2CUserCallbackState:
-			taskloop_add(i2c_slave_callback);
-			break;
-
-			default:
-			//by default do not read bytes if we don't know what to do with them so that the master sees the 
-			//error and does a bus reset.
-			_I2COV = 0; //If the receive buffer is full we will nack, but if we don't clear the overflow we won't get any more interrupts
-			i2c_release_clock();
-			break;
-		}
-	}
-
-	_SI2C1IF = 0;
 }
