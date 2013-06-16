@@ -1,166 +1,121 @@
-#include <pic12f1822.h>
-#include <stdint.h>
+/*
+ *
+ */
+
 #include "i2c.h"
-#include "flash_memory.h"
-#include "typedef.h"
+#include "bus.h"
 
-/* Mask for current I2C state. */
-#define I2C_STATE_MASK 0x25
+volatile I2CMasterStatus master;
+volatile I2CSlaveStatus  slave;
 
-// pickit serial communication states
-#define I2C_NO_TRANSACTION                  0
-#define I2C_SLAVE_ADDRESS_RECEIVED          1
-#define I2C_WORD_ADDRESS_RECEIVED           2
-#define I2C_READ_ADDRESS                    3
-#define I2C_READ_DATA                       4
-#define I2C_MASTER_NACK                     5
+volatile I2CMessage      *i2c_msg;
 
-// define i2c states
-#define MWA 0x1         //Master Writes Address
-#define MWD 0x21        //Master Writes Data
-#define MRA 0x5         //Master Reads Address
-#define MRD 0x24        //Master Reads Data
+void (*i2c_master_callback)(void);
+void (*i2c_slave_callback)(void);
+unsigned char i2c_slave_address;
 
-// slave address definition
-#define SLAVE_ADDR 0xa0
-
-ADDRESS flash_addr_pointer;
-uint8_t flash_buffer[16];
-uint8_t pksa_wd_address;
-uint8_t pksa_index;
-uint8_t pksa_status;
-
-void i2c_slave_init()
+void i2c_enable(unsigned char slave_address, void *master_callback, void *slave_callback)
 {
-    TRISA1 = 1;                 // SCL input
-    TRISA2 = 1;                 // SDA input
+    unsigned char unused;
 
-    SSP1BUF = 0x0;
-    SSP1STAT = 0x80;             // 100Khz
-    SSP1ADD = SLAVE_ADDR;
-    SSP1CON1 = 0x36;              // Slave mode, 7bit addr
-    SSP1CON3 |= 0b01100000;      // enable start and stop conditions
+    master.state = kI2CIdleState;
+    slave.state = kI2CIdleState;
+
+    unused = SSP1BUF; //Clear out receive buffer
+    TRISA1 = 1; //SCL pin as input
+    TRISA2 = 1; //SDA pin as input
+    SSPEN = 1; //Enable serial port and configure to use SDA/SCL as source
+
+    SSP1STAT = 0xff & kI2CFlagMask;
+
+    /* Enable the MSSP interrupt (for i2c). */
+    SSP1IF = 0;
+    SSP1IE = 1;
+
+    //Enable general call interrupt
+    GCEN = 1;
+
+    //i2c callbacks for processing events
+    i2c_master_callback = master_callback;
+    i2c_slave_callback = slave_callback;
+
+    //address for slave mode
+    i2c_slave_address = slave_address;
 }
 
-void i2c_send(unsigned char data)
+void i2c_disable()
 {
-    do
+    //Disable general call interrupt
+    GCEN = 0;
+
+    //disable interrupts
+    SSP1IE = 0;
+
+    //disable serial port
+    SSPEN = 0;
+}
+
+void i2c_start_transmission()
+{
+    if (master.state == kI2CIdleState)
+        i2c_send_start();
+    else
+        i2c_send_repeatedstart();
+
+    master.state = kI2CSendAddressState;
+    master.last_error = kI2CNoError; //Initialize last error
+}
+
+void i2c_finish_transmission()
+{
+    i2c_send_stop();
+
+    master.state = kI2CIdleState;
+}
+
+int i2c_send_message(volatile I2CMessage *msg)
+{
+    i2c_msg = msg;
+    msg->checksum = 0;
+
+    //Check if this is a slave transmission
+    if (!i2c_address_valid(msg->address))
     {
-        WCOL=0;
-        SSP1BUF = data;
+        slave.state = kI2CSendDataState;
+        if (msg->flags & kSendImmediately)
+            i2c_slave_sendbyte();
+
+        return 0;
     }
-    while(WCOL);
-    CKP = 1;
+
+    master.dir = kMasterSendData;
+    msg->address <<= 1;
+
+    CLEAR_BIT(msg->address, 0); //set write indication
+
+    i2c_start_transmission();
+    return 0;
 }
 
-int do_i2c_tasks()
+int i2c_receive_message(volatile I2CMessage *msg)
 {
-    unsigned int dat =0 ;
-    unsigned char temp,idx;
+    i2c_msg = msg;
 
-    unsigned char token = 0;
+    if (!(msg->flags & kContinueChecksum))
+        msg->checksum = 0;
 
-    if (SSP1IF) {
-        token = SSP1STAT & I2C_STATE_MASK;    //obtain current state
-        if(_SSPSTAT_S_POSITION) {
-            switch (token) {
-                case MWA:                              //MASTER WRITES ADDRESS STATE
-                    temp = SSP1BUF;
-                    pksa_status = I2C_SLAVE_ADDRESS_RECEIVED;
-                    break;
-                case MWD:                              //MASTER WRITES DATA STATE
-                    temp = SSP1BUF;
-
-                    if (pksa_status == I2C_SLAVE_ADDRESS_RECEIVED) {   
-                        // first time we get the slave address, after that set to word address
-                        pksa_wd_address = temp;
-                        pksa_index = 0;
-                        pksa_status = I2C_WORD_ADDRESS_RECEIVED;
-                    }  else if (pksa_status == I2C_WORD_ADDRESS_RECEIVED) {
-                        // second time we get the word address, so look into word address
-                        if (pksa_wd_address == 0x01) { // 0x01 is buffer word address
-                            if (pksa_index == 0) {
-                                flash_addr_pointer.bytes.byte_H = temp;
-                                pksa_index++;
-                            }
-                            else if (pksa_index == 1) {
-                                 flash_addr_pointer.bytes.byte_L = temp;
-                            }
-                        }
-                        
-                        if (pksa_wd_address == 0x02) {  // 0x02 write data word address
-                            flash_buffer[pksa_index] = temp;
-                            pksa_index++;
-                            if (pksa_index == 16)
-                                pksa_index--;
-                        }
-                    }
-                    break;
-                case MRA:                              //MASTER READS ADDRESS STATE
-                    if (pksa_wd_address == 0x01) {           // buffer word address
-                        // Send first byte here, next byte will be send at MRD case, see below
-                        i2c_send (flash_addr_pointer.bytes.byte_H);
-                    }
-                    if (pksa_wd_address == 0x03) {    // read data from flash memory
-                        if (pksa_index == 0) {
-                            // read data into flash_buffer
-                            for (idx = 0; idx <16; idx+=2) {
-                                dat = flash_memory_read (flash_addr_pointer.word.address);
-                                flash_buffer[idx  ] = dat>>8;
-                                flash_buffer[idx+1] = dat & 0xFF;
-                                flash_addr_pointer.word.address++;
-                            }
-                            // send first byte, the rest will be sent at MRD, see below
-                            i2c_send(flash_buffer[pksa_index]);
-                            pksa_index++;
-                            if (pksa_index == 16)
-                                pksa_index--;   // should never get here....
-                        }
-                    }
-                    if (pksa_wd_address == 0x04) {
-                        // erase command, erases a row of 32 words
-                        flash_memory_erase (flash_addr_pointer.word.address);
-                        flash_addr_pointer.word.address +=32;
-                        i2c_send(0x00);
-                    }
-                    if (pksa_wd_address == 0x05) {
-                        // write command. What's stored into flash_buffer is written
-                        // to FLASH memory at the address pointed to by the address pointer.
-                        // The address pointer automatically increments by 8 units.
-                        flash_memory_write (flash_addr_pointer.word.address, flash_buffer );
-                        flash_addr_pointer.word.address +=8;
-                        i2c_send(0x00);
-
-                    }
-                    if (pksa_wd_address == 0x06) {
-                        // jump to appplication code
-                        i2c_send(0x00);
-                        for (idx = 0; idx < 255; idx++);
-                        #asm
-                            RESET;
-                        #endasm
-                    }
-                    break;
-                case MRD :                              //MASTER READS DATA STATE
-                        if (pksa_wd_address == 0x01) {  // buffer word address
-                            i2c_send(flash_addr_pointer.bytes.byte_L);
-                        }
-                        if (pksa_wd_address == 0x03) {
-                            i2c_send(flash_buffer[pksa_index]);
-                            pksa_index++;
-                            if (pksa_index == 16)
-                                pksa_index--;
-                        }
-                    break;
-            }
-        }
-        else if (_SSPSTAT_P_POSITION) {   //STOP state
-            asm("nop");
-            pksa_status = I2C_NO_TRANSACTION;
-        }
-
-        SSP1IF = 0;
-        SSPEN = 1;
-        CKP = 1;    //release clock
+    //Check if this is a slave reception
+    if (!i2c_address_valid(msg->address))
+    {
+        slave.state = kI2CReceiveDataState;
+        return 0;
     }
+
+    master.dir = kMasterReceiveData;
+    msg->address <<= 1;
+
+    SET_BIT(msg->address, 0); //set read indication
+
+    i2c_start_transmission();
+    return 0;
 }

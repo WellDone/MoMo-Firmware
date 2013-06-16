@@ -31,15 +31,24 @@ void initialize ();
 // address 0x0004. The following function will be located
 // at the interrupt vector and will contain a jump to
 // 0x0204
-void interrupt serrvice_isr() {
-    #asm
-        GOTO 0x204;
-    #endasm
+void interrupt service_isr() {
+    /* Handle i2c interrupts (MSSP) in the bootloader. */
+    if (SSP1IF == 1) {
+        if (i2c_master_state() == kI2CDisabledState) {
+            i2c_slave_interrupt();
+        } else {
+            i2c_master_interrupt();
+        }
+        SSP1IF = 0;
+    } else {
+        #asm
+            GOTO 0x204;
+        #endasm
+    }
 }
 
 void main() {
     initialize();
-    i2c_slave_init();
 
     // If button is pressed, then force bootloader mode
     if (BUTT) {
@@ -55,7 +64,6 @@ void main() {
 
 Bootloader:
     while (1) {
-        do_i2c_tasks();
         heartbeat();
     }
 }
@@ -71,8 +79,8 @@ void heartbeat() {
 
     /* Timer 1 is configured to be (32MHz/4)/8 = 1MHz
         16-bit timer overflows 1MHz/(2^16) = ~15 times/second */
-    if (counter > 7) {
-        if (counter == 15) 
+    if (counter > 15) {
+        if (counter == 30) 
             counter = 0;
         LED = 1;
     } else {
@@ -82,16 +90,19 @@ void heartbeat() {
 
 void initialize ()
 {
-    /* Software 4x PPL enabled, 16 MHz HF Internal Oscillator. */
-    OSCCON = 0xFA;
+    /* Software 4x PPL enabled, 32 MHz HF Internal Oscillator. */
+    OSCCON = 0xF0;
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
     ANSELA = 0;
     /* Set all PORTA pins to be input. */
     TRISA = 0xff;
-    /* Set PORTA pin 4 to be input (tri-state). */
-    TRISA4 = 1;
     /* Set PORTA pin 5 to be output. */
     TRISA5 = 0;
     /* Turn Timer1 on with 1:8 prescale using FOSC/4 as source. */
     T1CON = 0x31;
+    
+    /* Enable interrupts globally. */
+    GIE = 1;
+    /* Enable peripheral interrupts. */
+    PEIE = 1;
 }
