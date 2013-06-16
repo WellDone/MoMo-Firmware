@@ -5,6 +5,5 @@
 
 //Master Routines
 void 			bus_master_callback();
-int 			bus_master_rpc(unsigned char address, unsigned char feature, unsigned char cmd, MIBParameterHeader **params, unsigned char param_count);
-
+int 			bus_master_rpc(mib_rpc_function callback, unsigned char address, unsigned char feature, unsigned char cmd, MIBParameterHeader **params, unsigned char param_count);
 #endif

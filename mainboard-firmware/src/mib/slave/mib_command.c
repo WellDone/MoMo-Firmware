@@ -2,13 +2,15 @@
 
 #include "mib_command.h"
 #include "bus_slave.h"
+#include <string.h>
 
 #define kNumFeatures 1
 #define kNumCommands 2
 const unsigned char features[kNumFeatures] = {2};
 const unsigned char commands[kNumFeatures+1] = {0,kNumCommands};
-const mib_callback  handlers[kNumCommands] = {kInvalidMIBHandler, test_command};
+const mib_callback  handlers[kNumCommands] = {echo_buffer, test_command};
 
+extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
 
 mib_callback find_handler(unsigned char feature, unsigned char cmd)
 {
@@ -56,7 +58,31 @@ void* test_command(int state, void *param)
 		retval = (MIBIntParameter*)bus_allocate_int_param();
 
 		bus_init_int_param(retval, 6);
-		bus_slave_setreturn(0x05, (MIBParameterHeader*)retval);
+		bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)retval);
+	}
+
+	return 0;
+}
+
+void* echo_buffer(int state, void *param)
+{
+	if (state == kMIBCreateParameters)
+	{
+		volatile MIBParamList *list = bus_allocate_param_list(1);
+		list->params[0] = (MIBParameterHeader*)bus_allocate_buffer_param(20);
+
+		return (void*)list;
+	}
+	else
+	{	
+		MIBParamList *list = (MIBParamList*)param;
+		MIBBufferParameter *buf = (MIBBufferParameter *)list->params[0];
+		bus_free_all();
+
+		memmove((void*)mib_buffer, buf, 2);
+		memmove((void*)mib_buffer+2, buf->data, buf->header.len);
+
+		bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)mib_buffer);
 	}
 
 	return 0;

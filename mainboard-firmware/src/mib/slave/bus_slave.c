@@ -29,20 +29,20 @@ void bus_slave_startcommand()
 
 void bus_slave_seterror(unsigned char error)
 {
-	mib_state.slave_returnstatus.result = error;
-	mib_state.slave_returnstatus.len = 0;
+	mib_state.bus_returnstatus.result = error;
+	mib_state.bus_returnstatus.len = 0;
 
 	mib_state.slave_state = kMIBProtocolError;
 }
 
 void bus_slave_setreturn(unsigned char status, volatile MIBParameterHeader *value)
 {
-	mib_state.slave_returnstatus.result = status;
+	mib_state.bus_returnstatus.result = status;
 
 	if (value == 0)
-		mib_state.slave_returnstatus.len = 0;
+		mib_state.bus_returnstatus.len = 0;
 	else
-		mib_state.slave_returnstatus.len = value->len + sizeof(MIBParameterHeader);
+		mib_state.bus_returnstatus.len = value->len + sizeof(MIBParameterHeader);
 }
 
 /* call with 0 to get the header, > 0 to get the value */
@@ -64,10 +64,15 @@ void bus_slave_receiveparam(MIBParameterHeader *param, int header_or_value, unsi
 			return;
 		}
 
+		//Update the parameter with the read in size.  If this is a buffer
+		//this is important so that we record the actual size, rather than the
+		//size of the buffer we allocated for it.
+		param->len = mib_state.last_param.len;
+
 		if (param->type == kMIBInt16Type)
 			bus_slave_receive((unsigned char *)(&((MIBIntParameter*)param)->value), param->len, kCallbackBeforeChecksum|flag);
 		else
-			bus_slave_receive((unsigned char *)((MIBBufferParameter*)param)->data, ((MIBBufferParameter*)param)->header.len, kCallbackBeforeChecksum|flag);
+			bus_slave_receive((unsigned char *)((MIBBufferParameter*)param)->data, param->len, kCallbackBeforeChecksum|flag);
 	}
 }
 
@@ -107,13 +112,6 @@ void bus_slave_callcommand()
 {	
 	if (mib_state.slave_handler != kInvalidMIBHandler && mib_state.slave_state == kMIBExecuteCommandHandler)
 		mib_state.slave_handler(kMIBExecuteCommand, mib_state.slave_params);
-
-	//slave callback should set the return status via bus_slave_setreturn and set mib_buffer to point to the return value if any
-	bus_slave_send((unsigned char*)&mib_state.slave_returnstatus, sizeof(MIBReturnValueHeader), kSendImmediately);
-
-	//If we don't expect to send a return value, finish the command after this transmission
-	if (mib_state.slave_returnstatus.len == 0)
-		mib_state.slave_state = kMIBFinishCommand;
 }
 void bus_slave_reset()
 {
@@ -135,22 +133,41 @@ void bus_slave_callback()
 		{
 			mib_state.num_reads += 1;
 
-			if (mib_state.num_reads == 1)
+			//Odd reads are for the return status
+			//Even reads are for the return value
+			if (mib_state.num_reads & 0x01)
 			{
-				//First read is for the return status
-				bus_slave_callcommand();
+				/*
+				 * To allow for bus error recovery, we keep resending the return status and return value (if any) on all
+				 * subsequent reads until the master is satisfied that it has received one with a valid checksum.
+				 */
+
+				if (mib_state.num_reads == 1)
+					bus_slave_callcommand();
+
+				//slave callback should set the return status via bus_slave_setreturn and set mib_buffer to point to the return value if any
+				bus_slave_send((unsigned char*)&mib_state.bus_returnstatus, sizeof(MIBReturnValueHeader), kSendImmediately);
+
+				//If we don't expect to send a return value, finish the command after this transmission
+				if (mib_state.bus_returnstatus.len == 0)
+					mib_state.slave_state = kMIBFinishCommand;
 			}
-			else if (mib_state.num_reads == 2)
+			else
 			{
-				//Second read is for the return value, which if there is one should be in the mib_buffer
-				//if there wasn't one, then this is a protocol error since there shouldn't have been a second read
-				//so we can send garbage.
-				if (mib_state.slave_returnstatus.len != 0)
-					bus_slave_send((unsigned char *)mib_buffer, mib_state.slave_returnstatus.len, kSendImmediately);
+				//even reads are for the return value, which if there is one should be in the mib_buffer
+				//if there wasn't one, then this is a protocol error (or a failed return status checksum) 
+				//since there shouldn't have been a second read so we can send garbage since it will be 
+				//ignored
+				if (mib_state.bus_returnstatus.len != 0)
+					bus_slave_send((unsigned char *)mib_buffer, mib_state.bus_returnstatus.len, kSendImmediately);
 				else
 					bus_slave_send((unsigned char *)mib_buffer, 1, kSendImmediately); //protocol error so just send 1 byte, doesn't matter
 				
 				mib_state.slave_state = kMIBFinishCommand;
+
+				//Make sure we can never overflow
+				if (mib_state.num_reads == 10)
+					mib_state.num_reads = 4; 
 			}
 		}
 		else

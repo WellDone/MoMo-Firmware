@@ -14,9 +14,11 @@
 
 #define kControllerPICAddress	0x08
 
-
 #define bus_slave_send(buffer, len, flags)			bus_send(kInvalidI2CAddress, buffer, len, flags)
 #define bus_slave_receive(buffer, len, flags) 		bus_receive(kInvalidI2CAddress, buffer, len, flags)
+
+//Callback type for master rpc routines
+typedef 	void (*mib_rpc_function)(unsigned char, MIBParameterHeader *);
 
 //Bus error codes that can be returned
 enum
@@ -49,6 +51,7 @@ typedef enum
 	kMIBReadReturnStatus,
 	kMIBReadReturnValue,
 	kMIBExecuteCallback,
+	kMIBResendCommand,
 	kMIBFinalizeMessage
 } MIBMasterState;
 
@@ -57,12 +60,12 @@ typedef struct
 	//Shared Buffers
 	I2CMessage				bus_msg;
 	MIBCommandPacket		bus_command;
+	MIBReturnValueHeader	bus_returnstatus;
 
 	//Slave section
 	mib_callback			slave_handler;
 	MIBSlaveState			slave_state;
 	int 					num_reads;
-	MIBReturnValueHeader	slave_returnstatus;
 
 	MIBParameterHeader 		last_param;
 	MIBParamList			*slave_params;
@@ -70,7 +73,7 @@ typedef struct
 	//Master section	
 	MIBMasterState			master_state;
 	unsigned char 			master_param_length;
-	unsigned char 			master_result;
+	mib_rpc_function		master_callback;
 } MIBState;
 
 //Configuration Routines

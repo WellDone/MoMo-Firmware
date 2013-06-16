@@ -47,9 +47,6 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
-I2CMessage test_msg;
-unsigned char 	msg_data[5] = {0xFF, 0x00, 0x44, 0xAA, 0xBB};
-
 void blink_light1(void)
 {
 	_RA0 = !_RA0;
@@ -57,21 +54,17 @@ void blink_light1(void)
 
 void send_test_message(void)
 {
-    MIBIntParameter param1;
-    MIBIntParameter param2;
-    MIBParameterHeader *params[2];
+    MIBBufferParameter param1;
+    MIBParameterHeader *params[1];
+    unsigned char *msg = "test";
 
     params[0] = (MIBParameterHeader*)&param1;
-    params[1] = (MIBParameterHeader*)&param2;
 
-    bus_init_int_param(&param1, 0xAA);
-    bus_init_int_param(&param2, 0xBB);
-
-    bus_master_rpc(8, 0x02, 0x01, params, 2);
+    bus_init_buffer_param(&param1, msg, 5);
+    bus_master_rpc(NULL, 8, 0x02, 0x00, params, 1);
 }
 
 ScheduledTask task1;
-ScheduledTask task0;
 ScheduledTask i2c;
 
 int main(void) 

@@ -16,4 +16,5 @@ mib_callback find_handler(unsigned char feature, unsigned char cmd);
 
 //supported commands
 void* test_command(int state, void *param);
+void* echo_buffer(int state, void *param);
 #endif

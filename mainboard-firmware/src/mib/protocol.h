@@ -50,4 +50,15 @@ typedef struct
 #define kMIBCommandLength 	sizeof(MIBCommandPacket)
 #define kBusMaxMessageSize 	40
 
+//Special feature and command codes
+enum
+{
+	kBusManagementFeature = 254
+};
+
+enum 
+{
+	kResendReturnValueCommand = 0
+};
+
 #endif
