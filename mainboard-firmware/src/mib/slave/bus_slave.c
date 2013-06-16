@@ -19,7 +19,7 @@ void bus_slave_startcommand()
 {
 	//Initialize all the state
 	mib_state.slave_state = kMIBSearchCommand;
-	mib_state.slave_handler = kInvalidMIBHandler;
+	mib_state.slave_handler = NULL;
 	mib_state.num_reads = 0;
 
 	bus_slave_setreturn(kUnknownError, 0); //Make sure that if nothing else happens we return an error status.
@@ -78,23 +78,35 @@ void bus_slave_receiveparam(MIBParameterHeader *param, int header_or_value, unsi
 
 void bus_slave_searchcommand()
 {
+	int index;
 	if (i2c_slave_lasterror() != kI2CNoError)
 	{
 		bus_slave_seterror(kCommandChecksumError); //Make sure the parameter checksum was valid.
 		return;
 	}
 	
-	mib_state.slave_handler = find_handler(mib_state.bus_command.feature, mib_state.bus_command.command);
-	if (mib_state.slave_handler == kInvalidMIBHandler)
+	index = find_handler(mib_state.bus_command.feature, mib_state.bus_command.command);
+	mib_state.slave_handler = get_handler(index);
+	if (mib_state.slave_handler == NULL)
 	{
 		bus_slave_seterror(kUnsupportedCommand);
 		return;
 	}
 
 	//Get the list of parameters that we have to receive
-	mib_state.slave_params = mib_state.slave_handler(kMIBCreateParameters, 0);
+	mib_state.slave_params = (MIBParamList*)build_params(index);
+	if (mib_state.slave_params == NULL)
+	{
+		//Give the slave handler a chance to allocate the parameters
+		mib_state.slave_params = mib_state.slave_handler(NULL);
+		if (mib_state.slave_params == NULL)
+		{
+			bus_slave_seterror(kParameterListNotBuilt);
+			return;
+		}
+	}
+
 	mib_state.slave_params->curr = 0;
-	//TODO: Handle case of inability to allocate slave_params data structure
 
 	if (mib_state.slave_params->count > 0)
 	{
@@ -110,8 +122,8 @@ void bus_slave_searchcommand()
 
 void bus_slave_callcommand()
 {	
-	if (mib_state.slave_handler != kInvalidMIBHandler && mib_state.slave_state == kMIBExecuteCommandHandler)
-		mib_state.slave_handler(kMIBExecuteCommand, mib_state.slave_params);
+	if (mib_state.slave_handler != NULL && mib_state.slave_state == kMIBExecuteCommandHandler)
+		mib_state.slave_handler(mib_state.slave_params);
 }
 void bus_slave_reset()
 {

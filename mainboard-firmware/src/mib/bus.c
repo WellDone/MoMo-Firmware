@@ -13,7 +13,7 @@ void bus_init()
 {
 	I2CConfig config;
 
-	config.address = kControllerPICAddress;
+	config.address = 9;//kControllerPICAddress;
 	config.priority = 0b010;
 	config.callback = bus_master_callback;
 	config.slave_callback = bus_slave_callback;
@@ -113,7 +113,13 @@ volatile MIBIntParameter *bus_allocate_int_param()
 
 volatile MIBBufferParameter *bus_allocate_buffer_param(unsigned int len)
 {
-	volatile MIBBufferParameter *param = (volatile MIBBufferParameter *)bus_allocate_space(sizeof(MIBBufferParameter)+len);
+	volatile MIBBufferParameter *param;
+
+	//If len == 0, allocate all remaining space
+	if (len == 0)
+		len = kBusMaxMessageSize - mib_firstfree - sizeof(MIBBufferParameter);
+
+	param = (volatile MIBBufferParameter *)bus_allocate_space(sizeof(MIBBufferParameter)+len);
 
 	if (param == 0)
 		return 0;

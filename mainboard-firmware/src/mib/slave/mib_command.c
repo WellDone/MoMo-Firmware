@@ -4,15 +4,12 @@
 #include "bus_slave.h"
 #include <string.h>
 
-#define kNumFeatures 1
-#define kNumCommands 2
-const unsigned char features[kNumFeatures] = {2};
-const unsigned char commands[kNumFeatures+1] = {0,kNumCommands};
-const mib_callback  handlers[kNumCommands] = {echo_buffer, test_command};
+//Include command map
+#include "commands.h"
 
 extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
 
-mib_callback find_handler(unsigned char feature, unsigned char cmd)
+int find_handler(unsigned char feature, unsigned char cmd)
 {
 	unsigned int i, num_cmds;
 	int found_feat = -1;
@@ -27,63 +24,45 @@ mib_callback find_handler(unsigned char feature, unsigned char cmd)
 	}
 
 	if (found_feat == -1)
-		return kInvalidMIBHandler;
+		return -1;
 
 	num_cmds = commands[found_feat+1] - commands[found_feat];
 
 	if (cmd >= num_cmds)
-		return kInvalidMIBHandler;
+		return -1;
 
-	return handlers[commands[found_feat] + cmd];
+	return commands[found_feat] + cmd;
 }
 
-void* test_command(int state, void *param)
+mib_callback get_handler(int index)
 {
-	if (state == kMIBCreateParameters)
-	{
-		volatile MIBParamList *list = bus_allocate_param_list(2);
-		list->params[0] = (MIBParameterHeader*)bus_allocate_int_param();
-		list->params[1] = (MIBParameterHeader*)bus_allocate_int_param();
+	if (index < 0)
+		return NULL;
 
-		return (void*)list;
-	}
-	else
-	{
-		_RA1 = !_RA1;
-		
-		MIBIntParameter *retval;
-
-		bus_free_all();
-
-		retval = (MIBIntParameter*)bus_allocate_int_param();
-
-		bus_init_int_param(retval, 6);
-		bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)retval);
-	}
-
-	return 0;
+	return handlers[index];
 }
 
-void* echo_buffer(int state, void *param)
+volatile MIBParamList *	build_params(int handler_index)
 {
-	if (state == kMIBCreateParameters)
+	unsigned char spec 			= param_specs[handler_index];
+	unsigned char num_params 	= extract_param_count(spec);
+	volatile MIBParamList *list = bus_allocate_param_list(num_params);
+	unsigned int i;
+	
+	for (i=0; i<num_params; ++i)
 	{
-		volatile MIBParamList *list = bus_allocate_param_list(1);
-		list->params[0] = (MIBParameterHeader*)bus_allocate_buffer_param(20);
+		unsigned char type = extract_param_type(spec, i);
 
-		return (void*)list;
-	}
-	else
-	{	
-		MIBParamList *list = (MIBParamList*)param;
-		MIBBufferParameter *buf = (MIBBufferParameter *)list->params[0];
-		bus_free_all();
-
-		memmove((void*)mib_buffer, buf, 2);
-		memmove((void*)mib_buffer+2, buf->data, buf->header.len);
-
-		bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)mib_buffer);
+		if (type == kMIBInt16Type)
+			list->params[i] = (MIBParameterHeader*)bus_allocate_int_param();
+		else if(type == kMIBBufferType && i == (num_params-1))
+		{
+			//If we have 1 buffer as the last parameter, allocate all the remaining space for it from the mib_buffer
+			list->params[i] = (MIBParameterHeader*)bus_allocate_buffer_param(0);
+		}
+		else
+			return NULL; //We cannot allocate buffers that are not the last parameter since we don't know how big they should be
 	}
 
-	return 0;
+	return list;
 }

@@ -7,14 +7,12 @@
 #include "scheduler.h"
 #include "battery.h"
 #include "debug.h"
-#include "gsm.h"
 #include "oscillator.h"
 #include "sensor.h"
 #include "pme.h"
 #include "bus.h"
 
 #include "memory_manager.h"
-#include "registration.h"
 
 static bool mclr_triggered;
 

@@ -13,9 +13,4 @@
 
 #define _BOOTLOADER_CODE 	__section(".bootloader")
 
-//Bootloader functions
-void bootloader_process_command();
-
-//i2c slave functions
-
 #endif

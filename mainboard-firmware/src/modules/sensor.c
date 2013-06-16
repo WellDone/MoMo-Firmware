@@ -46,7 +46,6 @@ void configure_sensor() {
 
 void save_event()
 {
-
   saved_sensor_event event;
   ringbuffer_pop( &sensor_event_buf, &event );
 

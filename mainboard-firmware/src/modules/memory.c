@@ -207,8 +207,10 @@ void mem_clear_all() {
   DISABLE_MEMORY();
 }
 
-void mem_clear_subsection( unsigned int addr ) {
+void mem_clear_subsection( unsigned long addr ) 
+{
   addr &= MEMORY_ADDRESS_MASK;
+  
   mem_wait_while_writing();
   mem_enable_write();
 

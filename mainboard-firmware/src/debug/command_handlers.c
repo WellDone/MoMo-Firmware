@@ -7,7 +7,6 @@
 #include "sensor.h"
 #include "memory.h"
 #include "oscillator.h"
-#include "gsm.h"
 #include "adc.h"
 #include <stdio.h>
 #include <string.h>
@@ -16,7 +15,6 @@
 #include "sensor_event_log.h"
 #include "report_manager.h"
 #include "momo_config.h"
-#include "registration.h"
 
 extern volatile unsigned int adc_buffer[kADCBufferSize];
 ScheduledTask test_task;

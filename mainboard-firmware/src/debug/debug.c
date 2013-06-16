@@ -10,6 +10,8 @@ extern volatile int cmd_received;
 
 ScheduledTask disable_debug_task;
 
+/*
+
 void debug_init()
 {
     uart_parameters params;
@@ -47,3 +49,5 @@ void debug_disable_unconnected()
 
 	++num_calls;
 }
+
+*/

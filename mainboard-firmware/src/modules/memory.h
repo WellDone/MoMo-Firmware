@@ -12,7 +12,7 @@ void configure_SPI();
 
 bool mem_write( unsigned long addr, const BYTE* data, unsigned int length );
 bool mem_read( unsigned long addr, BYTE* buf, unsigned int numBytes );
-void mem_clear_subsection( unsigned int addr );
+void mem_clear_subsection( unsigned long addr );
 void mem_clear_all();
 BYTE mem_status();
 unsigned short mem_capacity();

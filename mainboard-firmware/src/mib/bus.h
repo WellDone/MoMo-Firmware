@@ -29,6 +29,7 @@ enum
 	kParameterTooLong,
 	kParameterChecksumError,
 	kCommandChecksumError,
+	kParameterListNotBuilt,
 	kUnknownError
 };
 
@@ -85,7 +86,7 @@ void							bus_free_all();
 
 volatile MIBParamList		*	bus_allocate_param_list(unsigned int num);
 volatile MIBIntParameter 	*	bus_allocate_int_param();
-volatile MIBBufferParameter *	bus_allocate_buffer_param(unsigned int len);
+volatile MIBBufferParameter *	bus_allocate_buffer_param(unsigned int len); //if len == 0, then allocate all remaining space
 volatile MIBReturnValueHeader *	bus_allocate_return_status();
 
 void 							bus_init_int_param(MIBIntParameter *param, int value);

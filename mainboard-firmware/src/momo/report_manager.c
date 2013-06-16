@@ -1,6 +1,5 @@
 #include "report_manager.h"
 #include "common.h"
-#include "gsm.h"
 #include "scheduler.h"
 #include "momo_config.h"
 #include "sensor_event_log.h"
@@ -79,12 +78,12 @@ void post_report() {
   if (!construct_report())
     return;
 
-  if ( gsm_on() )
+  /*if ( gsm_on() )
   {
     gsm_send_sms( MOMO_REPORT_SERVER, base64_report_buffer ); //TODO: Retry on failure?
     gsm_off();
     flush_config_to_memory();
-  }
+  }*/
 }
 
 static ScheduledTask report_task = {0, 0, 0, 0};
