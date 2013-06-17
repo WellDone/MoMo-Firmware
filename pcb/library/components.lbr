@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.05" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.001" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -2235,11 +2235,11 @@ reflow soldering</description>
 <pad name="6" x="2.54" y="0" drill="1"/>
 <pad name="5" x="0" y="0" drill="1"/>
 <pad name="4" x="-2.54" y="0" drill="1"/>
-<wire x1="-3.81" y1="-1.27" x2="-3.81" y2="3.81" width="0.127" layer="21"/>
-<wire x1="-3.81" y1="3.81" x2="3.81" y2="3.81" width="0.127" layer="21"/>
-<wire x1="3.81" y1="3.81" x2="3.81" y2="-1.27" width="0.127" layer="21"/>
-<wire x1="3.81" y1="-1.27" x2="-3.81" y2="-1.27" width="0.127" layer="21"/>
 <text x="0" y="-2.54" size="0.8128" layer="25">&gt;NAME</text>
+<wire x1="4.9784" y1="-3.2766" x2="4.9784" y2="5.8166" width="0.127" layer="21"/>
+<wire x1="-4.9784" y1="-3.2766" x2="-4.9784" y2="5.8166" width="0.127" layer="21"/>
+<wire x1="-4.9784" y1="5.8166" x2="4.9784" y2="5.8166" width="0.127" layer="21"/>
+<wire x1="-4.9784" y1="-3.2766" x2="4.9784" y2="-3.2766" width="0.127" layer="21"/>
 </package>
 <package name="TSSOP14">
 <description>&lt;b&gt;Thin Shrink Small Outline Plastic 14&lt;/b&gt;&lt;p&gt;
@@ -2396,6 +2396,44 @@ MAX3223-MAX3243.pdf</description>
 <wire x1="-1.27" y1="0" x2="-1.27" y2="3.81" width="0.254" layer="51"/>
 <wire x1="1.27" y1="0" x2="1.27" y2="3.81" width="0.254" layer="51"/>
 <text x="1.4478" y="-2.5654" size="0.8128" layer="23">1</text>
+</package>
+<package name="MOMO-EDGE-8M">
+<pad name="V28" x="0" y="10.16" drill="1.016" shape="long"/>
+<pad name="NC" x="0" y="7.62" drill="1.016" shape="long"/>
+<pad name="CLK" x="0" y="5.08" drill="1.016" shape="long"/>
+<pad name="DAT" x="0" y="2.54" drill="1.016" shape="long"/>
+<pad name="ALRM" x="0" y="0" drill="1.016" shape="long"/>
+<pad name="GND" x="0" y="-2.54" drill="1.016" shape="long"/>
+<pad name="V4" x="0" y="-5.08" drill="1.016" shape="long"/>
+<pad name="PGND" x="0" y="-7.62" drill="1.016" shape="long"/>
+<wire x1="2.54" y1="11.43" x2="-3.81" y2="11.43" width="0.254" layer="21"/>
+<wire x1="-3.81" y1="11.43" x2="-3.81" y2="-8.89" width="0.254" layer="21"/>
+<wire x1="-3.81" y1="-8.89" x2="2.54" y2="-8.89" width="0.254" layer="21"/>
+<wire x1="2.54" y1="-8.89" x2="2.54" y2="11.43" width="0.254" layer="21"/>
+<text x="-3.175" y="9.525" size="1.27" layer="21">1</text>
+<wire x1="0" y1="-7.62" x2="-3.175" y2="-7.62" width="0.254" layer="49"/>
+<wire x1="0" y1="-5.08" x2="-3.175" y2="-5.08" width="0.254" layer="49"/>
+<wire x1="0" y1="-2.54" x2="-3.175" y2="-2.54" width="0.254" layer="49"/>
+<wire x1="0" y1="0" x2="-3.175" y2="0" width="0.254" layer="49"/>
+<wire x1="0" y1="2.54" x2="-3.175" y2="2.54" width="0.254" layer="49"/>
+<wire x1="0" y1="5.08" x2="-3.175" y2="5.08" width="0.254" layer="49"/>
+<wire x1="0" y1="7.62" x2="-3.175" y2="7.62" width="0.254" layer="49"/>
+<wire x1="0" y1="10.16" x2="-3.175" y2="10.16" width="0.254" layer="49"/>
+</package>
+<package name="MOMO-EDGE-8F">
+<pad name="V28" x="0" y="10.16" drill="1.016" shape="long"/>
+<pad name="NV" x="0" y="7.62" drill="1.016" shape="long"/>
+<pad name="CLK" x="0" y="5.08" drill="1.016" shape="long"/>
+<pad name="DAT" x="0" y="2.54" drill="1.016" shape="long"/>
+<pad name="ARLM" x="0" y="0" drill="1.016" shape="long"/>
+<pad name="GND" x="0" y="-2.54" drill="1.016" shape="long"/>
+<pad name="V4." x="0" y="-5.08" drill="1.016" shape="long"/>
+<pad name="PGND" x="0" y="-7.62" drill="1.016" shape="long"/>
+<wire x1="-1.778" y1="11.43" x2="6.35" y2="11.43" width="0.254" layer="21"/>
+<wire x1="6.35" y1="11.43" x2="6.35" y2="-8.89" width="0.254" layer="21"/>
+<wire x1="6.35" y1="-8.89" x2="-1.778" y2="-8.89" width="0.254" layer="21"/>
+<wire x1="-1.778" y1="-8.89" x2="-1.778" y2="11.43" width="0.254" layer="21"/>
+<text x="2.54" y="9.525" size="1.27" layer="21">1</text>
 </package>
 </packages>
 <symbols>
@@ -3002,6 +3040,21 @@ MAX3223-MAX3243.pdf</description>
 <wire x1="7.62" y1="-2.54" x2="7.62" y2="5.08" width="0.254" layer="94"/>
 <wire x1="7.62" y1="5.08" x2="0" y2="5.08" width="0.254" layer="94"/>
 <text x="10.16" y="-2.54" size="1.016" layer="97" rot="R90">Momo Power</text>
+</symbol>
+<symbol name="MOMO-8EDGE">
+<pin name="2.8V" x="5.08" y="20.32" visible="pin" length="short" direction="pwr" rot="R270"/>
+<pin name="4V" x="7.62" y="20.32" visible="pin" length="short" direction="pwr" rot="R270"/>
+<pin name="GND" x="5.08" y="-5.08" visible="pin" length="short" direction="pwr" rot="R90"/>
+<pin name="PGND" x="7.62" y="-5.08" visible="pin" length="short" direction="pwr" rot="R90"/>
+<pin name="CLK" x="-7.62" y="12.7" visible="pin" length="short"/>
+<pin name="DAT" x="-7.62" y="10.16" visible="pin" length="short"/>
+<pin name="ALRM" x="-7.62" y="7.62" visible="pin" length="short"/>
+<pin name="NC" x="-7.62" y="5.08" visible="pin" length="short"/>
+<wire x1="-5.08" y1="17.78" x2="-5.08" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="-5.08" y1="-2.54" x2="10.16" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="10.16" y1="-2.54" x2="10.16" y2="17.78" width="0.254" layer="94"/>
+<wire x1="10.16" y1="17.78" x2="-5.08" y2="17.78" width="0.254" layer="94"/>
+<text x="-3.81" y="-1.27" size="0.8128" layer="97">Momo Edge</text>
 </symbol>
 </symbols>
 <devicesets>
@@ -4508,6 +4561,50 @@ MAX3223-MAX3243.pdf</description>
 <connects>
 <connect gate="G$1" pin="3.8V" pad="1"/>
 <connect gate="G$1" pin="GND" pad="2"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="MOMO-EDGE-8M">
+<gates>
+<gate name="G$1" symbol="MOMO-8EDGE" x="-2.54" y="-7.62"/>
+</gates>
+<devices>
+<device name="" package="MOMO-EDGE-8M">
+<connects>
+<connect gate="G$1" pin="2.8V" pad="V28"/>
+<connect gate="G$1" pin="4V" pad="V4"/>
+<connect gate="G$1" pin="ALRM" pad="ALRM"/>
+<connect gate="G$1" pin="CLK" pad="CLK"/>
+<connect gate="G$1" pin="DAT" pad="DAT"/>
+<connect gate="G$1" pin="GND" pad="GND"/>
+<connect gate="G$1" pin="NC" pad="NC"/>
+<connect gate="G$1" pin="PGND" pad="PGND"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="MOMO-EDGE-8F">
+<gates>
+<gate name="G$1" symbol="MOMO-8EDGE" x="-2.54" y="-7.62"/>
+</gates>
+<devices>
+<device name="" package="MOMO-EDGE-8F">
+<connects>
+<connect gate="G$1" pin="2.8V" pad="V28"/>
+<connect gate="G$1" pin="4V" pad="V4."/>
+<connect gate="G$1" pin="ALRM" pad="ARLM"/>
+<connect gate="G$1" pin="CLK" pad="CLK"/>
+<connect gate="G$1" pin="DAT" pad="DAT"/>
+<connect gate="G$1" pin="GND" pad="GND"/>
+<connect gate="G$1" pin="NC" pad="NV"/>
+<connect gate="G$1" pin="PGND" pad="PGND"/>
 </connects>
 <technologies>
 <technology name=""/>
