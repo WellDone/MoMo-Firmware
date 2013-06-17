@@ -1,0 +1,6 @@
+*.s#*
+*.b#*
+*.l#*
+*.zip
+*.gpi
+.DS_Store
