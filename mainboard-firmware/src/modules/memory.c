@@ -73,7 +73,7 @@ bool shift_out( BYTE data ) {
 }
 
 //Shift_out the lowest num_bytes bytes of data
-//max sizeof(int) bytes, MSB first
+//max sizeof(long) bytes, MSB first
 bool shift_n_out( unsigned long data, short num_bytes ) {
   num_bytes = (num_bytes-1)<<3; //*=8
   while( num_bytes >= 0 ) {
@@ -210,7 +210,7 @@ void mem_clear_all() {
 void mem_clear_subsection( unsigned long addr ) 
 {
   addr &= MEMORY_ADDRESS_MASK;
-  
+
   mem_wait_while_writing();
   mem_enable_write();
 

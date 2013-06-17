@@ -52,16 +52,65 @@ void blink_light1(void)
 	_RA0 = !_RA0;
 }
 
-void send_test_message(void)
+void send_erase_message(void)
 {
-    MIBBufferParameter param1;
-    MIBParameterHeader *params[1];
+    bus_master_rpc(NULL, 8, 255, 0x00, NULL, 0);
+}
+
+void send_write_message(void)
+{
+    MIBIntParameter param1;       
+    MIBIntParameter param2;
+    MIBBufferParameter param3;
     char *msg = "test";
 
-    params[0] = (MIBParameterHeader*)&param1;
+    MIBParameterHeader *params[3];
 
-    bus_init_buffer_param(&param1, msg, 5);
-    bus_master_rpc(NULL, 8, 0x02, 0x00, params, 1);
+    params[0] = (MIBParameterHeader*)&param1;
+    params[1] = (MIBParameterHeader*)&param2;
+    params[2] = (MIBParameterHeader*)&param3;
+
+    bus_init_int_param(&param1, 0);
+    bus_init_int_param(&param2, 1<<12);
+    bus_init_buffer_param(&param3, msg, 5);
+
+    bus_master_rpc(NULL, 8, 255, 0x01, params, 3);
+}
+
+void send_read_message(void)
+{
+    MIBIntParameter param1;       
+    MIBIntParameter param2;
+    MIBIntParameter param3;
+
+    MIBParameterHeader *params[3];
+
+    params[0] = (MIBParameterHeader*)&param1;
+    params[1] = (MIBParameterHeader*)&param2;
+    params[2] = (MIBParameterHeader*)&param3;
+
+    bus_init_int_param(&param1, 0);
+    bus_init_int_param(&param2, 1<<12);
+    bus_init_int_param(&param3, 5);
+
+    bus_master_rpc(NULL, 8, 255, 0x02, params, 3);
+}
+
+void send_test_message(void)
+{
+    static unsigned int i = 0;
+
+    if (i == 0)
+        send_erase_message();
+    else if(i==1)
+        send_write_message();
+    else if(i==2)
+        send_read_message();
+
+    ++i;
+
+    if (i == 3)
+        i = 0;
 }
 
 void send_blink_message(void)
@@ -95,8 +144,8 @@ int main(void)
 
     handle_reset();
 
-    //scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
-    scheduler_schedule_task(send_blink_message, kEverySecond, kScheduleForever, &i2c);
+    scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
+    //scheduler_schedule_task(send_test_message, kEverySecond, kScheduleForever, &i2c);
 
     taskloop_loop();
 

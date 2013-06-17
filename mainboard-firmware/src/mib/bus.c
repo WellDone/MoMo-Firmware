@@ -13,7 +13,7 @@ void bus_init()
 {
 	I2CConfig config;
 
-	config.address = 9;//kControllerPICAddress;
+	config.address = kControllerPICAddress;
 	config.priority = 0b010;
 	config.callback = bus_master_callback;
 	config.slave_callback = bus_slave_callback;
@@ -88,12 +88,16 @@ void bus_init_buffer_param(MIBBufferParameter *param, void *data, unsigned char 
 	param->data = data;
 }
 
-volatile MIBReturnValueHeader *bus_allocate_return_status()
+MIBParameterHeader *bus_allocate_return_buffer(unsigned char **out_buffer)
 {
-	volatile MIBReturnValueHeader *ret = (volatile MIBReturnValueHeader *)bus_allocate_space(sizeof(MIBReturnValueHeader));
+	unsigned char len = kBusMaxMessageSize - mib_firstfree;
+	MIBParameterHeader *ret = (MIBParameterHeader *)bus_allocate_space(len);
 
-	ret->result = 0;
-	ret->len = 0;
+	ret->type = kMIBBufferType;
+	ret->len = len - sizeof(MIBParameterHeader);
+
+	if (out_buffer != NULL)
+		*out_buffer = ((unsigned char*)ret) + sizeof(MIBParameterHeader);
 
 	return ret;
 }

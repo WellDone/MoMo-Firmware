@@ -11,6 +11,7 @@
 #include "sensor.h"
 #include "pme.h"
 #include "bus.h"
+#include "memory.h"
 
 #include "memory_manager.h"
 
@@ -152,6 +153,7 @@ void handle_all_resets_before(unsigned int type)
     taskloop_init();
     scheduler_init();
     bus_init();
+    configure_SPI();
     //battery_init();
     //gsm_init();
 

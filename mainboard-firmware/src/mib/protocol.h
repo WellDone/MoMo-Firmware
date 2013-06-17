@@ -50,4 +50,8 @@ typedef struct
 #define kMIBCommandLength 	sizeof(MIBCommandPacket)
 #define kBusMaxMessageSize 	40
 
+#define get_int16_param(list, n) ((int)((MIBIntParameter *)list->params[n])->value)
+#define get_uint16_param(list, n) ((unsigned int)((MIBIntParameter *)list->params[n])->value)
+#define get_buffer_param(list, n) ((MIBBufferParameter*)list->params[n])
+
 #endif

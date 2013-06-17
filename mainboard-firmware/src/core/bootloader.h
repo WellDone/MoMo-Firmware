@@ -9,8 +9,13 @@
 #ifndef __bootloader_h__
 #define __bootloader_h__
 
-#include "bus.h"
-
 #define _BOOTLOADER_CODE 	__section(".bootloader")
+
+#define kPic24FirmwareSubsection1 0x1000
+#define kPic24FirmwareSubsection2 0x2000
+#define kPic24FirmwareSubsection3 0x3000
+#define kPic24FirmwareSubsection4 0x4000
+#define kPic24FirmwareSubsection5 0x5000
+
 
 #endif
