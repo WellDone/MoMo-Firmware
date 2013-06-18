@@ -41,6 +41,10 @@ void i2c_enable(unsigned char slave_address, void *master_callback, void *slave_
 
     //address for slave mode
     i2c_slave_address = slave_address;
+
+    // TODO need to come up with a better way of choosing between slave and master
+    SSP1ADD = i2c_slave_address;
+    i2c_set_slave_mode();
 }
 
 void i2c_disable()

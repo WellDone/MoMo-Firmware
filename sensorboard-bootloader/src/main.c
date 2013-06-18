@@ -1,5 +1,5 @@
 #include <pic12f1822.h>
-#include "i2c.h"
+#include "bus.h"
 #include "flash_memory.h"
 
 /* Use internal oscillator as the frequency oscillator. */
@@ -47,8 +47,16 @@ void interrupt service_isr() {
     }
 }
 
+void mib_test(void)
+{
+    while(1); //interrupts should take care of things
+}
+
 void main() {
     initialize();
+    bus_init();
+
+    mib_test();
 
     // If button is pressed, then force bootloader mode
     if (BUTT) {

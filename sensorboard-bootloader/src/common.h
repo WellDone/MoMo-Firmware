@@ -3,6 +3,7 @@
 
 #include <pic12f1822.h>
 #include <GenericTypeDefs.h>
+#include <stdlib.h>
 //#define CLOCKSPEED      8000000L //F_osc / 2 (the instruction clock frequency)
 
 typedef unsigned short bool;
