@@ -5,6 +5,7 @@
 #include "i2c.h"
 #include "bus.h"
 #include "pme.h"
+#include "utilities.h"
 
 volatile I2CMasterStatus master;
 volatile I2CSlaveStatus  slave;
@@ -12,15 +13,15 @@ volatile I2CSlaveStatus  slave;
 volatile I2CMessage 	 *i2c_msg;
 
 task_callback i2c_callback;
-task_callback i2c_slave_callback; 
+task_callback i2c_slave_callback;
 
 void i2c_configure(const I2CConfig *config)
 {
 	peripheral_enable(kI2CModule);
-	
+
 	//Set flags
 	I2C1CON = config->flags & kI2CFlagMask;
-	
+
 	//Set slave address
 	I2C1MSK = 0x00; //All address bits are significant
 	I2C1ADD = config->address;
@@ -94,7 +95,7 @@ int i2c_send_message(volatile I2CMessage *msg)
 		slave.state = kI2CSendDataState;
 		if (msg->flags & kSendImmediately)
 			i2c_slave_sendbyte();
-		
+
 		return 0;
 	}
 

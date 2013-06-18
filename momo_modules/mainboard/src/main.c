@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "common.h"
-#include "reset_manager.h"
+#include "mainboard_reset_handler.h"
 #include "task_manager.h"
 #include "scheduler.h"
 #include "bus_master.h"
@@ -59,7 +59,7 @@ void send_erase_message(void)
 
 void send_write_message(void)
 {
-    MIBIntParameter param1;       
+    MIBIntParameter param1;
     MIBIntParameter param2;
     MIBBufferParameter param3;
     char *msg = "test";
@@ -79,7 +79,7 @@ void send_write_message(void)
 
 void send_read_message(void)
 {
-    MIBIntParameter param1;       
+    MIBIntParameter param1;
     MIBIntParameter param2;
     MIBIntParameter param3;
 
@@ -130,7 +130,7 @@ void send_blink_message(void)
 ScheduledTask task1;
 ScheduledTask i2c;
 
-int main(void) 
+int main(void)
 {
     AD1PCFG = 0xFFFF;
 
@@ -142,6 +142,7 @@ int main(void)
     _RA0 = 1;
     _RA6 = 1;
 
+    register_reset_handlers();
     handle_reset();
 
     scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);

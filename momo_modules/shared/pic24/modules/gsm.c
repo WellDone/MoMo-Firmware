@@ -1,7 +1,6 @@
 #include "gsm.h"
 #include "uart.h"
 #include "rtcc.h"
-#include "common.h"
 #include "pme.h"
 #include "gsm.h"
 #include <string.h>
@@ -98,7 +97,6 @@ int register_response_marker( const char* marker ) {
             return i;
         }
     }
-    print( "Failed to register response marker.");
     return -1;
 }
 void remove_response_marker( int index ) {
