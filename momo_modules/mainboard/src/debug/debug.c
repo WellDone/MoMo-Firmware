@@ -10,6 +10,8 @@ extern volatile int cmd_received;
 
 ScheduledTask disable_debug_task;
 
+/*
+
 void debug_init()
 {
     uart_parameters params;
@@ -42,8 +44,10 @@ void debug_disable_unconnected()
 	{
 		print("Disabling debug interface");
 		peripheral_disable(kUART2Module);
-        //taskloop_set_sleep( 1 );
+        taskloop_set_sleep(1);
 	}
 
 	++num_calls;
 }
+
+*/

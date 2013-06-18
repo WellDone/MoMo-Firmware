@@ -10,6 +10,8 @@
 #include "debug.h"
 #include <string.h>
 
+/*
+
 volatile char __attribute__((space(data))) command_buffer[UART_BUFFER_SIZE];
 volatile int  __attribute__((space(data))) cmd_ready;
 volatile int cmd_received = 0;
@@ -24,7 +26,7 @@ void register_command_handlers()
     command_buffer[0] = '\0';
     cmd_ready = 0;
 
-    register_command("echo", handle_echo_params);
+    /*register_command("echo", handle_echo_params);
     register_command("device", handle_device);
     register_command("rtcc", handle_rtcc);
     register_command("gsm", handle_gsm );
@@ -35,10 +37,7 @@ void register_command_handlers()
     register_command("registration", handle_registration);
 }
 
-/*
- * Register a new handler for a specific command name.  When this string, the command name, is received from the serial line, the specified handler will get invoked to handle it.
- *
- */
+
 void register_command(char *cmd, CommandHandler handler)
 {
   static unsigned int i = 0;
@@ -56,9 +55,7 @@ void register_command(char *cmd, CommandHandler handler)
   command_handlers[i] = 0;
 }
 
-/*
- * Check if there are any commands pending and if so, process them.
- */
+
 void process_commands_task()
 {
     if (cmd_ready)
@@ -72,10 +69,6 @@ void process_commands_task()
     }
 }
 
-/*
- * Process the command line currently resident in the command_buffer, parsing the parameters and calling the appropriate command handler.
- *
- */
 void process_command()
 {
    char *params = 0;
@@ -174,3 +167,4 @@ char *get_param_string(command_params *params, unsigned int i)
 
   return param;
 }
+*/

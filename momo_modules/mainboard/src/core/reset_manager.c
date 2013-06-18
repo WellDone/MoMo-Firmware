@@ -7,13 +7,13 @@
 #include "scheduler.h"
 #include "battery.h"
 #include "debug.h"
-#include "gsm.h"
 #include "oscillator.h"
 #include "sensor.h"
 #include "pme.h"
+#include "bus.h"
+#include "memory.h"
 
 #include "memory_manager.h"
-#include "registration.h"
 
 static bool mclr_triggered;
 
@@ -149,14 +149,16 @@ void handle_all_resets_before(unsigned int type)
     disable_unneeded_peripherals();
     configure_interrupts();
     oscillator_init();
-    configure_sensor();
+    //configure_sensor();
     taskloop_init();
     scheduler_init();
-    battery_init();
-    gsm_init();
+    bus_init();
+    configure_SPI();
+    //battery_init();
+    //gsm_init();
 
     //TODO: Move this to MoMo-specific handler?
-    flash_memory_init();
+    //flash_memory_init();
 
     mclr_triggered = false;
 }
@@ -170,14 +172,6 @@ void handle_all_resets_after(unsigned int type)
     //The RTCC must be enabled for scheduling tasks, so ensure that
     if (!rtcc_enabled())
         enable_rtcc();
-
-    if ( !momo_register_and_start_reporting() ) {
-        //TODO: Power down if we failed to register.
-    }
-
-    if ( !mclr_triggered ) {
-        //taskloop_set_sleep( 1 );
-    }
 }
 
 void handle_poweron_reset(unsigned int type)
@@ -190,5 +184,4 @@ void handle_poweron_reset(unsigned int type)
 void handle_mclr_reset(unsigned int type)
 {
     mclr_triggered = true;
-    debug_init();
 }

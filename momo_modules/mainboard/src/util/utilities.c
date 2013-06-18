@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+
 unsigned char get_2byte_number(char *input)
 {
     char temp[3];
@@ -143,21 +144,22 @@ bool atoi_small(const char* buf, int* out)
     return true;
 }
 
+
 void print_byte( BYTE b )
 {
-  print( "0b");
+  //print( "0b");
   BYTE mask = 0x80;
   while (mask!=0x0) {
     if ( ( b & mask ) )
-      print("1");
+      ;//print("1");
     else
-      print("0");
+      ;//print("0");
     mask = mask >> 1;
   }
-  print("\r\n");
+  ;//print("\r\n");
 }
 
 void println( const char* msg ) {
-  print( msg );
-  print( "\r\n" );
+  ;//print( msg );
+  ;//print( "\r\n" );
 }

@@ -4,3 +4,7 @@ dist
 */nbproject/*
 *.sublime-project
 *.sublime-workspace
+*.b#?
+*.s#?
+*.l#?
+.DS_Store
