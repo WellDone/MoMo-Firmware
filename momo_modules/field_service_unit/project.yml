@@ -8,7 +8,7 @@
   :test_file_prefix: test_
 
 :release_build:
-  :output: MoMo-mainboard-firmware.elf
+  :output: MoMo-fsu-firmware.elf
   :use_assembly: TRUE
 
 :environment:
@@ -124,7 +124,7 @@
       - -mcpu=24F16KA101
       - ${1}
       - -o ${2}
-      - -Wl,-Tp24F16KA101.gld,-Map=./build/release/MoMo-mainboard-firmware.map,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem
+      - -Wl,-Tp24F16KA101.gld,-Map=./build/release/MoMo-fsu-firmware.map,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem
 :plugins:
   :load_paths:
     - ../../tools/ceedling/plugins
