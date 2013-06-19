@@ -37,6 +37,6 @@ void disable_unneeded_peripherals()
 	peripheral_disable(kHLVDModule);
 	//	peripheral_disable(kTimer2Module);
 	//peripheral_disable(kTimer3Module);
-	peripheral_disable(kUART2Module);
-	peripheral_disable(kUART1Module);
+	//peripheral_disable(kUART2Module);
+	//peripheral_disable(kUART1Module);
 }

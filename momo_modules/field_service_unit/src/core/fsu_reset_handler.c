@@ -1,5 +1,6 @@
 #include "fsu_reset_handler.h"
 #include "reset_manager.h"
+#include "common.h"
 
 void register_reset_handlers()
 {
@@ -20,12 +21,16 @@ void register_reset_handlers()
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
 {
+    configure_rtcc();
+    enable_rtcc();
+
     //Add code here that should be called before all other reset code
     disable_unneeded_peripherals();
     configure_interrupts();
-    oscillator_init();
+    //oscillator_init();
     taskloop_init();
     scheduler_init();
+    debug_init();
 
     mclr_triggered = false;
 }
@@ -51,5 +56,5 @@ void handle_poweron_reset(unsigned int type)
 void handle_mclr_reset(unsigned int type)
 {
     mclr_triggered = true;
-    debug_init();
+    //debug_init();
 }

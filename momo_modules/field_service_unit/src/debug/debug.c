@@ -9,18 +9,20 @@
 void debug_init()
 {
     uart_parameters params;
+    
 
-    peripheral_enable(kUART2Module);
-    register_command_handlers(); //register the serial commands that we respond to.
+    peripheral_enable(kUART1Module);
 
     params.baud = 38400;
     params.hw_flowcontrol = 0;
     params.parity = NoParity;
     configure_uart(DEBUG_UART, &params);
 
+    register_command_handlers(); //register the serial commands that we respond to.
+
     taskloop_set_sleep(0); //Can't sleep with the UART
 
-    print("Device reset complete.\r\n");
-    sendf(DEBUG_UART, "Type was: %d.\r\n", last_reset_type());
-    print(DEBUG_PROMPT);
+    print("a");
+    //sendf(DEBUG_UART, "Type was: %d.\r\n", last_reset_type());
+    //print(DEBUG_PROMPT);
 }

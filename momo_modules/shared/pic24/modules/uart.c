@@ -213,6 +213,8 @@ void process_RX_char( UART_STATUS* stat, char data ) {
 //Interrupt Handlers
 void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 {
+    _RA2 = !_RA2;
+
    UART_STATUS *stat = &U1STAT;
    while(U1STAbits.URXDA == 1)
     {
@@ -236,8 +238,9 @@ void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt()
     while ( U1STAbits.UTXBF == 0 && !ringbuffer_empty( &U1STAT.send_buffer ) ) {
         char data;
         ringbuffer_pop( &U1STAT.send_buffer, &data );
-        U1TXREG = data;
+        U1TXREG = 0x55;//data;
     }
+
     IFS0bits.U1TXIF = 0; //Clear IFS flag
 }
 
@@ -257,7 +260,7 @@ void transmit_one( UARTPort port ) {
     ringbuffer_pop( &stat->send_buffer, &data );
 
     if (port == U1)
-        U1TXREG = data;
+        U1TXREG = 0x55;//data;
     else
         U2TXREG = data;
 }

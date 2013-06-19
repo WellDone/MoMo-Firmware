@@ -2,6 +2,7 @@
 #include "common.h"
 #include "reset_manager.h"
 #include "task_manager.h"
+#include "scheduler.h"
 #include "fsu_reset_handler.h"
 
 // FBS
@@ -46,11 +47,24 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
+void alive(void)
+{
+	_RA6 = !_RA6;
+}
+
+ScheduledTask task;
+
 int main(void) {
     AD1PCFG = 0xFFFF;
+    _TRISA6 = 0;
+    _TRISA2 = 0;
+    _LATA6 = 1;
+    _LATA2 = 1;
 
     register_reset_handlers();
     handle_reset();
+
+    //scheduler_schedule_task(alive, kEverySecond, kScheduleForever, &task);
     taskloop_loop();
 
     return (EXIT_SUCCESS);
