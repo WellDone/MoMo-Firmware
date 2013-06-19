@@ -238,7 +238,7 @@ void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt()
     while ( U1STAbits.UTXBF == 0 && !ringbuffer_empty( &U1STAT.send_buffer ) ) {
         char data;
         ringbuffer_pop( &U1STAT.send_buffer, &data );
-        U1TXREG = 0x55;//data;
+        U1TXREG = data;//data;
     }
 
     IFS0bits.U1TXIF = 0; //Clear IFS flag
@@ -260,7 +260,7 @@ void transmit_one( UARTPort port ) {
     ringbuffer_pop( &stat->send_buffer, &data );
 
     if (port == U1)
-        U1TXREG = 0x55;//data;
+        U1TXREG = data;//data;
     else
         U2TXREG = data;
 }
@@ -274,8 +274,9 @@ void put( UARTPort port, const char c )
 
 void send(UARTPort port, const char *msg)
 {
-    while ( *(msg++) != '\0' ) {
+    while ( *(msg) != '\0' ) {
         ringbuffer_push( &STAT(port)->send_buffer, (void*)msg );
+        ++msg; //need to increment after passing to ringbuffer push.
     }
     transmit_one( port );
 }
