@@ -2,10 +2,12 @@
 #include "common.h"
 #include "utilities.h"
 #include "sensor_event_log.h"
+#include "ringbuffer.h"
+#include "task_manager.h"
 
-volatile static unsigned char SENSOR_FLAG; 
-volatile static unsigned char SENSOR_TIMEOUT_FLAG; 
-volatile static unsigned long pulse_counts; 
+volatile static unsigned char SENSOR_FLAG;
+volatile static unsigned char SENSOR_TIMEOUT_FLAG;
+volatile static unsigned long pulse_counts;
 
 #define SENSOR_TIMER_ON T2CONbits.TON
 //#define SENSOR_TO 0x04C4B400 //should be 5 seconds
@@ -46,7 +48,6 @@ void configure_sensor() {
 
 void save_event()
 {
-
   saved_sensor_event event;
   ringbuffer_pop( &sensor_event_buf, &event );
 

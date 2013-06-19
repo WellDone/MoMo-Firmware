@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include "common.h"
-#include "reset_manager.h"
+#include "mainboard_reset_handler.h"
 #include "task_manager.h"
+#include "scheduler.h"
+#include "bus_master.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -45,10 +47,106 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
-int main(void) {
+void blink_light1(void)
+{
+	_RA0 = !_RA0;
+}
+
+void send_erase_message(void)
+{
+    bus_master_rpc(NULL, 8, 255, 0x00, NULL, 0);
+}
+
+void send_write_message(void)
+{
+    MIBIntParameter param1;
+    MIBIntParameter param2;
+    MIBBufferParameter param3;
+    char *msg = "test";
+
+    MIBParameterHeader *params[3];
+
+    params[0] = (MIBParameterHeader*)&param1;
+    params[1] = (MIBParameterHeader*)&param2;
+    params[2] = (MIBParameterHeader*)&param3;
+
+    bus_init_int_param(&param1, 0);
+    bus_init_int_param(&param2, 1<<12);
+    bus_init_buffer_param(&param3, msg, 5);
+
+    bus_master_rpc(NULL, 8, 255, 0x01, params, 3);
+}
+
+void send_read_message(void)
+{
+    MIBIntParameter param1;
+    MIBIntParameter param2;
+    MIBIntParameter param3;
+
+    MIBParameterHeader *params[3];
+
+    params[0] = (MIBParameterHeader*)&param1;
+    params[1] = (MIBParameterHeader*)&param2;
+    params[2] = (MIBParameterHeader*)&param3;
+
+    bus_init_int_param(&param1, 0);
+    bus_init_int_param(&param2, 1<<12);
+    bus_init_int_param(&param3, 5);
+
+    bus_master_rpc(NULL, 8, 255, 0x02, params, 3);
+}
+
+void send_test_message(void)
+{
+    static unsigned int i = 0;
+
+    if (i == 0)
+        send_erase_message();
+    else if(i==1)
+        send_write_message();
+    else if(i==2)
+        send_read_message();
+
+    ++i;
+
+    if (i == 3)
+        i = 0;
+}
+
+void send_blink_message(void)
+{
+    MIBIntParameter param1;
+    MIBIntParameter param2;
+    MIBParameterHeader *params[2];
+
+    params[0] = (MIBParameterHeader*)&param1;
+    params[1] = (MIBParameterHeader*)&param2;
+
+    bus_init_int_param(&param1, 5);
+    bus_init_int_param(&param2, 6);
+    bus_master_rpc(NULL, 8, 0x02, 0x01, params, 2);
+}
+
+ScheduledTask task1;
+ScheduledTask i2c;
+
+int main(void)
+{
     AD1PCFG = 0xFFFF;
 
+    _TRISA1 = 0;
+    _TRISA0 = 0;
+    _TRISA6 = 0;
+
+    _RA1 = 1;
+    _RA0 = 1;
+    _RA6 = 1;
+
+    register_reset_handlers();
     handle_reset();
+
+    scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
+    //scheduler_schedule_task(send_test_message, kEverySecond, kScheduleForever, &i2c);
 
     taskloop_loop();
 

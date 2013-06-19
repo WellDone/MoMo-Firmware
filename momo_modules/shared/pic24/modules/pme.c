@@ -29,7 +29,7 @@ void disable_unneeded_peripherals()
 {
 	peripheral_disable(kInputCaptureModule);
 	peripheral_disable(kInputCompareModule);
-	peripheral_disable(kI2CModule);
+	//peripheral_disable(kI2CModule);
 	peripheral_disable(kCRCModule);
 	peripheral_disable(kComparatorModule);
 	peripheral_disable(kRefOscModule);

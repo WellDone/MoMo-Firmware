@@ -28,6 +28,8 @@
     - -:test/support
   :source:
     - +:src/**
+    - +:../shared/pic24/**
+    - +:../shared/portable/**
   :support:
     - test/support
 
@@ -85,7 +87,7 @@
       - -mcpu=24F16KA101
       - ${1}
       - -o "./build/release/TestBuild.elf"
-      - -Wl,-Tp24F16KA101.gld,-Map=./build/release/TestOutput.map,--report-mem
+      - -Wl,-Tlinker/p24F16KA101.gld,-Map=./build/release/TestOutput.map,--report-mem
   :test_fixture:
     :executable: ruby
     :name: "Microchip simulator test fixture"
@@ -128,7 +130,7 @@
       - -mcpu=24F16KA101
       - ${1}
       - -o ${2}
-      - -Wl,-Tp24F16KA101.gld,-Map=./build/release/MoMo-mainboard-firmware.map,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem
+      - -Wl,-T./linker/p24F16KA101.gld,-Map=./build/release/MoMo-mainboard-firmware.map,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem
 :plugins:
   :load_paths:
     - ../../tools/ceedling/plugins
