@@ -13,7 +13,7 @@ void debug_init()
 
     peripheral_enable(kUART1Module);
 
-    params.baud = 38400;
+    params.baud = 115200;
     params.hw_flowcontrol = 0;
     params.parity = NoParity;
     configure_uart(DEBUG_UART, &params);
@@ -22,7 +22,6 @@ void debug_init()
 
     taskloop_set_sleep(0); //Can't sleep with the UART
 
-    print("test message\r\n");
-    //sendf(DEBUG_UART, "Type was: %d.\r\n", last_reset_type());
-    //print(DEBUG_PROMPT);
+    sendf(DEBUG_UART, "Type was: %d.\r\n", last_reset_type());
+    print(DEBUG_PROMPT);
 }

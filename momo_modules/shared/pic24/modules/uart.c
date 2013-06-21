@@ -139,19 +139,9 @@ void configure_uart( UARTPort port, uart_parameters *params)
 static void std_rx_callback( UARTPort port, char data );
 static inline void std_rx_callback_task( UARTPort port ) {
     UART_STATUS* stat = STAT(port);
+
     stat->rx_newline_callback( stat->rx_linebuffer_cursor-stat->rx_linebuffer, stat->rx_linebuffer_remaining == 0 );
-
-    stat->rx_linebuffer_remaining *= -1;
-    stat->rx_linebuffer_remaining += (stat->rx_linebuffer_cursor-stat->rx_linebuffer);
-    stat->rx_linebuffer_cursor = stat->rx_linebuffer;
-
-    char data;
-    while ( !ringbuffer_empty( &stat->rcv_buffer ) ) {
-        ringbuffer_pop( &stat->rcv_buffer, &data );
-        std_rx_callback( port, data );
-        if ( data == '\n' )
-            break;
-    }
+    // It is up to the caller to clear out the buffer and re-register the callback.
 }
 static void std_rx_callback_task_U1() {
     std_rx_callback_task( U1 );
@@ -162,7 +152,7 @@ static void std_rx_callback_task_U2() {
 
 static void std_rx_callback( UARTPort port, char data ) {
     UART_STATUS* stat = STAT(port);
-    if ( stat->rx_linebuffer_remaining < 0 )
+    if ( stat->rx_linebuffer_remaining <= 0 )
         return;
     bool newline = (data=='\n');
     if (!newline) {
@@ -171,7 +161,7 @@ static void std_rx_callback( UARTPort port, char data ) {
     }
     if ( newline || stat->rx_linebuffer_remaining == 0 ) {
         taskloop_add( (port==U1)?std_rx_callback_task_U1:std_rx_callback_task_U2 );
-        stat->rx_linebuffer_remaining *= -1;
+        stat->rx_callback = 0;
     }
 }
 static void std_rx_callback_U1( char data ) {

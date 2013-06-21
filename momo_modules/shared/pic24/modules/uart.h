@@ -5,7 +5,7 @@
 #include "common_types.h"
 #include "ringbuffer.h"
 
-#define UART_BUFFER_SIZE      99
+#define UART_BUFFER_SIZE      64
 
 typedef enum
 {
