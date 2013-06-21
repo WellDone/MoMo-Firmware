@@ -2,7 +2,7 @@
 
 #include "mib_command.h"
 #include "bus_slave.h"
-//#include <string.h>
+#include <string.h>
 
 //Include command map
 #include "commands.h"

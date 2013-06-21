@@ -138,7 +138,7 @@ void bus_slave_reset()
 void bus_slave_callback()
 {	
 	//_RA6 = !_RA6;
-	//RA5 = !RA5;
+	RA5 = !RA5;
 	
 	if (i2c_address_received())
 	{

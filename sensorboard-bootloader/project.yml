@@ -69,7 +69,7 @@
       - --asmlist 
       - --double=24 
       - --float=24 
-      - --rom=0-1FF 
+#      - --rom=0-1FF 
       - --opt=default,+asm,-asmfile,+speed,-space,-debug 
       - --addrqual=ignore 
       - --mode=pro 
@@ -79,12 +79,13 @@
       - --summary=default,+psect,-class,+mem,-hex,-file 
       - --output=default,-inhx032 
       - --runtime=default,+clear,+init,-keep,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib #"--errformat=%f:%l: error: %s" "--warnformat=%f:%l: warning: %s" "--msgformat=%f:%l: advisory: %s" 
+      #- -L-pstrings=CODE
       - "${1}"
       - -o${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_RELEASE_AND_VENDOR
-      
+
   :release_assembler:
     :executable: xc8 
     :arguments:
@@ -95,7 +96,7 @@
       - --asmlist 
       - --double=24 
       - --float=24 
-      - --rom=0-1FF 
+#      - --rom=0-1FF 
       - --opt=default,+asm,-asmfile,+speed,-space,-debug 
       - --addrqual=ignore 
       - --mode=pro 
@@ -105,6 +106,7 @@
       - --summary=default,+psect,-class,+mem,-hex,-file 
       - --output=default,-inhx032 
       - --runtime=default,+clear,+init,-keep,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib #"--errformat=%f:%l: error: %s" "--warnformat=%f:%l: warning: %s" "--msgformat=%f:%l: advisory: %s" 
+      #- -L-pstrings=CODE
       - "${1}"
       - -o${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
@@ -120,7 +122,7 @@
       - --asmlist 
       - --double=24 
       - --float=24 
-      - --rom=0-1FF 
+#      - --rom=0-1FF 
       - --opt=default,+asm,-asmfile,+speed,-space,-debug 
       - --addrqual=ignore 
       - --mode=pro 
@@ -130,12 +132,13 @@
       - --summary=default,+psect,-class,+mem,-hex,-file 
       - --output=default,-inhx032 
       - --runtime=default,+clear,+init,-keep,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib #"--errformat=%f:%l: error: %s" "--warnformat=%f:%l: warning: %s" "--msgformat=%f:%l: advisory: %s" 
-      - -L-pstrings=CODE
+      #- -L-pstrings=CODE
       - "${1}"
       - -o${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_RELEASE_AND_VENDOR
+      - -V
 
 :plugins:
   :load_paths:

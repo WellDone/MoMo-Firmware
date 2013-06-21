@@ -1,5 +1,5 @@
 #include "bus_master.h"
-//#include <string.h>
+#include <string.h>
 
 //MIB Global State
 extern volatile MIBState 		mib_state;
@@ -14,7 +14,7 @@ void 			bus_master_handleerror();
 int 			bus_master_sendrpc(unsigned char address);
 void 			bus_master_readstatus();
 
-/*
+
 unsigned char bus_master_lastaddress()
 {
 	return mib_state.bus_msg.address >> 1;
@@ -73,11 +73,11 @@ int bus_master_rpc(mib_rpc_function callback, unsigned char address, unsigned ch
 
 	return bus_master_sendrpc(address);
 }
-*/
+
 /*
  * Send or resend the rpc call currently stored in mib_state.  
  */
-/*
+
 int bus_master_sendrpc(unsigned char address)
 {
 	if (mib_state.master_param_length > 0)
@@ -86,12 +86,12 @@ int bus_master_sendrpc(unsigned char address)
 		mib_state.master_state = kMIBReadReturnStatus;
 
 	return bus_send(address, (unsigned char *)&mib_state.bus_command, sizeof(MIBCommandPacket), 0);
-}*/
+}
 
 /*
  * Send a special rpc value to get the slave to resend its call execution status and return value (if any)
  */
-/*
+
 void bus_master_readstatus()
 {
 	bus_receive(bus_master_lastaddress(), (unsigned char *)&mib_state.bus_returnstatus, sizeof(MIBReturnValueHeader), 0);
@@ -111,11 +111,11 @@ void bus_master_handleerror()
 		bus_master_finish(kMIBFinalizeMessage);
 		break;
 	}
-}*/
+}
 
 void bus_master_callback()
 {
-	/*switch(mib_state.master_state)
+	switch(mib_state.master_state)
 	{
 		case kMIBSendParameters:
 		bus_send(bus_master_lastaddress(), (unsigned char*)mib_buffer, mib_state.master_param_length, 0);
@@ -166,7 +166,9 @@ void bus_master_callback()
 		break;
 
 		case kMIBFinalizeMessage:
-		if (mib_state.master_callback != NULL)
+		// TODO why does this if statement cause the linker to crash?
+		//if (mib_state.master_callback)
+		if (1)
 		{
 			MIBParameterHeader *retval = NULL;
 
@@ -178,5 +180,5 @@ void bus_master_callback()
 		bus_free_all();
 		i2c_finish_transmission(); 
 		break;
-	}*/
+	}
 }

@@ -3,7 +3,7 @@
 #include "bus_master.h"
 #include "bus_slave.h"
 //#include "task_manager.h"
-//#include <string.h>
+#include <string.h>
 
 volatile MIBState 		mib_state;
 volatile unsigned char 	mib_buffer[kBusMaxMessageSize];

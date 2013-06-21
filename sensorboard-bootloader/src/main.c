@@ -32,7 +32,7 @@ void initialize ();
 // at the interrupt vector and will contain a jump to
 // 0x0204
 void interrupt service_isr() {
-    /* Handle i2c interrupts (MSSP) in the bootloader. */
+    // Handle i2c interrupts (MSSP) in the bootloader.
     if (SSP1IF == 1) {
         if (i2c_master_state() == kI2CDisabledState) {
             i2c_slave_interrupt();
@@ -47,24 +47,18 @@ void interrupt service_isr() {
     }
 }
 
-void mib_test(void)
-{
-    while(1); //interrupts should take care of things
-}
-
 void main() {
     initialize();
     bus_init();
-
-    mib_test();
 
     // If button is pressed, then force bootloader mode
     if (BUTT) {
         goto Bootloader;
     }
 
-    // if we have any application loaded, jump to it
-    if (flash_memory_read (0x1FFF) == 0x3455) {
+    // 0x7ff is highest word in flash memory for pic12lf1822
+    // if application is loaded, highest byte will be 0x55
+    if (flash_memory_read (0x7FF) == 0x3455) {
         #asm
             GOTO 0x200;
         #endasm

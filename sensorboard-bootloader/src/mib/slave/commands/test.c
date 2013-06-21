@@ -1,5 +1,6 @@
 #include "bus_slave.h"
 #include "test.h"
+#include <string.h>
 
 extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
 
@@ -25,8 +26,8 @@ void* echo_buffer(MIBParamList *list)
 	MIBBufferParameter *buf = (MIBBufferParameter *)list->params[0];
 	bus_free_all();
 
-	//memmove((void*)mib_buffer, buf, 2);
-	//memmove((void*)mib_buffer+2, buf->data, buf->header.len);
+	memmove((void*)mib_buffer, buf, 2);
+	memmove((void*)mib_buffer+2, buf->data, buf->header.len);
 
 	bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)mib_buffer);
 
