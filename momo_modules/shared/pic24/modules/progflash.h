@@ -8,7 +8,7 @@
 #ifndef __progflash_h__
 #define __progflash_h__
 
-#include "common.h"
+#include "pic24.h"
 
 #define table_page(addr) ((addr & 0x7F0000) >> 16);
 #define table_offset(addr) (addr & 0x00FFFF)

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "common.h"
+#include "pic24.h"
 
 #define MEMORY_SUBSECTION_MASK 0xFFFL
 #define MEMORY_SUBSECTION_SIZE 0x1000L

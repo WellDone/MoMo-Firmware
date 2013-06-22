@@ -1,7 +1,4 @@
 #include "memory.h"
-#include "rtcc.h"
-#include "utilities.h"
-#include "uart.h"
 
 #define SS_VALUE LATBbits.LATB15
 #define ENABLE_MEMORY() SS_VALUE = 0
