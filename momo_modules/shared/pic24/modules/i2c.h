@@ -7,7 +7,7 @@
 #ifndef __i2c_h__
 #define __i2c_h__
 
-#include "common.h"
+#include "pic24.h"
 #include "task_manager.h"
 
 enum

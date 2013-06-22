@@ -6,11 +6,8 @@
 #ifndef __bus_h__
 #define __bus_h__
 
-#include "common.h"
-#include "task_manager.h"
 #include "i2c.h"
 #include "protocol.h"
-#include "mib_command.h"
 
 #define kControllerPICAddress	0x08
 

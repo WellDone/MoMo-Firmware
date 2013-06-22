@@ -1,8 +1,6 @@
 #ifndef __protocol_h__
 #define __protocol_h__
 
-#include "common.h"
-
 enum
 {
 	kMIBInt16Type = 0,
@@ -46,6 +44,9 @@ typedef struct
 	unsigned char result;
 	unsigned char len;
 } MIBReturnValueHeader;
+
+//Callback Type
+typedef void* (*mib_callback)(MIBParamList *);
 
 #define kMIBCommandLength 	sizeof(MIBCommandPacket)
 #define kBusMaxMessageSize 	40

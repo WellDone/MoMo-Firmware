@@ -3,9 +3,8 @@
  */
 
 #include "i2c.h"
-#include "bus.h"
 #include "pme.h"
-#include "utilities.h"
+#include "bit_utilities.h"
 
 volatile I2CMasterStatus master;
 volatile I2CSlaveStatus  slave;
