@@ -22,7 +22,8 @@
     - -:test/support
   :source:
     - +:src/**
-    - +:../shared/pic24/**
+  :include:
+    - +:../shared/pic24/src/**
     - +:../shared/portable/**
   :support:
     - test/support
@@ -117,13 +118,14 @@
       - -Wall
       - -O1
       - -Wa,--no-relax
-      #- -c  -omf=elf  -Wa,-MD,"build/default/production/src/util/asm_sleep.o.d",--defsym=__MPLAB_BUILD=1,-g,--no-relax
   :release_linker:
     :executable: xc16-gcc
     :arguments:
       - -mcpu=24F16KA101
       - ${1}
       - -o ${2}
+      - -L../shared/pic24/build/release
+      - -lPIC24shared
       - -Wl,-Tp24F16KA101.gld,-Map=./build/release/MoMo-fsu-firmware.map,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem
 :plugins:
   :load_paths:
