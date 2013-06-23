@@ -1578,11 +1578,11 @@ design rules under a new name.</description>
 </element>
 <element name="XTAL1" library="components" package="1206" value="32.768khz" x="39.0652" y="38.9636" smashed="yes" rot="R270"/>
 <element name="C13" library="rcl" package="C0402K" value="18 pF" x="37.211" y="38.989" smashed="yes" rot="R270">
-<attribute name="NAME" x="40.0224" y="40.723" size="0.762" layer="25" rot="R180"/>
+<attribute name="NAME" x="35.6802" y="39.9462" size="0.762" layer="25" rot="R270"/>
 <attribute name="VALUE" x="35.761" y="39.489" size="1.016" layer="27" rot="R270"/>
 </element>
 <element name="C14" library="rcl" package="C0402K" value="18 pF" x="37.211" y="36.4744" smashed="yes" rot="R90">
-<attribute name="NAME" x="40.0224" y="35.4398" size="0.762" layer="25" rot="R180"/>
+<attribute name="NAME" x="35.7056" y="37.584" size="0.762" layer="25" rot="R270"/>
 <attribute name="VALUE" x="38.661" y="35.9744" size="1.016" layer="27" rot="R90"/>
 </element>
 <element name="C5" library="rcl" package="C0402" value="100 nF" x="45.8216" y="18.5674" smashed="yes" rot="R90">
