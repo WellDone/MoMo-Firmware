@@ -6,6 +6,8 @@
 #ifndef __battery_h__
 #define __battery_h__
 
+#include "common.h"
+
 #define kBatteryChargedLevel 	758 //This is 4.15V / 2.8V * 1024
 #define kBatteryHysteresisLevel	731 //This is 4V / 2.8V * 1024
 

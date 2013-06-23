@@ -1,10 +1,5 @@
 ---
 
-# Notes:
-# Sample project C code is not presently written to produce a release artifact.
-# As such, release build options are disabled.
-# This sample, therefore, only demonstrates running a collection of unit tests.
-
 :project:
   :use_exceptions: FALSE
   :use_test_preprocessor: TRUE
@@ -28,7 +23,8 @@
     - -:test/support
   :source:
     - +:src/**
-    - +:../shared/pic24/**
+  :include:
+    - +:../shared/pic24/src/**
     - +:../shared/portable/**
   :support:
     - test/support
@@ -128,8 +124,10 @@
     :executable: xc16-gcc
     :arguments:
       - -mcpu=24F16KA101
-      - ${1}
       - -o ${2}
+      - ${1}
+      - -L../shared/pic24/build/release/
+      - -lPIC24shared
       - -Wl,-T./linker/p24F16KA101.gld,-Map=./build/release/MoMo-mainboard-firmware.map,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem
 :plugins:
   :load_paths:

@@ -1,13 +1,5 @@
 #include "mainboard_reset_handler.h"
 
-void register_reset_handlers()
-{
-    register_reset_handler( kAllResetsBefore, handle_all_resets_before );
-    register_reset_handler( kAllResetsAfter, handle_all_resets_after );
-    register_reset_handler( kPowerOnReset, handle_poweron_reset );
-    register_reset_handler( kMCLRReset, handle_mclr_reset );
-}
-
 #include "rtcc.h"
 #include "uart.h"
 #include "task_manager.h"
@@ -60,4 +52,12 @@ void handle_poweron_reset(unsigned int type)
 void handle_mclr_reset(unsigned int type)
 {
     mclr_triggered = true;
+}
+
+void register_reset_handlers()
+{
+    register_reset_handler( kAllResetsBefore, handle_all_resets_before );
+    register_reset_handler( kAllResetsAfter, handle_all_resets_after );
+    register_reset_handler( kPowerOnReset, handle_poweron_reset );
+    register_reset_handler( kMCLRReset, handle_mclr_reset );
 }

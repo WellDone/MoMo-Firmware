@@ -2,7 +2,7 @@
 #ifndef __interrupts_h__
 #define __interrupts_h__
 
-#include "common.h"
+#include "pic24.h"
 
 typedef void (*isr_handler)();
 
@@ -13,7 +13,7 @@ typedef void (*isr_handler)();
 typedef struct
 {
     unsigned char   priority; //3 bit priorty (higher order bits are masked)
-    unsigned char   enabled; //1 for enabled interrupt, 0 for disabled
+    bool            enabled; //1 for enabled interrupt, 0 for disabled
 
     //Location of the specific registers for this isr
     //Should be filled in by an initialization macro.

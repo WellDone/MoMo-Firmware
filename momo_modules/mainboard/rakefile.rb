@@ -1,5 +1,13 @@
 PROJECT_CEEDLING_ROOT = "../../tools/ceedling"
 load "#{PROJECT_CEEDLING_ROOT}/lib/rakefile.rb"
 
-task :default => %w[ test:all release ]
-task :full => %w[ clean test:all release ]
+task :shared do
+	sh "(cd ../shared/pic24/; rake;)"
+end
+
+task :clean_shared do
+	sh "(cd ../shared/pic24/; rake clean;)"
+end
+
+task :default => %w[ shared test:all release ]
+task :full => %w[ clean clean_shared default ]

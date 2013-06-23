@@ -1,6 +1,7 @@
 #include "scheduler.h"
 #include "common_types.h"
-#include "bit_utilities.h"
+#include "utilities.h"
+#include "pic24.h"
 
 static SchedulerState state;
 

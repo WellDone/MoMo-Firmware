@@ -2,7 +2,7 @@
 #define __uart_h__
 
 #include "interrupts.h"
-#include "common_types.h"
+#include "pic24.h"
 #include "ringbuffer.h"
 
 #define UART_BUFFER_SIZE      64

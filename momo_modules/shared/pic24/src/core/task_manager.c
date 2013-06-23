@@ -2,6 +2,7 @@
 #include "common_types.h"
 #include "uart.h"
 #include "utilities.h"
+#include "pic24.h"
 
 task_list taskqueue;
 void taskloop_init()
