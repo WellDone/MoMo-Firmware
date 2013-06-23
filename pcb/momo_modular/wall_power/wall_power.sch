@@ -126,7 +126,6 @@ CAD and Schematic files for the PIC24Fka101 series of microcontrollers.</descrip
 <package name="NR6028-INDUCTOR">
 <smd name="1" x="0" y="0" dx="1.6" dy="5.7" layer="1"/>
 <smd name="2" x="4.7" y="0" dx="1.6" dy="5.7" layer="1"/>
-<wire x1="-16.51" y1="-7.62" x2="-16.51" y2="76.2" width="0.127" layer="21"/>
 <wire x1="-0.65" y1="-3" x2="-0.65" y2="3" width="0.127" layer="48"/>
 <wire x1="5.35" y1="3" x2="-0.65" y2="3" width="0.127" layer="48"/>
 <wire x1="5.35" y1="-3" x2="-0.65" y2="-3" width="0.127" layer="48"/>
