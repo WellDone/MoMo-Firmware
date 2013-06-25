@@ -211,26 +211,26 @@ CAD and Schematic files for the PIC24Fka101 series of microcontrollers.</descrip
 <wire x1="3.366" y1="2.286" x2="-3.365" y2="2.286" width="0.0508" layer="21"/>
 <wire x1="-3.365" y1="-2.286" x2="-3.365" y2="2.286" width="0.0508" layer="21"/>
 <circle x="-2.349" y="-1.397" radius="0.635" width="0.1524" layer="21"/>
-<smd name="1" x="-2.857" y="-3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="2" x="-2.222" y="-3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="3" x="-1.587" y="-3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="4" x="-0.952" y="-3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="5" x="-0.317" y="-3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="6" x="0.318" y="-3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="7" x="0.953" y="-3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="8" x="1.588" y="-3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="9" x="2.223" y="-3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="10" x="2.858" y="-3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="20" x="-2.857" y="3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="19" x="-2.222" y="3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="18" x="-1.587" y="3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="17" x="-0.952" y="3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="16" x="-0.317" y="3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="15" x="0.318" y="3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="14" x="0.953" y="3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="13" x="1.588" y="3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="12" x="2.223" y="3.302" dx="0.305" dy="1.245" layer="1"/>
-<smd name="11" x="2.858" y="3.302" dx="0.305" dy="1.245" layer="1"/>
+<smd name="1" x="-2.857" y="-3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="2" x="-2.222" y="-3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="3" x="-1.587" y="-3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="4" x="-0.952" y="-3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="5" x="-0.317" y="-3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="6" x="0.318" y="-3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="7" x="0.953" y="-3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="8" x="1.588" y="-3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="9" x="2.223" y="-3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="10" x="2.858" y="-3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="20" x="-2.857" y="3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="19" x="-2.222" y="3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="18" x="-1.587" y="3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="17" x="-0.952" y="3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="16" x="-0.317" y="3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="15" x="0.318" y="3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="14" x="0.953" y="3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="13" x="1.588" y="3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="12" x="2.219" y="3.431" dx="0.3" dy="1.5" layer="1"/>
+<smd name="11" x="2.858" y="3.431" dx="0.3" dy="1.5" layer="1"/>
 <text x="-4.064" y="-2.1204" size="1.27" layer="25" ratio="10" rot="R90">&gt;NAME</text>
 <text x="-2.7554" y="-0.0254" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
 <rectangle x1="2.7564" y1="2.5908" x2="2.9596" y2="3.429" layer="51"/>

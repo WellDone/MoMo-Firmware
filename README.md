@@ -1,8 +1,12 @@
 # WellDone MoMo Firmware
 
-The bulk of the code lives in mainboard-firmware.
+A product of [WellDone.org](http://www.welldone.org).
 
-* This code should be compiled using Microchip's [XC16](http://www.microchip.com/pagehandler/en_us/devtools/mplabxc/) compiler for 16-bit PIC24 devices.
-* It has been tested on version 1.11 of the compiler.
-* The approved build-compile-test system is to use [Ceedling](http://throwtheswitch.org/).  An introduction to using ceedling for TDD in embeded PIC environments can be found [HERE](http://spin.atomicobject.com/2012/10/22/getting-started-with-tdd-for-microchips-pics/)
-* Unit and functional test scaffolding is forthcoming - we expect to support both the Microchip PIC Simulator and in-device physical test definitions.
+Before contributing, study the enforced Git branching model on the [Wiki](http://github.com/WellDone/MoMo-Firmware/wiki).
+
+## Directory structure breakdown ##
+
+* **doc** - Documentation on the status
+* **[momo_modules](./momo_modules)** - This is where the firmware code for individual modules (devices implementing the [MIB](http://github.com/WellDone/MoMo-Firmware/wiki/Module-Interconnect-Bus-(MIB\)) protocol over I2C) lives
+* **pcb** - This is where the PCB board schematics and other miscellaneous hardware information lives.
+* **tools** - Various tools that are useful for building and interacting with a MoMo
