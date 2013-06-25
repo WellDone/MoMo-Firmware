@@ -10,11 +10,9 @@ volatile I2CSlaveStatus  slave;
 
 volatile I2CMessage      *i2c_msg;
 
-void (*i2c_master_callback)(void);
-void (*i2c_slave_callback)(void);
 unsigned char i2c_slave_address;
 
-void i2c_enable(unsigned char slave_address, void *master_callback, void *slave_callback)
+void i2c_enable(unsigned char slave_address)
 {
     unsigned char unused;
 
@@ -34,10 +32,6 @@ void i2c_enable(unsigned char slave_address, void *master_callback, void *slave_
 
     //Enable general call interrupt
     GCEN = 1;
-
-    //i2c callbacks for processing events
-    i2c_master_callback = master_callback;
-    i2c_slave_callback = slave_callback;
 
     //address for slave mode
     i2c_slave_address = slave_address;

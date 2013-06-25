@@ -36,7 +36,7 @@ typedef struct
 	unsigned char count;
 	unsigned char curr;
 	
-	MIBParameterHeader *params[0]; //variable length array, use bus_allocate_param_list to create this structure
+	MIBParameterHeader *params[1]; //variable length array, use bus_allocate_param_list to create this structure
 } MIBParamList;
 
 typedef struct 
@@ -49,7 +49,7 @@ typedef struct
 typedef void* (*mib_callback)(MIBParamList *);
 
 #define kMIBCommandLength 	sizeof(MIBCommandPacket)
-#define kBusMaxMessageSize 	40
+#define kBusMaxMessageSize 	32
 
 #define get_int16_param(list, n) ((int)((MIBIntParameter *)list->params[n])->value)
 #define get_uint16_param(list, n) ((unsigned int)((MIBIntParameter *)list->params[n])->value)

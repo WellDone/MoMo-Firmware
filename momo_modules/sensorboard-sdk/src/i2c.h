@@ -100,7 +100,7 @@ typedef struct
 } I2CSlaveStatus;
 
 //Configuration Functions
-void i2c_enable(unsigned char slave_address, void *master_callback, void *slave_callback);
+void i2c_enable(unsigned char slave_address);
 void i2c_disable();
 
 //Shared Common Functions

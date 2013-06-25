@@ -15,8 +15,8 @@ enum
 //Callback Type
 typedef void* (*mib_callback)(MIBParamList *);
 
-int 					find_handler(unsigned char feature, unsigned char cmd);
-mib_callback			get_handler(int handler_index);
-volatile MIBParamList *	build_params(int handler_index);
+unsigned char			find_handler(unsigned char feature, unsigned char cmd);
+mib_callback			get_handler(unsigned char handler_index);
+volatile MIBParamList *	build_params(unsigned char handler_index);
 
 #endif

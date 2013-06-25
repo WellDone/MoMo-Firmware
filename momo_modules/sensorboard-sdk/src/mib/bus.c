@@ -12,7 +12,7 @@ unsigned int 			mib_firstfree;
 void bus_init()
 {
 	mib_firstfree = 0;
-	i2c_enable(kControllerPICAddress, bus_master_callback, bus_slave_callback);
+	i2c_enable(kControllerPICAddress);
 }
 
 int bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags)

@@ -1,8 +1,9 @@
 #include "i2c.h"
+#include "bus_master.h"
 
 extern volatile I2CMasterStatus master;
 extern volatile I2CMessage 		*i2c_msg;
-extern void (*i2c_master_callback)(void);
+
 extern unsigned char			i2c_slave_address;
 
 /*
@@ -113,7 +114,7 @@ void i2c_master_interrupt()
 
 		case kI2CUserCallbackState:
 		//This data is now sent or received, we need to execute the callback to see what to do next
-		i2c_master_callback(); //It is the job of the user callback to decide whether to 
+		bus_master_callback(); //It is the job of the user callback to decide whether to 
 		break;
 
 		case kI2CIdleState:

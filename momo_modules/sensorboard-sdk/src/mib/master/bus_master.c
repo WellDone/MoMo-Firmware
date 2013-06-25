@@ -29,7 +29,7 @@ void bus_master_finish(int next)
 void bus_master_compose_params(MIBParameterHeader **params, unsigned char param_count)
 {
 	volatile unsigned char *buffer;
-	unsigned int i=0, j=0;
+	unsigned char i=0, j=0;
 
 	bus_free_all();
 	buffer = bus_allocate_space(kBusMaxMessageSize);

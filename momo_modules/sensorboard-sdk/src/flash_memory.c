@@ -1,5 +1,5 @@
 #include <pic12f1822.h>
-
+/*
 //****************************************************************
 //  FLASH MEMORY READ
 //  needs 16 bit address pointer in address
@@ -92,3 +92,4 @@ void flash_memory_erase (unsigned int address) {
     WR = 1;                         // set WR to begin erase cycle
     WREN = 0;                       // disallow program/erase
 }
+*/

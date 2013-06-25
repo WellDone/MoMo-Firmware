@@ -1,8 +1,8 @@
 #include "i2c.h"
+#include "bus_slave.h"
 
 extern volatile I2CSlaveStatus  slave;
 extern volatile I2CMessage      *i2c_msg;
-extern void (*i2c_slave_callback)(void);
 
 void i2c_slave_receivedata()
 {
@@ -19,7 +19,7 @@ void i2c_slave_receivedata()
 
 		if (i2c_msg->flags & kCallbackBeforeChecksum)
 		{
-			i2c_slave_callback();
+			bus_slave_callback();
 			return; //Don't release clock, job of callback in this case
 		}
 	}
@@ -34,7 +34,7 @@ void i2c_slave_receivechecksum()
 	i2c_msg->checksum = ~i2c_msg->checksum + 1;
 
 	slave.state = kI2CUserCallbackState;
-	i2c_slave_callback();
+	bus_slave_callback();
 
 	if (check != i2c_msg->checksum)
 		slave.last_error = kI2CInvalidChecksum;
@@ -86,7 +86,7 @@ void i2c_slave_interrupt()
 
 		i2c_master_disable(); //If we receive a valid address, the the master must not be running so take over the i2c data structures
 
-		i2c_slave_callback();
+		bus_slave_callback();
 	}		
 	else 
 	{
@@ -113,7 +113,7 @@ void i2c_slave_interrupt()
 			break;
 
 			case kI2CUserCallbackState:
-			i2c_slave_callback();
+			bus_slave_callback();
 			break;
 
 			default:

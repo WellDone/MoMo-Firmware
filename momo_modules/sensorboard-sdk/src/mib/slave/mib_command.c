@@ -9,10 +9,10 @@
 
 extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
 
-int find_handler(unsigned char feature, unsigned char cmd)
+unsigned char find_handler(unsigned char feature, unsigned char cmd)
 {
-	unsigned int i, num_cmds;
-	int found_feat = -1;
+	unsigned char i, num_cmds;
+	signed char found_feat = -1;
 
 	for (i=0; i<kNumFeatures; ++i)
 	{
@@ -24,30 +24,30 @@ int find_handler(unsigned char feature, unsigned char cmd)
 	}
 
 	if (found_feat == -1)
-		return -1;
+		return 255;
 
 	num_cmds = commands[found_feat+1] - commands[found_feat];
 
 	if (cmd >= num_cmds)
-		return -1;
+		return 255;
 
 	return commands[found_feat] + cmd;
 }
 
-mib_callback get_handler(int index)
+mib_callback get_handler(unsigned char index)
 {
-	if (index < 0)
+	if (index == 255)
 		return NULL;
 
 	return handlers[index];
 }
 
-volatile MIBParamList *	build_params(int handler_index)
+volatile MIBParamList *	build_params(unsigned char handler_index)
 {
 	unsigned char spec 			= param_specs[handler_index];
 	unsigned char num_params 	= extract_param_count(spec);
 	volatile MIBParamList *list = bus_allocate_param_list(num_params);
-	unsigned int i;
+	unsigned char i;
 	
 	for (i=0; i<num_params; ++i)
 	{
