@@ -142,8 +142,8 @@
 
 :plugins:
   :load_paths:
-    - tools/ceedling/plugins
-    - tools/ceedling-plugins
+    - ../../tools/ceedling/plugins
+    - ../../tools/ceedling-plugins
   :enabled:
     - stdout_pretty_tests_report
     - module_generator
