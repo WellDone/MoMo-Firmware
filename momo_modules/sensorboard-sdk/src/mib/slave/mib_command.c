@@ -11,7 +11,7 @@ extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
 
 unsigned char find_handler(unsigned char feature, unsigned char cmd)
 {
-	unsigned char i, num_cmds;
+	unsigned char i;
 	signed char found_feat = -1;
 
 	for (i=0; i<kNumFeatures; ++i)
@@ -26,9 +26,7 @@ unsigned char find_handler(unsigned char feature, unsigned char cmd)
 	if (found_feat == -1)
 		return 255;
 
-	num_cmds = commands[found_feat+1] - commands[found_feat];
-
-	if (cmd >= num_cmds)
+	if (cmd >= (commands[found_feat+1] - commands[found_feat]))
 		return 255;
 
 	return commands[found_feat] + cmd;

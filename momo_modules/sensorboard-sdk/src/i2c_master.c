@@ -2,9 +2,11 @@
 #include "bus_master.h"
 
 extern volatile I2CMasterStatus master;
-extern volatile I2CMessage 		*i2c_msg;
+extern volatile MIBState       	mib_state;
 
 extern unsigned char			i2c_slave_address;
+
+#define i2c_msg		(&mib_state.bus_msg)
 
 /*
  * Helper function only used in i2c_master_interrupt() in order to encapsulate the receive logic

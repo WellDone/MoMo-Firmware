@@ -26,7 +26,7 @@ int bus_send(unsigned char address, unsigned char *buffer, unsigned char len, un
 	mib_state.bus_msg.last_data = buffer + len;
 	mib_state.bus_msg.flags = flags;
 
-	return i2c_send_message(&mib_state.bus_msg);
+	return i2c_send_message();
 }
 
 int bus_receive(unsigned char address, volatile unsigned char *buffer, unsigned char len, unsigned char flags)
@@ -39,7 +39,7 @@ int bus_receive(unsigned char address, volatile unsigned char *buffer, unsigned 
 
 	mib_state.bus_msg.flags = flags;
 
-	return i2c_receive_message(&mib_state.bus_msg);
+	return i2c_receive_message();
 }
 
 volatile unsigned char *bus_allocate_space(unsigned int len)

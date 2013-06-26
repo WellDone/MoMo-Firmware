@@ -8,7 +8,7 @@
 volatile I2CMasterStatus master;
 volatile I2CSlaveStatus  slave;
 
-volatile I2CMessage      *i2c_msg;
+extern volatile MIBState       mib_state;
 
 unsigned char i2c_slave_address;
 
@@ -70,48 +70,45 @@ void i2c_finish_transmission()
     master.state = kI2CIdleState;
 }
 
-int i2c_send_message(volatile I2CMessage *msg)
+int i2c_send_message()
 {
-    i2c_msg = msg;
-    msg->checksum = 0;
+    mib_state.bus_msg.checksum = 0;
 
     //Check if this is a slave transmission
-    if (!i2c_address_valid(msg->address))
+    if (!i2c_address_valid(mib_state.bus_msg.address))
     {
         slave.state = kI2CSendDataState;
-        if (msg->flags & kSendImmediately)
+        if (mib_state.bus_msg.flags & kSendImmediately)
             i2c_slave_sendbyte();
 
         return 0;
     }
 
     master.dir = kMasterSendData;
-    msg->address <<= 1;
+    mib_state.bus_msg.address <<= 1;
 
-    CLEAR_BIT(msg->address, 0); //set write indication
+    CLEAR_BIT(mib_state.bus_msg.address, 0); //set write indication
 
     i2c_start_transmission();
     return 0;
 }
 
-int i2c_receive_message(volatile I2CMessage *msg)
+int i2c_receive_message()
 {
-    i2c_msg = msg;
-
-    if (!(msg->flags & kContinueChecksum))
-        msg->checksum = 0;
+    if (!(mib_state.bus_msg.flags & kContinueChecksum))
+        mib_state.bus_msg.checksum = 0;
 
     //Check if this is a slave reception
-    if (!i2c_address_valid(msg->address))
+    if (!i2c_address_valid(mib_state.bus_msg.address))
     {
         slave.state = kI2CReceiveDataState;
         return 0;
     }
 
     master.dir = kMasterReceiveData;
-    msg->address <<= 1;
+    mib_state.bus_msg.address <<= 1;
 
-    SET_BIT(msg->address, 0); //set read indication
+    SET_BIT(mib_state.bus_msg.address, 0); //set read indication
 
     i2c_start_transmission();
     return 0;

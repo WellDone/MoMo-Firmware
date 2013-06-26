@@ -2,7 +2,9 @@
 #include "bus_slave.h"
 
 extern volatile I2CSlaveStatus  slave;
-extern volatile I2CMessage      *i2c_msg;
+extern volatile MIBState       mib_state;
+
+#define i2c_msg		(&mib_state.bus_msg)
 
 void i2c_slave_receivedata()
 {
