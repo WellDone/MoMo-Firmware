@@ -1,6 +1,8 @@
 #ifndef __protocol_h__
 #define __protocol_h__
 
+#include "platform.h"
+
 enum
 {
 	kMIBInt16Type = 0,

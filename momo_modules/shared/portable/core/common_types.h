@@ -4,8 +4,8 @@
 #include <GenericTypeDefs.h>
 
 typedef unsigned short bool;
-#define false 0;
-#define true 1;
+#define false 0
+#define true 1
 
 // UART
 typedef enum
