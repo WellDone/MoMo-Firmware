@@ -3,7 +3,7 @@
 
 //MIB Global State
 extern volatile MIBState 		mib_state;
-extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
+extern unsigned char 			mib_buffer[kBusMaxMessageSize];
 extern unsigned int 			mib_firstfree;
 
 //Local Prototypes that should not be called outside of this file

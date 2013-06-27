@@ -3,7 +3,7 @@
 
 //MIB Global State
 extern MIBState 				mib_state;
-extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
+extern unsigned char 			mib_buffer[kBusMaxMessageSize];
 extern unsigned int 			mib_firstfree;
 
 //Local Prototypes that should not be called outside of this file
@@ -177,7 +177,7 @@ void bus_master_callback()
 
 			mib_state.master_callback(mib_state.bus_returnstatus.result, retval);
 		}
-		
+
 		bus_free_all();
 		i2c_finish_transmission(); 
 		break;

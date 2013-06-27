@@ -7,7 +7,7 @@
 //Include command map
 #include "commands.h"
 
-extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
+extern unsigned char 	mib_buffer[kBusMaxMessageSize];
 
 int find_handler(unsigned char feature, unsigned char cmd)
 {

@@ -2,7 +2,7 @@
 #include "test.h"
 #include <string.h>
 
-extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
+extern unsigned char 	mib_buffer[kBusMaxMessageSize];
 
 void* test_command(MIBParamList *param)
 {

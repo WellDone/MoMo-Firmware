@@ -73,20 +73,20 @@ typedef struct
 void bus_init();
 
 //Allocation Routines
-volatile unsigned char * 		bus_allocate_space(uint8 len);
-void							bus_free_all();
+unsigned char * 		bus_allocate_space(uint8 len);
+void					bus_free_all();
 
-volatile MIBParamList		*	bus_allocate_param_list(uint8 num);
-volatile MIBIntParameter 	*	bus_allocate_int_param();
-volatile MIBBufferParameter *	bus_allocate_buffer_param(uint8 len); //if len == 0, then allocate all remaining space
-MIBParameterHeader *			bus_allocate_return_buffer(unsigned char **out_buffer);
+MIBParamList		*	bus_allocate_param_list(uint8 num);
+MIBIntParameter 	*	bus_allocate_int_param();
+MIBBufferParameter  *	bus_allocate_buffer_param(uint8 len); //if len == 0, then allocate all remaining space
+MIBParameterHeader *	bus_allocate_return_buffer(unsigned char **out_buffer);
 
-void 							bus_init_int_param(MIBIntParameter *param, int value);
-void 							bus_init_buffer_param(MIBBufferParameter *param, void *data, unsigned char len);
+void 					bus_init_int_param(MIBIntParameter *param, int value);
+void 					bus_init_buffer_param(MIBBufferParameter *param, void *data, unsigned char len);
 
 //Command Routines
 void bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
-void bus_receive(unsigned char address, volatile unsigned char *buffer, unsigned char len, unsigned char flags);
+void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
 
 
 #endif

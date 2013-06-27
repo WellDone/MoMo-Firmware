@@ -3,20 +3,20 @@
 
 //MIB Global State
 extern MIBState 				mib_state;
-extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
+extern unsigned char 	mib_buffer[kBusMaxMessageSize];
 extern unsigned int 			mib_firstfree;
 
 //static prototypes that are only to be used in this file
-void bus_slave_startcommand();
-void bus_slave_receiveparam(MIBParameterHeader *param, int header_or_value, unsigned char flag);
-void bus_slave_searchcommand();
-void bus_slave_callcommand();
+static void bus_slave_startcommand();
+static void bus_slave_receiveparam(MIBParameterHeader *param, uint8 header_or_value, unsigned char flag);
+static void bus_slave_searchcommand();
+static void bus_slave_callcommand();
 
 /*
  * MIB Slave Logic 
  */
 
-void bus_slave_startcommand()
+static void bus_slave_startcommand()
 {
 	//Initialize all the state
 	mib_state.slave_state = kMIBSearchCommand;
@@ -47,7 +47,7 @@ void bus_slave_setreturn(unsigned char status, volatile MIBParameterHeader *valu
 }
 
 /* call with 0 to get the header, > 0 to get the value */
-void bus_slave_receiveparam(MIBParameterHeader *param, int header_or_value, unsigned char flag)
+static void bus_slave_receiveparam(MIBParameterHeader *param, uint8 header_or_value, unsigned char flag)
 {
 	if (header_or_value == 0)
 		bus_slave_receive((unsigned char *)&mib_state.last_param, sizeof(MIBParameterHeader), kCallbackBeforeChecksum|flag);
@@ -77,7 +77,7 @@ void bus_slave_receiveparam(MIBParameterHeader *param, int header_or_value, unsi
 	}
 }
 
-void bus_slave_searchcommand()
+static void bus_slave_searchcommand()
 {
 	int index;
 	if (i2c_slave_lasterror() != kI2CNoError)
@@ -121,7 +121,7 @@ void bus_slave_searchcommand()
 	}
 }
 
-void bus_slave_callcommand()
+static void bus_slave_callcommand()
 {	
 	if (mib_state.slave_handler != NULL && mib_state.slave_state == kMIBExecuteCommandHandler)
 		mib_state.slave_handler(mib_state.slave_params);
