@@ -1,4 +1,7 @@
 #include "ringbuffer.h"
+
+#ifndef _PIC12LEAN
+
 #include "common_types.h"
 #include <string.h>
 
@@ -60,7 +63,10 @@ static void ringbuffer_incr(ringbuffer *buf, unsigned int *index)
 {
     *index = (*index+1) & (2*buf->length - 1);
 }
+
 void ringbuffer_reset(ringbuffer* buf) {
     buf->start = 0; //start points to the oldest valid data item
     buf->end = 0; //end points one past the newest valid data item
 }
+
+#endif

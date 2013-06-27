@@ -2,7 +2,7 @@
 #include "bus_master.h"
 
 extern volatile I2CMasterStatus master;
-extern volatile MIBState       	mib_state;
+extern MIBState mib_state;
 
 extern unsigned char			i2c_slave_address;
 
@@ -11,7 +11,7 @@ extern unsigned char			i2c_slave_address;
 /*
  * Helper function only used in i2c_master_interrupt() in order to encapsulate the receive logic
  */
-void i2c_master_receivedata()
+inline void i2c_master_receivedata()
 {
 	if (i2c_received_data())
 	{
@@ -50,7 +50,7 @@ void i2c_master_enable()
 	SSP1ADD = 0x4F; //Set baud rate to 100 khz for 32 mhz internal oscillator
 }
 
-int i2c_master_lasterror()
+uint8 i2c_master_lasterror()
 {
 	return master.last_error;
 }
@@ -60,7 +60,7 @@ I2CLogicState i2c_master_state()
 	return master.state;
 }
 
-void i2c_master_receivechecksum()
+inline void i2c_master_receivechecksum()
 {
 	if (i2c_received_data())
 	{

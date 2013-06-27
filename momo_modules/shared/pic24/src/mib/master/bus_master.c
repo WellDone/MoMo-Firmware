@@ -11,7 +11,7 @@ unsigned char 	bus_master_lastaddress();
 void 			bus_master_finish(int next);
 void 			bus_master_compose_params(MIBParameterHeader **params, unsigned char param_count);
 void 			bus_master_handleerror();
-int 			bus_master_sendrpc(unsigned char address);
+void 			bus_master_sendrpc(unsigned char address);
 void 			bus_master_readstatus();
 
 unsigned char bus_master_lastaddress()
@@ -59,7 +59,7 @@ void bus_master_compose_params(MIBParameterHeader **params, unsigned char param_
 	mib_state.master_param_length = j;
 }
 
-int bus_master_rpc(mib_rpc_function callback, unsigned char address, unsigned char feature, unsigned char cmd, MIBParameterHeader **params, unsigned char param_count)
+void bus_master_rpc(mib_rpc_function callback, unsigned char address, unsigned char feature, unsigned char cmd, MIBParameterHeader **params, unsigned char param_count)
 {
 	mib_state.bus_command.feature = feature;
 	mib_state.bus_command.command = cmd;
@@ -70,20 +70,20 @@ int bus_master_rpc(mib_rpc_function callback, unsigned char address, unsigned ch
 	else
 		mib_state.master_param_length = 0;
 
-	return bus_master_sendrpc(address);
+	bus_master_sendrpc(address);
 }
 
 /*
  * Send or resend the rpc call currently stored in mib_state.  
  */
-int bus_master_sendrpc(unsigned char address)
+void bus_master_sendrpc(unsigned char address)
 {
 	if (mib_state.master_param_length > 0)
 		mib_state.master_state = kMIBSendParameters;
 	else
 		mib_state.master_state = kMIBReadReturnStatus;
 
-	return bus_send(address, (unsigned char *)&mib_state.bus_command, sizeof(MIBCommandPacket), 0);
+	bus_send(address, (unsigned char *)&mib_state.bus_command, sizeof(MIBCommandPacket), 0);
 }
 
 /*

@@ -1,5 +1,7 @@
 #include "base64.h"
 
+#ifndef _PIC12LEAN
+
 static char encoding_table[64] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                                 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
                                 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
@@ -38,3 +40,5 @@ unsigned int base64_encode( const BYTE* data, unsigned int input_length, char* e
 
   return output_length;
 }
+
+#endif

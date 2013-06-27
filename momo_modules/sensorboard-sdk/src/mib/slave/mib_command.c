@@ -4,7 +4,7 @@
 #include "bus_slave.h"
 #include <string.h>
 
-//Include command map
+//device must define a command map 
 #include "commands.h"
 
 extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];

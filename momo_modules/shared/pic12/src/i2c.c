@@ -8,18 +8,21 @@
 volatile I2CMasterStatus master;
 volatile I2CSlaveStatus  slave;
 
-extern volatile MIBState       mib_state;
+extern MIBState       mib_state;
 
 unsigned char i2c_slave_address;
 
+//Internal functions
+static void i2c_master_receivedata();
+static void i2c_master_receivechecksum();
+
 void i2c_enable(unsigned char slave_address)
 {
-    unsigned char unused;
+    master.state = SSP1BUF; //avoid needing a temp variable
 
     master.state = kI2CIdleState;
     slave.state = kI2CIdleState;
 
-    unused = SSP1BUF; //Clear out receive buffer
     TRISA1 = 1; //SCL pin as input
     TRISA2 = 1; //SDA pin as input
     SSPEN = 1; //Enable serial port and configure to use SDA/SCL as source
@@ -70,7 +73,7 @@ void i2c_finish_transmission()
     master.state = kI2CIdleState;
 }
 
-int i2c_send_message()
+void i2c_send_message()
 {
     mib_state.bus_msg.checksum = 0;
 
@@ -80,8 +83,6 @@ int i2c_send_message()
         slave.state = kI2CSendDataState;
         if (mib_state.bus_msg.flags & kSendImmediately)
             i2c_slave_sendbyte();
-
-        return 0;
     }
 
     master.dir = kMasterSendData;
@@ -90,10 +91,9 @@ int i2c_send_message()
     CLEAR_BIT(mib_state.bus_msg.address, 0); //set write indication
 
     i2c_start_transmission();
-    return 0;
 }
 
-int i2c_receive_message()
+void i2c_receive_message()
 {
     if (!(mib_state.bus_msg.flags & kContinueChecksum))
         mib_state.bus_msg.checksum = 0;
@@ -102,7 +102,7 @@ int i2c_receive_message()
     if (!i2c_address_valid(mib_state.bus_msg.address))
     {
         slave.state = kI2CReceiveDataState;
-        return 0;
+        return;
     }
 
     master.dir = kMasterReceiveData;
@@ -111,5 +111,4 @@ int i2c_receive_message()
     SET_BIT(mib_state.bus_msg.address, 0); //set read indication
 
     i2c_start_transmission();
-    return 0;
 }

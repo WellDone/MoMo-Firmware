@@ -2,7 +2,7 @@
 #include "bus_slave.h"
 
 extern volatile I2CSlaveStatus  slave;
-extern volatile MIBState       mib_state;
+extern MIBState       			mib_state;
 
 #define i2c_msg		(&mib_state.bus_msg)
 
@@ -10,12 +10,12 @@ void i2c_slave_receivedata()
 {
 	unsigned char data = i2c_receive();
 
-	*(i2c_msg->last_data) = data;
-	i2c_msg->checksum += data;
-	i2c_msg->last_data += 1;
+	*(mib_state.bus_msg.last_data) = data;
+	mib_state.bus_msg.checksum += data;
+	mib_state.bus_msg.last_data += 1;
 
 	//Check if we are at the end of the message
-	if ((i2c_msg->last_data - i2c_msg->data_ptr) == i2c_msg->len)
+	if ((mib_state.bus_msg.last_data + mib_state.bus_msg.len) == mib_state.bus_msg.data_ptr)
 	{
 		slave.state = kI2CReceiveChecksumState;
 
@@ -72,14 +72,14 @@ void i2c_slave_sendbyte()
 		i2c_release_clock();
 }
 
-int i2c_slave_lasterror()
+uint8 i2c_slave_lasterror()
 {
 	return slave.last_error;
 }
 
 void i2c_slave_interrupt()
 {
-	volatile unsigned char unused;
+	unsigned char unused;
 
 	if (i2c_address_received())
 	{

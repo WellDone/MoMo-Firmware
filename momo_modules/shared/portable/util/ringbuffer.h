@@ -1,6 +1,9 @@
 #ifndef __ringbuffer_h
 #define __ringbuffer_h
 
+#include "platform.h"
+
+#ifndef _PIC12LEAN
 //The number of elements must be less that than 16K since we use the high bit
 //of the indices to tell if the buffer is empty or full.
 //Implementation inspired by: http://en.wikipedia.org/wiki/Circular_buffer
@@ -22,5 +25,7 @@ void ringbuffer_pop(ringbuffer *buf, void *out);
 unsigned int ringbuffer_empty(ringbuffer *buf);
 unsigned int ringbuffer_full(ringbuffer *buf);
 void ringbuffer_reset(ringbuffer *buf);
+
+#endif
 
 #endif

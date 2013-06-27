@@ -1,35 +1,31 @@
 //bus.c
 
-#include "bus_master.h"
-#include "bus_slave.h"
-//#include "task_manager.h"
-#include <string.h>
+//#include "bus_master.h"
+//#include "bus_slave.h"
+#include "bus.h"
 
-volatile MIBState 		mib_state;
+MIBState 				mib_state;
 volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
 unsigned int 			mib_firstfree;
 
 void bus_init()
 {
 	mib_firstfree = 0;
-	i2c_enable(kControllerPICAddress);
+	i2c_enable(0x10);
 }
 
-int bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags)
+void bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags)
 {
-	if (len > kBusMaxMessageSize)
-		return -1;
-
 	//Fill in message contents
 	mib_state.bus_msg.address = address;
 	mib_state.bus_msg.data_ptr = buffer;
 	mib_state.bus_msg.last_data = buffer + len;
 	mib_state.bus_msg.flags = flags;
 
-	return i2c_send_message();
+	i2c_send_message();
 }
 
-int bus_receive(unsigned char address, volatile unsigned char *buffer, unsigned char len, unsigned char flags)
+void bus_receive(unsigned char address, volatile unsigned char *buffer, unsigned char len, unsigned char flags)
 {
 	mib_state.bus_msg.address = address;
 	mib_state.bus_msg.data_ptr = buffer;
@@ -39,10 +35,10 @@ int bus_receive(unsigned char address, volatile unsigned char *buffer, unsigned 
 
 	mib_state.bus_msg.flags = flags;
 
-	return i2c_receive_message();
+	i2c_receive_message();
 }
 
-volatile unsigned char *bus_allocate_space(unsigned int len)
+volatile unsigned char *bus_allocate_space(uint8 len)
 {
 	volatile unsigned char *allocated; 
 
@@ -68,7 +64,7 @@ void bus_init_int_param(MIBIntParameter *param, int value)
 	param->value = value;
 }
 
-void bus_init_buffer_param(MIBBufferParameter *param, void *data, unsigned char len)
+void bus_init_buffer_param(MIBBufferParameter *param, void *data, uint8 len)
 {
 	param->header.type = kMIBBufferType;
 	param->header.len = len;
@@ -102,7 +98,7 @@ volatile MIBIntParameter *bus_allocate_int_param()
 	return param;
 }
 
-volatile MIBBufferParameter *bus_allocate_buffer_param(unsigned int len)
+volatile MIBBufferParameter *bus_allocate_buffer_param(uint8 len)
 {
 	volatile MIBBufferParameter *param;
 
@@ -122,7 +118,7 @@ volatile MIBBufferParameter *bus_allocate_buffer_param(unsigned int len)
 	return param;
 }
 
-volatile MIBParamList *bus_allocate_param_list(unsigned int num)
+volatile MIBParamList *bus_allocate_param_list(uint8 num)
 {
 	volatile MIBParamList *list = (volatile MIBParamList*)bus_allocate_space(sizeof(MIBParamList) + sizeof(MIBParameterHeader*)*num);
 

@@ -51,7 +51,7 @@ typedef struct
 typedef void* (*mib_callback)(MIBParamList *);
 
 #define kMIBCommandLength 	sizeof(MIBCommandPacket)
-#define kBusMaxMessageSize 	32
+#define kBusMaxMessageSize 	20
 
 #define get_int16_param(list, n) ((int)((MIBIntParameter *)list->params[n])->value)
 #define get_uint16_param(list, n) ((unsigned int)((MIBIntParameter *)list->params[n])->value)

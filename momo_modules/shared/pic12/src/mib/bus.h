@@ -6,6 +6,9 @@
 #ifndef __bus_h__
 #define __bus_h__
 
+#include "platform.h"
+#include "i2c.h"
+#include "protocol.h"
 #include "bus_common.h"
 
 #endif

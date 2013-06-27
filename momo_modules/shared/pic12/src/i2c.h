@@ -7,7 +7,7 @@
 #ifndef __i2c_h__
 #define __i2c_h__
 
-#include "common.h"
+#include "platform.h"
 
 enum
 {
@@ -66,8 +66,8 @@ typedef struct
     unsigned char address;
     unsigned char len; //The length of the buffer pointed to by data pointer when receiving data, unused when sending
 
-    volatile unsigned char * volatile data_ptr;
-    volatile unsigned char * volatile last_data;
+    unsigned char * data_ptr;
+    unsigned char * last_data;
 
     unsigned char checksum;
     unsigned char flags;
@@ -104,29 +104,27 @@ void i2c_enable(unsigned char slave_address);
 void i2c_disable();
 
 //Shared Common Functions
-int i2c_send_message();
-int i2c_receive_message();
+void i2c_send_message();
+void i2c_receive_message();
 
 void i2c_start_transmission();
 void i2c_finish_transmission();
 
 //Master Functions
-void i2c_master_receivedata();
-void i2c_master_receivechecksum();
-void i2c_master_setidle();
-int  i2c_master_lasterror();
-void i2c_master_enable();
-void i2c_master_disable();
-void i2c_master_interrupt();
+void    i2c_master_setidle();
+uint8   i2c_master_lasterror();
+void    i2c_master_enable();
+void    i2c_master_disable();
+void    i2c_master_interrupt();
 I2CLogicState i2c_master_state();
 
 //Slave Functions
-void i2c_slave_receivedata();
-void i2c_slave_receivechecksum();
-void i2c_slave_setidle();
-void i2c_slave_sendbyte();
-int  i2c_slave_lasterror();
-void i2c_slave_interrupt();
+void    i2c_slave_receivedata();
+void    i2c_slave_receivechecksum();
+void    i2c_slave_setidle();
+void    i2c_slave_sendbyte();
+uint8   i2c_slave_lasterror();
+void    i2c_slave_interrupt();
 I2CLogicState i2c_slave_state();
 
 #endif

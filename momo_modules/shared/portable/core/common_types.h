@@ -14,4 +14,7 @@ typedef enum
     U2 = 1
 } UARTPort;
 
+typedef signed char 	int8;
+typedef unsigned char	uint8;
+
 #endif
