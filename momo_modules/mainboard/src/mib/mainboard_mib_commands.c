@@ -22,8 +22,8 @@ static mib_command_handler programming_commands[kProgrammingCommandCount] =
 
 static feature_map mainboard_mib_features[kMainboardMIBFeatureCount] =
 	{
-		mk_feature_map(kMIBTestFeature, test_commands),
-		mk_feature_map(kMIBProgrammingFeature, programming_commands)
+		{kMIBTestFeature, test_commands, kTestCommandCount},
+		{kMIBProgrammingFeature, programming_commands, kProgrammingCommandCount}
 	};
 
 void register_mib_commands()
