@@ -8,6 +8,7 @@
 #include "pme.h"
 #include "memory.h"
 #include "bus.h"
+#include "mainboard_mib_commands.h"
 
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
@@ -27,7 +28,8 @@ void handle_all_resets_before(unsigned int type)
     //TODO: Move this to MoMo-specific handler?
     //flash_memory_init();
 
-    mclr_triggered = false;
+    register_mib_commands();
+
     mclr_triggered = false;
 }
 

@@ -79,23 +79,23 @@ void bus_slave_receiveparam(MIBParameterHeader *param, int header_or_value, unsi
 
 void bus_slave_searchcommand()
 {
-	int index;
+	mib_command_handler* command_handler;
 	if (i2c_slave_lasterror() != kI2CNoError)
 	{
 		bus_slave_seterror(kCommandChecksumError); //Make sure the parameter checksum was valid.
 		return;
 	}
 	
-	index = find_handler(mib_state.bus_command.feature, mib_state.bus_command.command);
-	mib_state.slave_handler = get_handler(index);
-	if (mib_state.slave_handler == NULL)
+	command_handler = find_handler(mib_state.bus_command.feature, mib_state.bus_command.command);
+	if (command_handler == NULL)
 	{
 		bus_slave_seterror(kUnsupportedCommand);
 		return;
 	}
+	mib_state.slave_handler = command_handler->handler;
 
 	//Get the list of parameters that we have to receive
-	mib_state.slave_params = (MIBParamList*)build_params(index);
+	mib_state.slave_params = (MIBParamList*)build_params(command_handler);
 	if (mib_state.slave_params == NULL)
 	{
 		//Give the slave handler a chance to allocate the parameters

@@ -3,66 +3,44 @@
 #include "mib_command.h"
 #include "bus_slave.h"
 #include <string.h>
-
-//Include command map
-#include "commands.h"
+	
+static const feature_map* the_features = NULL;
+static unsigned int the_feature_count = 4;
+//static feature_map* features;
 
 extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
 
-int find_handler(unsigned char feature, unsigned char cmd)
+mib_command_handler* find_handler(MIBFeature feature, BYTE cmd)
 {
-	unsigned int i, num_cmds;
-	int found_feat = -1;
+	unsigned int i;
+	feature_map* found_feat = NULL;
 
-	for (i=0; i<kNumFeatures; ++i)
+	if (!the_features)
+		return;
+	
+	for (i=0; i<4; ++i)
 	{
-		if (features[i] == feature)
+		if (the_features[i].feature == feature)
 		{
-			found_feat = i;
+			found_feat = &the_features[i];
 			break;
 		}
 	}
 
-	if (found_feat == -1)
-		return -1;
-
-	num_cmds = commands[found_feat+1] - commands[found_feat];
-
-	if (cmd >= num_cmds)
-		return -1;
-
-	return commands[found_feat] + cmd;
-}
-
-mib_callback get_handler(int index)
-{
-	if (index < 0)
+	if (found_feat == NULL)
 		return NULL;
 
-	return handlers[index];
+	for (i=0;i<found_feat->command_count;++i)
+	{
+		if ( cmd == found_feat->commands[i].command_tag ) {
+			return &found_feat->commands[i];
+		}
+	}
+	return NULL;
 }
 
-volatile MIBParamList *	build_params(int handler_index)
+void register_mib_features( const feature_map* features, unsigned int count )
 {
-	unsigned char spec 			= param_specs[handler_index];
-	unsigned char num_params 	= extract_param_count(spec);
-	volatile MIBParamList *list = bus_allocate_param_list(num_params);
-	unsigned int i;
-	
-	for (i=0; i<num_params; ++i)
-	{
-		unsigned char type = extract_param_type(spec, i);
-
-		if (type == kMIBInt16Type)
-			list->params[i] = (MIBParameterHeader*)bus_allocate_int_param();
-		else if(type == kMIBBufferType && i == (num_params-1))
-		{
-			//If we have 1 buffer as the last parameter, allocate all the remaining space for it from the mib_buffer
-			list->params[i] = (MIBParameterHeader*)bus_allocate_buffer_param(0);
-		}
-		else
-			return NULL; //We cannot allocate buffers that are not the last parameter since we don't know how big they should be
-	}
-
-	return list;
+	the_features = features;
+	the_feature_count = count;
 }

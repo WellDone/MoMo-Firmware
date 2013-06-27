@@ -2,6 +2,7 @@
 #define __mib_command_h__
 
 #include "protocol.h"
+#include "common_types.h"
 
 enum
 {
@@ -9,11 +10,27 @@ enum
 	kMIBExecuteCommand = 2
 };
 
-#define extract_param_type(params, n) ((params & (1<<(n+3))) >> (n+3))
-#define extract_param_count(params) (params & 0b111)
+typedef enum
+{
+	kMIBTestFeature = 2,
+	kMIBProgrammingFeature = 255
+} MIBFeature;
 
-int 					find_handler(unsigned char feature, unsigned char cmd);
-mib_callback			get_handler(int handler_index);
-volatile MIBParamList *	build_params(int handler_index);
+typedef struct {
+	const BYTE           command_tag;
+	const mib_callback   handler;
+	const BYTE           param_spec;
+} mib_command_handler;
+
+typedef struct {
+	const MIBFeature     feature;
+	mib_command_handler* commands;
+	unsigned int         command_count;
+} feature_map;
+
+#define mk_feature_map(feature,commands) {feature, commands, (sizeof(commands)/sizeof(mib_command_handler))}
+
+mib_command_handler*	find_handler(MIBFeature feature, BYTE cmd);
+void register_mib_features( const feature_map* features, unsigned int count );
 
 #endif
