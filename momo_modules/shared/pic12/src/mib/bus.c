@@ -5,7 +5,7 @@
 #include "bus.h"
 
 MIBState 				mib_state;
-unsigned char 	mib_buffer[kBusMaxMessageSize];
+unsigned char 			mib_buffer[kBusMaxMessageSize];
 unsigned int 			mib_firstfree;
 
 void bus_init()
@@ -38,19 +38,7 @@ void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len
 	i2c_receive_message();
 }
 
-unsigned char *bus_allocate_space(uint8 len)
-{
-	unsigned char *allocated; 
-
-	if ((kBusMaxMessageSize - mib_firstfree) < len)
-		return (unsigned char *)0;
-
-	allocated = &mib_buffer[mib_firstfree];
-	
-	mib_firstfree += len;
-
-	return allocated;
-}
+#define bus_allocate_space(len)		mib_buffer+mib_firstfree; mib_firstfree += len;
 
 void bus_free_all()
 {
@@ -79,8 +67,7 @@ MIBParameterHeader *bus_allocate_return_buffer(unsigned char **out_buffer)
 	ret->type = kMIBBufferType;
 	ret->len = len - sizeof(MIBParameterHeader);
 
-	if (out_buffer != NULL)
-		*out_buffer = ((unsigned char*)ret) + sizeof(MIBParameterHeader);
+	*out_buffer = ((unsigned char*)ret) + sizeof(MIBParameterHeader);
 
 	return ret;
 }
@@ -89,11 +76,7 @@ MIBIntParameter *bus_allocate_int_param()
 {
 	MIBIntParameter *param = (MIBIntParameter *)bus_allocate_space(sizeof(MIBIntParameter));
 
-	if (param == 0)
-		return 0;
-
-	param->header.type = kMIBInt16Type;
-	param->header.len = sizeof(MIBIntParameter) - sizeof(MIBParameterHeader);
+	bus_init_int_param(param, 0);
 
 	return param;
 }
@@ -108,12 +91,7 @@ MIBBufferParameter *bus_allocate_buffer_param(uint8 len)
 
 	param = (MIBBufferParameter *)bus_allocate_space(sizeof(MIBBufferParameter)+len);
 
-	if (param == 0)
-		return 0;
-
-	param->header.type = kMIBBufferType;
-	param->header.len = len;
-	param->data = ((unsigned char*)param) + sizeof(MIBBufferParameter);
+	bus_init_buffer_param(param, ((unsigned char*)param) + sizeof(MIBBufferParameter), len);
 
 	return param;
 }

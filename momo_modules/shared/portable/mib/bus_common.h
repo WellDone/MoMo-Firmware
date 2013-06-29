@@ -73,7 +73,7 @@ typedef struct
 void bus_init();
 
 //Allocation Routines
-unsigned char * 		bus_allocate_space(uint8 len);
+//unsigned char * 		bus_allocate_space(uint8 len);
 void					bus_free_all();
 
 MIBParamList		*	bus_allocate_param_list(uint8 num);

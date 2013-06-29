@@ -5,7 +5,7 @@ extern unsigned char 	mib_buffer[kBusMaxMessageSize];
 
 void* test_command(MIBParamList *param)
 {
-	//_RA1 = !_RA1;
+	/*//_RA1 = !_RA1;
 	RA5 = !RA5;
 	
 	MIBIntParameter *retval;
@@ -16,12 +16,13 @@ void* test_command(MIBParamList *param)
 
 	bus_init_int_param(retval, 6);
 	bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)retval);
-
+	*/
 	return NULL;
 }
 
 void* echo_buffer(MIBParamList *list)
 {
+	/*
 	MIBBufferParameter *buf = (MIBBufferParameter *)list->params[0];
 	bus_free_all();
 
@@ -29,6 +30,6 @@ void* echo_buffer(MIBParamList *list)
 	//memmove((char*)mib_buffer+2, buf->data, buf->header.len);
 
 	bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)mib_buffer);
-
+	*/
 	return NULL;
 }

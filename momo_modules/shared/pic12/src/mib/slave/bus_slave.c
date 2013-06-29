@@ -79,7 +79,7 @@ static void bus_slave_receiveparam(MIBParameterHeader *param, uint8 header_or_va
 
 static void bus_slave_searchcommand()
 {
-	int index;
+	uint8 index;
 	if (i2c_slave_lasterror() != kI2CNoError)
 	{
 		bus_slave_seterror(kCommandChecksumError); //Make sure the parameter checksum was valid.
@@ -138,9 +138,6 @@ void bus_slave_reset()
 
 void bus_slave_callback()
 {	
-	//_RA6 = !_RA6;
-	RA5 = !RA5;
-	
 	if (i2c_address_received())
 	{
 		if (i2c_slave_is_read())

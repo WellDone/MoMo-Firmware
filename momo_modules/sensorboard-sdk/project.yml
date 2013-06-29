@@ -73,7 +73,7 @@
       - --double=24 
       - --float=24 
 #      - --rom=0-1FF 
-      - --opt=default,+asm,-asmfile,+speed,-space,-debug 
+      - --opt=all
       - --addrqual=ignore 
       - --mode=pro 
       - -P 
@@ -100,7 +100,7 @@
       - --double=24 
       - --float=24 
 #      - --rom=0-1FF 
-      - --opt=default,+asm,-asmfile,+speed,-space,-debug 
+      - --opt=all
       - --addrqual=ignore 
       - --mode=pro 
       - -P 
@@ -126,7 +126,7 @@
       - --double=24 
       - --float=24 
 #      - --rom=0-1FF 
-      - --opt=default,+asm,-asmfile,+speed,-space,-debug 
+      - --opt=all
       - --addrqual=ignore 
       - --mode=pro 
       - -P 

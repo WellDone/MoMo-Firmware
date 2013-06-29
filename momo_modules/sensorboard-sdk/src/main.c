@@ -1,5 +1,5 @@
 #include <pic12f1822.h>
-#include "bus.h"
+#include "bus_master.h"
 #include "flash_memory.h"
 
 /* Use internal oscillator as the frequency oscillator. */
@@ -41,9 +41,9 @@ void interrupt service_isr() {
         }
         SSP1IF = 0;
     } else {
-        #asm
+        /*#asm
             GOTO 0x204;
-        #endasm
+        #endasm*/
     }
 }
 
@@ -59,9 +59,9 @@ void main() {
     // 0x7ff is highest word in flash memory for pic12lf1822
     // if application is loaded, highest byte will be 0x55
     //if (flash_memory_read (0x7FF) == 0x3455) {
-        #asm
+        /*#asm
             GOTO 0x200;
-        #endasm
+        #endasm*/
     //}
 
 Bootloader:
@@ -73,7 +73,7 @@ Bootloader:
 /* Blink the LED every 1 second. */ 
 void heartbeat() {
     /* Increment a counter everytime Timer 1 overflows. */
-    static volatile unsigned int counter = 0;
+    static unsigned int counter = 0;
     if (TMR1IF) {
         counter++;
         TMR1IF = 0;
@@ -81,13 +81,11 @@ void heartbeat() {
 
     /* Timer 1 is configured to be (32MHz/4)/8 = 1MHz
         16-bit timer overflows 1MHz/(2^16) = ~15 times/second */
-    if (counter > 15) {
-        if (counter == 30) 
-            counter = 0;
-        LED = 1;
-    } else {
-        LED = 0;
-    }
+
+    bus_master_rpc(NULL, 0x08, 0x10, 0x20, NULL, 0);
+
+    if (counter == 30)
+        counter = 0;
 }
 
 void initialize ()

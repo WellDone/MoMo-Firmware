@@ -8,7 +8,7 @@ extern unsigned int 			mib_firstfree;
 
 //Local Prototypes that should not be called outside of this file
 unsigned char 	bus_master_lastaddress();
-void 			bus_master_finish(int next);
+void 			bus_master_finish(uint8 next);
 void 			bus_master_compose_params(MIBParameterHeader **params, unsigned char param_count);
 void 			bus_master_handleerror();
 void 			bus_master_sendrpc(unsigned char address);
@@ -20,7 +20,7 @@ unsigned char bus_master_lastaddress()
 	return mib_state.bus_msg.address >> 1;
 }
 
-void bus_master_finish(int next)
+void bus_master_finish(uint8 next)
 {
 	bus_send(bus_master_lastaddress(), (unsigned char *)mib_buffer, 1, 0);
 	mib_state.master_state = next;
@@ -28,11 +28,11 @@ void bus_master_finish(int next)
 
 void bus_master_compose_params(MIBParameterHeader **params, unsigned char param_count)
 {
-	volatile unsigned char *buffer;
+	unsigned char *buffer;
 	unsigned char i=0, j=0;
 
 	bus_free_all();
-	buffer = bus_allocate_space(kBusMaxMessageSize);
+	buffer = mib_buffer;
 
 	for (i=0; i<param_count;++i)
 	{

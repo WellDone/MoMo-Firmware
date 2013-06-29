@@ -61,15 +61,15 @@ void i2c_slave_setidle()
 
 void i2c_slave_sendbyte()
 {
-		i2c_transmit(*(i2c_msg->data_ptr));
+	i2c_transmit(*(i2c_msg->data_ptr));
 
-		i2c_msg->checksum += *(i2c_msg->data_ptr);
-		i2c_msg->data_ptr += 1;
+	i2c_msg->checksum += *(i2c_msg->data_ptr);
+	i2c_msg->data_ptr += 1;
 
-		if (i2c_msg->data_ptr == i2c_msg->last_data)
-			slave.state = kI2CSendChecksumState;
+	if (i2c_msg->data_ptr == i2c_msg->last_data)
+		slave.state = kI2CSendChecksumState;
 
-		i2c_release_clock();
+	i2c_release_clock();
 }
 
 uint8 i2c_slave_lasterror()
@@ -79,11 +79,9 @@ uint8 i2c_slave_lasterror()
 
 void i2c_slave_interrupt()
 {
-	unsigned char unused;
-
 	if (i2c_address_received())
 	{
-		unused = i2c_receive();
+		i2c_receive();
 		SSPOV = 0; //reset receive overflow flag
 
 		i2c_master_disable(); //If we receive a valid address, the the master must not be running so take over the i2c data structures
