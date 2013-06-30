@@ -18,16 +18,16 @@ static void i2c_master_receivechecksum();
 
 void i2c_enable(unsigned char slave_address)
 {
-    master.state = SSP1BUF; //avoid needing a temp variable
+    i2c_receive(); 
 
     master.state = kI2CIdleState;
     slave.state = kI2CIdleState;
 
     TRISA1 = 1; //SCL pin as input
     TRISA2 = 1; //SDA pin as input
-    SSPEN = 1; //Enable serial port and configure to use SDA/SCL as source
 
     SSP1STAT = 0xff & kI2CFlagMask;
+    SSPEN = 1; //Enable serial port and configure to use SDA/SCL as source
 
     /* Enable the MSSP interrupt (for i2c). */
     SSP1IF = 0;
@@ -40,7 +40,7 @@ void i2c_enable(unsigned char slave_address)
     i2c_slave_address = slave_address;
 
     // TODO need to come up with a better way of choosing between slave and master
-   i2c_master_disable();
+    i2c_master_disable();
 }
 
 void i2c_disable()

@@ -74,6 +74,7 @@ Bootloader:
 void heartbeat() {
     /* Increment a counter everytime Timer 1 overflows. */
     static unsigned int counter = 0;
+    
     if (TMR1IF) {
         counter++;
         TMR1IF = 0;
@@ -82,7 +83,11 @@ void heartbeat() {
     /* Timer 1 is configured to be (32MHz/4)/8 = 1MHz
         16-bit timer overflows 1MHz/(2^16) = ~15 times/second */
 
-    bus_master_rpc(NULL, 0x08, 0x10, 0x20, NULL, 0);
+    if (counter == 15)
+    {
+        bus_master_rpc(NULL, 0x08, 0x30, 0x40, NULL, 0);
+        ++counter;
+    }
 
     if (counter == 30)
         counter = 0;

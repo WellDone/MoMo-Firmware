@@ -80,6 +80,8 @@ void bus_master_rpc(mib_rpc_function callback, unsigned char address, unsigned c
 
 void bus_master_sendrpc(unsigned char address)
 {
+	i2c_master_enable();
+
 	if (mib_state.master_param_length > 0)
 		mib_state.master_state = kMIBSendParameters;
 	else
@@ -168,14 +170,14 @@ void bus_master_callback()
 		case kMIBFinalizeMessage:
 		// TODO why does this if statement cause the linker to crash?
 		//if (mib_state.master_callback)
-		if (mib_state.master_callback != NULL)
+		if (0)//mib_state.master_callback != NULL)
 		{
 			MIBParameterHeader *retval = NULL;
 
 			if (mib_state.bus_returnstatus.result == kNoMIBError && mib_state.bus_returnstatus.len != 0)
 				retval = (MIBParameterHeader*)mib_buffer;
 
-			mib_state.master_callback(mib_state.bus_returnstatus.result, retval);
+			//mib_state.master_callback(mib_state.bus_returnstatus.result, retval);
 		}
 
 		bus_free_all();
