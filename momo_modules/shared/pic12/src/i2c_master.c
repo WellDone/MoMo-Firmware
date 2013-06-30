@@ -50,12 +50,6 @@ void i2c_master_enable()
 	SSPEN = 0;
 	GCEN = 0;
 
-	//TRISA1 = 1; //SCL pin as input
-    //TRISA2 = 1; //SDA pin as input
-
-    //SSP1STAT = 0xff & kI2CFlagMask;
-    //Enable serial port and configure to use SDA/SCL as source
-
 	i2c_set_master_mode();
 	SSP1ADD = 0x4F; //Set baud rate to 100 khz for 32 mhz internal oscillator
 
@@ -64,8 +58,6 @@ void i2c_master_enable()
     /* Enable the MSSP interrupt (for i2c). */
     SSP1IF = 0;
     SSP1IE = 1;
-
-    RA5 = !RA5;
 }
 
 uint8 i2c_master_lasterror()
