@@ -124,8 +124,8 @@ void i2c_enable();
 void i2c_disable();
 
 //Shared Common Functions
-int i2c_send_message(volatile I2CMessage *msg);
-int i2c_receive_message(volatile I2CMessage *msg);
+void i2c_send_message();
+void i2c_receive_message();
 
 void i2c_start_transmission();
 void i2c_finish_transmission();

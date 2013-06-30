@@ -1,11 +1,6 @@
 #include "bus_slave.h"
 #include "mib_command.h"
 
-//MIB Global State
-extern volatile MIBState 		mib_state;
-extern unsigned char 			mib_buffer[kBusMaxMessageSize];
-extern unsigned int 			mib_firstfree;
-
 //static prototypes that are only to be used in this file
 void bus_slave_startcommand();
 void bus_slave_receiveparam(MIBParameterHeader *param, int header_or_value, unsigned char flag);
