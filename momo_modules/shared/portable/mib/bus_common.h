@@ -74,7 +74,9 @@ typedef struct
 #include "bus_state.h"
 
 //Configuration Routines
+#ifdef _PIC12
 void bus_init();
+#endif
 
 //Allocation Routines
 void					bus_free_all();
