@@ -9,14 +9,6 @@ MIBState 				mib_state;
 unsigned char 			mib_buffer[kBusMaxMessageSize];
 unsigned int 			mib_firstfree;
 
-#ifdef _PIC12
-void bus_init()
-{
-	mib_firstfree = 0;
-	i2c_enable(0x10);
-}
-#endif
-
 //These functions are too small to be efficiently used on the PIC12 which must pass parameters
 #ifndef _MACRO_SMALL_FUNCTIONS
 void bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags)
