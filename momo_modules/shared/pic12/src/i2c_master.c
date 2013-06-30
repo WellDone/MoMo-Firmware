@@ -2,9 +2,7 @@
 #include "bus_master.h"
 
 extern volatile I2CMasterStatus master;
-extern MIBState mib_state;
-
-extern unsigned char			i2c_slave_address;
+extern unsigned char 			i2c_slave_address;
 
 #define i2c_msg		(&mib_state.bus_msg)
 
@@ -125,8 +123,11 @@ void i2c_master_interrupt()
 		break;
 
 		case kI2CUserCallbackState:
+		if (i2c_byte_nacked())
+			master.last_error = kI2CNackReceived;		//Check if the data was successfully sent
+
 		//This data is now sent or received, we need to execute the callback to see what to do next
-		bus_master_callback(); //It is the job of the user callback to decide whether to 
+		bus_master_callback(); //It is the job of the user callback to decide what to do
 		break;
 
 		case kI2CIdleState:

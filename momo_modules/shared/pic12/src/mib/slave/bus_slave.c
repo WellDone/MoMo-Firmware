@@ -1,11 +1,6 @@
 #include "bus_slave.h"
 #include "mib_command.h"
 
-//MIB Global State
-extern MIBState 				mib_state;
-extern unsigned char 	mib_buffer[kBusMaxMessageSize];
-extern unsigned int 			mib_firstfree;
-
 //static prototypes that are only to be used in this file
 static void bus_slave_startcommand();
 static void bus_slave_receiveparam(MIBParameterHeader *param, uint8 header_or_value, unsigned char flag);
@@ -50,7 +45,9 @@ void bus_slave_setreturn(unsigned char status, volatile MIBParameterHeader *valu
 static void bus_slave_receiveparam(MIBParameterHeader *param, uint8 header_or_value, unsigned char flag)
 {
 	if (header_or_value == 0)
+	{
 		bus_slave_receive((unsigned char *)&mib_state.last_param, sizeof(MIBParameterHeader), kCallbackBeforeChecksum|flag);
+	}
 	else
 	{
 		//Make sure the type is right
@@ -71,9 +68,13 @@ static void bus_slave_receiveparam(MIBParameterHeader *param, uint8 header_or_va
 		param->len = mib_state.last_param.len;
 
 		if (param->type == kMIBInt16Type)
+		{
 			bus_slave_receive((unsigned char *)(&((MIBIntParameter*)param)->value), param->len, kCallbackBeforeChecksum|flag);
+		}
 		else
+		{
 			bus_slave_receive((unsigned char *)((MIBBufferParameter*)param)->data, param->len, kCallbackBeforeChecksum|flag);
+		}
 	}
 }
 
@@ -170,9 +171,13 @@ void bus_slave_callback()
 				//since there shouldn't have been a second read so we can send garbage since it will be 
 				//ignored
 				if (mib_state.bus_returnstatus.len != 0)
+				{
 					bus_slave_send((unsigned char *)mib_buffer, mib_state.bus_returnstatus.len, kSendImmediately);
+				}
 				else
+				{
 					bus_slave_send((unsigned char *)mib_buffer, 1, kSendImmediately); //protocol error so just send 1 byte, doesn't matter
+				}
 				
 				mib_state.slave_state = kMIBFinishCommand;
 

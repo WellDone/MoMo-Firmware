@@ -85,7 +85,7 @@ void heartbeat() {
 
     if (counter == 15)
     {
-        bus_master_rpc(NULL, 0x08, 0x30, 0x40, NULL, 0);
+        bus_master_rpc(NULL, 0x20, 0x30, 0x40, NULL, 0);
         ++counter;
     }
 

@@ -22,7 +22,8 @@ enum
 	kParameterChecksumError,
 	kCommandChecksumError,
 	kParameterListNotBuilt,
-	kUnknownError
+	kUnknownError,
+	kSlaveNotAvailable = 255
 };
 
 typedef enum
@@ -69,11 +70,13 @@ typedef struct
 	mib_rpc_function		master_callback;
 } MIBState;
 
+//Include external definitions of state
+#include "bus_state.h"
+
 //Configuration Routines
 void bus_init();
 
 //Allocation Routines
-//unsigned char * 		bus_allocate_space(uint8 len);
 void					bus_free_all();
 
 MIBParamList		*	bus_allocate_param_list(uint8 num);
@@ -85,8 +88,10 @@ void 					bus_init_int_param(MIBIntParameter *param, int value);
 void 					bus_init_buffer_param(MIBBufferParameter *param, void *data, unsigned char len);
 
 //Command Routines
+#ifndef _MACRO_SMALL_FUNCTIONS
 void bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
 void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
+#endif 
 
 
 #endif

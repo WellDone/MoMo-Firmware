@@ -5,7 +5,8 @@
 #include "common_types.h"
 #include "bit_utilities.h"
 
-//Do not compile components that are needed on the pic12 to make sure the compiler doesn't choke
+//Do not compile components that are not needed on the pic12 to make sure the compiler doesn't choke
 #define _PIC12LEAN
+#define _MACRO_SMALL_FUNCTIONS
 
 #endif

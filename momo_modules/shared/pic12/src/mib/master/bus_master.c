@@ -1,11 +1,6 @@
 #include "bus_master.h"
 #include <string.h>
 
-//MIB Global State
-extern MIBState 				mib_state;
-extern unsigned char 			mib_buffer[kBusMaxMessageSize];
-extern unsigned int 			mib_firstfree;
-
 //Local Prototypes that should not be called outside of this file
 unsigned char 	bus_master_lastaddress();
 void 			bus_master_finish(uint8 next);
@@ -135,6 +130,13 @@ void bus_master_callback()
 			//Keep trying to read it until we don't get a checksum error.  The slave may be sending a return value, so issue
 			//one read to clear that and the slave will resend the return status for all odd reads.
 
+			//Check if we received all 0xFF bytes indicating the slave is not there
+			if (mib_state.bus_returnstatus.result == 0xFF && mib_state.bus_returnstatus.len == 0xFF)
+			{
+				bus_master_finish(kMIBFinalizeMessage);
+				break;
+			}
+
 			//This is discarded, but we need to issue a read in case the slave is sending us a return value
 			bus_receive(bus_master_lastaddress(), (unsigned char *)&mib_state.bus_returnstatus, 1, 0);
 			mib_state.master_state = kMIBReadReturnStatus;
@@ -170,14 +172,14 @@ void bus_master_callback()
 		case kMIBFinalizeMessage:
 		// TODO why does this if statement cause the linker to crash?
 		//if (mib_state.master_callback)
-		if (0)//mib_state.master_callback != NULL)
+		if (mib_state.master_callback != NULL)
 		{
 			MIBParameterHeader *retval = NULL;
 
 			if (mib_state.bus_returnstatus.result == kNoMIBError && mib_state.bus_returnstatus.len != 0)
 				retval = (MIBParameterHeader*)mib_buffer;
 
-			//mib_state.master_callback(mib_state.bus_returnstatus.result, retval);
+			mib_state.master_callback(mib_state.bus_returnstatus.result, retval);
 		}
 
 		bus_free_all();

@@ -7,8 +7,6 @@
 //device must define a command map 
 #include "commands.h"
 
-extern unsigned char 	mib_buffer[kBusMaxMessageSize];
-
 unsigned char find_handler(unsigned char feature, unsigned char cmd)
 {
 	unsigned char i;

@@ -33,6 +33,7 @@ enum
 #define i2c_transmit(byte)          SSP1BUF = (byte)
 #define i2c_receive()               (SSP1BUF)
 #define i2c_slave_is_read()         (R_nW == 1)
+#define i2c_byte_nacked()           (ACKSTAT)
 
 //i2c slave conditions
 #define i2c_stop_received()         (P == 1)
@@ -58,7 +59,8 @@ typedef enum
 typedef enum
 {
     kI2CNoError = 0,
-    kI2CInvalidChecksum
+    kI2CInvalidChecksum,
+    kI2CNackReceived
 } I2CErrorCode;
 
 typedef struct

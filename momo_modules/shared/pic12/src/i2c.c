@@ -8,8 +8,6 @@
 volatile I2CMasterStatus master;
 volatile I2CSlaveStatus  slave;
 
-extern MIBState       mib_state;
-
 unsigned char i2c_slave_address;
 
 //Internal functions

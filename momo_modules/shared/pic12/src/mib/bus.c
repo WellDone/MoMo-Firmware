@@ -2,6 +2,10 @@
 
 //#include "bus_master.h"
 //#include "bus_slave.h"
+
+//This is where we declare all the MIB state, so don't pull in the external definitions
+#define __NO_EXTERN_MIB_STATE__
+
 #include "bus.h"
 
 MIBState 				mib_state;
@@ -14,6 +18,8 @@ void bus_init()
 	i2c_enable(0x10);
 }
 
+//These functions are too small to be efficiently used on the PIC12 which must pass parameters
+#ifndef _MACRO_SMALL_FUNCTIONS
 void bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags)
 {
 	//Fill in message contents
@@ -38,8 +44,6 @@ void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len
 	i2c_receive_message();
 }
 
-#define bus_allocate_space(len)		mib_buffer+mib_firstfree; mib_firstfree += len;
-
 void bus_free_all()
 {
 	mib_firstfree = 0;
@@ -58,6 +62,11 @@ void bus_init_buffer_param(MIBBufferParameter *param, void *data, uint8 len)
 	param->header.len = len;
 	param->data = data;
 }
+
+#endif
+
+#define bus_allocate_space(len)		mib_buffer+mib_firstfree; mib_firstfree += len;
+
 
 MIBParameterHeader *bus_allocate_return_buffer(unsigned char **out_buffer)
 {
