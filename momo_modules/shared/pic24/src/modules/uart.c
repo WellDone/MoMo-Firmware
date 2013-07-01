@@ -264,6 +264,9 @@ void put( UARTPort port, const char c )
 
 void send(UARTPort port, const char *msg)
 {
+    if (strlen(msg) == 0)
+        return;
+
     while ( *(msg) != '\0' ) {
         ringbuffer_push( &STAT(port)->send_buffer, (void*)msg );
         ++msg; //need to increment after passing to ringbuffer push.

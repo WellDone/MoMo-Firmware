@@ -59,6 +59,7 @@ static void process_commands_task(int len, bool overflown)
   char *params = 0;
   unsigned int i;
   clear_uart_rx_newline_callback( DEBUG_UART );
+  command_buffer[len] = '\0';
 
   for(i=0; i<=len; ++i)
   {

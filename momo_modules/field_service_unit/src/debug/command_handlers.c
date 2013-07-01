@@ -39,7 +39,7 @@ void handle_adc(command_params *params)
 
     if (params->num_params < 1)
     {
-        print( "You must pass a subcommand to the device command.\r\n");
+        print( "You must pass a subcommand to the adc command.\r\n");
         return;
     }
 
@@ -243,4 +243,42 @@ void handle_rtcc(command_params *params)
     }
     else
         sendf(DEBUG_UART, "Unknown rtcc command: %s\r\n", cmd);
+}
+
+static bool waiting_for_rpc_return;
+static void rpc_callback(unsigned char a, MIBParameterHeader *b) {
+    //Do nothing, for now.
+    waiting_for_rpc_return = false;
+}
+void handle_rpc(command_params *params)
+{
+    int feature, command;
+
+    if (params->num_params < 2) {
+        print( "You must pass a feature and a command to execute a RPC.\r\n");
+        return;
+    }
+
+    if ( !atoi_small( get_param_string( params, 0 ), &feature )
+      || !atoi_small( get_param_string( params, 1 ), &command ) ) {
+        print( "Bad feature or command argument." );
+        return;
+    }
+
+    // For now, only support two random int params - the test blink RPC accepts this
+    MIBIntParameter param1;
+    MIBIntParameter param2;
+    MIBParameterHeader *rpc_params[2];
+
+    rpc_params[0] = (MIBParameterHeader*)&param1;
+    rpc_params[1] = (MIBParameterHeader*)&param2;
+
+    bus_init_int_param(&param1, 5);
+    bus_init_int_param(&param2, 6);
+
+    waiting_for_rpc_return = false;
+    bus_master_rpc(NULL, kControllerPICAddress, 0x2, 0x1, rpc_params, 2);
+    while (waiting_for_rpc_return)
+        ;
+    return;
 }
