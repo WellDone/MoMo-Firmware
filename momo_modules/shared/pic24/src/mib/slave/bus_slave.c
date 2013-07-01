@@ -133,7 +133,7 @@ void bus_slave_reset()
 
 void bus_slave_callback()
 {	
-	_RA6 = !_RA6;
+	//_RA6 = !_RA6;
 
 	if (i2c_address_received())
 	{
@@ -204,6 +204,11 @@ void bus_slave_callback()
 		case kMIBReceiveParameterValue:
 		bus_slave_receiveparam(mib_state.slave_params->params[mib_state.slave_params->curr], 1, kContinueChecksum);
 		mib_state.slave_params->curr += 1;
+
+		//If there were any errors, we're in the error state so don't update the state machine anymore
+		if (mib_state.slave_state == kMIBProtocolError)
+			break;
+
 		if (mib_state.slave_params->curr == mib_state.slave_params->count)
 			mib_state.slave_state = kMIBFinishedReceivingParameters;
 		else

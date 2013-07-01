@@ -16,29 +16,33 @@ static void i2c_master_receivechecksum();
 
 void i2c_enable(unsigned char slave_address)
 {
-    i2c_receive(); 
-
-    master.state = kI2CIdleState;
+    master.state = kI2CDisabledState;
     slave.state = kI2CIdleState;
 
     TRISA1 = 1; //SCL pin as input
     TRISA2 = 1; //SDA pin as input
 
+    SSP1IE = 0;
+
     SSP1STAT = 0xff & kI2CFlagMask;
-    SSPEN = 1; //Enable serial port and configure to use SDA/SCL as source
+
+    //address for slave mode
+    i2c_slave_address = slave_address << 1; //Important: pic12 requires address preshifted
+
+    i2c_set_slave_mode();
+    i2c_release_clock();
+    SEN = 1; //Enable clock stretching in slave mode
+
+    SSPEN = 1;
+    SSP1ADD = i2c_slave_address;
+
+    
+    i2c_receive();
+    SSPOV = 0; //clear overflow bit
 
     /* Enable the MSSP interrupt (for i2c). */
     SSP1IF = 0;
     SSP1IE = 1;
-
-    //Enable general call interrupt
-    GCEN = 1;
-
-    //address for slave mode
-    i2c_slave_address = slave_address;
-
-    // TODO need to come up with a better way of choosing between slave and master
-    i2c_master_disable();
 }
 
 void i2c_disable()
@@ -81,6 +85,8 @@ void i2c_send_message()
         slave.state = kI2CSendDataState;
         if (mib_state.bus_msg.flags & kSendImmediately)
             i2c_slave_sendbyte();
+
+        return;
     }
 
     master.dir = kMasterSendData;
@@ -92,7 +98,7 @@ void i2c_send_message()
 }
 
 void i2c_receive_message()
-{
+{    
     if (!(mib_state.bus_msg.flags & kContinueChecksum))
         mib_state.bus_msg.checksum = 0;
 

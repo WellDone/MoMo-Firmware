@@ -116,15 +116,12 @@ void send_test_message(void)
 void send_blink_message(void)
 {
     MIBIntParameter param1;
-    MIBIntParameter param2;
-    MIBParameterHeader *params[2];
+    MIBParameterHeader *params[1];
 
     params[0] = (MIBParameterHeader*)&param1;
-    params[1] = (MIBParameterHeader*)&param2;
 
     bus_init_int_param(&param1, 5);
-    bus_init_int_param(&param2, 6);
-    bus_master_rpc(NULL, 8, 0x02, 0x01, params, 2);
+    bus_master_rpc(NULL, 0x09, 0x02, 0x01, params, 1);
 }
 
 ScheduledTask task1;
@@ -136,17 +133,17 @@ int main(void)
 
     _TRISA1 = 0;
     _TRISA0 = 0;
-    _TRISA6 = 0;
+    //_TRISA6 = 0;
 
     _RA1 = 1;
     _RA0 = 1;
-    _RA6 = 1;
+    //_RA6 = 1;
 
     register_reset_handlers();
     handle_reset();
 
     scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
-    //scheduler_schedule_task(send_test_message, kEverySecond, kScheduleForever, &i2c);
+    scheduler_schedule_task(send_blink_message, kEverySecond, kScheduleForever, &i2c);
 
     taskloop_loop();
 

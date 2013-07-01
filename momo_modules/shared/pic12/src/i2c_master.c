@@ -35,8 +35,20 @@ void i2c_master_disable()
 	//TODO: check if we are in the middle of sending an RPC and try later
 	master.state = kI2CDisabledState;
 
+	SSP1IE = 0;
+	SSPEN = 0;
+	GCEN = 0;
 	i2c_set_slave_mode();
+    
+    SSPOV = 0; //clear overflow bit
+
 	SSP1ADD = i2c_slave_address;
+
+	SSPEN = 1;
+
+    /* Enable the MSSP interrupt (for i2c). */
+    SSP1IF = 0;
+    SSP1IE = 1;
 }
 
 void i2c_master_enable()

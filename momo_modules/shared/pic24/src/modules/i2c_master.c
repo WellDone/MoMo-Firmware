@@ -67,6 +67,8 @@ void i2c_master_receivechecksum()
 
 void __attribute__((interrupt,no_auto_psv)) _MI2C1Interrupt()
 {
+	//_RA6 = !_RA6;
+
 	//TODO add code for handling bus collision arbitration losses and stops
 	switch(master.state)
 	{

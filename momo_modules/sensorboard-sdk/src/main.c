@@ -85,7 +85,7 @@ void heartbeat() {
 
     if (counter == 15)
     {
-        bus_master_rpc(NULL, 0x20, 0x30, 0x40, NULL, 0);
+        //bus_master_rpc(NULL, 0x20, 0x30, 0x40, NULL, 0);
         ++counter;
     }
 
@@ -105,6 +105,7 @@ void initialize ()
     TRISA5 = 0;
     /* Turn Timer1 on with 1:8 prescale using FOSC/4 as source. */
     T1CON = 0x31;
+    RA5 = 0;
     
     /* Enable interrupts globally. */
     GIE = 1;

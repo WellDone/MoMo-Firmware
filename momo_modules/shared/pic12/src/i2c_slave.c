@@ -14,7 +14,7 @@ void i2c_slave_receivedata()
 	mib_state.bus_msg.last_data += 1;
 
 	//Check if we are at the end of the message
-	if ((mib_state.bus_msg.last_data + mib_state.bus_msg.len) == mib_state.bus_msg.data_ptr)
+	if ((mib_state.bus_msg.data_ptr + mib_state.bus_msg.len) == mib_state.bus_msg.last_data)
 	{
 		slave.state = kI2CReceiveChecksumState;
 
@@ -39,6 +39,8 @@ void i2c_slave_receivechecksum()
 
 	if (check != i2c_msg->checksum)
 		slave.last_error = kI2CInvalidChecksum;
+	else
+		slave.last_error = kI2CNoError;
 
 	i2c_release_clock();
 }
@@ -53,7 +55,7 @@ void i2c_slave_setidle()
 	slave.state = kI2CIdleState;
 	slave.last_error = kI2CNoError;
 
-	i2c_master_enable(); //let the master logic use the bus again if it needs.
+	//i2c_master_enable(); //let the master logic use the bus again if it needs.
 
 	i2c_release_clock();
 }
@@ -77,13 +79,14 @@ uint8 i2c_slave_lasterror()
 }
 
 void i2c_slave_interrupt()
-{
+{	
 	if (i2c_address_received())
 	{
 		i2c_receive();
 		SSPOV = 0; //reset receive overflow flag
 
-		i2c_master_disable(); //If we receive a valid address, the the master must not be running so take over the i2c data structures
+		//TODO Fix this
+		//i2c_master_disable(); //If we receive a valid address, the the master must not be running so take over the i2c data structures
 
 		bus_slave_callback();
 	}		
@@ -113,12 +116,14 @@ void i2c_slave_interrupt()
 
 			case kI2CUserCallbackState:
 			bus_slave_callback();
+			slave.state = kI2CIdleState;
 			break;
 
 			default:
-			//by default do not read bytes if we don't know what to do with them so that the master sees the 
+			//by default do read bytes if we don't know what to do with them so that the master sees the 
 			//error and does a bus reset.
-			SSPOV = 0; //If the receive buffer is full we will nack, but if we don't clear the overflow we won't get any more interrupts
+			i2c_receive();
+			SSPOV = 0; 
 			i2c_release_clock();
 			break;
 		}

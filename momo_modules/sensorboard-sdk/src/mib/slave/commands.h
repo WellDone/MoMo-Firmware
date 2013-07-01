@@ -28,14 +28,14 @@
 
 
 #define kNumFeatures 1
-#define kNumCommands 1
+#define kNumCommands 2
 const unsigned char features[kNumFeatures] = {2}; //, 255};
 const unsigned char commands[kNumFeatures+1] = {0, kNumCommands}; //2, kNumCommands};
-const mib_callback  handlers[kNumCommands] = {echo_buffer//, //end feature 2
+const mib_callback  handlers[kNumCommands] = {blink_pin, blink_pin//, //end feature 2
 											  //erase_primaryfirmware, load_into_nvram, read_from_nvram //end feature 255
 											};
 const unsigned char param_specs[kNumCommands] = {
-												plist_define1(kMIBBufferType), //echo_buffer
+												plist_define1(kMIBInt16Type), plist_define1(kMIBInt16Type)
 												//plist_define0(),
 												//plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBBufferType),
 												//plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBInt16Type)

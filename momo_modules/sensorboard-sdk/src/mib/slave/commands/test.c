@@ -31,3 +31,11 @@ void* echo_buffer(MIBParamList *list)
 	*/
 	return NULL;
 }
+
+void* blink_pin(MIBParamList *list)
+{
+	RA5 = !RA5;
+	bus_slave_setreturn(kNoMIBError, NULL);
+
+	return NULL;
+}

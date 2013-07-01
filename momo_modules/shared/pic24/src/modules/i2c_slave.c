@@ -38,6 +38,8 @@ void i2c_slave_receivechecksum()
 
 	if (check != i2c_msg->checksum)
 		slave.last_error = kI2CInvalidChecksum;
+	else
+		slave.last_error = kI2CNoError;
 
 	i2c_release_clock();
 }

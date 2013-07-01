@@ -1,5 +1,8 @@
 //bus.c
 
+//#include "bus_master.h"
+//#include "bus_slave.h"
+
 //This is where we declare all the MIB state, so don't pull in the external definitions
 #define __NO_EXTERN_MIB_STATE__
 
@@ -8,6 +11,14 @@
 MIBState 				mib_state;
 unsigned char 			mib_buffer[kBusMaxMessageSize];
 unsigned int 			mib_firstfree;
+
+#ifdef _PIC12
+void bus_init()
+{
+	mib_firstfree = 0;
+	i2c_enable(0x10);
+}
+#endif
 
 //These functions are too small to be efficiently used on the PIC12 which must pass parameters
 #ifndef _MACRO_SMALL_FUNCTIONS
@@ -56,15 +67,13 @@ void bus_init_buffer_param(MIBBufferParameter *param, void *data, uint8 len)
 
 #endif
 
-#define bus_allocate_space(ptr, type, len)		{ptr = (type*)(mib_buffer+mib_firstfree); mib_firstfree += (len);}
+#define bus_allocate_space(len)		mib_buffer+mib_firstfree; mib_firstfree += len;
 
 
 MIBParameterHeader *bus_allocate_return_buffer(unsigned char **out_buffer)
 {
 	unsigned char len = kBusMaxMessageSize - mib_firstfree;
-	MIBParameterHeader *ret;
-
-	bus_allocate_space(ret, MIBParameterHeader, len);
+	MIBParameterHeader *ret = (MIBParameterHeader *)bus_allocate_space(len);
 
 	ret->type = kMIBBufferType;
 	ret->len = len - sizeof(MIBParameterHeader);
@@ -76,9 +85,7 @@ MIBParameterHeader *bus_allocate_return_buffer(unsigned char **out_buffer)
 
 MIBIntParameter *bus_allocate_int_param()
 {
-	MIBIntParameter *param;
-
-	bus_allocate_space(param, MIBIntParameter, sizeof(MIBIntParameter));
+	MIBIntParameter *param = (MIBIntParameter *)bus_allocate_space(sizeof(MIBIntParameter));
 
 	bus_init_int_param(param, 0);
 
@@ -93,7 +100,7 @@ MIBBufferParameter *bus_allocate_buffer_param(uint8 len)
 	if (len == 0)
 		len = kBusMaxMessageSize - mib_firstfree - sizeof(MIBBufferParameter);
 
-	bus_allocate_space(param, MIBBufferParameter, sizeof(MIBBufferParameter)+len);
+	param = (MIBBufferParameter *)bus_allocate_space(sizeof(MIBBufferParameter)+len);
 
 	bus_init_buffer_param(param, ((unsigned char*)param) + sizeof(MIBBufferParameter), len);
 
@@ -102,9 +109,7 @@ MIBBufferParameter *bus_allocate_buffer_param(uint8 len)
 
 MIBParamList *bus_allocate_param_list(uint8 num)
 {
-	MIBParamList *list;
-
-	bus_allocate_space(list, MIBParamList, sizeof(MIBParamList) + sizeof(MIBParameterHeader*)*num);
+	MIBParamList *list = (MIBParamList*)bus_allocate_space(sizeof(MIBParamList) + sizeof(MIBParameterHeader*)*num);
 
 	if (list == 0)
 		return 0;

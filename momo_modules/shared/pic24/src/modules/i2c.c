@@ -10,7 +10,7 @@
 volatile I2CMasterStatus master;
 volatile I2CSlaveStatus  slave;
 
-volatile I2CMessage 	 *i2c_msg;
+volatile I2CMessage 	 *i2c_msg = &mib_state.bus_msg;
 
 task_callback i2c_callback;
 task_callback i2c_slave_callback;
@@ -94,6 +94,8 @@ void i2c_send_message()
         slave.state = kI2CSendDataState;
         if (mib_state.bus_msg.flags & kSendImmediately)
             i2c_slave_sendbyte();
+
+        return;
     }
 
     master.dir = kMasterSendData;

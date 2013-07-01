@@ -81,6 +81,7 @@ static void bus_slave_receiveparam(MIBParameterHeader *param, uint8 header_or_va
 static void bus_slave_searchcommand()
 {
 	uint8 index;
+
 	if (i2c_slave_lasterror() != kI2CNoError)
 	{
 		bus_slave_seterror(kCommandChecksumError); //Make sure the parameter checksum was valid.
@@ -138,7 +139,7 @@ void bus_slave_reset()
 }
 
 void bus_slave_callback()
-{	
+{
 	if (i2c_address_received())
 	{
 		if (i2c_slave_is_read())
@@ -195,7 +196,9 @@ void bus_slave_callback()
 			if (mib_state.num_reads != 0)
 				bus_slave_reset();
 			else if (mib_state.slave_state == kMIBIdleState)
+			{
 				bus_slave_startcommand(); //A write when we're idle indicates a new command
+			}
 		}
 
 		//Always release the clock.  The slave should never hold the clock forever.
@@ -212,7 +215,12 @@ void bus_slave_callback()
 		case kMIBReceiveParameterValue:
 		bus_slave_receiveparam(mib_state.slave_params->params[mib_state.slave_params->curr], 1, kContinueChecksum);
 		mib_state.slave_params->curr += 1;
-		if (mib_state.slave_params->curr == mib_state.slave_params->count)
+		
+		//If there were any errors, we're in the error state so don't update the state machine anymore
+		if (mib_state.slave_state == kMIBProtocolError)
+			break;
+
+		if (mib_state.slave_params->curr == mib_state.slave_params->count && mib_state.slave_state)
 			mib_state.slave_state = kMIBFinishedReceivingParameters;
 		else
 			mib_state.slave_state = kMIBReceiveParameterHeader;
@@ -230,7 +238,7 @@ void bus_slave_callback()
 		case kMIBReceivedParameterChecksum:
 		mib_state.slave_state = kMIBExecuteCommandHandler;
 		if (i2c_slave_lasterror() != kI2CNoError)
-			bus_slave_seterror(kParameterChecksumError); //Make sure the parameter checksum was valid.
+			;//bus_slave_seterror(mib_state.bus_msg.checksum); //Make sure the parameter checksum was valid.
 		break;
 
 		case kMIBFinishCommand:
