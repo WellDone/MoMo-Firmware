@@ -28,8 +28,6 @@ typedef struct {
 	unsigned int         command_count;
 } feature_map;
 
-#define mk_feature_map(feature,commands) {feature, commands, (sizeof(commands)/sizeof(mib_command_handler))}
-
 mib_command_handler*	find_handler(MIBFeature feature, BYTE cmd);
 void register_mib_features( const feature_map* features, unsigned int count );
 

@@ -26,6 +26,8 @@ void register_command_handlers()
     register_command("rtcc", handle_rtcc);
     register_command("adc", handle_adc);
 
+    register_command("rpc", handle_rpc);
+
     set_uart_rx_newline_callback( DEBUG_UART, process_commands_task, command_buffer, UART_BUFFER_SIZE );
     print( DEBUG_PROMPT );
 }

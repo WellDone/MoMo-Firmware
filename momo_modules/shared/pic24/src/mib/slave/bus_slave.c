@@ -1,5 +1,6 @@
 #include "bus_slave.h"
 #include "mib_command.h"
+#include "mib_command_parameters.h"
 
 //MIB Global State
 extern volatile MIBState 		mib_state;

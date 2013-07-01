@@ -13,10 +13,10 @@ extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
 mib_command_handler* find_handler(MIBFeature feature, BYTE cmd)
 {
 	unsigned int i;
-	feature_map* found_feat = NULL;
+	const feature_map* found_feat = NULL;
 
 	if (!the_features)
-		return;
+		return NULL;
 	
 	for (i=0; i<4; ++i)
 	{

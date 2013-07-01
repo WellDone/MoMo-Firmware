@@ -6,7 +6,7 @@ extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
 
 void* test_command(MIBParamList *param)
 {
-	_RA1 = !_RA1;
+	_RA1 = !_RA1; //Blink light
 	
 	MIBIntParameter *retval;
 

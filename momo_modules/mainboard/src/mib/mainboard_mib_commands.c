@@ -16,8 +16,8 @@ static mib_command_handler test_commands[kTestCommandCount] =
 static mib_command_handler programming_commands[kProgrammingCommandCount] = 
 	{
 		{0, erase_primaryfirmware, plist_define0() },
-		{7, load_into_nvram, plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBBufferType) },
-		{42, read_from_nvram, plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBInt16Type) }
+		{1, load_into_nvram, plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBBufferType) },
+		{2, read_from_nvram, plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBInt16Type) }
 	};
 
 static feature_map mainboard_mib_features[kMainboardMIBFeatureCount] =

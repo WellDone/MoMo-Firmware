@@ -17,20 +17,20 @@ void register_reset_handlers()
 #include "debug.h"
 #include "oscillator.h"
 #include "pme.h"
+#include "bus.h"
 
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
 {
-    configure_rtcc();
-    enable_rtcc();
-
     //Add code here that should be called before all other reset code
     disable_unneeded_peripherals();
     configure_interrupts();
-    //oscillator_init();
+    oscillator_init();
     taskloop_init();
     scheduler_init();
     debug_init();
+
+    bus_init();
 
     mclr_triggered = false;
 }
@@ -40,6 +40,9 @@ void handle_all_resets_after(unsigned int type)
     /*
      * Add code that should be called after all other reset code here
      */
+
+    if ( !rtcc_enabled() )
+        enable_rtcc();
 
     if ( !mclr_triggered ) {
         //taskloop_set_sleep( 1 );
