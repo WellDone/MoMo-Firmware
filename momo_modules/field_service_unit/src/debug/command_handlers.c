@@ -40,7 +40,7 @@ void handle_adc(command_params *params)
 
     if (params->num_params < 1)
     {
-        print( "You must pass a subcommand to the device command.\r\n");
+        print( "You must pass a subcommand to the adc command.\r\n");
         return;
     }
 
@@ -256,7 +256,7 @@ void handle_rpc(command_params *params)
     int feature, command;
 
     if (params->num_params < 2) {
-        print( "You must pass a feature and a command to execute a Remote Procedure Call.\r\n");
+        print( "You must pass a feature and a command to execute a RPC.\r\n");
         return;
     }
 
@@ -277,8 +277,8 @@ void handle_rpc(command_params *params)
     bus_init_int_param(&param1, 5);
     bus_init_int_param(&param2, 6);
 
-    waiting_for_rpc_return = true;
-    bus_master_rpc(rpc_callback, 8, feature, command, rpc_params, 2);
+    waiting_for_rpc_return = false;
+    bus_master_rpc(NULL, kControllerPICAddress, 0x2, 0x1, rpc_params, 2);
     while (waiting_for_rpc_return)
         ;
     return;
