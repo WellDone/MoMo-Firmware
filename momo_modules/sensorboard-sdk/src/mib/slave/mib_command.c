@@ -9,25 +9,23 @@
 
 unsigned char find_handler(unsigned char feature, unsigned char cmd)
 {
-	unsigned char i;
-	signed char found_feat = -1;
+	uint8 found_feat;
 
-	for (i=0; i<kNumFeatures; ++i)
+	for (found_feat=0; found_feat<kNumFeatures; ++found_feat)
 	{
-		if (features[i] == feature)
-		{
-			found_feat = i;
+		if (features[found_feat] == feature)
 			break;
-		}
 	}
 
-	if (found_feat == -1)
+	if (found_feat == kNumFeatures)
 		return 255;
 
-	if (cmd >= (commands[found_feat+1] - commands[found_feat]))
+	cmd += commands[found_feat]; //commands[found_feat] is the offset in the list for this command
+
+	if (cmd >= commands[found_feat+1])
 		return 255;
 
-	return commands[found_feat] + cmd;
+	return cmd;
 }
 
 mib_callback get_handler(unsigned char index)

@@ -115,7 +115,7 @@ void bus_free_all();
 	i2c_receive_message();							\
 }
 
-#define bus_allocate_space(len)		mib_buffer+mib_firstfree; mib_firstfree += len;
+//#define bus_allocate_space(len)		mib_buffer+mib_firstfree; mib_firstfree += len;
 
 #define bus_free_all()								\
 {													\
