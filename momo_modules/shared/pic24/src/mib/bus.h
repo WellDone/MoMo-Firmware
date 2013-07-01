@@ -75,7 +75,7 @@ typedef struct
 } MIBState;
 
 //Configuration Routines
-void bus_init();
+void bus_init( unsigned char address );
 
 //Allocation Routines
 volatile unsigned char * 		bus_allocate_space(unsigned int len);

@@ -9,11 +9,11 @@ volatile MIBState 		mib_state;
 volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
 unsigned int 			mib_firstfree;
 
-void bus_init()
+void bus_init(unsigned char address)
 {
 	I2CConfig config;
 
-	config.address = kControllerPICAddress;
+	config.address = address;
 	config.priority = 0b010;
 	config.callback = bus_master_callback;
 	config.slave_callback = bus_slave_callback;

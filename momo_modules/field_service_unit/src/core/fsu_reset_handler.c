@@ -30,7 +30,7 @@ void handle_all_resets_before(unsigned int type)
     scheduler_init();
     debug_init();
 
-    bus_init();
+    bus_init( 0x9 );
 
     mclr_triggered = false;
 }
