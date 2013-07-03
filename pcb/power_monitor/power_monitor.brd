@@ -1595,8 +1595,8 @@ design rules under a new name.</description>
 <wire x1="41.7576" y1="11.4808" x2="39.7764" y2="11.4808" width="0.762" layer="16"/>
 <wire x1="35.814" y1="2.4892" x2="36.957" y2="2.4892" width="0.3048" layer="16"/>
 <polygon width="0.1524" layer="16">
-<vertex x="0" y="0"/>
-<vertex x="0" y="30.48"/>
+<vertex x="15.6718" y="0.0508"/>
+<vertex x="15.6718" y="30.5308"/>
 <vertex x="46.2026" y="30.48"/>
 <vertex x="46.2026" y="0"/>
 </polygon>
