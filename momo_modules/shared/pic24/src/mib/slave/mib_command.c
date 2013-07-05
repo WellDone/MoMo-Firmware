@@ -8,11 +8,12 @@
 #include "commands.h"
 
 extern unsigned char 	mib_buffer[kBusMaxMessageSize];
+extern void loadparams(uint8 spec); //ASM function to create the parameters in the mib buffer
 
-int find_handler(unsigned char feature, unsigned char cmd)
+uint8 find_handler(unsigned char feature, unsigned char cmd)
 {
-	unsigned int i, num_cmds;
-	int found_feat = -1;
+	uint8 i, num_cmds;
+	uint8 found_feat = kNumFeatures;
 
 	for (i=0; i<kNumFeatures; ++i)
 	{
@@ -23,46 +24,20 @@ int find_handler(unsigned char feature, unsigned char cmd)
 		}
 	}
 
-	if (found_feat == -1)
-		return -1;
+	if (found_feat == kNumFeatures)
+		return kInvalidMIBHandler;
 
 	num_cmds = commands[found_feat+1] - commands[found_feat];
 
 	if (cmd >= num_cmds)
-		return -1;
+		return kInvalidMIBHandler;
 
 	return commands[found_feat] + cmd;
 }
 
-mib_callback get_handler(int index)
+uint8 build_params(uint8 handler_index)
 {
-	if (index < 0)
-		return NULL;
+	loadparams(param_specs[handler_index]);
 
-	return handlers[index];
-}
-
-volatile MIBParamList *	build_params(int handler_index)
-{
-	unsigned char spec 			= param_specs[handler_index];
-	unsigned char num_params 	= extract_param_count(spec);
-	volatile MIBParamList *list = bus_allocate_param_list(num_params);
-	unsigned int i;
-	
-	for (i=0; i<num_params; ++i)
-	{
-		unsigned char type = extract_param_type(spec, i);
-
-		if (type == kMIBInt16Type)
-			list->params[i] = (MIBParameterHeader*)bus_allocate_int_param();
-		else if(type == kMIBBufferType && i == (num_params-1))
-		{
-			//If we have 1 buffer as the last parameter, allocate all the remaining space for it from the mib_buffer
-			list->params[i] = (MIBParameterHeader*)bus_allocate_buffer_param(0);
-		}
-		else
-			return NULL; //We cannot allocate buffers that are not the last parameter since we don't know how big they should be
-	}
-
-	return list;
+	return (param_specs[handler_index] & 0b111); //return the count
 }

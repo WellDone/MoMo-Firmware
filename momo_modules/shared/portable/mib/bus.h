@@ -11,7 +11,7 @@
 #define bus_slave_receive(buffer, len, flags) 		bus_receive(kInvalidI2CAddress, buffer, len, flags)
 
 //Callback type for master rpc routines
-typedef 	void (*mib_rpc_function)(unsigned char, MIBParameterHeader *);
+typedef 	void (*mib_rpc_function)(unsigned char);
 
 //Bus error codes that can be returned
 enum
@@ -56,44 +56,34 @@ typedef struct
 	I2CMessage				bus_msg;
 	MIBCommandPacket		bus_command;
 	MIBReturnValueHeader	bus_returnstatus;
+	uint8					param_length;
 
 	//Slave section
-	mib_callback			slave_handler;
+	uint8					slave_handler;
 	volatile MIBSlaveState	slave_state;
-	int 					num_reads;
+	uint8 					num_reads;
 
 	MIBParameterHeader 		last_param;
-	MIBParamList			*slave_params;
+	unsigned char *			curr_param;
 
 	//Master section	
 	volatile MIBMasterState master_state;
-	unsigned char 			master_param_length;
 	mib_rpc_function		master_callback;
 } MIBState;
 
 //Include external definitions of state
 #include "bus_state.h"
 
-
-
 //Configuration Routines
-#ifdef _PIC12
 void bus_init();
-#endif
 
 //Allocation Routines
-MIBParamList		*	bus_allocate_param_list(uint8 num);
-MIBIntParameter 	*	bus_allocate_int_param();
 MIBBufferParameter  *	bus_allocate_buffer_param(uint8 len); //if len == 0, then allocate all remaining space
-MIBParameterHeader *	bus_allocate_return_buffer(unsigned char **out_buffer);
 
 #ifndef _MACRO_SMALL_FUNCTIONS
 void bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
 void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
 
-void bus_init_int_param(MIBIntParameter *param, int value);
-void bus_init_buffer_param(MIBBufferParameter *param, void *data, unsigned char len);
-void bus_free_all();
 #else
 
 #define bus_send(add, buffer, len, f)				\
@@ -115,26 +105,6 @@ void bus_free_all();
 	i2c_receive_message();							\
 }
 
-//#define bus_allocate_space(len)		mib_buffer+mib_firstfree; mib_firstfree += len;
-
-#define bus_free_all()								\
-{													\
-	mib_firstfree = 0;								\
-}
-
-#define bus_init_int_param(param, val)				\
-{													\
-	param->header.type = kMIBInt16Type;				\
-	param->header.len = 2;							\
-	param->value = val;								\
-}
-
-#define bus_init_buffer_param(param, d, length)		\
-{													\
-	param->header.type = kMIBBufferType;			\
-	param->header.len = length;						\
-	param->data = d;								\
-}
 #endif
 
 

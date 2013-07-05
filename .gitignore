@@ -8,3 +8,4 @@ dist
 *.s#?
 *.l#?
 .DS_Store
+momo_modules/shared/pic12/*.obj

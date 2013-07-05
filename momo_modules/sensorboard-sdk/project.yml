@@ -72,9 +72,9 @@
       - --asmlist 
       - --double=24 
       - --float=24 
-#      - --rom=0-1FF 
+      - --rom=0-4FF
       - --opt=all
-      - --addrqual=ignore 
+      - --addrqual=require 
       - --mode=pro 
       - -P 
       - -N31  
@@ -99,9 +99,9 @@
       - --asmlist 
       - --double=24 
       - --float=24 
-#      - --rom=0-1FF 
+      - --rom=0-4FF 
       - --opt=all
-      - --addrqual=ignore 
+      - --addrqual=require 
       - --mode=pro 
       - -P 
       - -N31  
@@ -125,9 +125,9 @@
       - --asmlist 
       - --double=24 
       - --float=24 
-#      - --rom=0-1FF 
-      - --opt=all
-      - --addrqual=ignore 
+      - --rom=0-4FF 
+      - --opt=all,-asmfile
+      - --addrqual=require 
       - --mode=pro 
       - -P 
       - -N31  
@@ -138,6 +138,8 @@
       #- -L-pstrings=CODE
       - "${1}"
       - "../shared/pic12/build/release/libPIC12shared.lpp"
+      - "../shared/pic12/src/mib/mib_params.asm"
+      #- "src/mib/slave/command_map.asm"
       - -o${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE

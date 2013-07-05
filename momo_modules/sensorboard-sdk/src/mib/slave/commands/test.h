@@ -1,3 +1,3 @@
-void* test_command(MIBParamList *param);
-void* echo_buffer(MIBParamList *list);
-void* blink_pin(MIBParamList *param);
+void test_command(void);
+void echo_buffer(void);
+void blink_pin(void);

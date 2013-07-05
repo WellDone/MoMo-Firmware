@@ -56,6 +56,9 @@ void main() {
         goto Bootloader;
     }
 
+    bus_master_compose_params(0);
+    bus_master_rpc(NULL, 0x20, 0x30, 0x40);
+
     // 0x7ff is highest word in flash memory for pic12lf1822
     // if application is loaded, highest byte will be 0x55
     //if (flash_memory_read (0x7FF) == 0x3455) {
@@ -66,31 +69,8 @@ void main() {
 
 Bootloader:
     while (1) {
-        heartbeat();
+        ;
     }
-}
-
-/* Blink the LED every 1 second. */ 
-void heartbeat() {
-    /* Increment a counter everytime Timer 1 overflows. */
-    static unsigned int counter = 0;
-    
-    if (TMR1IF) {
-        counter++;
-        TMR1IF = 0;
-    }
-
-    /* Timer 1 is configured to be (32MHz/4)/8 = 1MHz
-        16-bit timer overflows 1MHz/(2^16) = ~15 times/second */
-
-    if (counter == 15)
-    {
-        //bus_master_rpc(NULL, 0x20, 0x30, 0x40, NULL, 0);
-        ++counter;
-    }
-
-    if (counter == 30)
-        counter = 0;
 }
 
 void initialize ()

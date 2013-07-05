@@ -4,10 +4,12 @@
 //Local Prototypes that should not be called outside of this file
 unsigned char 	bus_master_lastaddress();
 void 			bus_master_finish(uint8 next);
-void 			bus_master_compose_params(MIBParameterHeader **params, unsigned char param_count);
+void 			bus_master_compose_params(uint8 spec);
 void 			bus_master_handleerror();
 void 			bus_master_sendrpc(unsigned char address);
 void 			bus_master_readstatus();
+
+extern void loadparams(uint8 spec);
 
 
 unsigned char bus_master_lastaddress()
@@ -21,50 +23,17 @@ void bus_master_finish(uint8 next)
 	mib_state.master_state = next;
 }
 
-void bus_master_compose_params(MIBParameterHeader **params, unsigned char param_count)
+void bus_master_compose_params(uint8 spec)
 {
-	unsigned char *buffer;
-	unsigned char i=0, j=0;
-
-	bus_free_all();
-	buffer = mib_buffer;
-
-	for (i=0; i<param_count;++i)
-	{
-		MIBParameterHeader *header = params[i];
-
-		memcpy((void *)&buffer[j], (void *)header, sizeof(MIBParameterHeader));
-		j += sizeof(MIBParameterHeader);
-
-		if (header->type == kMIBInt16Type)
-		{
-			MIBIntParameter *param = (MIBIntParameter*)header;
-			memcpy((void *)&buffer[j], (void *)&param->value, sizeof(int));
-
-			j+=sizeof(int);
-		}
-		else
-		{
-			MIBBufferParameter *param = (MIBBufferParameter*)header;
-			memcpy((void *)&buffer[j], (void *)param->data, param->header.len);
-
-			j += param->header.len;
-		}
-	}
-
-	mib_state.master_param_length = j;
+	loadparams(spec);
+	mib_state.param_length = (spec & 0b111);
 }
 
-void bus_master_rpc(mib_rpc_function callback, unsigned char address, unsigned char feature, unsigned char cmd, MIBParameterHeader **params, unsigned char param_count)
+void bus_master_rpc(mib_rpc_function callback, unsigned char address, unsigned char feature, unsigned char cmd)
 {
 	mib_state.bus_command.feature = feature;
 	mib_state.bus_command.command = cmd;
 	mib_state.master_callback = callback;
-
-	if (param_count > 0)
-		bus_master_compose_params(params, param_count);
-	else
-		mib_state.master_param_length = 0;
 
 	bus_master_sendrpc(address);
 }
@@ -77,7 +46,7 @@ void bus_master_sendrpc(unsigned char address)
 {
 	i2c_master_enable();
 
-	if (mib_state.master_param_length > 0)
+	if (mib_state.param_length > 0)
 		mib_state.master_state = kMIBSendParameters;
 	else
 		mib_state.master_state = kMIBReadReturnStatus;
@@ -115,7 +84,7 @@ void bus_master_callback()
 	switch(mib_state.master_state)
 	{
 		case kMIBSendParameters:
-		bus_send(bus_master_lastaddress(), (unsigned char*)mib_buffer, mib_state.master_param_length, 0);
+		bus_send(bus_master_lastaddress(), (unsigned char*)mib_buffer, mib_state.param_length, 0);
 		mib_state.master_state = kMIBReadReturnStatus;
 		break;
 
@@ -170,19 +139,10 @@ void bus_master_callback()
 		break;
 
 		case kMIBFinalizeMessage:
-		// TODO why does this if statement cause the linker to crash?
-		//if (mib_state.master_callback)
 		if (mib_state.master_callback != NULL)
-		{
-			MIBParameterHeader *retval = NULL;
+			mib_state.master_callback(mib_state.bus_returnstatus.result);
 
-			if (mib_state.bus_returnstatus.result == kNoMIBError && mib_state.bus_returnstatus.len != 0)
-				retval = (MIBParameterHeader*)mib_buffer;
-
-			mib_state.master_callback(mib_state.bus_returnstatus.result, retval);
-		}
-
-		bus_free_all();
+		//bus_free_all();
 		i2c_finish_transmission(); 
 		break;
 	}

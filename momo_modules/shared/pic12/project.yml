@@ -52,7 +52,7 @@
       - --double=24 
       - --float=24 
       - --opt=default,+asm,-asmfile,+speed,-space,-debug 
-      - --addrqual=ignore 
+      - --addrqual=require 
       - --mode=pro 
       - -P 
       - -N31  
@@ -70,7 +70,7 @@
   :release_assembler:
     :executable: xc8 
     :arguments:
-      - --pass1
+      - -C
       - --chip=12F1822 
       - -Q 
       - -G 
@@ -78,13 +78,12 @@
       - --double=24 
       - --float=24 
       - --opt=default,+asm,-asmfile,+speed,-space,-debug 
-      - --addrqual=ignore 
+      - --addrqual=require 
       - --mode=pro 
       - -P 
       - -N31  
       - --warn=0 
       - --summary=default,+psect,-class,+mem,-hex,-file 
-      - --output=lpp
       - --runtime=default,+clear,+init,-keep,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib #"--errformat=%f:%l: error: %s" "--warnformat=%f:%l: warning: %s" "--msgformat=%f:%l: advisory: %s" 
       - -L-pstrings=CODE
       - "${1}"
@@ -103,7 +102,7 @@
       - --double=24 
       - --float=24 
       - --opt=default,+asm,-asmfile,+speed,-space,-debug 
-      - --addrqual=ignore 
+      - --addrqual=require 
       - --mode=pro 
       - -P 
       - -N31  

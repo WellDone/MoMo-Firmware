@@ -8,8 +8,8 @@
 #ifndef __NO_EXTERN_MIB_STATE__
 #include "protocol.h"
 
-extern MIBState 				mib_state;
-extern unsigned char 			mib_buffer[kBusMaxMessageSize];
-extern unsigned int 			mib_firstfree;
+extern MIBState 			mib_state;
+extern bank1 unsigned char 	mib_buffer[kBusMaxMessageSize];
+extern bank1 unsigned char 	mib_firstfree;
 
 #endif

@@ -1,3 +1,3 @@
 
-void* test_command(MIBParamList *param);
-void* echo_buffer(MIBParamList *list);
+void test_command(void);
+void echo_buffer(void);
