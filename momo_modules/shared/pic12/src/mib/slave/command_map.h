@@ -32,7 +32,9 @@ const MIBEndpointInfo rpc_info @ kMIBEndpointAddress;
 extern uint8 get_num_features();
 extern uint8 get_feature(uint8 feature);
 extern uint8 get_command(uint8 command);
-extern uint8 get_spec(uint8 spec);
+extern uint8 get_spec(uint8 index);
+extern uint8 validate_params(uint8 index);
+extern uint8 loadparams(uint8 spec);
 extern void  call_handler(uint8 handler_index);
 extern uint8 get_magic();
 

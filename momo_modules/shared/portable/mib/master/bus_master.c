@@ -9,7 +9,7 @@ void 			bus_master_handleerror();
 void 			bus_master_sendrpc(unsigned char address);
 void 			bus_master_readstatus();
 
-extern void loadparams(uint8 spec);
+extern uint8 loadparams(uint8 spec);
 
 
 unsigned char bus_master_lastaddress()
@@ -25,8 +25,7 @@ void bus_master_finish(uint8 next)
 
 void bus_master_compose_params(uint8 spec)
 {
-	loadparams(spec);
-	mib_state.param_length = (spec & 0b111);
+	mib_state.bus_command.param_length = loadparams(spec);
 }
 
 void bus_master_rpc(mib_rpc_function callback, unsigned char address, unsigned char feature, unsigned char cmd)
@@ -46,7 +45,7 @@ void bus_master_sendrpc(unsigned char address)
 {
 	i2c_master_enable();
 
-	if (mib_state.param_length > 0)
+	if (mib_state.bus_command.param_length > 0)
 		mib_state.master_state = kMIBSendParameters;
 	else
 		mib_state.master_state = kMIBReadReturnStatus;
@@ -84,7 +83,7 @@ void bus_master_callback()
 	switch(mib_state.master_state)
 	{
 		case kMIBSendParameters:
-		bus_send(bus_master_lastaddress(), (unsigned char*)mib_buffer, mib_state.param_length, 0);
+		bus_send(bus_master_lastaddress(), (unsigned char*)mib_buffer, mib_state.bus_command.param_length, 0);
 		mib_state.master_state = kMIBReadReturnStatus;
 		break;
 

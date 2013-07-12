@@ -22,7 +22,6 @@ enum
 	kParameterTooLong,
 	kParameterChecksumError,
 	kCommandChecksumError,
-	kParameterListNotBuilt,
 	kUnknownError,
 	kSlaveNotAvailable = 255
 };
@@ -53,18 +52,14 @@ typedef enum
 typedef struct 
 {
 	//Shared Buffers
-	I2CMessage				bus_msg;
 	MIBCommandPacket		bus_command;
+	I2CMessage				bus_msg;
 	MIBReturnValueHeader	bus_returnstatus;
-	uint8					param_length;
 
 	//Slave section
 	uint8					slave_handler;
 	volatile MIBSlaveState	slave_state;
 	uint8 					num_reads;
-
-	MIBParameterHeader 		last_param;
-	unsigned char *			curr_param;
 
 	//Master section	
 	volatile MIBMasterState master_state;

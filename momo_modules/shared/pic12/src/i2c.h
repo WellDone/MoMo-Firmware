@@ -106,8 +106,8 @@ void i2c_enable(unsigned char slave_address);
 void i2c_disable();
 
 //Shared Common Functions
-void i2c_send_message();
-void i2c_receive_message();
+void  i2c_send_message();
+void  i2c_receive_message();
 
 void i2c_start_transmission();
 void i2c_finish_transmission();

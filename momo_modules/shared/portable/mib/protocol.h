@@ -17,6 +17,7 @@ typedef struct
 {
 	unsigned char feature;
 	unsigned char command;
+	unsigned char param_length;
 } MIBCommandPacket;
 
 typedef struct
@@ -34,7 +35,7 @@ typedef struct
 typedef struct
 {
 	MIBParameterHeader header;
-	unsigned char 	   *data;
+	unsigned char 	   data[1]; /*data follows struct*/
 } MIBBufferParameter;
 
 typedef struct 

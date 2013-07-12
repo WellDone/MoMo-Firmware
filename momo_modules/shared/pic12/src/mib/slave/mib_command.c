@@ -7,7 +7,7 @@
 //device must define a command map 
 #include "command_map.h"
 
-extern void loadparams(uint8 spec); //ASM function to create the parameters in the mib buffer
+extern uint8 loadparams(uint8 spec); //ASM function to create the parameters in the mib buffer
 
 unsigned char find_handler(unsigned char feature, unsigned char cmd)
 {
@@ -36,7 +36,5 @@ unsigned char find_handler(unsigned char feature, unsigned char cmd)
 
 uint8 build_params(uint8 handler_index)
 {
-	loadparams(get_spec(handler_index));
-
-	return (get_spec(handler_index) & 0b111); //return the count
+	return loadparams(get_spec(handler_index));
 }

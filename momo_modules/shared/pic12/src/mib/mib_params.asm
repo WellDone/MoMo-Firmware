@@ -5,7 +5,7 @@
 ;very quickly and with minimal code overhead
 
 ;signature loadparams(spec)
-GLOBAL _loadparams,_mib_buffer,_call_handler,_get_feature,_get_command,_get_spec,_get_magic,_get_num_features
+GLOBAL _loadparams,_mib_buffer,_call_handler,_get_feature,_get_command,_get_spec,_get_magic,_get_num_features,_validate_params
 
 PSECT text100,local,class=CODE,delta=2
 
@@ -26,14 +26,12 @@ _loadbuf:
 	MOVLW	1
 	MOVWI	FSR0++
 	CLRW	 			;make it a zero length buffer, we can fill it in later	
-	MOVWI	FSR0++
-	MOVF 	FSR0L, W 	;we are now pointing to pointer field
-	ADDLW	1			;w now points to the first byte of the buffer
-	MOVWI	FSR0++ 		;the point now points 1 after the MIBBufferParameter struct
+	MOVWI	FSR0++		;FSR0 now points to the first byte of the buffer
 	RETURN
 
 ;give a parameter spec in W, which is just 3 bits of count followed by bits of 0 or 1
 ;which tell whether to create an int or a buffer in the space
+;returns the length of the parameters in w, not accounting for the length of the buffer
 _loadparams:
 	MOVLB 1					;mib_buffer and mib_firstfree are in bank1
 	MOVWF FSR1H				;save tmp spec
@@ -49,6 +47,8 @@ _loadparams:
 loop: 
 	DECFSZ FSR1L
 	GOTO loopbody
+	MOVLW _mib_buffer
+	SUBWF FSR0L,w 			;w now stores ptr - mib_buffer which is the length of the parameter list
 	RETURN
 
 loopbody:
@@ -80,6 +80,11 @@ _get_magic:
 	MOVWF FSR1L
 	MOVF INDF1,W
 	RETURN
+
+;validate the parameters pointed to by the param spec created from the
+;current slave handler index
+_validate_params:
+	RETLW 1
 
 _get_num_features:
 	GOTO 0x7FA

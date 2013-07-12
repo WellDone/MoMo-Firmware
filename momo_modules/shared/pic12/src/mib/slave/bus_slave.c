@@ -3,7 +3,6 @@
 
 //static prototypes that are only to be used in this file
 static void bus_slave_startcommand();
-static void bus_slave_receiveparam(MIBParameterHeader *param, uint8 header_or_value, unsigned char flag);
 static void bus_slave_searchcommand();
 static void bus_slave_callcommand();
 
@@ -41,43 +40,6 @@ void bus_slave_setreturn(unsigned char status, volatile MIBParameterHeader *valu
 		mib_state.bus_returnstatus.len = value->len + sizeof(MIBParameterHeader);
 }
 
-/* call with 0 to get the header, > 0 to get the value */
-static void bus_slave_receiveparam(MIBParameterHeader *param, uint8 header_or_value, unsigned char flag)
-{
-	if (header_or_value == 0)
-	{
-		bus_slave_receive((unsigned char *)&mib_state.last_param, sizeof(MIBParameterHeader), kCallbackBeforeChecksum|flag);
-	}
-	else
-	{
-		//Make sure the type is right
-		if (mib_state.last_param.type != param->type)
-		{
-			bus_slave_seterror(kWrongParameterType);
-			return;
-		}
-		else if(mib_state.last_param.len > param->len)
-		{
-			bus_slave_seterror(kParameterTooLong);
-			return;
-		}
-
-		//Update the parameter with the read in size.  If this is a buffer
-		//this is important so that we record the actual size, rather than the
-		//size of the buffer we allocated for it.
-		param->len = mib_state.last_param.len;
-
-		if (param->type == kMIBInt16Type)
-		{
-			bus_slave_receive((unsigned char *)(&((MIBIntParameter*)param)->value), param->len, kCallbackBeforeChecksum|flag);
-		}
-		else
-		{
-			bus_slave_receive((unsigned char *)((MIBBufferParameter*)param)->data, param->len, kCallbackBeforeChecksum|flag);
-		}
-	}
-}
-
 static void bus_slave_searchcommand()
 {
 	if (i2c_slave_lasterror() != kI2CNoError)
@@ -94,26 +56,48 @@ static void bus_slave_searchcommand()
 		return;
 	}
 
-	//Build the parameters that we have to receive
-	mib_state.param_length = build_params(mib_state.slave_handler);
+	if (mib_state.bus_command.param_length > kBusMaxMessageSize)
+	{
+		bus_slave_seterror(kParameterTooLong);
+		return;
+	}
 
-	if (mib_state.param_length > 0)
+	//initialize i2c to receive parameters if there are any
+	bus_slave_receive(mib_buffer, mib_state.bus_command.param_length, 0);
+	mib_state.slave_state = kMIBExecuteCommandHandler;
+}
+
+/*
+ * @preconditions: mib_buffer is full of a packet of parameters or nothing
+ * @return: 1 if the parameters are valid types and 0 otherwise
+ * @side effects: sets mib slave error state appropriately
+ */
+static uint8 bus_slave_validateparams()
+{
+	if (i2c_slave_lasterror() != kI2CNoError)
 	{
-		bus_slave_receiveparam((MIBParameterHeader*)&mib_buffer, 0, 0);
-		mib_state.slave_state = kMIBReceiveParameterValue;
+		bus_slave_seterror(kParameterChecksumError); //Make sure the parameter checksum was valid.
+		return 0;
 	}
-	else
+
+	if (!validate_params(mib_state.slave_handler))
 	{
-		//There we no parameters so jump straight to executing the command
-		mib_state.slave_state = kMIBExecuteCommandHandler;
+		bus_slave_seterror(kWrongParameterType); //Make sure the parameter checksum was valid.
+		return 0;
 	}
+
+	return 1;
 }
 
 static void bus_slave_callcommand()
 {	
-	if (mib_state.slave_handler != kInvalidMIBIndex && mib_state.slave_state == kMIBExecuteCommandHandler)
-		call_handler(mib_state.slave_handler);
+	if (mib_state.slave_handler != kInvalidMIBIndex)
+	{
+		if (bus_slave_validateparams())
+			call_handler(mib_state.slave_handler);
+	}
 }
+
 void bus_slave_reset()
 {
 	//A write after any number of reads is a protocol reset so we reset ourselves back to idle
@@ -197,40 +181,7 @@ void bus_slave_callback()
 		bus_slave_searchcommand();
 		break;
 
-		case kMIBReceiveParameterValue:
-		bus_slave_receiveparam((MIBParameterHeader*)mib_state.curr_param, 1, kContinueChecksum);
-		advance_param_ptr(mib_state.curr_param);
-		--mib_state.param_length;
-		
-		//If there were any errors, we're in the error state so don't update the state machine anymore
-		if (mib_state.slave_state == kMIBProtocolError)
-			break;
-
-		if (mib_state.param_length == 0)
-			mib_state.slave_state = kMIBFinishedReceivingParameters;
-		else
-			mib_state.slave_state = kMIBReceiveParameterHeader;
-		break;
-
-		case kMIBReceiveParameterHeader:
-		bus_slave_receiveparam((MIBParameterHeader*)mib_state.curr_param, 0, kContinueChecksum);
-		mib_state.slave_state = kMIBReceiveParameterValue;
-		break;
-
-		case kMIBFinishedReceivingParameters:
-		mib_state.slave_state = kMIBReceivedParameterChecksum;
-		break;
-
-		case kMIBReceivedParameterChecksum:
-		mib_state.slave_state = kMIBExecuteCommandHandler;
-		if (i2c_slave_lasterror() != kI2CNoError)
-			;//bus_slave_seterror(mib_state.bus_msg.checksum); //Make sure the parameter checksum was valid.
-		break;
-
-		case kMIBFinishCommand:
-		case kMIBExecuteCommandHandler:
-		case kMIBIdleState:
-		case kMIBProtocolError:
+		default:
 		break;
 	}
 
