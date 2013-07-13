@@ -79,6 +79,8 @@ void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt()
 {
 	volatile unsigned char unused;
 
+	_RA0 = !_RA0;
+
 	if (i2c_address_received())
 	{
 		unused = I2C1RCV;

@@ -278,7 +278,7 @@ void handle_rpc(command_params *params)
     bus_init_int_param(&param2, 6);
 
     waiting_for_rpc_return = false;
-    bus_master_rpc(NULL, kControllerPICAddress, 0x2, 0x1, rpc_params, 2);
+    bus_master_rpc(rpc_callback, kControllerPICAddress, feature, command, rpc_params, 2);
     while (waiting_for_rpc_return)
         ;
     return;

@@ -138,7 +138,7 @@ int main(void)
     _TRISA0 = 0;
     _TRISA6 = 0;
 
-    _RA1 = 1;
+    _RA1 = 0;
     _RA0 = 1;
     _RA6 = 1;
 

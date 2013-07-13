@@ -4,6 +4,9 @@
 
 #include "mib_features.h"
 
+static momo_module_descriptor the_modules[8];
+static unsigned int module_count = 0;
+
 static void* list_modules(MIBParamList *param)
 {	
 	MIBIntParameter *retval;
