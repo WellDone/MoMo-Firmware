@@ -50,10 +50,6 @@ void bus_master_sendrpc(unsigned char address)
 	bus_send(address, (unsigned char *)&mib_state.bus_command, sizeof(MIBCommandPacket), 0);
 }
 
-/*
- * Send a special rpc value to get the slave to resend its call execution status and return value (if any)
- */
-
 void bus_master_readstatus()
 {
 	bus_receive(bus_master_lastaddress(), (unsigned char *)&mib_state.bus_returnstatus, sizeof(MIBReturnValueHeader), 0);

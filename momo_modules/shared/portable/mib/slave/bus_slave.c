@@ -13,7 +13,7 @@ static void bus_slave_startcommand()
 {
 	//Initialize all the state
 	mib_state.slave_state = kMIBSearchCommand;
-	mib_state.slave_handler = NULL;
+	mib_state.slave_handler = kInvalidMIBIndex;
 	mib_state.num_reads = 0;
 
 	bus_slave_setreturn(kUnknownError, 0); //Make sure that if nothing else happens we return an error status.
@@ -29,7 +29,7 @@ void bus_slave_seterror(unsigned char error)
 	mib_state.slave_state = kMIBProtocolError;
 }
 
-void bus_slave_setreturn(unsigned char status, volatile MIBParameterHeader *value)
+void bus_slave_setreturn(unsigned char status, MIBParameterHeader *value)
 {
 	mib_state.bus_returnstatus.result = status;
 
@@ -62,7 +62,9 @@ static void bus_slave_searchcommand()
 	}
 
 	//initialize i2c to receive parameters if there are any
-	bus_slave_receive(mib_buffer, mib_state.bus_command.param_length, 0);
+	if (mib_state.bus_command.param_length > 0)
+		bus_slave_receive(mib_buffer, mib_state.bus_command.param_length, 0);
+	
 	mib_state.slave_state = kMIBExecuteCommandHandler;
 }
 

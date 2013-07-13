@@ -57,7 +57,7 @@ void main() {
     }
 
     bus_master_compose_params(0);
-    bus_master_rpc(NULL, 0x20, 0x30, 0x40);
+    bus_master_rpc(NULL, 0x08, 0x30, 0x40);
 
     // 0x7ff is highest word in flash memory for pic12lf1822
     // if application is loaded, highest byte will be 0x55

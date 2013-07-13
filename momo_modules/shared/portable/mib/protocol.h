@@ -67,7 +67,9 @@ typedef void (*mib_callback)(void);
 #define advance_param_ptr(ptr)	((unsigned char *)(ptr))+=sizeof(MIBIntParameter)
 
 #define get_int16_param(n) ((int)(((MIBIntParameter*)mib_buffer)[n].value))
+#define set_intparam(n, val)	(((MIBIntParameter*)mib_buffer)[n].value = (val))
 #define get_uint16_param(n) ((unsigned int)(((MIBIntParameter*)mib_buffer)[n].value))
 #define get_buffer_param(n) ((MIBBufferParameter*)&(((MIBIntParameter*)mib_buffer)[n]))
+#define get_buffer_loc(n) (mib_buffer + 2*(n+1))
 
 #endif

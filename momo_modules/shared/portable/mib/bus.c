@@ -35,17 +35,3 @@ void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len
 }
 
 #endif
-
-MIBParameterHeader *bus_allocate_return_buffer(unsigned char **out_buffer)
-{
-	MIBParameterHeader *ret;
-
-	//bus_allocate_space(ret, MIBParameterHeader, len);
-
-	ret->type = kMIBBufferType;
-	ret->len = kBusMaxMessageSize - sizeof(MIBParameterHeader);
-
-	*out_buffer = ((unsigned char*)ret) + sizeof(MIBParameterHeader);
-
-	return ret;
-}

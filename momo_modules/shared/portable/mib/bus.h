@@ -67,15 +67,20 @@ typedef struct
 	mib_rpc_function		master_callback;
 } MIBState;
 
-//Include external definitions of state
-#include "bus_state.h"
+/*
+ * Make sure files have access to the fundamental MIB global state variables so that
+ * we can replace functions with macros that reference these variables.
+ */
 
-//Configuration Routines
-void bus_init();
+#ifndef __NO_EXTERN_MIB_STATE__
 
-//Allocation Routines
-MIBBufferParameter  *	bus_allocate_buffer_param(uint8 len); //if len == 0, then allocate all remaining space
+extern MIBState 			mib_state;
+extern bank1 unsigned char 	mib_buffer[kBusMaxMessageSize];
+extern bank1 unsigned char 	mib_firstfree;
 
+#endif
+
+//Bus transmission functions
 #ifndef _MACRO_SMALL_FUNCTIONS
 void bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
 void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
