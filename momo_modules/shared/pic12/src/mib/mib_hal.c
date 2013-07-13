@@ -16,9 +16,10 @@ uint8 get_command(uint8 command);
 uint8 get_spec(uint8 index);
 uint8 get_magic();
 
-uint8 find_handler(uint8 feature, uint8 cmd)
+uint8 find_handler(void)
 {
 	uint8 found_feat;
+	uint8 cmd = mib_state.bus_command.command;
 
 	//Make sure there's valid application code loaded and it has a proper mib callback table
 	if (get_magic() != kMIBMagicNumber)
@@ -26,7 +27,7 @@ uint8 find_handler(uint8 feature, uint8 cmd)
 
 	for (found_feat=0; found_feat<get_num_features(); ++found_feat)
 	{
-		if (get_feature(found_feat) == feature)
+		if (get_feature(found_feat) == mib_state.bus_command.feature)
 			break;
 	}
 

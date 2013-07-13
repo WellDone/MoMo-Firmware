@@ -16,7 +16,7 @@ static void bus_slave_startcommand()
 	mib_state.slave_handler = kInvalidMIBIndex;
 	mib_state.num_reads = 0;
 
-	bus_slave_setreturn(kUnknownError, 0); //Make sure that if nothing else happens we return an error status.
+	bus_slave_setreturn(kUnknownError); //Make sure that if nothing else happens we return an error status.
 
 	bus_slave_receive((unsigned char *)&mib_state.bus_command, 2, 0);
 }
@@ -29,14 +29,18 @@ void bus_slave_seterror(unsigned char error)
 	mib_state.slave_state = kMIBProtocolError;
 }
 
-void bus_slave_setreturn(unsigned char status, MIBParameterHeader *value)
+/*
+ * The the return status.  The high order bit indicates if a return value is present in 
+ * the mib_buffer with 1 being yes and 0 being no.
+ */
+void bus_slave_setreturn(uint8 status)
 {
-	mib_state.bus_returnstatus.result = status;
+	mib_state.bus_returnstatus.result = status & 0x7F; //clear high order bit
 
-	if (value == 0)
+	if (!BIT_TEST(status,7))
 		mib_state.bus_returnstatus.len = 0;
 	else
-		mib_state.bus_returnstatus.len = value->len + sizeof(MIBParameterHeader);
+		mib_state.bus_returnstatus.len = ((MIBParameterHeader*)mib_buffer)->len + sizeof(MIBParameterHeader);
 }
 
 static void bus_slave_searchcommand()
@@ -47,7 +51,7 @@ static void bus_slave_searchcommand()
 		return;
 	}
 	
-	mib_state.slave_handler = find_handler(mib_state.bus_command.feature, mib_state.bus_command.command);
+	mib_state.slave_handler = find_handler();
 	
 	if (mib_state.slave_handler == kInvalidMIBIndex)
 	{

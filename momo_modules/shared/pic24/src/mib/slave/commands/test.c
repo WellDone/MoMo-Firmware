@@ -10,7 +10,7 @@ void test_command(void)
 	loadparams(plist_1param(kMIBInt16Type));
 	set_intparam(0, 6);
 	
-	bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)mib_buffer);
+	bus_slave_setreturn(kNoMIBError | kHasReturnValue);
 }
 
 void echo_buffer(void)
@@ -20,5 +20,5 @@ void echo_buffer(void)
 	memmove((void*)mib_buffer, buf, 2);
 	memmove((void*)mib_buffer+2, buf->data, buf->header.len);
 
-	bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)mib_buffer);
+	bus_slave_setreturn(kNoMIBError| kHasReturnValue);
 }

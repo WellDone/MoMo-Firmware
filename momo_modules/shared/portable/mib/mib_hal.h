@@ -13,7 +13,7 @@
 
 void  call_handler(uint8 handler_index);
 uint8 validate_params(uint8 handler_index);
-uint8 find_handler(uint8 feature, uint8 command);
+uint8 find_handler(void);
 uint8 loadparams(uint8 param_spec);
 void  bus_init();
 

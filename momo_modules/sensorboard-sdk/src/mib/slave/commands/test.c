@@ -32,5 +32,5 @@ void echo_buffer(void)
 void blink_pin(void)
 {
 	RA5 = !RA5;
-	bus_slave_setreturn(kNoMIBError, NULL);
+	bus_slave_setreturn(kNoMIBError);
 }

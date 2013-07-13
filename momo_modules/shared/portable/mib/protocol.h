@@ -8,6 +8,9 @@
 #define kBusMaxMessageSize 	20
 #define kInvalidMIBIndex 	255
 
+#define kNoReturnValue 0
+#define kHasReturnValue (1 << 7)
+
 enum
 {
 	kMIBInt16Type = 0,

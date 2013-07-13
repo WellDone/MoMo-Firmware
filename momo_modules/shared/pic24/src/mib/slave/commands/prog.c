@@ -28,7 +28,7 @@ void load_into_nvram(void)
 
 	mem_write(addr, buf->data, buf->header.len);
 
-	bus_slave_setreturn(kNoMIBError, 0);
+	bus_slave_setreturn(kNoMIBError);
 }
 
 void read_from_nvram(void)
@@ -47,5 +47,5 @@ void read_from_nvram(void)
 	mem_read(addr, mib_buffer+2, len);
 	retval->header.len = len;
 
-	bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)retval);
+	bus_slave_setreturn(kNoMIBError | kHasReturnValue);
 }

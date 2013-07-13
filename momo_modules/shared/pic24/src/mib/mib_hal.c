@@ -8,14 +8,15 @@
 //Include command map
 #include "commands.h"
 
-uint8 find_handler(unsigned char feature, unsigned char cmd)
+uint8 find_handler(void)
 {
 	uint8 i, num_cmds;
+	uint8 cmd = mib_state.bus_command.command;
 	uint8 found_feat = kNumFeatures;
 
 	for (i=0; i<kNumFeatures; ++i)
 	{
-		if (features[i] == feature)
+		if (features[i] == mib_state.bus_command.feature)
 		{
 			found_feat = i;
 			break;
