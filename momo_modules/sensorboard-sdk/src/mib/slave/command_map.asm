@@ -2,12 +2,11 @@
 ;3 structures defining the features, commands and handlers that we support
 
 #include <xc.inc>
-#include "commands.h"
 
 ;Define the number of supported features and where to store the callback table pointer
 ;in ROM
 #define kNumFeatures 			1
-#define kMIBEndpointAddress		0x7F9		//the last 6 bytes of program memory
+#define kMIBEndpointAddress		0x7FA		//the last 6 bytes of program memory
 #define kMIBMagicNumber			0xAA
 
 ;Define ways to create parameter specs simply

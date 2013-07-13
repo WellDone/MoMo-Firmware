@@ -18,7 +18,7 @@ static void bus_slave_startcommand()
 
 	bus_slave_setreturn(kUnknownError); //Make sure that if nothing else happens we return an error status.
 
-	bus_slave_receive((unsigned char *)&mib_state.bus_command, 2, 0);
+	bus_slave_receive((unsigned char *)&mib_state.bus_command, sizeof(MIBCommandPacket), 0);
 }
 
 void bus_slave_seterror(unsigned char error)

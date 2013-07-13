@@ -51,7 +51,7 @@
       - --asmlist 
       - --double=24 
       - --float=24 
-      - --opt=default,+asm,-asmfile,+speed,-space,-debug 
+      - --opt=all,-asmfile
       - --addrqual=require 
       - --mode=pro 
       - -P 
@@ -77,7 +77,7 @@
       - --asmlist 
       - --double=24 
       - --float=24 
-      - --opt=default,+asm,-asmfile,+speed,-space,-debug 
+      - --opt=all,-asmfile
       - --addrqual=require 
       - --mode=pro 
       - -P 
@@ -101,7 +101,7 @@
       - --asmlist 
       - --double=24 
       - --float=24 
-      - --opt=default,+asm,-asmfile,+speed,-space,-debug 
+      - --opt=all,-asmfile
       - --addrqual=require 
       - --mode=pro 
       - -P 
