@@ -10,12 +10,6 @@ enum
 	kMIBExecuteCommand = 2
 };
 
-typedef enum
-{
-	kMIBTestFeature = 2,
-	kMIBProgrammingFeature = 255
-} MIBFeature;
-
 typedef struct {
 	const BYTE           command_tag;
 	const mib_callback   handler;
@@ -23,12 +17,12 @@ typedef struct {
 } mib_command_handler;
 
 typedef struct {
-	const MIBFeature     feature;
+	unsigned int         id;
 	mib_command_handler* commands;
 	unsigned int         command_count;
 } feature_map;
 
-mib_command_handler*	find_handler(MIBFeature feature, BYTE cmd);
-void register_mib_features( const feature_map* features, unsigned int count );
+mib_command_handler*	find_handler(unsigned int feature_id, BYTE cmd);
+void register_mib_features( const feature_map** features, unsigned int count );
 
 #endif

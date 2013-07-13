@@ -2,6 +2,8 @@
 #include "test.h"
 #include <string.h>
 
+#include "mib_features.h"
+
 extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
 
 void* test_command(MIBParamList *param)
@@ -32,3 +34,10 @@ void* echo_buffer(MIBParamList *list)
 
 	return NULL;
 }
+
+DEFINE_MIB_FEATURE_COMMANDS(test)
+{
+	{0, echo_buffer, plist_define1(kMIBBufferType) },
+	{1, test_command, plist_define2(kMIBInt16Type, kMIBInt16Type) }
+};
+DEFINE_MIB_FEATURE(test);

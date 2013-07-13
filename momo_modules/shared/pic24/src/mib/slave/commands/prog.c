@@ -2,6 +2,8 @@
 #include "memory.h"
 #include "prog.h"
 #include "bootloader.h"
+
+#include "mib_features.h"
 /*
  * Erase the pic24 program portion of the flash memory
  *
@@ -53,3 +55,11 @@ void* read_from_nvram(MIBParamList *list)
 	bus_slave_setreturn(kNoMIBError, (volatile MIBParameterHeader*)retval);
 	return NULL;
 }
+
+DEFINE_MIB_FEATURE_COMMANDS(programming)
+{
+	{0, erase_primaryfirmware, plist_define0() },
+	{1, load_into_nvram, plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBBufferType) },
+	{2, read_from_nvram, plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBInt16Type) }
+};
+DEFINE_MIB_FEATURE(programming);

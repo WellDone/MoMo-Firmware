@@ -4,13 +4,13 @@
 #include "bus_slave.h"
 #include <string.h>
 	
-static const feature_map* the_features = NULL;
+static const feature_map** the_features = NULL;
 static unsigned int the_feature_count = 4;
 //static feature_map* features;
 
 extern volatile unsigned char 	mib_buffer[kBusMaxMessageSize];
 
-mib_command_handler* find_handler(MIBFeature feature, BYTE cmd)
+mib_command_handler* find_handler(unsigned int feature_id, BYTE cmd)
 {
 	unsigned int i;
 	const feature_map* found_feat = NULL;
@@ -20,9 +20,9 @@ mib_command_handler* find_handler(MIBFeature feature, BYTE cmd)
 	
 	for (i=0; i<4; ++i)
 	{
-		if (the_features[i].feature == feature)
+		if (the_features[i]->id == feature_id)
 		{
-			found_feat = &the_features[i];
+			found_feat = the_features[i];
 			break;
 		}
 	}
@@ -39,7 +39,7 @@ mib_command_handler* find_handler(MIBFeature feature, BYTE cmd)
 	return NULL;
 }
 
-void register_mib_features( const feature_map* features, unsigned int count )
+void register_mib_features( const feature_map** features, unsigned int count )
 {
 	the_features = features;
 	the_feature_count = count;
