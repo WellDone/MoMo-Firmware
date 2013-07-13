@@ -2,6 +2,7 @@
 #define __common_types_h__
 
 #include <GenericTypeDefs.h>
+#include "bit_utilities.h"
 
 typedef unsigned short bool;
 #define false 0

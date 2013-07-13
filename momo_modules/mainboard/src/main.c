@@ -105,7 +105,7 @@ void send_blink_message(void)
     bus_master_compose_params(plist_define1(kMIBInt16Type));
     set_intparam(0, 5);
 
-    bus_master_rpc(NULL, 0x09, 0x02, 0x01);
+    bus_master_rpc(NULL, 0x09, 0x01, 0x00);
 }
 
 ScheduledTask task1;
@@ -126,7 +126,7 @@ int main(void)
     register_reset_handlers();
     handle_reset();
 
-    scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
+    //scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
     scheduler_schedule_task(send_blink_message, kEverySecond, kScheduleForever, &i2c);
 
     taskloop_loop();

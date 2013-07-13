@@ -15,7 +15,7 @@ void erase_primaryfirmware(void)
 	mem_clear_subsection(kPic24FirmwareSubsection4);
 	mem_clear_subsection(kPic24FirmwareSubsection5);
 
-	bus_slave_setreturn(kNoMIBError, 0);
+	bus_slave_setreturn(kNoMIBError);
 }
 
 void load_into_nvram(void)
