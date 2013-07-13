@@ -1,15 +1,22 @@
-//mib_command.c 
+//mib_hal.c
+/*
+ * pic12 specific versions of the required functions in the MIB hardware abstraction layer.
+ * some are implemented in assembly and stored in mib_hal.asm
+ */
 
-#include "mib_command.h"
-#include "bus_slave.h"
-#include <string.h>
+//external assembly functions for getting application code rpc information (defined in mib_hal.asm)
 
-//device must define a command map 
-#include "command_map.h"
+#include "bus.h"
+#include "mib_hal.h"
 
-extern uint8 loadparams(uint8 spec); //ASM function to create the parameters in the mib buffer
 
-unsigned char find_handler(unsigned char feature, unsigned char cmd)
+uint8 get_num_features();
+uint8 get_feature(uint8 feature);
+uint8 get_command(uint8 command);
+uint8 get_spec(uint8 index);
+uint8 get_magic();
+
+uint8 find_handler(uint8 feature, uint8 cmd)
 {
 	uint8 found_feat;
 
@@ -34,7 +41,11 @@ unsigned char find_handler(unsigned char feature, unsigned char cmd)
 	return cmd;
 }
 
-uint8 build_params(uint8 handler_index)
+void bus_init()
 {
-	return loadparams(get_spec(handler_index));
+	mib_state.num_reads = 0;
+	mib_state.slave_state = kMIBIdleState;
+	mib_state.master_state = kMIBIdleState;
+	
+	i2c_enable(0x09);
 }

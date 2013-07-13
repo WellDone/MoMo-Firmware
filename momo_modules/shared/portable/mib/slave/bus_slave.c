@@ -1,5 +1,4 @@
 #include "bus_slave.h"
-#include "mib_command.h"
 
 //static prototypes that are only to be used in this file
 static void bus_slave_startcommand();

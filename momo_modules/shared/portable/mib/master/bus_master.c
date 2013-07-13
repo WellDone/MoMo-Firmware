@@ -9,9 +9,6 @@ void 			bus_master_handleerror();
 void 			bus_master_sendrpc(unsigned char address);
 void 			bus_master_readstatus();
 
-extern uint8 loadparams(uint8 spec);
-
-
 unsigned char bus_master_lastaddress()
 {
 	return mib_state.bus_msg.address >> 1;
