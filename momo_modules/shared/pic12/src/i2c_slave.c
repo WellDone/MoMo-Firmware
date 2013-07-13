@@ -34,13 +34,13 @@ void i2c_slave_receivechecksum()
 
 	i2c_msg->checksum = ~i2c_msg->checksum + 1;
 
-	slave.state = kI2CUserCallbackState;
-	bus_slave_callback();
-
 	if (check != i2c_msg->checksum)
 		slave.last_error = kI2CInvalidChecksum;
 	else
 		slave.last_error = kI2CNoError;
+
+	slave.state = kI2CUserCallbackState;
+	bus_slave_callback();
 
 	i2c_release_clock();
 }
