@@ -58,7 +58,7 @@ void main() {
 
     bus_master_compose_params(plist_define1(kMIBInt16Type));
     set_intparam(0,5);
-    bus_master_rpc(NULL, 0x09, 0x30, 0x40);
+    bus_master_rpc(NULL, 0x0A, 0x30, 0x40);
 
     // 0x7ff is highest word in flash memory for pic12lf1822
     // if application is loaded, highest byte will be 0x55

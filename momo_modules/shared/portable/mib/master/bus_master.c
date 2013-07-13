@@ -11,11 +11,7 @@ void 			bus_master_readstatus();
 
 unsigned char bus_master_lastaddress()
 {
-#ifndef _PIC12
 	return mib_state.bus_msg.address >> 1;
-#else
-	return mib_state.bus_msg.address; //You don't have to shift the address on pic12.
-#endif
 }
 
 void bus_master_finish(uint8 next)
