@@ -2,6 +2,7 @@
 #define __bus_common_h__
 
 #include "platform.h"
+#include "mib_hal.h"
 #include "i2c.h"
 #include "protocol.h"
 
@@ -78,7 +79,6 @@ MIBBufferParameter  *	bus_allocate_buffer_param(uint8 len); //if len == 0, then 
 #ifndef _MACRO_SMALL_FUNCTIONS
 void bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
 void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
-
 #else
 
 #define bus_send(add, buffer, len, f)				\

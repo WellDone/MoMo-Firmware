@@ -6,6 +6,7 @@
 //Configurable defines
 #define kMIBCommandLength 	sizeof(MIBCommandPacket)
 #define kBusMaxMessageSize 	20
+#define kInvalidMIBIndex 	255
 
 enum
 {

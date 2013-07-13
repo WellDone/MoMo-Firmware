@@ -23,16 +23,16 @@
 #define plist_define3(type1, type2, type3)		plist_define(3, plist_3params(type1, type2, type3))
 
 PSECT mibmap,abs,ovrld,local,class=CODE,delta=2
-GLOBAL _blink_pin
+global _blink_pin
 
 ;High memory command structure for processing mib slave endpoints
-ORG 	kMIBEndpointAddress
-RETLW 	kNumFeatures
-GOTO 	mibfeatures
-GOTO 	mibcommands
-GOTO 	mibspecs
-GOTO 	mibhandlers
-RETLW	kMIBMagicNumber
+org 	kMIBEndpointAddress
+retlw 	kNumFeatures
+goto 	mibfeatures
+goto 	mibcommands
+goto 	mibspecs
+goto 	mibhandlers
+retlw	kMIBMagicNumber
 
 PSECT mibstructs,local,class=CONST,delta=2
 
