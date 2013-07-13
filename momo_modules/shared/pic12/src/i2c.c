@@ -90,7 +90,6 @@ void i2c_send_message()
     }
 
     master.dir = kMasterSendData;
-    mib_state.bus_msg.address <<= 1;
 
     CLEAR_BIT(mib_state.bus_msg.address, 0); //set write indication
 
@@ -110,7 +109,6 @@ void i2c_receive_message()
     }
 
     master.dir = kMasterReceiveData;
-    mib_state.bus_msg.address <<= 1;
 
     SET_BIT(mib_state.bus_msg.address, 0); //set read indication
 
