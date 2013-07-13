@@ -37,15 +37,15 @@ void read_from_nvram(void)
 	unsigned long offset = get_uint16_param(1);
 	unsigned int len = get_uint16_param(2);
 
-	unsigned char *retbuffer;
-	MIBParameterHeader *retval;
+	MIBBufferParameter *retval;
 
 	unsigned long addr = (page << 16) + offset;
 
-	retval = bus_allocate_return_buffer(&retbuffer);
+	loadparams(plist_1param(kMIBBufferType));
+	retval = get_buffer_param(0);
 
-	mem_read(addr, retbuffer, len);
-	retval->len = len;
+	mem_read(addr, mib_buffer+2, len);
+	retval->header.len = len;
 
-	bus_slave_setreturn(kNoMIBError, (volatile MIBParameterHeader*)retval);
+	bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)retval);
 }

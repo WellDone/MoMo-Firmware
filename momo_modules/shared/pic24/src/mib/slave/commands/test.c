@@ -1,19 +1,16 @@
 #include "bus_slave.h"
+#include "bus.h"
 #include "test.h"
 #include <string.h>
-
-extern unsigned char 	mib_buffer[kBusMaxMessageSize];
 
 void test_command(void)
 {
 	_RA1 = !_RA1;
 	
-	MIBIntParameter *retval;
-
-	retval = (MIBIntParameter*)bus_allocate_int_param();
-
-	bus_init_int_param(retval, 6);
-	bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)retval);
+	loadparams(plist_1param(kMIBInt16Type));
+	set_intparam(0, 6);
+	
+	bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)mib_buffer);
 }
 
 void echo_buffer(void)

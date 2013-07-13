@@ -8,9 +8,6 @@
 //Include command map
 #include "commands.h"
 
-extern unsigned char 	mib_buffer[kBusMaxMessageSize];
-extern void loadparams(uint8 spec); //ASM function to create the parameters in the mib buffer
-
 uint8 find_handler(unsigned char feature, unsigned char cmd)
 {
 	uint8 i, num_cmds;
@@ -26,21 +23,53 @@ uint8 find_handler(unsigned char feature, unsigned char cmd)
 	}
 
 	if (found_feat == kNumFeatures)
-		return kInvalidMIBHandler;
+		return kInvalidMIBIndex;
 
 	num_cmds = commands[found_feat+1] - commands[found_feat];
 
 	if (cmd >= num_cmds)
-		return kInvalidMIBHandler;
+		return kInvalidMIBIndex;
 
 	return commands[found_feat] + cmd;
 }
 
-uint8 build_params(uint8 handler_index)
+void  call_handler(uint8 handler_index)
 {
-	loadparams(param_specs[handler_index]);
+	handlers[handler_index]();
+}
 
-	return (param_specs[handler_index] & 0b111); //return the count
+uint8 validate_params(uint8 handler_index)
+{
+	return 1;
+}
+
+uint8 loadparams(uint8 param_spec)
+{
+	uint8 param_cnt = extract_param_count(param_spec);
+	uint8 i;
+	uint8 *ptr = mib_buffer;
+
+	for (i=0; i<param_cnt; ++i)
+	{
+		if (extract_param_type(param_spec, i) == kMIBInt16Type)
+		{
+			MIBIntParameter *param = (MIBIntParameter*)ptr;
+			param->header.type = kMIBInt16Type;
+			param->header.len = 2;
+			param->value = 0;
+
+			ptr += sizeof(MIBIntParameter);
+		}
+		else
+		{
+			MIBBufferParameter *param = (MIBBufferParameter*)ptr;
+			param->header.type = kMIBBufferType;
+			param->header.len = kBusMaxMessageSize - (ptr-mib_buffer) - 2;
+			ptr += sizeof(MIBParameterHeader);
+		}
+	}
+
+	return (uint8)(ptr-mib_buffer);
 }
 
 void bus_init()
@@ -55,8 +84,6 @@ void bus_init()
 	i2c_init_flags(&config);
 	i2c_set_flag(&config, kEnableGeneralCallFlag);
 	i2c_set_flag(&config, kEnableSoftwareClockStretchingFlag);
-
-	mib_firstfree = 0;
 
 	i2c_configure(&config);
 	i2c_enable();

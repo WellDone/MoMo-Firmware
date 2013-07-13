@@ -4,6 +4,7 @@
 #include "task_manager.h"
 #include "scheduler.h"
 #include "bus_master.h"
+#include <string.h>
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -54,46 +55,32 @@ void blink_light1(void)
 
 void send_erase_message(void)
 {
-    bus_master_rpc(NULL, 8, 255, 0x00, NULL, 0);
+    bus_master_rpc(NULL, 8, 255, 0x00);
 }
 
 void send_write_message(void)
 {
-    MIBIntParameter param1;
-    MIBIntParameter param2;
-    MIBBufferParameter param3;
+    MIBBufferParameter *param3;
     char *msg = "test";
 
-    MIBParameterHeader *params[3];
+    bus_master_compose_params(plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBBufferType));
+    set_intparam(0, 0);
+    set_intparam(1, 1<<12);
+    param3 = get_buffer_param(2);
+    memmove(get_buffer_loc(2), msg, 5);
+    param3->header.len = 5;
 
-    params[0] = (MIBParameterHeader*)&param1;
-    params[1] = (MIBParameterHeader*)&param2;
-    params[2] = (MIBParameterHeader*)&param3;
-
-    bus_init_int_param(&param1, 0);
-    bus_init_int_param(&param2, 1<<12);
-    bus_init_buffer_param(&param3, msg, 5);
-
-    bus_master_rpc(NULL, 8, 255, 0x01, params, 3);
+    bus_master_rpc(NULL, 8, 255, 0x01);
 }
 
 void send_read_message(void)
 {
-    MIBIntParameter param1;
-    MIBIntParameter param2;
-    MIBIntParameter param3;
+    bus_master_compose_params(plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBInt16Type));
+    set_intparam(0, 0);
+    set_intparam(1, 1<<12);
+    set_intparam(2, 5);
 
-    MIBParameterHeader *params[3];
-
-    params[0] = (MIBParameterHeader*)&param1;
-    params[1] = (MIBParameterHeader*)&param2;
-    params[2] = (MIBParameterHeader*)&param3;
-
-    bus_init_int_param(&param1, 0);
-    bus_init_int_param(&param2, 1<<12);
-    bus_init_int_param(&param3, 5);
-
-    bus_master_rpc(NULL, 8, 255, 0x02, params, 3);
+    bus_master_rpc(NULL, 8, 255, 0x02);
 }
 
 void send_test_message(void)
@@ -115,13 +102,10 @@ void send_test_message(void)
 
 void send_blink_message(void)
 {
-    MIBIntParameter param1;
-    MIBParameterHeader *params[1];
+    bus_master_compose_params(plist_define1(kMIBInt16Type));
+    set_intparam(0, 5);
 
-    params[0] = (MIBParameterHeader*)&param1;
-
-    bus_init_int_param(&param1, 5);
-    bus_master_rpc(NULL, 0x09, 0x02, 0x01, params, 1);
+    bus_master_rpc(NULL, 0x09, 0x02, 0x01);
 }
 
 ScheduledTask task1;
