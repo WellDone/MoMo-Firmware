@@ -69,7 +69,7 @@ static void bus_slave_searchcommand()
 	if (mib_state.bus_command.param_length > 0)
 		bus_slave_receive(mib_buffer, mib_state.bus_command.param_length, 0);
 	
-	mib_state.slave_state = kMIBExecuteCommandHandler;
+	mib_state.slave_state = kMIBFinishCommand;
 }
 
 /*
@@ -129,8 +129,7 @@ void bus_slave_callback()
 				 * subsequent reads until the master is satisfied that it has received one with a valid checksum.
 				 */
 
-				if (mib_state.num_reads == 1)
-					bus_slave_callcommand();
+				bus_slave_callcommand();
 
 				//slave callback should set the return status via bus_slave_setreturn and set mib_buffer to point to the return value if any
 				bus_slave_send((unsigned char*)&mib_state.bus_returnstatus, sizeof(MIBReturnValueHeader), kSendImmediately);
@@ -157,8 +156,13 @@ void bus_slave_callback()
 				mib_state.slave_state = kMIBFinishCommand;
 
 				//Make sure we can never overflow
-				if (mib_state.num_reads == 10)
-					mib_state.num_reads = 4; 
+				//Just toggle back and forth between 1, 2 and 3. Clear the slave handler though so
+				//that we don't recall the function
+				if (mib_state.num_reads == 3)
+				{
+					mib_state.slave_handler = kInvalidMIBIndex;
+					mib_state.num_reads = 1; 
+				}
 			}
 		}
 		else

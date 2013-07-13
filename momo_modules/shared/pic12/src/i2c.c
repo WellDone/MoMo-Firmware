@@ -5,10 +5,9 @@
 #include "i2c.h"
 #include "bus.h"
 
-volatile I2CMasterStatus master;
-volatile I2CSlaveStatus  slave;
+volatile I2CStatus i2c_status;
 
-unsigned char i2c_slave_address;
+bank1 unsigned char i2c_slave_address;
 
 //Internal functions
 static void i2c_master_receivedata();
@@ -16,8 +15,8 @@ static void i2c_master_receivechecksum();
 
 void i2c_enable(unsigned char slave_address)
 {
-    master.state = kI2CDisabledState;
-    slave.state = kI2CIdleState;
+    i2c_status.slave_active = 1;
+    i2c_status.state = kI2CIdleState;
 
     TRISA1 = 1; //SCL pin as input
     TRISA2 = 1; //SDA pin as input
@@ -59,20 +58,20 @@ void i2c_disable()
 
 void i2c_start_transmission()
 {
-    if (master.state == kI2CIdleState)
+    if (i2c_status.state == kI2CIdleState)
         i2c_send_start();
     else
         i2c_send_repeatedstart();
 
-    master.state = kI2CSendAddressState;
-    master.last_error = kI2CNoError; //Initialize last error
+    i2c_status.state = kI2CSendAddressState;
+    i2c_status.last_error = kI2CNoError; //Initialize last error
 }
 
 void i2c_finish_transmission()
 {
     i2c_send_stop();
 
-    master.state = kI2CIdleState;
+    i2c_status.state = kI2CIdleState;
 }
 
 void i2c_send_message()
@@ -82,14 +81,12 @@ void i2c_send_message()
     //Check if this is a slave transmission
     if (!i2c_address_valid(mib_state.bus_msg.address))
     {
-        slave.state = kI2CSendDataState;
-        if (mib_state.bus_msg.flags & kSendImmediately)
+        i2c_status.state = kI2CSendDataState;
+        if (mib_state.bus_msg.address == kInvalidImmediateAddress) //check if we should send immediately
             i2c_slave_sendbyte();
 
         return;
     }
-
-    master.dir = kMasterSendData;
 
     mib_state.bus_msg.address <<= 1;
     CLEAR_BIT(mib_state.bus_msg.address, 0); //set write indication
@@ -98,21 +95,28 @@ void i2c_send_message()
 }
 
 void i2c_receive_message()
-{    
-    if (!(mib_state.bus_msg.flags & kContinueChecksum))
-        mib_state.bus_msg.checksum = 0;
+{
+    mib_state.bus_msg.checksum = 0;
 
     //Check if this is a slave reception
     if (!i2c_address_valid(mib_state.bus_msg.address))
     {
-        slave.state = kI2CReceiveDataState;
+        i2c_status.state = kI2CReceiveDataState;
         return;
     }
-
-    master.dir = kMasterReceiveData;
 
     mib_state.bus_msg.address <<= 1;
     SET_BIT(mib_state.bus_msg.address, 0); //set read indication
 
     i2c_start_transmission();
+}
+
+uint8 i2c_lasterror()
+{
+    return i2c_status.last_error;
+}
+
+I2CLogicState i2c_state()
+{
+    return i2c_status.state;
 }

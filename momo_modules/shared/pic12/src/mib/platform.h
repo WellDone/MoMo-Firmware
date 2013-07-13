@@ -35,4 +35,10 @@ const MIBEndpointInfo rpc_info @ kMIBEndpointAddress;
 #define _PIC12LEAN
 #define _MACRO_SMALL_FUNCTIONS
 
+//PIC12 does not have separate master and slave statuses
+#define i2c_slave_lasterror()	i2c_lasterror()
+#define i2c_master_lasterror()	i2c_lasterror()
+#define i2c_slave_state()		i2c_state()
+#define i2c_master_state()		i2c_state()
+
 #endif

@@ -8,8 +8,8 @@
 
 #define kControllerPICAddress	0x08
 
-#define bus_slave_send(buffer, len, flags)			bus_send(kInvalidI2CAddress, buffer, len, flags)
-#define bus_slave_receive(buffer, len, flags) 		bus_receive(kInvalidI2CAddress, buffer, len, flags)
+#define bus_slave_send(buffer, len, imm)			bus_send(kInvalidI2CAddress | imm, buffer, len)
+#define bus_slave_receive(buffer, len, imm) 		bus_receive(kInvalidI2CAddress | imm, buffer, len)
 
 //Callback type for master rpc routines
 typedef 	void (*mib_rpc_function)(unsigned char);
@@ -27,19 +27,16 @@ enum
 	kSlaveNotAvailable = 255
 };
 
+//Takes 2 bits to store
 typedef enum
 {
 	kMIBIdleState = 0,
-	kMIBSearchCommand,
-	kMIBReceiveParameterHeader,
-	kMIBReceiveParameterValue,
-	kMIBFinishedReceivingParameters,
-	kMIBReceivedParameterChecksum,
-	kMIBExecuteCommandHandler,
-	kMIBFinishCommand,
-	kMIBProtocolError,
+	kMIBSearchCommand = 1,
+	kMIBFinishCommand = 2,
+	kMIBProtocolError = 3,
 } MIBSlaveState;
 
+//Takes 3 bits to store
 typedef enum 
 {
 	kMIBSendParameters = 1,
@@ -56,15 +53,19 @@ typedef struct
 	MIBCommandPacket		bus_command;
 	I2CMessage				bus_msg;
 	MIBReturnValueHeader	bus_returnstatus;
-
-	//Slave section
+	
+	//handlers
 	uint8					slave_handler;
-	volatile MIBSlaveState	slave_state;
-	uint8 					num_reads;
-
-	//Master section	
-	volatile MIBMasterState master_state;
+	
+	//PIC12 does not support ascynchronous master RPCs
+	#ifndef _PIC12
 	mib_rpc_function		master_callback;
+	#endif
+
+	volatile uint8			num_reads	 : 2;
+	volatile uint8			slave_state  : 2;
+	volatile uint8 			master_state : 3;
+	volatile uint8			rpc_done 	 : 1;
 } MIBState;
 
 /*
@@ -74,34 +75,30 @@ typedef struct
 
 #ifndef __NO_EXTERN_MIB_STATE__
 
-extern MIBState 			mib_state;
+extern bank1 MIBState 		mib_state;
 extern bank1 unsigned char 	mib_buffer[kBusMaxMessageSize];
-extern bank1 unsigned char 	mib_firstfree;
 
 #endif
 
 //Bus transmission functions
 #ifndef _MACRO_SMALL_FUNCTIONS
-void bus_send(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
-void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len, unsigned char flags);
+void bus_send(unsigned char address, unsigned char *buffer, unsigned char len);
+void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len);
 #else
 
-#define bus_send(add, buffer, len, f)				\
+#define bus_send(add, buffer, len)					\
 {													\
 	mib_state.bus_msg.address = add;				\
 	mib_state.bus_msg.data_ptr = buffer;			\
 	mib_state.bus_msg.last_data = buffer + len;		\
-	mib_state.bus_msg.flags = f;					\
 	i2c_send_message();								\
 }
 
-#define bus_receive(add, buffer, length, f)			\
+#define bus_receive(add, buffer, length)			\
 {													\
 	mib_state.bus_msg.address = add;				\
 	mib_state.bus_msg.data_ptr = buffer;			\
-	mib_state.bus_msg.last_data = buffer;			\
-	mib_state.bus_msg.len = length;					\
-	mib_state.bus_msg.flags = f;					\
+	mib_state.bus_msg.last_data = buffer + length;	\
 	i2c_receive_message();							\
 }
 

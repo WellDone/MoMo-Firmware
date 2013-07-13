@@ -92,7 +92,7 @@ void i2c_send_message()
     if (!i2c_address_valid(mib_state.bus_msg.address))
     {
         slave.state = kI2CSendDataState;
-        if (mib_state.bus_msg.flags & kSendImmediately)
+        if (mib_state.bus_msg.address == kInvalidImmediateAddress)
             i2c_slave_sendbyte();
 
         return;
@@ -108,9 +108,8 @@ void i2c_send_message()
 
 void i2c_receive_message()
 {
-    if (!(mib_state.bus_msg.flags & kContinueChecksum))
-        mib_state.bus_msg.checksum = 0;
-
+	mib_state.bus_msg.checksum = 0;
+	
     //Check if this is a slave reception
     if (!i2c_address_valid(mib_state.bus_msg.address))
     {

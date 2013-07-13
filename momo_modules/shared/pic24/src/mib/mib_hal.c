@@ -86,6 +86,10 @@ void bus_init()
 	i2c_set_flag(&config, kEnableGeneralCallFlag);
 	i2c_set_flag(&config, kEnableSoftwareClockStretchingFlag);
 
+	mib_state.num_reads = 0;
+	mib_state.slave_state = kMIBIdleState;
+	mib_state.master_state = kMIBIdleState;
+
 	i2c_configure(&config);
 	i2c_enable();
 }

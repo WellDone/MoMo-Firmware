@@ -34,7 +34,7 @@ void initialize ();
 void interrupt service_isr() {
     // Handle i2c interrupts (MSSP) in the bootloader.
     if (SSP1IF == 1) {
-        if (i2c_master_state() == kI2CDisabledState) {
+        if (i2c_slave_active()) {
             i2c_slave_interrupt();
         } else {
             i2c_master_interrupt();
@@ -58,7 +58,7 @@ void main() {
 
     //bus_master_compose_params(plist_define1(kMIBInt16Type));
     //set_intparam(0,5);
-    //bus_master_rpc(NULL, 0x0A, 0x01, 0x00);
+    //bus_master_rpc_sync(0x0A, 0x01, 0x00);
 
     // 0x7ff is highest word in flash memory for pic12lf1822
     // if application is loaded, highest byte will be 0x55

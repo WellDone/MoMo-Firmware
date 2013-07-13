@@ -16,7 +16,7 @@ unsigned char bus_master_lastaddress()
 
 void bus_master_finish(uint8 next)
 {
-	bus_send(bus_master_lastaddress(), (unsigned char *)mib_buffer, 1, 0);
+	bus_send(bus_master_lastaddress(), (unsigned char *)mib_buffer, 1);
 	mib_state.master_state = next;
 }
 
@@ -25,13 +25,25 @@ void bus_master_compose_params(uint8 spec)
 	mib_state.bus_command.param_length = loadparams(spec);
 }
 
-void bus_master_rpc(mib_rpc_function callback, unsigned char address, unsigned char feature, unsigned char cmd)
+#ifndef _PIC12
+void bus_master_rpc_async(mib_rpc_function callback, unsigned char address, unsigned char feature, unsigned char cmd)
 {
 	mib_state.bus_command.feature = feature;
 	mib_state.bus_command.command = cmd;
 	mib_state.master_callback = callback;
 
 	bus_master_sendrpc(address);
+}
+#endif
+
+uint8 bus_master_rpc_sync(unsigned char address, unsigned char feature, unsigned char cmd)
+{
+	mib_state.bus_command.feature = feature;
+	mib_state.bus_command.command = cmd;
+
+	bus_master_sendrpc(address);
+
+	//FIXME: wait for this to finish and return the status
 }
 
 /*
@@ -42,17 +54,19 @@ void bus_master_sendrpc(unsigned char address)
 {
 	i2c_master_enable();
 
+	mib_state.rpc_done = 0;
+
 	if (mib_state.bus_command.param_length > 0)
 		mib_state.master_state = kMIBSendParameters;
 	else
 		mib_state.master_state = kMIBReadReturnStatus;
 
-	bus_send(address, (unsigned char *)&mib_state.bus_command, sizeof(MIBCommandPacket), 0);
+	bus_send(address, (unsigned char *)&mib_state.bus_command, sizeof(MIBCommandPacket));
 }
 
 void bus_master_readstatus()
 {
-	bus_receive(bus_master_lastaddress(), (unsigned char *)&mib_state.bus_returnstatus, sizeof(MIBReturnValueHeader), 0);
+	bus_receive(bus_master_lastaddress(), (unsigned char *)&mib_state.bus_returnstatus, sizeof(MIBReturnValueHeader));
 	mib_state.master_state = kMIBReadReturnValue;
 }
 
@@ -76,7 +90,7 @@ void bus_master_callback()
 	switch(mib_state.master_state)
 	{
 		case kMIBSendParameters:
-		bus_send(bus_master_lastaddress(), (unsigned char*)mib_buffer, mib_state.bus_command.param_length, 0);
+		bus_send(bus_master_lastaddress(), (unsigned char*)mib_buffer, mib_state.bus_command.param_length);
 		mib_state.master_state = kMIBReadReturnStatus;
 		break;
 
@@ -99,7 +113,7 @@ void bus_master_callback()
 			}
 
 			//This is discarded, but we need to issue a read in case the slave is sending us a return value
-			bus_receive(bus_master_lastaddress(), (unsigned char *)&mib_state.bus_returnstatus, 1, 0);
+			bus_receive(bus_master_lastaddress(), (unsigned char *)&mib_state.bus_returnstatus, 1);
 			mib_state.master_state = kMIBReadReturnStatus;
 		}
 		else if (mib_state.bus_returnstatus.result != kNoMIBError)
@@ -108,7 +122,7 @@ void bus_master_callback()
 		{
 			if (mib_state.bus_returnstatus.len > 0)
 			{
-				bus_receive(bus_master_lastaddress(), (unsigned char *)mib_buffer, mib_state.bus_returnstatus.len, 0);
+				bus_receive(bus_master_lastaddress(), (unsigned char *)mib_buffer, mib_state.bus_returnstatus.len);
 				mib_state.master_state = kMIBExecuteCallback;
 			}
 			else
@@ -131,8 +145,15 @@ void bus_master_callback()
 		break;
 
 		case kMIBFinalizeMessage:
+		//Set the flag that this RPC is done for whomever is waiting.
+		mib_state.rpc_done = 1;
+		
+		#ifndef _PIC12
 		if (mib_state.master_callback != NULL)
 			mib_state.master_callback(mib_state.bus_returnstatus.result);
+		#else
+
+		#endif
 
 		//bus_free_all();
 		i2c_finish_transmission(); 

@@ -55,7 +55,7 @@ void blink_light1(void)
 
 void send_erase_message(void)
 {
-    bus_master_rpc(NULL, 8, 255, 0x00);
+    bus_master_rpc_async(NULL, 8, 255, 0x00);
 }
 
 void send_write_message(void)
@@ -70,7 +70,7 @@ void send_write_message(void)
     memmove(get_buffer_loc(2), msg, 5);
     param3->header.len = 5;
 
-    bus_master_rpc(NULL, 8, 255, 0x01);
+    bus_master_rpc_async(NULL, 8, 255, 0x01);
 }
 
 void send_read_message(void)
@@ -80,7 +80,7 @@ void send_read_message(void)
     set_intparam(1, 1<<12);
     set_intparam(2, 5);
 
-    bus_master_rpc(NULL, 8, 255, 0x02);
+    bus_master_rpc_async(NULL, 8, 255, 0x02);
 }
 
 void send_test_message(void)
@@ -105,7 +105,7 @@ void send_blink_message(void)
     bus_master_compose_params(plist_define1(kMIBInt16Type));
     set_intparam(0, 5);
 
-    bus_master_rpc(NULL, 0x09, 0x01, 0x00);
+    bus_master_rpc_async(NULL, 0x09, 0x01, 0x00);
 }
 
 ScheduledTask task1;

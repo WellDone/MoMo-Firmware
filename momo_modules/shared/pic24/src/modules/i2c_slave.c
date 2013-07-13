@@ -8,21 +8,13 @@ void i2c_slave_receivedata()
 {
 	unsigned char data = I2C1RCV;
 
-	*(i2c_msg->last_data) = data;
+	*(i2c_msg->data_ptr) = data;
 	i2c_msg->checksum += data;
-	i2c_msg->last_data += 1;
+	i2c_msg->data_ptr += 1;
 
 	//Check if we are at the end of the message
-	if ((i2c_msg->last_data - i2c_msg->data_ptr) == i2c_msg->len)
-	{
+	if (i2c_msg->data_ptr == i2c_msg->last_data)
 		slave.state = kI2CReceiveChecksumState;
-
-		if (i2c_msg->flags & kCallbackBeforeChecksum)
-		{
-			taskloop_add(i2c_slave_callback);
-			return; //Don't release clock, job of callback in this case
-		}
-	}
 
 	i2c_release_clock();
 }

@@ -39,8 +39,9 @@ enum
 #define i2c_stop_received()         (P == 1)
 #define i2c_address_received()      (D_nA == 0)
 
-#define kInvalidI2CAddress          0x02                //Guaranteed not to be in use by the i2c protocol
-#define i2c_address_valid(address)  (address != kInvalidI2CAddress)
+#define kInvalidImmediateAddress          0x03                //Guaranteed not to be in use by the i2c protocol
+#define kInvalidI2CAddress                0x01                //Also not in use by i2c protocol
+#define i2c_address_valid(address)  (!(address > 0 && address < 4))
 
 typedef enum
 {
@@ -66,40 +67,24 @@ typedef enum
 typedef struct
 {
     unsigned char address;
-    unsigned char len; //The length of the buffer pointed to by data pointer when receiving data, unused when sending
+    unsigned char checksum;
 
     unsigned char * data_ptr;
     unsigned char * last_data;
 
-    unsigned char checksum;
-    unsigned char flags;
 } I2CMessage;
 
 enum
 {
-    kCallbackBeforeChecksum = 1 << 0,
     kSendImmediately = 1 << 1,
-    kContinueChecksum = 1 << 2
 };
-
-typedef enum 
-{
-    kMasterSendData = 0,
-    kMasterReceiveData = 1
-} I2CMasterDirection;
 
 typedef struct
 {
-    I2CLogicState       state;
-    I2CMasterDirection  dir;
+    uint8               slave_active:1;
+    uint8               state:7;
     I2CErrorCode        last_error;
-} I2CMasterStatus;
-
-typedef struct 
-{
-    I2CLogicState state;
-    I2CErrorCode  last_error;
-} I2CSlaveStatus;
+} I2CStatus;
 
 //Configuration Functions
 void i2c_enable(unsigned char slave_address);
@@ -114,19 +99,19 @@ void i2c_finish_transmission();
 
 //Master Functions
 void    i2c_master_setidle();
-uint8   i2c_master_lasterror();
 void    i2c_master_enable();
 void    i2c_master_disable();
 void    i2c_master_interrupt();
-I2CLogicState i2c_master_state();
 
 //Slave Functions
 void    i2c_slave_receivedata();
 void    i2c_slave_receivechecksum();
 void    i2c_slave_setidle();
 void    i2c_slave_sendbyte();
-uint8   i2c_slave_lasterror();
 void    i2c_slave_interrupt();
-I2CLogicState i2c_slave_state();
+
+uint8         i2c_lasterror();
+I2CLogicState i2c_state();
+uint8         i2c_slave_active();
 
 #endif
