@@ -55,7 +55,7 @@ void i2c_master_disable()
 void i2c_master_enable()
 {
 	i2c_status.slave_active = 0;
-	//i2c_status.state = kI2CIdleState; should already be in idle state when this is called
+	i2c_status.state = kI2CIdleState;
 
 	SSP1IE = 0;
 	SSPEN = 0;
@@ -98,7 +98,7 @@ void i2c_master_interrupt()
 	{
 		case kI2CSendAddressState:
 		i2c_transmit(i2c_msg->address);
-		i2c_status.state = ((i2c_msg->address) & 0x01 == 0) ? kI2CSendDataState : kI2CReceiveDataState;
+		i2c_status.state = (((i2c_msg->address) & 0x01) == 0) ? kI2CSendDataState : kI2CReceiveDataState;
 		break;
 
 		case kI2CReceiveDataState:

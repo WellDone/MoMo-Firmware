@@ -70,8 +70,7 @@ void i2c_start_transmission()
 void i2c_finish_transmission()
 {
     i2c_send_stop();
-
-    i2c_status.state = kI2CIdleState;
+    i2c_master_disable();
 }
 
 void i2c_send_message()

@@ -102,8 +102,10 @@ void send_test_message(void)
 
 void send_blink_message(void)
 {
-    bus_master_compose_params(plist_define1(kMIBInt16Type));
+    bus_master_compose_params(plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBInt16Type));
     set_intparam(0, 5);
+    set_intparam(1, 10);
+    set_intparam(2, 1);
 
     bus_master_rpc_async(NULL, 0x09, 0x01, 0x00);
 }

@@ -56,9 +56,9 @@ void main() {
         goto Bootloader;
     }
 
-    //bus_master_compose_params(plist_define1(kMIBInt16Type));
-    //set_intparam(0,5);
-    //bus_master_rpc_sync(0x0A, 0x01, 0x00);
+    bus_master_compose_params(plist_define1(kMIBInt16Type));
+    set_intparam(0,5);
+    bus_master_rpc_sync(0x08, 0x01, 0x00);
 
     // 0x7ff is highest word in flash memory for pic12lf1822
     // if application is loaded, highest byte will be 0x55
@@ -78,15 +78,24 @@ void initialize ()
 {
     /* Software 4x PPL enabled, 32 MHz HF Internal Oscillator. */
     OSCCON = 0xF0;
-    /* Set all PORTA pins to be digital I/O (instead of analog input). */
-    ANSELA = 0;
+
+    //wait for the pll to stabilize.
+    while (!HFIOFS)
+        ;
+
+    while (!PLLR)
+        ;
+
     /* Set all PORTA pins to be input. */
     TRISA = 0xff;
     /* Set PORTA pin 5 to be output. */
     TRISA5 = 0;
+    RA5 = 0;
+
+    /* Set all PORTA pins to be digital I/O (instead of analog input). */
+    ANSELA = 0;
     /* Turn Timer1 on with 1:8 prescale using FOSC/4 as source. */
     T1CON = 0x31;
-    RA5 = 0;
     
     /* Enable interrupts globally. */
     GIE = 1;
