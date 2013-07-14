@@ -2,18 +2,19 @@
 #define __FTDIShell_h
 
 #include "FTDIConnection.h"
-#include "CommanderShell.h"
+#include "Shell.h"
 
 #include <pthread.h>
 
-class FTDIShell : public CommanderShell
+class FTDIShell : public Shell
 {
 public:
 	FTDIShell( FTDIConnection& connection )
-		: CommanderShell()
+		: Shell( false )
 		, m_connection( connection )
+		, exiting( false )
 	{
-		SetPrompt( m_connection.SerialNumber().c_str() );
+		SetPrompt( "" );//m_connection.SerialNumber().c_str() );
 		if (m_connection.Active()) {
 			Activate();
 		}
@@ -22,11 +23,14 @@ public:
 	~FTDIShell()
 	{
 		m_connection.Close();
-		pthread_kill( m_readerThread, 0 );
+		exiting = true;
+		pthread_join( m_readerThread, NULL );
 	}
 
 	void Activate();
 	FTDIConnection& Connection() const { return m_connection; }
+
+	bool exiting;
 private:
 	FTDIConnection& m_connection;
 	pthread_t m_readerThread;

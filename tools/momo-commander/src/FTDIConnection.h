@@ -10,7 +10,7 @@ public:
 	FTDIConnection(const char* serialNumber)
 		: m_deviceSerialNumber( serialNumber )
 		, m_deviceHandle( NULL )
-		, m_baudRate( 115200 )
+		, m_baudRate( FT_BAUD_115200 )
 	{}
 	FTDIConnection( const FTDIConnection& source )
 		: m_deviceSerialNumber( source.m_deviceSerialNumber )
@@ -30,6 +30,9 @@ public:
 
 	unsigned int GetBAUD() const    { return m_baudRate; }
 	void SetBAUD(unsigned int baud) { m_baudRate = baud; }
+
+	std::string Read();
+	bool Write( const std::string& data );
 
 	const std::string& SerialNumber() const { return m_deviceSerialNumber; }
 	FT_HANDLE DeviceHandle() const { return m_deviceHandle; }

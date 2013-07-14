@@ -2,34 +2,6 @@
 
 #define BUF_SIZE 10
 
-void DoRead( const FTDIShell& shell ) { 
-	/* Read */
-	unsigned char * pcBufRead = NULL;
-	DWORD	dwRxSize = 0;
-	DWORD   dwBytesRead;
-	FT_STATUS	ftStatus;
-
-	ftStatus = FT_GetQueueStatus(shell.Connection().DeviceHandle(), &dwRxSize);
-	if(ftStatus == FT_OK) {
-		if (dwRxSize == 0)
-			return;
-		pcBufRead = (unsigned char*)malloc(dwRxSize+1);
-		ftStatus = FT_Read(shell.Connection().DeviceHandle(), pcBufRead, dwRxSize, &dwBytesRead);
-		if (ftStatus != FT_OK) {
-			printf("Error FT_Read(%d)\n", (int)ftStatus);
-			return;
-		}
-		printf("FT_Read read %d bytes.", (int)dwBytesRead );
-		pcBufRead[dwRxSize] = '\0';
-		printf("%s", pcBufRead);
-	}
-	else {
-		printf("Error FT_GetQueueStatus(%d)\n", (int)ftStatus);	
-	}
-	if (pcBufRead)
-		free( pcBufRead );
-}
-
 void* ReadLoop( void* arg ) {
 	const FTDIShell& shell = *( (const FTDIShell*)arg );
 
@@ -39,23 +11,47 @@ void* ReadLoop( void* arg ) {
 	pthread_mutex_init(&eh.eMutex, NULL);
 	pthread_cond_init(&eh.eCondVar, NULL);
 
-	ftStatus = FT_SetEventNotification(shell.Connection().DeviceHandle(), FT_EVENT_RXCHAR, (PVOID)&eh);
+	//ftStatus = FT_SetEventNotification(shell.Connection().DeviceHandle(), FT_EVENT_RXCHAR, (PVOID)&eh);
 	if(ftStatus != FT_OK) {
 		printf("Failed to set events\n");
 		return NULL;
 	}
 
+	setvbuf(stdout, NULL, _IONBF, 0);
+
 	while (1) {
 		pthread_mutex_lock(&eh.eMutex);
-		pthread_cond_wait(&eh.eCondVar, &eh.eMutex);
+		//pthread_cond_wait(&eh.eCondVar, &eh.eMutex);
 		pthread_mutex_unlock(&eh.eMutex);
 
-		DoRead( shell );
+		printf( "%s", shell.Connection().Read().c_str() );
+		sleep(1);
+		if ( shell.exiting )
+			break;
 	}
+}
+
+CMDRES::CODE forward_command( const Shell& shell, const ArgList& args )
+{
+	const FTDIShell& ftdiShell = reinterpret_cast<const FTDIShell&>(shell);
+	std::string command;
+	for ( ArgList::const_iterator i = args.begin(); i != args.end(); ++i )
+	{
+		if ( i != args.begin() )
+			command += " ";
+		command += *i;
+	}
+	command += "\n";
+	if ( ftdiShell.Connection().Write( command.c_str() ) )
+		return CMDRES::kSuccess;
+	else
+		return CMDRES::kError;
 }
 
 void FTDIShell::Activate() {
 	if ( !m_connection.Active() )
 		m_connection.Open();
 	pthread_create(&m_readerThread, NULL, &ReadLoop, (void*)this);
+	RegisterCommand( "*", forward_command );
+	Connection().Write( "info\n" );
 }

@@ -1,87 +1,71 @@
 #include "CommanderShell.h"
+#include "FTDIShell.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
-CMDRES::CODE echoCommand(int argc, char** argv) {
-	for (int i=1; i<argc; ++i ) {
-		printf( "%s ", argv[i] );
+CMDRES::CODE listDevices( const Shell& shell, const ArgList& args ) {
+	const CommanderShell& cshell = reinterpret_cast<const CommanderShell&>( shell );
+	if ( !cshell.FTDI().Refresh() )
+		return CMDRES::kError;
+	printf( "Available FTDI Devices: \n");
+	if ( cshell.FTDI().ConnectionCount() == 0 ) {
+		printf( " * (no devices detected)\n" );
+	} else {
+		for ( FTDIConnectionIterator i = cshell.FTDI().ConnectionIteratorBegin(); i != cshell.FTDI().ConnectionIteratorEnd(); ++i)
+		{
+			printf( " * %s\n", i->SerialNumber().c_str() );
+		}
 	}
-	printf("\n");
+}
+
+CMDRES::CODE StartSubShell( FTDIConnectionIterator i ) {
+	printf("Starting subshell...\n");
+	FTDIShell sub_shell( *i );
+	sub_shell.Activate();
+	ArgList args;
+	return sub_shell.Do( args );
+}
+CMDRES::CODE connect( const Shell& shell, const ArgList& args ) {
+	const CommanderShell& cshell = reinterpret_cast<const CommanderShell&>( shell );
+	if ( !cshell.FTDI().Refresh() )
+		return CMDRES::kError;
+	if ( cshell.FTDI().ConnectionCount() == 0 ) {
+		printf("No MoMo devices detected!\n");
+		return CMDRES::kError;
+	} else if ( args.size() == 2 ) {
+		for ( FTDIConnectionIterator i = cshell.FTDI().ConnectionIteratorBegin(); i != cshell.FTDI().ConnectionIteratorEnd(); ++i)
+		{
+			if ( i->SerialNumber() == args[0] ) {
+				return StartSubShell( i );
+			}
+		}
+		printf( "Invalid device ID.\n" );
+		return CMDRES::kError;
+	} 
+	else if ( cshell.FTDI().ConnectionCount() == 1 )
+	{
+		return StartSubShell( cshell.FTDI().ConnectionIteratorBegin() );	
+	} else {
+		printf( "More than one device detected, please pass a device ID.\n" );
+		return CMDRES::kError;
+	}
 	return CMDRES::kSuccess;
 }
 
-CMDRES::CODE exitCommand(int argc, char** argv) {
-	return CMDRES::kQuit;
-}
-
 CommanderShell::CommanderShell()
-	: m_prompt( "momo-commander" )
+	: Shell()
 {
-	RegisterCommand( "echo", echoCommand );
-	RegisterCommand( "exit", exitCommand );
+	RegisterCommand( "list", listDevices );
+	RegisterCommand( "command", connect );
 }
 
-int parse(char *line, char **argv)
+CMDRES::CODE CommanderShell::Startup( const ArgList& args )
 {
-	int argc = 0;
-     while (*line != '\0') {       /* if not the end of line ....... */ 
-          while (*line == ' ' || *line == '\t' || *line == '\n')
-               *line++ = '\0';     /* replace white spaces with 0    */
-          *argv++ = line;          /* save the argument position     */
-          ++ argc;
-          while (*line != '\0' && *line != ' ' && 
-                 *line != '\t' && *line != '\n') 
-               line++;             /* skip the argument until ...    */
-     }
-     *argv = '\0';                 /* mark the end of argument list  */
- 	return argc-1;
-}
-CMDRES::CODE CommanderShell::ExecuteCommand( int argc, char **argv ) {
-	for ( CommandMap::const_iterator i = m_commands.begin(); i != m_commands.end(); ++i )
-	{
-		if ( i->name == argv[0] )
-			return i->handler( argc, argv );
+	if ( std::find( args.begin(), args.end(), std::string("-r") ) != args.end()
+	  || std::find( args.begin(), args.end(), std::string("--raw") ) != args.end() ) {
+		return CMDRES::kSuccess;
+	} else {
+		if ( connect( *this, args ) == CMDRES::kError )
+			return CMDRES::kSuccess;
+		else
+			return CMDRES::kQuit;
 	}
-
-	printf( "Unknown command '%s'", argv[0] );
-	return CMDRES::kError;
-}
-
-void CommanderShell::Prompt() {
-	printf("%s$ ", m_prompt.c_str() );
-}
-CMDRES::CODE CommanderShell::Do( int in_argc, char** in_argv ) {
-	char line[1024];
-	char  *argv[8];;
-	int argc;
-	line[0] = '\0';
-	do {
-		if (*line == '\0' || *line == '\n') {
-			Prompt();
-			continue;
-		}
-		argc = parse(line, argv);
-		switch( ExecuteCommand(argc, argv) ) {
-			case CMDRES::kQuit:
-				printf("GOODBYE!!\n");
-				return CMDRES::kSuccess;
-				break;
-			case CMDRES::kError:
-				printf("(!)\n");
-				break;
-			default:
-				break;
-		};
-		Prompt();
-	} while (fgets(line, sizeof(line), stdin) != 0);
-}
-
-void CommanderShell::RegisterCommand( const char* name, command_handler handler ) {
-	CommandMapEntry entry;
-	entry.name = name;
-	entry.handler = handler;
-	m_commands.push_back( entry );
 }

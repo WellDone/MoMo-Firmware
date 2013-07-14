@@ -1,5 +1,6 @@
 OBJS = \
 	tmp/main.o \
+	tmp/Shell.o \
 	tmp/CommanderShell.o \
 	tmp/FTDIShell.o \
 	tmp/FTDIManager.o \
