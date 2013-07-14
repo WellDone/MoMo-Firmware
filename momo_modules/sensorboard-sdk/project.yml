@@ -73,6 +73,7 @@
       - --double=24 
       - --float=24 
       #- --rom=0-4FF
+      - --ram=default,-20-50
       - --opt=all,-asmfile
       - --addrqual=require 
       - --mode=pro 
@@ -99,7 +100,8 @@
       - --asmlist 
       - --double=24 
       - --float=24 
-      #- --rom=0-4FF 
+      #- --rom=0-4FF
+      - --ram=default,-20-50
       - --opt=all,-asmfile
       - --addrqual=require 
       - --mode=pro 
@@ -126,6 +128,7 @@
       - --double=24 
       - --float=24 
       #- --rom=0-4FF 
+      - --ram=default,-20-50
       - --opt=all,-asmfile
       - --addrqual=require 
       - --mode=pro 
