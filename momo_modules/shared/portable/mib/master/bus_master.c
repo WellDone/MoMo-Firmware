@@ -43,7 +43,10 @@ uint8 bus_master_rpc_sync(unsigned char address, unsigned char feature, unsigned
 
 	bus_master_sendrpc(address);
 
-	//FIXME: wait for this to finish and return the status
+	while(mib_state.rpc_done != 1)
+		;
+
+	//FIXME: Extract result code and return.
 }
 
 /*

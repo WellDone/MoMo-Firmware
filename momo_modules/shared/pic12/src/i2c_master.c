@@ -37,15 +37,14 @@ void i2c_master_disable()
 	i2c_status.state = kI2CIdleState;
 
 	SSP1IE = 0;
-	SSPEN = 0;
 	GCEN = 0;
-	i2c_set_slave_mode();
     
     SSPOV = 0; //clear overflow bit
 
 	SSP1ADD = i2c_slave_address;
+	i2c_set_slave_mode();
 
-	SSPEN = 1;
+	SEN = 1;
 
     /* Enable the MSSP interrupt (for i2c). */
     SSP1IF = 0;
@@ -54,17 +53,16 @@ void i2c_master_disable()
 
 void i2c_master_enable()
 {
+	SSP1IE = 0;
+	GCEN = 0;
+
+	SEN = 0; //This has a different meaning in Master mode
+	
 	i2c_status.slave_active = 0;
 	i2c_status.state = kI2CIdleState;
 
-	SSP1IE = 0;
-	SSPEN = 0;
-	GCEN = 0;
-
+	SSP1ADD = 0x09; //Set baud rate to 100 khz for 4 mhz internal oscillator
 	i2c_set_master_mode();
-	SSP1ADD = 0x4F; //Set baud rate to 100 khz for 32 mhz internal oscillator
-
-	SSPEN = 1;
 
     /* Enable the MSSP interrupt (for i2c). */
     SSP1IF = 0;
@@ -93,6 +91,7 @@ inline void i2c_master_receivechecksum()
 
 void i2c_master_interrupt()
 {
+	RA5 = !RA5;
 	//TODO add code for handling bus collision arbitration losses and stops
 	switch(i2c_status.state)
 	{

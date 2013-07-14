@@ -6,8 +6,8 @@
 #pragma config FOSC=INTOSC
 /* Disable the watchdog timer. */
 #pragma config WDTE=OFF
-/* Enable 4x phase lock loop. */
-#pragma config PLLEN=ON
+/* Disbable 4x phase lock loop. */
+#pragma config PLLEN=OFF
 /* Flash memory write protection off. */
 #pragma config WRT=OFF
 
@@ -76,14 +76,11 @@ Bootloader:
 
 void initialize ()
 {
-    /* Software 4x PPL enabled, 32 MHz HF Internal Oscillator. */
-    OSCCON = 0xF0;
+    /* Software HS internal oscilator at 4 Mhz */
+    OSCCON = (0b1101 << 3);
 
     //wait for the pll to stabilize.
     while (!HFIOFS)
-        ;
-
-    while (!PLLR)
         ;
 
     /* Set all PORTA pins to be input. */

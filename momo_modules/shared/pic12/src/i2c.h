@@ -17,8 +17,8 @@ enum
 
 #define kI2CFlagMask (  kDisableI2CSlewControlFlag | kSMBusLevelCompliantFlag )
 
-#define i2c_set_master_mode()       {SSPM3 = 1; SSPM2 = 0; SSPM1 = 0; SSPM0 = 0;}
-#define i2c_set_slave_mode()        {SSPM3 = 0; SSPM2 = 1; SSPM1 = 1; SSPM0 = 0;}
+#define i2c_set_master_mode()       {uint8 old = SSPCON1 & 0xF0; old |= 0b1000; SSPCON1 = old;}
+#define i2c_set_slave_mode()        {uint8 old = SSPCON1 & 0xF0; old |= 0b0110; SSPCON1 = old;}
 
 #define i2c_release_clock()         CKP = 1
 #define i2c_send_start()            SEN = 1
