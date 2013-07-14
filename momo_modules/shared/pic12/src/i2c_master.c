@@ -91,7 +91,6 @@ inline void i2c_master_receivechecksum()
 
 void i2c_master_interrupt()
 {
-	RA5 = !RA5;
 	//TODO add code for handling bus collision arbitration losses and stops
 	switch(i2c_status.state)
 	{

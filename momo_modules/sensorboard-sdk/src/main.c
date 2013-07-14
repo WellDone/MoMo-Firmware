@@ -33,6 +33,7 @@ void initialize ();
 // 0x0204
 void interrupt service_isr() {
     // Handle i2c interrupts (MSSP) in the bootloader.
+    RA5 = !RA5;
     if (SSP1IF == 1) {
         if (i2c_slave_active()) {
             i2c_slave_interrupt();
