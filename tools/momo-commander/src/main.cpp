@@ -1,6 +1,4 @@
 #include "CommanderShell.h"
-#include "FTDIManager.h"
-#include "FTDIShell.h"
 
 int main( int argc, char **argv ) {
 	CommanderShell shell;

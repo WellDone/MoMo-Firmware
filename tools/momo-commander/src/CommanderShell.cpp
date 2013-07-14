@@ -17,7 +17,6 @@ CMDRES::CODE listDevices( const Shell& shell, const ArgList& args ) {
 }
 
 CMDRES::CODE StartSubShell( FTDIConnectionIterator i ) {
-	printf("Starting subshell...\n");
 	FTDIShell sub_shell( *i );
 	sub_shell.Activate();
 	ArgList args;
@@ -28,7 +27,7 @@ CMDRES::CODE connect( const Shell& shell, const ArgList& args ) {
 	if ( !cshell.FTDI().Refresh() )
 		return CMDRES::kError;
 	if ( cshell.FTDI().ConnectionCount() == 0 ) {
-		printf("No MoMo devices detected!\n");
+		printf("\033[31mNo MoMo devices detected!\033[31m\n");
 		return CMDRES::kError;
 	} else if ( args.size() == 2 ) {
 		for ( FTDIConnectionIterator i = cshell.FTDI().ConnectionIteratorBegin(); i != cshell.FTDI().ConnectionIteratorEnd(); ++i)
@@ -37,7 +36,7 @@ CMDRES::CODE connect( const Shell& shell, const ArgList& args ) {
 				return StartSubShell( i );
 			}
 		}
-		printf( "Invalid device ID.\n" );
+		printf( "\033[31mInvalid device ID.\033[0m\n" );
 		return CMDRES::kError;
 	} 
 	else if ( cshell.FTDI().ConnectionCount() == 1 )

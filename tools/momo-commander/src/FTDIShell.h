@@ -16,7 +16,7 @@ public:
 	{
 		SetPrompt( "" );//m_connection.SerialNumber().c_str() );
 		if (m_connection.Active()) {
-			Activate();
+			if ( !Activate() );
 		}
 	}
 
@@ -26,8 +26,9 @@ public:
 		exiting = true;
 		pthread_join( m_readerThread, NULL );
 	}
+	virtual CMDRES::CODE Startup( const ArgList& args );
 
-	void Activate();
+	bool Activate();
 	FTDIConnection& Connection() const { return m_connection; }
 
 	bool exiting;

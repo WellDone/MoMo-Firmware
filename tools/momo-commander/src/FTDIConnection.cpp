@@ -14,7 +14,7 @@ bool FTDIConnection::Open() {
 		return false;
 	}
 
-	printf("Opened device %s\n", m_deviceSerialNumber.c_str() );
+	printf("\033[33mOpened device %s\033[0m\n", m_deviceSerialNumber.c_str() );
 
 	if((ftStatus = FT_SetBaudRate(m_deviceHandle, m_baudRate)) != FT_OK) {
 		printf("Error FT_SetBaudRate(%d), device = %s\n", (int)ftStatus, m_deviceSerialNumber.c_str() );
@@ -33,7 +33,7 @@ void FTDIConnection::Close() {
 		return;
 	FT_Close(m_deviceHandle);
 	m_deviceHandle = NULL;
-	printf("Closed device %s\n", m_deviceSerialNumber.c_str());
+	printf("\033[33mClosed device %s\033[0m\n", m_deviceSerialNumber.c_str());
 }
 
 std::string FTDIConnection::Read()
