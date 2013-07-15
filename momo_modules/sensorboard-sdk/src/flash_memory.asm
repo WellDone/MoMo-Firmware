@@ -9,7 +9,7 @@ PSECT text_flash,local,class=CODE,delta=2
 ;write unlock sequence and initiate write sequence
 ;bank3 must be selected before calling
 unlock_and_write:
-	movlw	0x55a					;required sequence
+	movlw	0x55					;required sequence
     movwf	BANKMASK(EECON2)
     movlw	0xAA                  	;required sequence
     movwf   BANKMASK(EECON2)

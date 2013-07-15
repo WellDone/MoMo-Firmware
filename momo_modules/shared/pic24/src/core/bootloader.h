@@ -17,5 +17,4 @@
 #define kPic24FirmwareSubsection4 0x4000
 #define kPic24FirmwareSubsection5 0x5000
 
-
 #endif
