@@ -1,3 +1,7 @@
-//unsigned int flash_memory_read (unsigned int address);
-//void flash_memory_write (unsigned int address, unsigned char *data);
-//void flash_memory_erase (unsigned int address);
+#ifndef __flash_memory_h__
+#define __flash_memory_h__
+
+extern void flash_erase_application();
+extern void flash_write_row(uint8 row);
+
+#endif
