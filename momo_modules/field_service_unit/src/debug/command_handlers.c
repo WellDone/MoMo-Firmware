@@ -248,7 +248,8 @@ void handle_rtcc(command_params *params)
 
 static bool waiting_for_rpc_return;
 static void rpc_callback(unsigned char a, MIBParameterHeader *b) {
-    //Do nothing, for now.
+    print( "A response was received from an MIB RPC command.");
+    // TODO: Return code?  Return values?
     waiting_for_rpc_return = false;
 }
 void handle_rpc(command_params *params)
@@ -266,20 +267,29 @@ void handle_rpc(command_params *params)
         return;
     }
 
-    // For now, only support two random int params - the test blink RPC accepts this
-    MIBIntParameter param1;
-    MIBIntParameter param2;
-    MIBParameterHeader *rpc_params[2];
+    MIBIntParameter     rpc_params[3]; //Hacky, but ok.  We'll forcibly make it a BufferParameter if we have to
+    MIBParameterHeader *rpc_param_headers[3];
+    rpc_param_headers[0] = &rpc_params[0].header;
+    rpc_param_headers[1] = &rpc_params[1].header;
+    rpc_param_headers[2] = &rpc_params[2].header;
 
-    rpc_params[0] = (MIBParameterHeader*)&param1;
-    rpc_params[1] = (MIBParameterHeader*)&param2;
+    unsigned int argc = params->num_params - 2;
+    int i;
+    for ( i=2; i<params->num_params; ++i) {
+        int d;
+        char* str = get_param_string( params, i );
+        if ( atoi_small( str, &i ) ) {
+            bus_init_int_param(&rpc_params[i], d);
+        } else {
+            bus_init_buffer_param( (MIBBufferParameter*) &rpc_params[i], str, strlen( str ) ); // I think I'm actually disgusted.
+        }
+    }
 
-    bus_init_int_param(&param1, 5);
-    bus_init_int_param(&param2, 6);
+    waiting_for_rpc_return = true;
+    bus_master_rpc(rpc_callback, kControllerPICAddress, feature, command, rpc_param_headers, argc);
 
-    waiting_for_rpc_return = false;
-    bus_master_rpc(rpc_callback, kControllerPICAddress, feature, command, rpc_params, 2);
-    while (waiting_for_rpc_return)
-        ;
+    int timeout = 10000;
+    while (waiting_for_rpc_return && timeout > 0)
+        --timeout;
     return;
 }
