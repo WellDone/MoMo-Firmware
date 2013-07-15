@@ -49,13 +49,11 @@ _flash_erase_application:
 	movlw 	kNumFlashRows-kFirstApplicationRow
 	movwf 	FSR1H					;count in FSR1H
 	erase_app_loop:
-	decfsz 	FSR1H
-	goto	erase_app_done
 	movf  	FSR1L,w
 	addwf 	FSR1H,w
 	call  	flash_erase_row
+	decfsz	FSR1H,f
 	goto 	erase_app_loop
-	erase_app_done:
 	bcf		WREN 					;disallow program/erase
 	bsf		GIE
 	return
@@ -84,7 +82,7 @@ _flash_write_row:
 	bcf		LWLO 					;actually write if this is the last row
 	call 	unlock_and_write
 	incf	BANKMASK(EEADRL),f 		;increment row counter to next
-	decfsz	FSR1H
+	decfsz	FSR1H,f
 	goto 	write_row_loop
 	bcf		WREN 					;disallow program/erase
 	bsf		GIE
