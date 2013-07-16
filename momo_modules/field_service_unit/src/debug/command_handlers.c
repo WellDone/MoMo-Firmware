@@ -270,8 +270,9 @@ void handle_rpc(command_params *params)
     bus_master_compose_params(plist_define2(kMIBInt16Type, kMIBInt16Type));
     set_intparam(0, 6);
     set_intparam(1, 5);
-
-    bus_master_rpc_async(NULL, kControllerPICAddress, 0x2, 0x1);
+    
+    bus_master_rpc_async(NULL, kControllerPICAddress, feature&0xFF, command&0xFF);
+    print( "Sending RPC...\n" );
 
 /*
     MIBIntParameter     rpc_params[3]; //Hacky, but ok.  We'll forcibly make it a BufferParameter if we have to
@@ -298,6 +299,5 @@ void handle_rpc(command_params *params)
     int timeout = 10000;
     while (waiting_for_rpc_return && timeout > 0)
         --timeout;
->>>>>>> 241aef35421fb42d8048139c0c0e0f4312ad4468*/
-    return;
+    */
 }

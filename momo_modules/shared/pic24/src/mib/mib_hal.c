@@ -15,7 +15,6 @@ extern unsigned int the_feature_count;
 uint8 find_handler(void)
 {
 	uint8 i, j, num_cmds;
-	uint8 cmd = mib_state.bus_command.command;
 
 	for (i=0; i<the_feature_count; ++i)
 	{
