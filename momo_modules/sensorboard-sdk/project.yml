@@ -142,7 +142,7 @@
       - "${1}"
       - "../shared/pic12/build/release/libPIC12shared.lpp"
       - "../shared/pic12/src/mib/mib_hal.asm"
-      - "src/flash_memory.asm"
+      - "src/flash_memory.as"
       #- "src/mib/slave/command_map.asm"
       - -o${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR

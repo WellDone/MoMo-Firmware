@@ -52,7 +52,7 @@ void interrupt service_isr() {
 
 void main() {
     initialize();
-    bus_init();
+    bus_init(13);
 
     // If button is pressed, then force bootloader mode
     if (BUTT) {
