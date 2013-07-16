@@ -9,70 +9,56 @@
 static momo_module_descriptor the_modules[MAX_MODULES];
 static unsigned int module_count = 0;
 
-static void* get_module_count(MIBParamList *param)
+void get_module_count(void)
 {	
-	MIBIntParameter *retval;
-
-	bus_free_all();
-
-	retval = (MIBIntParameter*)bus_allocate_int_param();
-
-	bus_init_int_param(retval, module_count );
-	bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)retval);
-
-	return NULL;
+	loadparams(plist_1param(kMIBInt16Type));
+	set_intparam(0, module_count);
+	
+	bus_slave_setreturn(kNoMIBError | kHasReturnValue);
 }
 
-static void* register_module(MIBParamList *list)
+void register_module(void)
 {
-	MIBBufferParameter *buf = (MIBBufferParameter *)list->params[0];
+	MIBBufferParameter *buf = get_buffer_param(0);
 
 	if ( module_count == MAX_MODULES 
 	     || buf->header.len != sizeof( momo_module_descriptor ) )
 	{
 		//TODO: Better error granularity
 		bus_slave_seterror( kUnknownError );
-		return NULL;
+		return;
 	}
 
 	memcpy( (void*)(&the_modules[module_count]), buf->data, buf->header.len );
 
-	MIBIntParameter *retval;
+	loadparams(plist_1param(kMIBInt16Type));
+	set_intparam( 0, MODULE_BASE_ADDRESS + module_count );
 
-	bus_free_all();
-
-	retval = (MIBIntParameter*)bus_allocate_int_param();
-
-	bus_init_int_param(retval, MODULE_BASE_ADDRESS + module_count );
-	bus_slave_setreturn(kNoMIBError, (MIBParameterHeader*)retval);
-
+	bus_slave_setreturn( kNoMIBError | kHasReturnValue );
 	++module_count;
-	return NULL;
 }
 
-static void* describe_module(MIBParamList *list)
+void describe_module(void)
 {
-	unsigned long index = get_uint16_param(list, 0);
+	unsigned long index = get_uint16_param(0);
 	if ( index >= module_count )
 	{
 		bus_slave_seterror( kUnknownError );
-		return NULL;
+		return;
 	}
 
-	bus_free_all();
-	unsigned char* return_buf;
-	MIBParameterHeader *retval = (MIBBufferParameter*)bus_allocate_return_buffer(&return_buf);
+	loadparams(plist_1param(kMIBBufferType));
+	MIBBufferParameter *retval = get_buffer_param(0);
 
-	if ( retval->len < sizeof( momo_module_descriptor ) ) {
-		bus_slave_seterror( kUnknownError ); //TODO: This should happen at a lower level
+	/*if ( retval->len < sizeof( momo_module_descriptor ) ) {
+		bus_slave_seterror( kUnknownError ); //TODO: This should happen at a lower level, like when we allocate the buffer.
 		return NULL;
-	}
+	}*/
 
-	retval->len = sizeof( momo_module_descriptor );
-	memcpy( (void*) return_buf, &the_modules[index], retval->len );
+	retval->header.len = sizeof( momo_module_descriptor );
+	memcpy( (void*) retval->data, &the_modules[index], retval->header.len );
 	
-	bus_slave_setreturn( kNoMIBError, retval );
-	return NULL;
+	bus_slave_setreturn( kNoMIBError | kHasReturnValue );
 }
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {

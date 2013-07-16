@@ -53,8 +53,11 @@ typedef struct
 	MIBCommandPacket		bus_command;
 	I2CMessage				bus_msg;
 	MIBReturnValueHeader	bus_returnstatus;
-	
+
 	//handlers
+#ifndef _PIC12 //TODO: Also on PIC12?
+	uint8					feature_index;
+#endif
 	uint8					slave_handler;
 	
 	//PIC12 does not support ascynchronous master RPCs

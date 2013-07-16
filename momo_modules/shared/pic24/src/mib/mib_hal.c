@@ -3,40 +3,45 @@
 #include "bus.h"
 #include "bus_master.h"
 #include "bus_slave.h"
+#include "mib_feature.h"
 #include <string.h>
 
 //Include command map
-#include "commands.h"
+//#include "commands.h"
+
+extern const feature_map** the_features;
+extern unsigned int the_feature_count;
 
 uint8 find_handler(void)
 {
-	uint8 i, num_cmds;
+	uint8 i, j, num_cmds;
 	uint8 cmd = mib_state.bus_command.command;
-	uint8 found_feat = kNumFeatures;
 
-	for (i=0; i<kNumFeatures; ++i)
+	for (i=0; i<the_feature_count; ++i)
 	{
-		if (features[i] == mib_state.bus_command.feature)
+		if (the_features[i]->id == mib_state.bus_command.feature)
 		{
-			found_feat = i;
 			break;
 		}
 	}
 
-	if (found_feat == kNumFeatures)
+	if (i == the_feature_count)
 		return kInvalidMIBIndex;
+	mib_state.feature_index = i;
 
-	num_cmds = commands[found_feat+1] - commands[found_feat];
+	num_cmds = the_features[i]->command_count;
 
-	if (cmd >= num_cmds)
-		return kInvalidMIBIndex;
-
-	return commands[found_feat] + cmd;
+	for (j=0; j<num_cmds; ++j) {
+		if ( the_features[i]->commands[j].id == mib_state.bus_command.command) {
+			return j;
+		}
+	}
+	return kInvalidMIBIndex;
 }
 
 void  call_handler(uint8 handler_index)
 {
-	handlers[handler_index]();
+	the_features[mib_state.feature_index]->commands[handler_index].handler();
 }
 
 uint8 validate_params(uint8 handler_index)
