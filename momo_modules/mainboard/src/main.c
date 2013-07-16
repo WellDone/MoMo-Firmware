@@ -122,7 +122,7 @@ int main(void)
     _TRISB1 = 1;
     _TRISB0 = 0;
 
-    _RA1 = 1;
+    _RA1 = 0;
     _RA0 = 1;
 
     register_reset_handlers();

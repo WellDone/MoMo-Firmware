@@ -1,4 +1,5 @@
 #include "mainboard_mib_commands.h"
+<<<<<<< HEAD
 //#include "mib_command.h"
 //#include "mib_command_parameters.h"
 
@@ -25,9 +26,19 @@ static feature_map mainboard_mib_features[kMainboardMIBFeatureCount] =
 		{kMIBTestFeature, test_commands, kTestCommandCount},
 		{kMIBProgrammingFeature, programming_commands, kProgrammingCommandCount}
 	};
+=======
+*/
+#include "mib_features.h"
 
-void register_mib_commands()
+DEFINE_FEATURE_MAP()
+{
+	MIB_FEATURE(test),
+	MIB_FEATURE(programming),
+	MIB_FEATURE(controller)
+};
+
+void init_mainboard_mib()
 {
 	register_mib_features(mainboard_mib_features, kMainboardMIBFeatureCount);
+	REGISTER_FEATURE_MAP();
 }
-*/
