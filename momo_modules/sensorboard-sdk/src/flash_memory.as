@@ -64,7 +64,6 @@ _flash_erase_application:
 _flash_write_row:
 	bcf		GIE
 	call 	prepare_row_address		;load in the row we want to write and get ready for writing flash
-	movwf	FSR1L					;cache row to write in FSR1L
 	movlw	kBootloaderBufferLoc
 	movwf	FSR0L
 	clrf	FSR0H 					;FSR0 now points to row array
