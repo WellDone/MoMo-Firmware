@@ -107,7 +107,7 @@ void send_blink_message(void)
     set_intparam(1, 10);
     set_intparam(2, 1);
 
-    bus_master_rpc_async(NULL, 0x09, 0x01, 0x00);
+    bus_master_rpc_async(NULL, 0x10, 0x07, 0x55);
 }
 
 ScheduledTask task1;
@@ -119,17 +119,17 @@ int main(void)
 
     _TRISA1 = 0;
     _TRISA0 = 0;
-    //_TRISA6 = 0;
+    _TRISB1 = 1;
+    _TRISB0 = 0;
 
     _RA1 = 1;
     _RA0 = 1;
-    //_RA6 = 1;
 
     register_reset_handlers();
     handle_reset();
 
     //scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
-    scheduler_schedule_task(send_blink_message, kEverySecond, kScheduleForever, &i2c);
+    //scheduler_schedule_task(send_blink_message, kEverySecond, kScheduleForever, &i2c);
 
     taskloop_loop();
 

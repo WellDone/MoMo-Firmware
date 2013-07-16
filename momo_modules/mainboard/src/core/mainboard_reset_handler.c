@@ -28,7 +28,7 @@ void handle_all_resets_before(unsigned int type)
     //TODO: Move this to MoMo-specific handler?
     //flash_memory_init();
 
-    register_mib_commands();
+    //register_mib_commands();
 
     mclr_triggered = false;
 }

@@ -1,10 +1,10 @@
 #include "mainboard_mib_commands.h"
-#include "mib_command.h"
-#include "mib_command_parameters.h"
+//#include "mib_command.h"
+//#include "mib_command_parameters.h"
 
 #include "test.h"
 #include "prog.h"
-
+/*
 #define kTestCommandCount 2
 static mib_command_handler test_commands[kTestCommandCount] =
 	{
@@ -30,3 +30,4 @@ void register_mib_commands()
 {
 	register_mib_features(mainboard_mib_features, kMainboardMIBFeatureCount);
 }
+*/

@@ -4,6 +4,7 @@
 #include "task_manager.h"
 #include "scheduler.h"
 #include "fsu_reset_handler.h"
+#include "bus_master.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -49,22 +50,22 @@
 
 void alive(void)
 {
-	_RA6 = !_RA6;
+	_RA4 = !_RA4;
+    //bus_master_compose_params(plist_define0());
+    //bus_master_rpc_async(NULL, 0x08,0x01,0x00);
 }
 
 ScheduledTask task;
 
 int main(void) {
     AD1PCFG = 0xFFFF;
-    _TRISA6 = 0;
-    _TRISA2 = 0;
-    _LATA6 = 1;
-    _LATA2 = 1;
+    _TRISA4 = 0;
+    _LATA4 = 0;
 
     register_reset_handlers();
     handle_reset();
 
-    //scheduler_schedule_task(alive, kEverySecond, kScheduleForever, &task);
+    scheduler_schedule_task(alive, kEverySecond, kScheduleForever, &task);
     taskloop_loop();
 
     return (EXIT_SUCCESS);

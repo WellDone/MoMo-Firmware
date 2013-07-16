@@ -73,11 +73,11 @@ uint8 loadparams(uint8 param_spec)
 	return (uint8)(ptr-mib_buffer);
 }
 
-void bus_init()
+void bus_init(uint8 address)
 {
 	I2CConfig config;
 
-	config.address = kControllerPICAddress;
+	config.address = address;
 	config.priority = 0b010;
 	config.callback = bus_master_callback;
 	config.slave_callback = bus_slave_callback;
