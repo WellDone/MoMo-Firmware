@@ -76,6 +76,7 @@ void scheduler_update_rate()
 		else
 			set_recurring_task((AlarmRepeatTime)i, scheduler_callback);
 	}
+
 }
 
 void scheduler_list_insert(ScheduledTask **list, ScheduledTask *task)

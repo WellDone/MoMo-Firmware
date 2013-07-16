@@ -2,10 +2,11 @@
 #define __common_types_h__
 
 #include <GenericTypeDefs.h>
+#include "bit_utilities.h"
 
 typedef unsigned short bool;
-#define false 0;
-#define true 1;
+#define false 0
+#define true 1
 
 // UART
 typedef enum
@@ -13,5 +14,8 @@ typedef enum
     U1 = 0,
     U2 = 1
 } UARTPort;
+
+typedef signed char 	int8;
+typedef unsigned char	uint8;
 
 #endif

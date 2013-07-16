@@ -246,11 +246,11 @@ void handle_rtcc(command_params *params)
         sendf(DEBUG_UART, "Unknown rtcc command: %s\r\n", cmd);
 }
 
-static bool waiting_for_rpc_return;
-static void rpc_callback(unsigned char a, MIBParameterHeader *b) {
+static void rpc_callback(unsigned char a, MIBParameterHeader *b) 
+{
     //Do nothing, for now.
-    waiting_for_rpc_return = false;
 }
+
 void handle_rpc(command_params *params)
 {
     int feature, command;
@@ -267,19 +267,11 @@ void handle_rpc(command_params *params)
     }
 
     // For now, only support two random int params - the test blink RPC accepts this
-    MIBIntParameter param1;
-    MIBIntParameter param2;
-    MIBParameterHeader *rpc_params[2];
+    bus_master_compose_params(plist_define2(kMIBInt16Type, kMIBInt16Type));
+    set_intparam(0, 6);
+    set_intparam(1, 5);
 
-    rpc_params[0] = (MIBParameterHeader*)&param1;
-    rpc_params[1] = (MIBParameterHeader*)&param2;
+    bus_master_rpc_async(NULL, kControllerPICAddress, 0x2, 0x1);
 
-    bus_init_int_param(&param1, 5);
-    bus_init_int_param(&param2, 6);
-
-    waiting_for_rpc_return = false;
-    bus_master_rpc(NULL, kControllerPICAddress, 0x2, 0x1, rpc_params, 2);
-    while (waiting_for_rpc_return)
-        ;
     return;
 }

@@ -1,6 +1,16 @@
 #ifndef __protocol_h__
 #define __protocol_h__
 
+#include "platform.h"
+
+//Configurable defines
+#define kMIBCommandLength 	sizeof(MIBCommandPacket)
+#define kBusMaxMessageSize 	20
+#define kInvalidMIBIndex 	255
+
+#define kNoReturnValue 0
+#define kHasReturnValue (1 << 7)
+
 enum
 {
 	kMIBInt16Type = 0,
@@ -11,6 +21,7 @@ typedef struct
 {
 	unsigned char feature;
 	unsigned char command;
+	unsigned char param_length;
 } MIBCommandPacket;
 
 typedef struct
@@ -28,16 +39,8 @@ typedef struct
 typedef struct
 {
 	MIBParameterHeader header;
-	unsigned char 	   *data;
+	unsigned char 	   data[1]; /*data follows struct*/
 } MIBBufferParameter;
-
-typedef struct 
-{
-	unsigned char count;
-	unsigned char curr;
-	
-	MIBParameterHeader *params[0]; //variable length array, use bus_allocate_param_list to create this structure
-} MIBParamList;
 
 typedef struct 
 {
@@ -45,14 +48,31 @@ typedef struct
 	unsigned char len;
 } MIBReturnValueHeader;
 
-//Callback Type
-typedef void* (*mib_callback)(MIBParamList *);
+//Slave endpoint handler type
+typedef void (*mib_callback)(void);
 
-#define kMIBCommandLength 	sizeof(MIBCommandPacket)
-#define kBusMaxMessageSize 	40
+//Macros for defining parameter lists
+#define plist_param_n(n, type) 					((type & 0x01) << (n+3))
+#define plist_1param(type) 						plist_param_n(0, type)
+#define plist_2params(type1, type2) 			(plist_param_n(0, type1) | plist_param_n(1, type2))
+#define plist_3params(type1, type2, type3) 		(plist_param_n(0, type1) | plist_param_n(1, type2) | plist_param_n(2, type3))
+#define plist_define(count, params) 			((count & 0b111) | params)
 
-#define get_int16_param(list, n) ((int)((MIBIntParameter *)list->params[n])->value)
-#define get_uint16_param(list, n) ((unsigned int)((MIBIntParameter *)list->params[n])->value)
-#define get_buffer_param(list, n) ((MIBBufferParameter*)list->params[n])
+#define plist_define0()							plist_define(0, 0)
+#define plist_define1(type)						plist_define(1, plist_1param(type))
+#define plist_define2(type1, type2)				plist_define(2, plist_2params(type1, type2))
+#define plist_define3(type1, type2, type3)		plist_define(3, plist_3params(type1, type2, type3))
+
+#define extract_param_type(params, n) ((params & (1<<(n+3))) >> (n+3))
+#define extract_param_count(params) (params & 0b111)
+
+//we know parameter list is all ints and at most one buffer at the end, so we can advance by one int param each time
+#define advance_param_ptr(ptr)	((unsigned char *)(ptr))+=sizeof(MIBIntParameter)
+
+#define get_int16_param(n) ((int)(((MIBIntParameter*)mib_buffer)[n].value))
+#define set_intparam(n, val)	(((MIBIntParameter*)mib_buffer)[n].value = (val))
+#define get_uint16_param(n) ((unsigned int)(((MIBIntParameter*)mib_buffer)[n].value))
+#define get_buffer_param(n) ((MIBBufferParameter*)&(((MIBIntParameter*)mib_buffer)[n]))
+#define get_buffer_loc(n) (mib_buffer + 2*(n+1))
 
 #endif

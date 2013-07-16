@@ -10,7 +10,6 @@ void enable_rtcc()
 {
     if (!_RTCWREN)
         asm_enable_rtcon_write();
-
     _RTCEN = 1;
 }
 
@@ -245,12 +244,13 @@ void set_recurring_task(AlarmRepeatTime repeat, alarm_callback routine)
     //Set the time between recurrences.
     _AMASK = repeat;
 
+    _ALRMEN = 1; //Enable the recurring task
+
     //Save off the callback
     the_alarm_callback = routine;
 
     IPC15bits.RTCIP = 1;
     IEC3bits.RTCIE = 1;
-    _ALRMEN = 1; //Enable the recurring task
 }
 
 void clear_recurring_task()
@@ -263,22 +263,6 @@ void clear_recurring_task()
     the_alarm_callback = 0;
     uninterruptible_end();
 }
-
-/*void wait( unsigned int milliseconds )
-{
-    isr_descriptor desc = RTCC_ISR_DESCRIPTOR;
-    if ( !_RTCWREN)
-        asm_enable_rtcon_write();
-
-    _ALRMEN = 0;
-    _CHIME = 0;
-
-    _ALRMPTR = 0b10;
-    ALRMVAL = PACKWORD(to_bcd(1), to_bcd(1));
-
-    _ARPT = 0x01;
-    _AMASK = 0x00;
-}*/
 
 void wait_ms( unsigned long milliseconds )
 {

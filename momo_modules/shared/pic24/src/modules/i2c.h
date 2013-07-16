@@ -45,8 +45,9 @@ enum
 #define i2c_stop_received()			(_P == 1)
 #define i2c_address_received()		(_D_NOT_A == 0)
 
-#define kInvalidI2CAddress			0x02				//Guaranteed not to be in use by the i2c protocol
-#define i2c_address_valid(address) 	(address != kInvalidI2CAddress)
+#define kInvalidImmediateAddress          0x03                //Guaranteed not to be in use by the i2c protocol
+#define kInvalidI2CAddress                0x01                //Also not in use by i2c protocol
+#define i2c_address_valid(address)  (!(address > 0 && address < 4))
 
 
 
@@ -83,20 +84,16 @@ typedef enum
 typedef struct
 {
 	unsigned char address;
-	unsigned char len; //The length of the buffer pointed to by data pointer when receiving data, unused when sending
 
 	volatile unsigned char * volatile data_ptr;
 	volatile unsigned char * volatile last_data;
 
 	unsigned char checksum;
-	unsigned char flags;
 } I2CMessage;
 
 enum
 {
-	kCallbackBeforeChecksum = 1 << 0,
 	kSendImmediately = 1 << 1,
-	kContinueChecksum = 1 << 2
 };
 
 typedef enum 
@@ -124,8 +121,8 @@ void i2c_enable();
 void i2c_disable();
 
 //Shared Common Functions
-int i2c_send_message(volatile I2CMessage *msg);
-int i2c_receive_message(volatile I2CMessage *msg);
+void i2c_send_message();
+void i2c_receive_message();
 
 void i2c_start_transmission();
 void i2c_finish_transmission();

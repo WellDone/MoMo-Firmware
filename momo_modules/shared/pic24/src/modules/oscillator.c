@@ -8,7 +8,7 @@ static inline void write_osccon_l(unsigned char value);
 
 void oscillator_init()
 {
-    set_sosc_status(1); //Secondary oscillator always needs to be enabled
+    set_sosc_status(1); //Secondary oscillator always needs to be enabled, disable sosc
 }
 
 void set_oscillator_speed(OscillatorSpeedSelector speed)

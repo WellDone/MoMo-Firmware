@@ -12,12 +12,12 @@ void i2c_master_receivedata()
 	if (i2c_received_data())
 	{
 		unsigned char data = I2C1RCV;
-		*(i2c_msg->last_data) = data;
+		*(i2c_msg->data_ptr) = data;
 		i2c_msg->checksum += data;
-		i2c_msg->last_data += 1;
+		i2c_msg->data_ptr += 1;
 
 		//Check if we are at the end of the message
-		if ((i2c_msg->last_data - i2c_msg->data_ptr) == i2c_msg->len)
+		if (i2c_msg->data_ptr == i2c_msg->last_data)
 			master.state = kI2CReceiveChecksumState;
 		else
 			master.state = kI2CReceiveDataState;
@@ -67,6 +67,8 @@ void i2c_master_receivechecksum()
 
 void __attribute__((interrupt,no_auto_psv)) _MI2C1Interrupt()
 {
+	//_RA6 = !_RA6;
+
 	//TODO add code for handling bus collision arbitration losses and stops
 	switch(master.state)
 	{

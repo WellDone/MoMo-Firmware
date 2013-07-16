@@ -6,7 +6,7 @@
 //Slave Routines
 void bus_slave_callback();
 void bus_slave_reset();
-void bus_slave_seterror(unsigned char error);
-void bus_slave_setreturn(unsigned char status, volatile MIBParameterHeader *value);
+void bus_slave_seterror(uint8 error);
+void bus_slave_setreturn(uint8 status);
 
 #endif
