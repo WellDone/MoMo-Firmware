@@ -123,12 +123,12 @@ int main(void)
     _TRISB0 = 0;
 
     _RA1 = 0;
-    _RA0 = 1;
+    _RA0 = 0;
 
     register_reset_handlers();
     handle_reset();
 
-    //scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
+    scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
     //scheduler_schedule_task(send_blink_message, kEverySecond, kScheduleForever, &i2c);
 
     taskloop_loop();
