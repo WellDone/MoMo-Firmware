@@ -28,7 +28,7 @@ typedef struct
  * to find handlers.  If there is no application code loaded, the magic
  * number will be wrong and MIB will not load any endpoints.
  */
-const MIBEndpointInfo rpc_info @ kMIBEndpointAddress;
+//const MIBEndpointInfo rpc_info @ kMIBEndpointAddress;
 
 //Do not compile components that are not needed on the pic12 to make sure the compiler doesn't choke
 #define _PIC12

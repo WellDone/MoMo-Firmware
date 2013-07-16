@@ -45,14 +45,14 @@ flash_erase_row:
 _flash_erase_application:
 	bcf		GIE
 	movlw 	kFirstApplicationRow
-	movwf 	FSR1L					;base in FSR1L
-	movlw 	kNumFlashRows-kFirstApplicationRow
-	movwf 	FSR1H					;count in FSR1H
+	movwf 	FSR1L					;current row in FSR1L
 	erase_app_loop:
 	movf  	FSR1L,w
-	addwf 	FSR1H,w
 	call  	flash_erase_row
-	decfsz	FSR1H,f
+	incf 	FSR1L,f 				;current row++
+	movlw	kNumFlashRows			;if row == memsize, we're done
+	subwf	FSR1L,w
+	btfss	ZERO
 	goto 	erase_app_loop
 	bcf		WREN 					;disallow program/erase
 	bsf		GIE

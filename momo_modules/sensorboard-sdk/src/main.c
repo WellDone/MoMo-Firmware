@@ -60,7 +60,8 @@ void main() {
     }
 
     flash_erase_application();
-
+    flash_write_row(127);
+    
     bus_master_compose_params(plist_define1(kMIBInt16Type));
     set_intparam(0,5);
     bus_master_rpc_sync(0x08, 0x01, 0x00);
