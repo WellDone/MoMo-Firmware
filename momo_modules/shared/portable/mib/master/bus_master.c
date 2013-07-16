@@ -34,7 +34,8 @@ void bus_master_rpc_async(mib_rpc_function callback, unsigned char address, unsi
 
 	bus_master_sendrpc(address);
 }
-#endif
+
+#else
 
 uint8 bus_master_rpc_sync(unsigned char address, unsigned char feature, unsigned char cmd)
 {
@@ -48,6 +49,8 @@ uint8 bus_master_rpc_sync(unsigned char address, unsigned char feature, unsigned
 
 	//FIXME: Extract result code and return.
 }
+
+#endif
 
 /*
  * Send or resend the rpc call currently stored in mib_state.  
