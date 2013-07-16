@@ -59,20 +59,6 @@ void alive(void)
 
 ScheduledTask task;
 
-void send_blink_message(void)
-{
-    MIBIntParameter param1;
-    MIBIntParameter param2;
-    MIBParameterHeader *params[2];
-
-    params[0] = (MIBParameterHeader*)&param1;
-    params[1] = (MIBParameterHeader*)&param2;
-
-    bus_init_int_param(&param1, 5);
-    bus_init_int_param(&param2, 6);
-    bus_master_rpc(NULL, 8, 0x02, 0x01, params, 2);
-}
-
 int main(void) {
     AD1PCFG = 0xFFFF;
     _TRISA4 = 0;
@@ -82,7 +68,7 @@ int main(void) {
     handle_reset();
 
     //scheduler_schedule_task(alive, kEverySecond, kScheduleForever, &task);
-    scheduler_schedule_task(send_blink_message, kEverySecond, kScheduleForever, &task);
+    //scheduler_schedule_task(send_blink_message, kEverySecond, kScheduleForever, &task);
 
     taskloop_loop();
 

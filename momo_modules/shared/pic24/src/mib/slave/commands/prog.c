@@ -2,8 +2,6 @@
 #include "memory.h"
 #include "prog.h"
 #include "bootloader.h"
-
-#include "mib_features.h"
 /*
  * Erase the pic24 program portion of the flash memory
  *
