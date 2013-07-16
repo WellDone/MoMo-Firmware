@@ -298,6 +298,8 @@ void handle_rpc(command_params *params)
         plist = plist_define3( kMIBInt16Type, kMIBInt16Type, lastParamType );
     }*/
 
+    //TODO: Possibly listen for a ton of bytes here, we need to support sending over large firmware files.
+
     // For now, only support two random int params - the test blink RPC accepts this
     bus_master_compose_params(plist_define2(kMIBInt16Type, kMIBInt16Type));
     set_intparam(0, 6);
