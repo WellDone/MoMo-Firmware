@@ -266,38 +266,45 @@ void handle_rpc(command_params *params)
         return;
     }
 
+    /*unsigned int argc = params->num_params - 2;
+    if ( argc > 3 ) {
+        print( "A maximum of 3 params is allowed\n" );
+        return;
+    }
+    int i;
+    int intParams[3];
+    char* bufferParam = NULL;
+
+    for ( i=2; i<params->num_params; ++i) {
+        int d;
+        char* str = get_param_string( params, i );
+        if ( !atoi_small( str, &intParams[i-2] ) ) {
+            if ( i == params->num_params-1 ) {
+                bufferParam = str;
+            } else {
+                print( "Only one param can be a buffer, and it must be the last param.\n" );
+                return;
+            }
+        }
+    }
+
+    unsigned char plist = plist_define0();
+    unsigned char lastParamType = ((bufferParam==NULL)?kMIBInt16Type:kMIBBufferType);
+    if ( argc == 1 ) {
+        plist = plist_define1( lastParamType );
+    } else if ( argc == 2 ) {
+        plist = plist_define2( kMIBInt16Type, lastParamType );
+    } else {// argc == 3
+        plist = plist_define3( kMIBInt16Type, kMIBInt16Type, lastParamType );
+    }*/
+
     // For now, only support two random int params - the test blink RPC accepts this
     bus_master_compose_params(plist_define2(kMIBInt16Type, kMIBInt16Type));
     set_intparam(0, 6);
     set_intparam(1, 5);
+
+    
     
     bus_master_rpc_async(NULL, kControllerPICAddress, feature&0xFF, command&0xFF);
     print( "Sending RPC...\n" );
-
-/*
-    MIBIntParameter     rpc_params[3]; //Hacky, but ok.  We'll forcibly make it a BufferParameter if we have to
-    MIBParameterHeader *rpc_param_headers[3];
-    rpc_param_headers[0] = &rpc_params[0].header;
-    rpc_param_headers[1] = &rpc_params[1].header;
-    rpc_param_headers[2] = &rpc_params[2].header;
-
-    unsigned int argc = params->num_params - 2;
-    int i;
-    for ( i=2; i<params->num_params; ++i) {
-        int d;
-        char* str = get_param_string( params, i );
-        if ( atoi_small( str, &i ) ) {
-            bus_init_int_param(&rpc_params[i], d);
-        } else {
-            bus_init_buffer_param( (MIBBufferParameter*) &rpc_params[i], str, strlen( str ) ); // I think I'm actually disgusted.
-        }
-    }
-
-    waiting_for_rpc_return = true;
-    bus_master_rpc(rpc_callback, kControllerPICAddress, feature, command, rpc_param_headers, argc);
-
-    int timeout = 10000;
-    while (waiting_for_rpc_return && timeout > 0)
-        --timeout;
-    */
 }
