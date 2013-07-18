@@ -12,7 +12,7 @@ static void bus_slave_callcommand();
 static void bus_slave_startcommand()
 {
 	//Initialize all the state
-	mib_state.slave_state = kMIBSearchCommand;
+	set_slave_state(kMIBSearchCommand);
 	mib_state.slave_handler = kInvalidMIBIndex;
 	mib_state.num_reads = 0;
 
@@ -26,7 +26,7 @@ void bus_slave_seterror(unsigned char error)
 	mib_state.bus_returnstatus.result = error;
 	mib_state.bus_returnstatus.len = 0;
 
-	mib_state.slave_state = kMIBProtocolError;
+	set_slave_state(kMIBProtocolError);
 }
 
 /*
@@ -64,7 +64,7 @@ static void bus_slave_searchcommand()
 	if (plist_param_length(mib_state.bus_command.param_spec) > 0)
 		bus_slave_receive(mib_buffer, plist_param_length(mib_state.bus_command.param_spec), 0);
 	
-	mib_state.slave_state = kMIBFinishCommand;
+	set_slave_state(kMIBFinishCommand);
 }
 
 /*
@@ -102,7 +102,7 @@ void bus_slave_reset()
 {
 	//A write after any number of reads is a protocol reset so we reset ourselves back to idle
 	//This is a failsafe to make sure we can't get into a state where the slave locks up
-	mib_state.slave_state = kMIBIdleState;
+	set_slave_state(kMIBIdleState);
 	mib_state.num_reads = 0;
 	i2c_slave_setidle();
 }
@@ -131,7 +131,9 @@ void bus_slave_callback()
 
 				//If we don't expect to send a return value, finish the command after this transmission
 				if (mib_state.bus_returnstatus.len == 0)
-					mib_state.slave_state = kMIBFinishCommand;
+				{
+					set_slave_state(kMIBFinishCommand);
+				}
 			}
 			else
 			{
@@ -148,7 +150,7 @@ void bus_slave_callback()
 					bus_slave_send((unsigned char *)mib_buffer, 1, kSendImmediately); //protocol error so just send 1 byte, doesn't matter
 				}
 				
-				mib_state.slave_state = kMIBFinishCommand;
+				set_slave_state(kMIBFinishCommand);
 
 				//Make sure we can never overflow
 				//Just toggle back and forth between 1, 2 and 3. Clear the slave handler though so

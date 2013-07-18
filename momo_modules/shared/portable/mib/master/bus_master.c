@@ -21,7 +21,7 @@ unsigned char bus_master_lastaddress()
 void bus_master_finish(uint8 next)
 {
 	bus_send(bus_master_lastaddress(), (unsigned char *)mib_buffer, 1);
-	mib_state.master_state = next;
+	set_master_state(next);
 }
 
 #ifndef _PIC12
@@ -65,9 +65,13 @@ void bus_master_sendrpc(unsigned char address)
 	mib_state.rpc_done = 0;
 
 	if (plist_param_length(mib_state.bus_command.param_spec) > 0)
-		mib_state.master_state = kMIBSendParameters;
+	{	
+		set_master_state(kMIBSendParameters);
+	}
 	else
-		mib_state.master_state = kMIBReadReturnStatus;
+	{
+		set_master_state(kMIBReadReturnStatus);
+	}
 
 	bus_send(address, (unsigned char *)&mib_state.bus_command, sizeof(MIBCommandPacket));
 }
@@ -75,7 +79,7 @@ void bus_master_sendrpc(unsigned char address)
 void bus_master_readstatus()
 {
 	bus_receive(bus_master_lastaddress(), (unsigned char *)&mib_state.bus_returnstatus, sizeof(MIBReturnValueHeader));
-	mib_state.master_state = kMIBReadReturnValue;
+	set_master_state(kMIBReadReturnValue);
 }
 
 void bus_master_handleerror()
@@ -99,7 +103,7 @@ void bus_master_callback()
 	{
 		case kMIBSendParameters:
 		bus_send(bus_master_lastaddress(), (unsigned char*)mib_buffer, plist_param_length(mib_state.bus_command.param_spec));
-		mib_state.master_state = kMIBReadReturnStatus;
+		set_master_state(kMIBReadReturnStatus);
 		break;
 
 		case kMIBReadReturnStatus:
@@ -122,7 +126,7 @@ void bus_master_callback()
 
 			//This is discarded, but we need to issue a read in case the slave is sending us a return value
 			bus_receive(bus_master_lastaddress(), (unsigned char *)&mib_state.bus_returnstatus, 1);
-			mib_state.master_state = kMIBReadReturnStatus;
+			set_master_state(kMIBReadReturnStatus);
 		}
 		else if (mib_state.bus_returnstatus.result != kNoMIBError)
 			bus_master_handleerror();
@@ -131,7 +135,7 @@ void bus_master_callback()
 			if (mib_state.bus_returnstatus.len > 0)
 			{
 				bus_receive(bus_master_lastaddress(), (unsigned char *)mib_buffer, mib_state.bus_returnstatus.len);
-				mib_state.master_state = kMIBExecuteCallback;
+				set_master_state(kMIBExecuteCallback);
 			}
 			else
 			{

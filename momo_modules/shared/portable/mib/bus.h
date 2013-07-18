@@ -37,6 +37,11 @@ typedef enum
 	kMIBProtocolError = 3,
 } MIBSlaveState;
 
+//Need these because XC8 is really bad at optimizing bit operations
+#define shift_master_state(state)		(state << 4)
+#define set_master_state(state)			{mib_state.combined_state &= 0b10001111; mib_state.combined_state |= shift_master_state(state);}
+#define shift_slave_state(state)		(state << 2)
+#define set_slave_state(state)			{mib_state.combined_state &= 0b111110011; mib_state.combined_state |= shift_slave_state(state);}
 //Takes 3 bits to store
 typedef enum 
 {
@@ -66,10 +71,18 @@ typedef struct
 	mib_rpc_function		master_callback;
 	#endif
 
-	volatile uint8			num_reads	 : 2;
-	volatile uint8			slave_state  : 2;
-	volatile uint8 			master_state : 3;
-	volatile uint8			rpc_done 	 : 1;
+	union 
+	{
+		struct 
+		{
+			volatile uint8			num_reads	 : 2;
+			volatile uint8			slave_state  : 2;
+			volatile uint8 			master_state : 3;
+			volatile uint8			rpc_done 	 : 1;
+		};
+
+		volatile uint8 				combined_state;
+	};
 } MIBState;
 
 /*
