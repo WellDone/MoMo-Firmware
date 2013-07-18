@@ -80,8 +80,8 @@ enum
 
 typedef struct
 {
-    uint8               slave_active:1;
     uint8               state:7;
+    uint8               slave_active:1;
     I2CErrorCode        last_error;
 } I2CStatus;
 

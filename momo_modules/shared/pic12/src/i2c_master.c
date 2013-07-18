@@ -92,7 +92,6 @@ inline void i2c_master_receivechecksum()
 void i2c_master_interrupt()
 {
 	//TODO add code for handling bus collision arbitration losses and stops
-	#pragma switch space
 	switch(i2c_status.state)
 	{
 		case kI2CSendAddressState:

@@ -17,7 +17,7 @@ _i2c_choose_direction:
 	movlb 1
 	movlw 0b10000000
 	andwf BANKMASK(_i2c_status),f 		;clear state part of i2cstatus (lower 7 bits)
-	btfss BANKMASK(_mib_state+3),1 		;test if bit 1 of address is set
+	btfss BANKMASK(_mib_state+3),0 		;test if bit 1 of address is set
 	goto setsenddata
 	movlw 4
 	goto setstate
