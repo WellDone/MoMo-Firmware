@@ -30,6 +30,7 @@ inline void i2c_master_receivedata()
 		i2c_begin_receive();
 }
 
+//#pragma interrupt_level 1
 void i2c_master_disable()
 {
 	//TODO: check if we are in the middle of sending an RPC and try later
@@ -51,6 +52,7 @@ void i2c_master_disable()
     SSP1IE = 1;
 }
 
+//#pragma interrupt_level 1
 void i2c_master_enable()
 {
 	SSP1IE = 0;
@@ -128,7 +130,8 @@ void i2c_master_interrupt()
 			i2c_status.last_error = kI2CNackReceived;		//Check if the data was successfully sent
 
 		//This data is now sent or received, we need to execute the callback to see what to do next
-		bus_master_callback(); //It is the job of the user callback to decide what to do
+		//The callback will be executed in mainline code (bus_master_rpc_sync is waiting on i2c_status.state)
+		//bus_master_callback(); //It is the job of the user callback to decide what to do
 		break;
 
 		case kI2CIdleState:

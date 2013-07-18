@@ -56,6 +56,7 @@ void i2c_disable()
     SSPEN = 0;
 }
 
+//#pragma interrupt_level 1
 void i2c_start_transmission()
 {
     if (i2c_status.state == kI2CIdleState)
@@ -67,6 +68,7 @@ void i2c_start_transmission()
     i2c_status.last_error = kI2CNoError; //Initialize last error
 }
 
+//#pragma interrupt_level 1
 void i2c_finish_transmission()
 {
     i2c_send_stop();

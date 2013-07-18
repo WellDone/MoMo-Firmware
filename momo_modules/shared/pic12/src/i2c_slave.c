@@ -53,6 +53,9 @@ void i2c_slave_setidle()
 	i2c_release_clock();
 }
 
+//This function canot be called from both mainline and interrupt code at the same time.
+//mainline code only ever calls master functions
+//#pragma interrupt_level 1
 void i2c_slave_sendbyte()
 {
 	i2c_transmit(*(i2c_msg->data_ptr));
@@ -66,6 +69,7 @@ void i2c_slave_sendbyte()
 	i2c_release_clock();
 }
 
+//#pragma interrupt_level 1
 void i2c_slave_interrupt()
 {	
 	if (i2c_address_received())

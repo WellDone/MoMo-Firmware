@@ -1,6 +1,10 @@
 #include "bus_master.h"
 #include <string.h>
 
+#ifdef _PIC12
+extern bank1 volatile 			I2CStatus i2c_status;
+#endif
+
 //Local Prototypes that should not be called outside of this file
 unsigned char 	bus_master_lastaddress();
 void 			bus_master_finish(uint8 next);
@@ -40,7 +44,10 @@ uint8 bus_master_rpc_sync(unsigned char address)
 	bus_master_sendrpc(address);
 
 	while(mib_state.rpc_done != 1)
-		;
+	{
+		if (i2c_status.state == kI2CUserCallbackState)
+			bus_master_callback();
+	}
 
 	//FIXME: Extract result code and return.
 }
