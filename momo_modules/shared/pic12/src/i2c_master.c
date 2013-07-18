@@ -1,8 +1,8 @@
 #include "i2c.h"
 #include "bus_master.h"
 
-extern volatile 				I2CStatus i2c_status;
-extern bank1 unsigned char 		i2c_slave_address;
+extern bank1 volatile 			I2CStatus i2c_status;
+extern unsigned char 			i2c_slave_address;
 
 #define i2c_msg		(&mib_state.bus_msg)
 
@@ -92,11 +92,12 @@ inline void i2c_master_receivechecksum()
 void i2c_master_interrupt()
 {
 	//TODO add code for handling bus collision arbitration losses and stops
+	#pragma switch space
 	switch(i2c_status.state)
 	{
 		case kI2CSendAddressState:
 		i2c_transmit(i2c_msg->address);
-		i2c_status.state = (((i2c_msg->address) & 0x01) == 0) ? kI2CSendDataState : kI2CReceiveDataState;
+		i2c_choose_direction();
 		break;
 
 		case kI2CReceiveDataState:
@@ -132,8 +133,6 @@ void i2c_master_interrupt()
 		break;
 
 		case kI2CIdleState:
-		case kI2CReceivedAddressState:
-		case kI2CForceStopState:
 		case kI2CDisabledState:
 		break;
 	}

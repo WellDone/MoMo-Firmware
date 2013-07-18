@@ -12,10 +12,9 @@ static unsigned int module_count = 0;
 
 void get_module_count(void)
 {	
-	loadparams(plist_1param(kMIBInt16Type));
-	set_intparam(0, module_count);
+	plist_set_int16(0, module_count);
 	
-	bus_slave_setreturn(kNoMIBError | kHasReturnValue);
+	bus_slave_setreturn(pack_return_status(kNoMIBError, kIntSize));
 }
 
 void register_module(void)

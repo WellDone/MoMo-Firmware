@@ -20,16 +20,13 @@ void bus_master_finish(uint8 next)
 	mib_state.master_state = next;
 }
 
-void bus_master_compose_params(uint8 spec)
-{
-	mib_state.bus_command.param_length = loadparams(spec);
-}
-
 #ifndef _PIC12
-void bus_master_rpc_async(mib_rpc_function callback, unsigned char address, unsigned char feature, unsigned char cmd)
+void bus_master_rpc_async(mib_rpc_function callback, unsigned char address, unsigned char feature, unsigned char cmd, uint8 spec)
 {
 	mib_state.bus_command.feature = feature;
 	mib_state.bus_command.command = cmd;
+	mib_state.bus_command.param_spec = spec;
+	
 	mib_state.master_callback = callback;
 
 	bus_master_sendrpc(address);
@@ -37,10 +34,8 @@ void bus_master_rpc_async(mib_rpc_function callback, unsigned char address, unsi
 
 #else
 
-uint8 bus_master_rpc_sync(unsigned char address, unsigned char feature, unsigned char cmd)
+uint8 bus_master_rpc_sync(unsigned char address)
 {
-	mib_state.bus_command.feature = feature;
-	mib_state.bus_command.command = cmd;
 
 	bus_master_sendrpc(address);
 
@@ -62,7 +57,7 @@ void bus_master_sendrpc(unsigned char address)
 
 	mib_state.rpc_done = 0;
 
-	if (mib_state.bus_command.param_length > 0)
+	if (plist_param_length(mib_state.bus_command.param_spec) > 0)
 		mib_state.master_state = kMIBSendParameters;
 	else
 		mib_state.master_state = kMIBReadReturnStatus;
@@ -96,7 +91,7 @@ void bus_master_callback()
 	switch(mib_state.master_state)
 	{
 		case kMIBSendParameters:
-		bus_send(bus_master_lastaddress(), (unsigned char*)mib_buffer, mib_state.bus_command.param_length);
+		bus_send(bus_master_lastaddress(), (unsigned char*)mib_buffer, plist_param_length(mib_state.bus_command.param_spec));
 		mib_state.master_state = kMIBReadReturnStatus;
 		break;
 
@@ -112,7 +107,7 @@ void bus_master_callback()
 			//one read to clear that and the slave will resend the return status for all odd reads.
 
 			//Check if we received all 0xFF bytes indicating the slave is not there
-			if (mib_state.bus_returnstatus.result == 0xFF && mib_state.bus_returnstatus.len == 0xFF)
+			if (mib_state.bus_returnstatus.return_status == 0xFF)
 			{
 				bus_master_finish(kMIBFinalizeMessage);
 				break;
@@ -161,7 +156,6 @@ void bus_master_callback()
 
 		#endif
 
-		//bus_free_all();
 		i2c_finish_transmission(); 
 		break;
 	}

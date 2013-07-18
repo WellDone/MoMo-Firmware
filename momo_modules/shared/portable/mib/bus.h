@@ -18,12 +18,13 @@ typedef 	void (*mib_rpc_function)(unsigned char);
 enum
 {
 	kNoMIBError = 0,
-	kUnsupportedCommand,
-	kWrongParameterType,
-	kParameterTooLong,
-	kParameterChecksumError,
-	kCommandChecksumError,
-	kUnknownError,
+	kUnsupportedCommand = 1,
+	kWrongParameterType = 2,
+	kParameterTooLong = 3,
+	kParameterChecksumError = 4,
+	kCommandChecksumError = 5,
+	kUnknownError = 6,
+	kCallbackError = 7,
 	kSlaveNotAvailable = 255
 };
 

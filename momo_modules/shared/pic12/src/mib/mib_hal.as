@@ -1,63 +1,12 @@
 #include <xc.inc>
 
 ;mib_params.asm
-;Assembly routines for creating rpc parameter specs in the mib_buffer
+;Assembly routines for dealing with MIB things in an efficient way
 ;very quickly and with minimal code overhead
 
-;signature loadparams(spec)
-GLOBAL _loadparams,_mib_buffer,_call_handler,_get_feature,_get_command,_get_spec,_get_magic,_get_num_features,_validate_params
+GLOBAL _mib_buffer,_call_handler,_get_feature,_get_command,_get_param_spec,_get_magic,_get_num_features,_plist_int_count,_plist_param_length
 
 PSECT text100,local,class=CODE,delta=2
-
-;Write the current 4 bytes pointed to by FSR0 as MIBIntParameter
-_loadint:
-	CLRW
-	MOVWI	FSR0++
-	MOVLW	2	
-	MOVWI	FSR0++		
-	CLRW
-	MOVWI	FSR0++
-	MOVWI	FSR0++
-	RETURN
-
-;Write a buffer parameter into the space pointed to by FSR0
-;the length is not used
-_loadbuf:
-	MOVLW	1
-	MOVWI	FSR0++
-	CLRW	 			;make it a zero length buffer, we can fill it in later	
-	MOVWI	FSR0++		;FSR0 now points to the first byte of the buffer
-	RETURN
-
-;give a parameter spec in W, which is just 3 bits of count followed by bits of 0 or 1
-;which tell whether to create an int or a buffer in the space
-;returns the length of the parameters in w, not accounting for the length of the buffer
-_loadparams:
-	MOVLB 1					;mib_buffer and mib_firstfree are in bank1
-	MOVWF FSR1H				;save tmp spec
-	LSRF  FSR1H,f			;>>1
-	LSRF  FSR1H,f			;>>2 (1 more shift and we have the param spec)
-	ANDLW 0b111 			;extract only the count
-	ADDLW 1                 ;increment count by 1 since we're going to decrement and then compare
-	MOVWF FSR1L				;save count to SFR1L
-	MOVLW _mib_buffer		;set up SFR to point to mib_buffer
-	MOVWF FSR0L
-	CLRF  FSR0H
-
-loop: 
-	DECFSZ FSR1L
-	GOTO loopbody
-	MOVLW _mib_buffer
-	SUBWF FSR0L,w 			;w now stores ptr - mib_buffer which is the length of the parameter list
-	RETURN
-
-loopbody:
-	LSRF FSR1H,f 			;shift to get the next param type
-	BTFSS FSR1H,0
-	CALL _loadint
-	BTFSC FSR1H,0
-	CALL _loadbuf
-	GOTO loop
 
 ;Given an index into the handler table in application code, call that handler
 _call_handler:
@@ -69,7 +18,7 @@ _get_feature:
 _get_command:
 	GOTO 0x7FC
 
-_get_spec:
+_get_param_spec:
 	GOTO 0x7FD
 
 ;indirect read the highest byte from program memory
@@ -81,12 +30,23 @@ _get_magic:
 	MOVF INDF1,W
 	RETURN
 
-;validate the parameters pointed to by the param spec created from the
-;current slave handler index
-_validate_params:
-	RETLW 1
-
 _get_num_features:
 	GOTO 0x7FA
 
-	
+_plist_int_count:
+	andlw 0b01100000	; ((plist & 0b01100000) >> 5)
+	swapf WREG,w
+	lsrf  WREG,w
+
+; compute ((plist_int_count(plist) << 1) + (plist & plist_buffer_mask))
+; efficiiently on the pic12
+_plist_param_length:
+	movlb 3
+	movwf BANKMASK(EEADRL)  					
+	andlw 0b01100000
+	movwf BANKMASK(EEADRH)	;high contains int size
+	movlw 0b00011111
+	andwf BANKMASK(EEADRL),w
+	addwf BANKMASK(EEADRH),w
+	movlb 0
+	return

@@ -30,17 +30,12 @@ void bus_slave_seterror(unsigned char error)
 }
 
 /*
- * The the return status.  The high order bit indicates if a return value is present in 
- * the mib_buffer with 1 being yes and 0 being no.
+ * Set the return status, the high order 3 bits define the status, the low order 5 bits set the 
+ * length of the return value
  */
 void bus_slave_setreturn(uint8 status)
 {
-	mib_state.bus_returnstatus.result = status & 0x7F; //clear high order bit
-
-	if (!BIT_TEST(status,7))
-		mib_state.bus_returnstatus.len = 0;
-	else
-		mib_state.bus_returnstatus.len = ((MIBParameterHeader*)mib_buffer)->len + sizeof(MIBParameterHeader);
+	mib_state.bus_returnstatus.return_status = status;
 }
 
 static void bus_slave_searchcommand()
@@ -59,15 +54,15 @@ static void bus_slave_searchcommand()
 		return;
 	}
 
-	if (mib_state.bus_command.param_length > kBusMaxMessageSize)
+	if (plist_param_length(mib_state.bus_command.param_spec) > kBusMaxMessageSize)
 	{
 		bus_slave_seterror(kParameterTooLong);
 		return;
 	}
 
 	//initialize i2c to receive parameters if there are any
-	if (mib_state.bus_command.param_length > 0)
-		bus_slave_receive(mib_buffer, mib_state.bus_command.param_length, 0);
+	if (plist_param_length(mib_state.bus_command.param_spec) > 0)
+		bus_slave_receive(mib_buffer, plist_param_length(mib_state.bus_command.param_spec), 0);
 	
 	mib_state.slave_state = kMIBFinishCommand;
 }
@@ -85,7 +80,7 @@ static uint8 bus_slave_validateparams()
 		return 0;
 	}
 
-	if (!validate_params(mib_state.slave_handler))
+	if (!plist_matches(mib_state.bus_command.param_spec, get_param_spec(mib_state.slave_handler)))
 	{
 		bus_slave_seterror(kWrongParameterType); //Make sure the parameter checksum was valid.
 		return 0;

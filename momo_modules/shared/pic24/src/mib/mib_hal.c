@@ -43,40 +43,6 @@ void  call_handler(uint8 handler_index)
 	the_features[mib_state.feature_index]->commands[handler_index].handler();
 }
 
-uint8 validate_params(uint8 handler_index)
-{
-	return 1;
-}
-
-uint8 loadparams(uint8 param_spec)
-{
-	uint8 param_cnt = extract_param_count(param_spec);
-	uint8 i;
-	uint8 *ptr = mib_buffer;
-
-	for (i=0; i<param_cnt; ++i)
-	{
-		if (extract_param_type(param_spec, i) == kMIBInt16Type)
-		{
-			MIBIntParameter *param = (MIBIntParameter*)ptr;
-			param->header.type = kMIBInt16Type;
-			param->header.len = 2;
-			param->value = 0;
-
-			ptr += sizeof(MIBIntParameter);
-		}
-		else
-		{
-			MIBBufferParameter *param = (MIBBufferParameter*)ptr;
-			param->header.type = kMIBBufferType;
-			param->header.len = kBusMaxMessageSize - (ptr-mib_buffer) - 2;
-			ptr += sizeof(MIBParameterHeader);
-		}
-	}
-
-	return (uint8)(ptr-mib_buffer);
-}
-
 void bus_init(uint8 address)
 {
 	I2CConfig config;
@@ -96,4 +62,19 @@ void bus_init(uint8 address)
 
 	i2c_configure(&config);
 	i2c_enable();
+}
+
+uint8 get_param_spec(uint8 handler_index)
+{
+	the_features[mib_state.feature_index]->commands[handler_index].params;
+}
+
+uint8 plist_int_count(uint8 plist)
+{
+	return (plist & 0b01100000) >> 5;
+}
+
+uint8 plist_param_length(uint8 plist)
+{
+	return ((plist & 0b01100000) >> 4) + (plist & 0b00011111);
 }

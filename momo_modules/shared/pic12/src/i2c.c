@@ -5,9 +5,9 @@
 #include "i2c.h"
 #include "bus.h"
 
-volatile I2CStatus i2c_status;
+bank1 volatile I2CStatus i2c_status;
 
-bank1 unsigned char i2c_slave_address;
+unsigned char i2c_slave_address;
 
 //Internal functions
 static void i2c_master_receivedata();
