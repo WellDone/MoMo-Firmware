@@ -91,13 +91,14 @@ void i2c_enable(unsigned char slave_address);
 void i2c_disable();
 
 //Shared Common Functions
-void  i2c_send_message();
 void  i2c_receive_message();
 
 void i2c_start_transmission();
 void i2c_finish_transmission();
 
 //Master Functions
+void    i2c_master_send_message();
+void    i2c_master_receive_message();
 void    i2c_master_setidle();
 void    i2c_master_enable();
 void    i2c_master_disable();
@@ -108,6 +109,8 @@ void    i2c_slave_receivedata();
 void    i2c_slave_receivechecksum();
 void    i2c_slave_setidle();
 void    i2c_slave_sendbyte();
+void    i2c_slave_send_message();
+void    i2c_slave_receive_message();
 void    i2c_slave_interrupt();
 
 uint8         i2c_lasterror();

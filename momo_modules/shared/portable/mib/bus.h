@@ -8,9 +8,6 @@
 
 #define kControllerPICAddress	0x08
 
-#define bus_slave_send(buffer, len, imm)			bus_send(kInvalidI2CAddress | imm, buffer, len)
-#define bus_slave_receive(buffer, len, imm) 		bus_receive(kInvalidI2CAddress | imm, buffer, len)
-
 //Callback type for master rpc routines
 typedef 	void (*mib_rpc_function)(unsigned char);
 
@@ -109,12 +106,28 @@ void bus_send(unsigned char address, unsigned char *buffer, unsigned char len);
 void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len);
 #else
 
+#define bus_slave_send(buffer, len, imm)					\
+{															\
+	mib_state.bus_msg.address = kInvalidI2CAddress | imm;	\
+	mib_state.bus_msg.data_ptr = buffer;					\
+	mib_state.bus_msg.last_data = buffer + len;				\
+	i2c_slave_send_message();								\
+}
+
+#define bus_slave_receive(buffer, len, imm) 				\
+{															\
+	mib_state.bus_msg.address = kInvalidI2CAddress | imm;	\
+	mib_state.bus_msg.data_ptr = buffer;					\
+	mib_state.bus_msg.last_data = buffer + len;				\
+	i2c_slave_receive_message();							\
+}
+
 #define bus_send(add, buffer, len)					\
 {													\
 	mib_state.bus_msg.address = add;				\
 	mib_state.bus_msg.data_ptr = buffer;			\
 	mib_state.bus_msg.last_data = buffer + len;		\
-	i2c_send_message();								\
+	i2c_master_send_message();						\
 }
 
 #define bus_receive(add, buffer, length)			\
@@ -122,7 +135,7 @@ void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len
 	mib_state.bus_msg.address = add;				\
 	mib_state.bus_msg.data_ptr = buffer;			\
 	mib_state.bus_msg.last_data = buffer + length;	\
-	i2c_receive_message();							\
+	i2c_master_receive_message();					\
 }
 
 #endif
