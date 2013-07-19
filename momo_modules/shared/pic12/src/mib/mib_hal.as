@@ -4,7 +4,8 @@
 ;Assembly routines for dealing with MIB things in an efficient way
 ;very quickly and with minimal code overhead
 
-GLOBAL _mib_buffer,_call_handler,_get_feature,_get_command,_get_param_spec,_get_magic,_get_num_features,_plist_int_count,_plist_param_length
+GLOBAL _mib_state, _mib_buffer,_call_handler,_get_feature,_get_command, _bus_slave_seterror
+GLOBAL _validate_param_spec,_get_magic,_get_num_features,_plist_int_count,_plist_param_length
 
 PSECT text100,local,class=CODE,delta=2
 
@@ -50,4 +51,32 @@ _plist_param_length:
 	andwf BANKMASK(EEADRL),w
 	addwf BANKMASK(EEADRH),w
 	movlb 0
+	return
+
+; given the handler index in W, validate that the passed params match the spec
+_validate_param_spec:
+	call _get_param_spec		;handler spec in w
+	movlb 1
+	xorwf BANKMASK(_mib_state+3),w ;passed spec xor handler spec
+	andlw 0b11100000 				;only look at spec, ignore length
+	btfsc ZERO						;if they match w should be zero
+	retlw 1 
+	retlw 0
+
+;void bus_slave_seterror(uint8 error)
+;{
+;	mib_state.bus_returnstatus.return_status = 0;
+;	mib_state.bus_returnstatus.return_status |= (error << 5);
+;
+;	set_slave_state(kMIBProtocolError);  kMIBProtocolError is 3
+;}
+;bus_returnstatus is at mib_state+7
+_bus_slave_seterror:
+	movlb 1
+	clrf BANKMASK(_mib_state+7)
+	swapf WREG,w  					;error << 4
+	lslf WREG,w 					; error << 1 
+	iorwf BANKMASK(_mib_state+7),f 	;return_status |= error << 5
+	bsf BANKMASK(_mib_state+9), 2 	;we want bits 2 and 3 set.  (set slave_state to 3)
+	bsf BANKMASK(_mib_state+9), 3
 	return

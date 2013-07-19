@@ -12,10 +12,11 @@
 #include "common_types.h"
 
 void  call_handler(uint8 handler_index);
-uint8 get_param_spec(uint8 handler_index);
+uint8 validate_param_spec(uint8 handler_index);
 uint8 find_handler(void);
 void  bus_init(uint8 address);
 uint8 plist_int_count(uint8 plist);		  
 uint8 plist_param_length(uint8 plist);
+void bus_slave_seterror(uint8 error);
 
 #endif

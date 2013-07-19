@@ -29,6 +29,7 @@ enum
 };
 
 //Takes 2 bits to store
+//Cannot change.  Referenced by mib_hal.as in pic12 code
 typedef enum
 {
 	kMIBIdleState = 0,
@@ -42,6 +43,11 @@ typedef enum
 #define set_master_state(state)			{mib_state.combined_state &= 0b10001111; mib_state.combined_state |= shift_master_state(state);}
 #define shift_slave_state(state)		(state << 2)
 #define set_slave_state(state)			{mib_state.combined_state &= 0b111110011; mib_state.combined_state |= shift_slave_state(state);}
+#define bus_has_returnvalue()			(mib_state.bus_returnstatus.return_status & 0b11111000)
+#define bus_inc_numreads()				(mib_state.combined_state += 1)							//okay since numreads cannot be more than 2 so this won't overflow
+#define bus_numreads_odd()				(mib_state.combined_state & 0x01)
+#define bus_numreads_full()				((mib_state.combined_state & 0b11) == 0b11)
+#define bus_numreads_nonzero()			(mib_state.combined_state & 0b11)
 //Takes 3 bits to store
 typedef enum 
 {
@@ -56,27 +62,27 @@ typedef enum
 typedef struct 
 {
 	//Shared Buffers
-	MIBCommandPacket		bus_command;
-	I2CMessage				bus_msg;
-	MIBReturnValueHeader	bus_returnstatus;
+	MIBCommandPacket		bus_command;	//3 bytes
+	I2CMessage				bus_msg;		//4 bytes
+	MIBReturnValueHeader	bus_returnstatus;//1 byte
 
 	//handlers
 #ifndef _PIC12 //TODO: Also on PIC12?
 	uint8					feature_index;
 #endif
-	uint8					slave_handler;
+	uint8					slave_handler;	//1 byte
 	
 	//PIC12 does not support ascynchronous master RPCs
 	#ifndef _PIC12
 	mib_rpc_function		master_callback;
 	#endif
 
-	union 
+	union 									//1 byte
 	{
 		struct 
 		{
 			volatile uint8			num_reads	 : 2;
-			volatile uint8			slave_state  : 2;
+			volatile uint8			slave_state  : 2; //Referenced by mib_hal.as on pic12, cannot change
 			volatile uint8 			master_state : 3;
 			volatile uint8			rpc_done 	 : 1;
 		};

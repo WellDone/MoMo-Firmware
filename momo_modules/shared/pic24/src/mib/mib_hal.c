@@ -12,6 +12,8 @@
 extern const feature_map** the_features;
 extern unsigned int the_feature_count;
 
+static uint8 get_param_spec(uint8 handler_index);
+
 uint8 find_handler(void)
 {
 	uint8 i, j, num_cmds;
@@ -64,9 +66,16 @@ void bus_init(uint8 address)
 	i2c_enable();
 }
 
-uint8 get_param_spec(uint8 handler_index)
+static uint8 get_param_spec(uint8 handler_index)
 {
 	the_features[mib_state.feature_index]->commands[handler_index].params;
+}
+
+uint8 validate_param_spec(uint8 handler_index)
+{
+	uint8 spec = get_param_spec(handler_index);
+
+	return (mib_state.bus_command.param_spec & 0b11100000) == spec);
 }
 
 uint8 plist_int_count(uint8 plist)
@@ -77,4 +86,12 @@ uint8 plist_int_count(uint8 plist)
 uint8 plist_param_length(uint8 plist)
 {
 	return ((plist & 0b01100000) >> 4) + (plist & 0b00011111);
+}
+
+void bus_slave_seterror(uint8 error)
+{
+	mib_state.bus_returnstatus.return_status = 0;
+	mib_state.bus_returnstatus.return_status |= (error << 5);
+
+	set_slave_state(kMIBProtocolError);
 }

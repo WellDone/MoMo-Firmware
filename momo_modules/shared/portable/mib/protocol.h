@@ -29,8 +29,8 @@ typedef struct
 	{
 		struct
 		{
-			unsigned char result: 3;
 			unsigned char len: 5;
+			unsigned char result: 3;
 		};
 		unsigned char return_status;
 	};
