@@ -122,10 +122,11 @@ void i2c_master_interrupt()
 		case kI2CSendChecksumState:
 		i2c_msg->checksum = (~i2c_msg->checksum) + 1;
 		i2c_transmit(i2c_msg->checksum);
-		i2c_status.state = kI2CUserCallbackState;
+		i2c_status.state = kI2CReceivedChecksumState;
 		break;
 
-		case kI2CUserCallbackState:
+		case kI2CReceivedChecksumState:
+		i2c_status.state = kI2CUserCallbackState;
 		if (i2c_byte_nacked())
 			i2c_status.last_error = kI2CNackReceived;		//Check if the data was successfully sent
 

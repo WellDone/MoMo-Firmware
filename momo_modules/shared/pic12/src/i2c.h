@@ -54,6 +54,7 @@ typedef enum
     kI2CReceiveChecksumState = 5,
     kI2CUserCallbackState = 6,
     kI2CDisabledState = 7,          //When the slave logic is using the bus, disable the master and vice-versa
+	kI2CReceivedChecksumState = 8
 } I2CLogicState;
 
 typedef enum
