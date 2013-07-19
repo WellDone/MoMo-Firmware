@@ -124,7 +124,7 @@
       - --double=24 
       - --float=24
       #- --rom=0-44F 
-      - --ram=default,-20-6D
+      - --ram=default,-20-60
       - --opt=all,-asmfile
       - --addrqual=require 
       - --mode=pro 

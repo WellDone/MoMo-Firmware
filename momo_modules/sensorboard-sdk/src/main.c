@@ -1,6 +1,6 @@
 #include <pic12f1822.h>
 #include "bus_master.h"
-#include "flash_memory.h"
+#include "bootloader.h"
 
 /* Use internal oscillator as the frequency oscillator. */
 #pragma config FOSC=INTOSC
@@ -55,17 +55,10 @@ void main()
     initialize();
     bus_init(13);
 
-    // If button is pressed, then force bootloader mode
-    if (BUTT) {
-        goto Bootloader;
-    }
-
-    flash_erase_application();
-    flash_write_row(127);
+    prepare_reflash(0x25);
+    enter_bootloader();
     
-    bus_master_prepare(0x01, 0x00, plist_no_buffer(1));
-    plist_set_int16(0,5);
-    bus_master_rpc_sync(0x08);
+    
 
     // 0x7ff is highest word in flash memory for pic12lf1822
     // if application is loaded, highest byte will be 0x55
