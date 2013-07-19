@@ -46,10 +46,10 @@ _plist_param_length:
 	movwf BANKMASK(EEADRL)  					
 	andlw 0b01100000
 	swapf WREG,w
-	movwf BANKMASK(EEADRH)	;high contains int size
+	movwf BANKMASK(EEDATL)	;contains int size
 	movlw 0b00011111
 	andwf BANKMASK(EEADRL),w
-	addwf BANKMASK(EEADRH),w
+	addwf BANKMASK(EEDATL),w
 	movlb 0
 	return
 
