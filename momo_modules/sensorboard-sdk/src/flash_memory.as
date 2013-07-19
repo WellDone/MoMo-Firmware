@@ -76,7 +76,7 @@ _flash_write_row:
 	moviw	FSR0++
 	movwf	BANKMASK(EEDATH)
 	movlw	1
-	subwf	FSR1H					;check if we're at the last row, will be zero
+	subwf	FSR1H,w					;check if we're at the last row, will be zero
 	btfsc	ZERO
 	bcf		LWLO 					;actually write if this is the last row
 	call 	unlock_and_write

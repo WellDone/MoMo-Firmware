@@ -50,7 +50,8 @@ void interrupt service_isr() {
     }
 }
 
-void main() {
+void main() 
+{
     initialize();
     bus_init(13);
 
