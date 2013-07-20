@@ -8330,6 +8330,7 @@ Source: www.kingbright.com</description>
 <segment>
 <pinref part="U$3" gate="G$1" pin="5"/>
 <wire x1="-149.86" y1="38.1" x2="-149.86" y2="50.8" width="0.1524" layer="91"/>
+<label x="-149.86" y="43.18" size="1.778" layer="95" rot="R90"/>
 </segment>
 <segment>
 <wire x1="-76.2" y1="48.26" x2="-43.18" y2="48.26" width="0.1524" layer="91"/>
@@ -8351,6 +8352,7 @@ Source: www.kingbright.com</description>
 <segment>
 <pinref part="U$3" gate="G$1" pin="4"/>
 <wire x1="-152.4" y1="38.1" x2="-152.4" y2="50.8" width="0.1524" layer="91"/>
+<label x="-152.4" y="43.18" size="1.778" layer="95" rot="R90"/>
 </segment>
 <segment>
 <wire x1="-76.2" y1="50.8" x2="-43.18" y2="50.8" width="0.1524" layer="91"/>
@@ -8372,6 +8374,7 @@ Source: www.kingbright.com</description>
 <segment>
 <pinref part="U$3" gate="G$1" pin="3"/>
 <wire x1="-154.94" y1="38.1" x2="-154.94" y2="50.8" width="0.1524" layer="91"/>
+<label x="-154.94" y="43.18" size="1.778" layer="95" rot="R90"/>
 </segment>
 <segment>
 <wire x1="-76.2" y1="53.34" x2="-43.18" y2="53.34" width="0.1524" layer="91"/>
