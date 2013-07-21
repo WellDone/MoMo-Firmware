@@ -10923,7 +10923,7 @@ Source: www.kingbright.com</description>
 <part name="JP3" library="pinhead" deviceset="PINHD-1X3" device=""/>
 <part name="R1" library="rcl" deviceset="R-US_" device="R0603" value="10k"/>
 <part name="P+1" library="supply1" deviceset="V+" device=""/>
-<part name="C1" library="rcl" deviceset="C-US" device="C0402"/>
+<part name="C1" library="rcl" deviceset="C-US" device="C0402" value="100 nF"/>
 <part name="R2" library="resistor" deviceset="R-US_" device="R0603" value="60"/>
 <part name="LED1" library="led" deviceset="LED" device="SML0603"/>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
