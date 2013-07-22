@@ -22,6 +22,15 @@ typedef struct
     ParitySettings parity;
 } uart_parameters;
 
+typedef enum
+{
+    U1 = 0,
+    U2 = 1
+} UARTPort;
+
+typedef void(*uart_newline_callback)(char* buffer, int length, bool overflown);
+typedef void(*uart_char_callback)(char data);
+
 typedef struct
 {
     volatile char rcv_buffer_data[UART_BUFFER_SIZE];
@@ -30,8 +39,8 @@ typedef struct
     ringbuffer rcv_buffer;
     ringbuffer send_buffer;
 
-    void(*rx_callback)(char data);
-    void(*rx_newline_callback)(int length, bool overflown);
+    uart_char_callback rx_callback;
+    uart_newline_callback rx_newline_callback;
 
     volatile char* rx_linebuffer;
     volatile char* rx_linebuffer_cursor;
@@ -40,9 +49,9 @@ typedef struct
 
 void configure_uart( UARTPort port, uart_parameters *params);
 
-void set_uart_rx_char_callback( UARTPort port, void (*callback)(char) );
+void set_uart_rx_char_callback( UARTPort port, uart_char_callback callback );
 void clear_uart_rx_char_callback( UARTPort port );
-void set_uart_rx_newline_callback( UARTPort port, void (*callback)(int length, bool overflown), char *linebuffer, int buffer_length );
+void set_uart_rx_newline_callback( UARTPort port, uart_newline_callback callback, char *linebuffer, int buffer_length );
 void clear_uart_rx_newline_callback( UARTPort port );
 
 
@@ -51,6 +60,6 @@ void send( UARTPort port, const char *msg );
 void sends( UARTPort port, const char *msg ); //Blocking send function
 void sendf( UARTPort port, const char *fmt, ... );
 
-unsigned int readln( UARTPort port, char* buffer, int buffer_length );
+unsigned int readln_sync( UARTPort port, char* buffer, int buffer_length );
 
 #endif

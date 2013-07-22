@@ -23,5 +23,6 @@ void debug_init()
     taskloop_set_sleep(0); //Can't sleep with the UART
 
     sendf(DEBUG_UART, "Type was: %d.\r\n", last_reset_type());
-    print(DEBUG_PROMPT);
+    put(DEBUG_UART, ACK);
+    //print(DEBUG_PROMPT);
 }

@@ -13,4 +13,7 @@ bool atoi_small(const char *buf, int* out);
 void print_byte( BYTE b );
 void println( const char* msg );
 
+BYTE hexbyte_to_binary( char* ascii );
+void binary_to_hexbyte( BYTE b, char* out );
+
 #endif

@@ -143,3 +143,54 @@ bool atoi_small(const char* buf, int* out)
     }
     return true;
 }
+
+char to_upper_case( char c ) {
+    if ( 'a' <= c && c <= 'z' )
+        return ( c - 'a' ) + 'A';
+    else
+        return c;
+}
+
+BYTE hexbyte_to_binary( char* hex ) {
+    uint8 i;
+    uint8 ret = 0;
+    uint8 ch;
+    
+    for (i=0; i < 2; i++)
+    {
+        /* take care of HEX files where lower case letters are used */
+        ch = to_upper_case(*hex);
+        ch = *hex;
+        
+        /* convert character to integer value */
+        if (ch >= 'A')
+        {
+            ch = ch - 'A' + 10;
+        }
+        else
+        {
+            ch = ch - '0';
+        }
+        ret = (ret << 4) | ch;
+        hex++;
+    }
+    
+    return (ret);
+}
+
+static char quad_to_hex( uint8 b )
+{
+    if (b >= 10)
+    {
+        b += 'A' - 10;
+    }
+    else
+    {
+        b += '0';
+    }
+    return b;
+}
+void binary_to_hexbyte( BYTE b, char* out ) {
+    out[0] = quad_to_hex( b&0xFF );
+    out[1] = quad_to_hex( (b>>4)&0xFF );
+}

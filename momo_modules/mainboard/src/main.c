@@ -128,7 +128,7 @@ int main(void)
     register_reset_handlers();
     handle_reset();
 
-    scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
+    //scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
     //scheduler_schedule_task(send_blink_message, kEverySecond, kScheduleForever, &i2c);
 
     taskloop_loop();

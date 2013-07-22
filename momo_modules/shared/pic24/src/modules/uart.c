@@ -140,7 +140,7 @@ static void std_rx_callback( UARTPort port, char data );
 static inline void std_rx_callback_task( UARTPort port ) {
     UART_STATUS* stat = STAT(port);
 
-    stat->rx_newline_callback( stat->rx_linebuffer_cursor-stat->rx_linebuffer, stat->rx_linebuffer_remaining == 0 );
+    stat->rx_newline_callback( stat->rx_linebuffer, stat->rx_linebuffer_cursor-stat->rx_linebuffer, stat->rx_linebuffer_remaining == 0 );
     // It is up to the caller to clear out the buffer and re-register the callback.
 }
 static void std_rx_callback_task_U1() {
@@ -171,14 +171,14 @@ static void std_rx_callback_U2( char data ) {
     std_rx_callback( U2, data );
 }
 
-void set_uart_rx_char_callback( UARTPort port, void (*callback)(char data) ) {
+void set_uart_rx_char_callback( UARTPort port, uart_char_callback callback ) {
     STAT(port)->rx_callback = callback;
 }
 void clear_uart_rx_char_callback( UARTPort port ) {
     STAT(port)->rx_callback = 0;
 }
 
-void set_uart_rx_newline_callback( UARTPort port, void (*callback)(int length, bool overflown), char *linebuffer, int buffer_length )
+void set_uart_rx_newline_callback( UARTPort port, uart_newline_callback callback, char *linebuffer, int buffer_length )
 {
     UART_STATUS* stat = STAT(port);
     stat->rx_newline_callback = callback;
@@ -314,13 +314,13 @@ void sendf(UARTPort port, const char *fmt, ...)
     wait_for_transmission( port );
 }
 
-static void readln_callback_U1( int len, bool overflown ) {
+static void readln_callback_U1( char* buf, int len, bool overflown ) {
     clear_uart_rx_newline_callback( U1 );
 }
-static void readln_callback_U2( int len, bool overflown ) {
+static void readln_callback_U2( char* buf, int len, bool overflown ) {
     clear_uart_rx_newline_callback( U2 );
 }
-unsigned int readln( UARTPort port, char* buffer, int buffer_length ) {
+unsigned int readln_sync( UARTPort port, char* buffer, int buffer_length ) {
     set_uart_rx_newline_callback( port, (port==U1)?readln_callback_U1:readln_callback_U2, buffer, buffer_length );
     while( STAT(port)->rx_newline_callback )
         ;

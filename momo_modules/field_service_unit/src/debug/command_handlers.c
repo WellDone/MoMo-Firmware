@@ -18,7 +18,7 @@
 extern volatile unsigned int adc_buffer[kADCBufferSize];
 ScheduledTask test_task;
 
-void handle_echo_params(command_params *params)
+CommandStatus handle_echo_params(command_params *params)
 {
   unsigned int i;
 
@@ -32,16 +32,17 @@ void handle_echo_params(command_params *params)
       print( "\r\n");
     }
   }
+  return kSuccess;
 }
 
-void handle_adc(command_params *params)
+CommandStatus handle_adc(command_params *params)
 {
     char *cmd;
 
     if (params->num_params < 1)
     {
         print( "You must pass a subcommand to the adc command.\r\n");
-        return;
+        return kFailure;
     }
 
     cmd = get_param_string(params, 0);
@@ -147,17 +148,21 @@ void handle_adc(command_params *params)
         sends(DEBUG_UART, "ADC Disabled\r\n");
     }
     else
+    {
         sendf(DEBUG_UART, "Unknown adc command: %s", cmd);
+        return kFailure;
+    }
+    return kSuccess;
 }
 
-void handle_device(command_params *params)
+CommandStatus handle_device(command_params *params)
 {
     char *cmd;
 
     if (params->num_params < 1)
     {
         print( "You must pass a subcommand to the device command.\r\n");
-        return;
+        return kFailure;
     }
 
     cmd = get_param_string(params, 0);
@@ -165,27 +170,30 @@ void handle_device(command_params *params)
     if (strcmp(cmd, "reset") == 0)
     {
         print( "Resetting the device...\r\n");
+        set_command_result( kSuccess );
         asm_reset();
+        return kNone;
     }
     else if (strcmp(cmd, "rtype") == 0)
     {
-            sendf(DEBUG_UART, "Last reset type: %d\r\n", last_reset_type());
+        sendf(DEBUG_UART, "Last reset type: %d\r\n", last_reset_type());
     }
     else if (strcmp(cmd, "sleep") == 0)
     {
         print("Sleeping\r\n");
         asm_sleep();
     }
+    return kSuccess;
 }
 
-void handle_rtcc(command_params *params)
+CommandStatus handle_rtcc(command_params *params)
 {
     char *cmd;
 
     if (params->num_params < 1)
     {
         print( "You must pass a subcommand to the rtcc command.\r\n");
-        return;
+        return kFailure;
     }
 
     cmd = get_param_string(params, 0);
@@ -216,7 +224,7 @@ void handle_rtcc(command_params *params)
         if (params->num_params < 3)
         {
             print( "usage: rtcc set mm/dd/yy hh:mm:ss\r\n");
-            return;
+            return kFailure;
         }
 
         date = get_param_string(params, 1);
@@ -243,70 +251,81 @@ void handle_rtcc(command_params *params)
         print("RTCC Enabled\r\n");
     }
     else
+    {
         sendf(DEBUG_UART, "Unknown rtcc command: %s\r\n", cmd);
+        return kFailure;
+    }
+    return kSuccess;
 }
 
-static void rpc_callback(unsigned char a, MIBParameterHeader *b) 
+static void rpc_callback(unsigned char a) 
 {
-
+    print( "RETURN" );
+    set_command_result( true );
 }
 
-void handle_rpc(command_params *params)
+CommandStatus handle_rpc(command_params *params)
 {
     int feature, command;
 
     if (params->num_params < 2) {
         print( "You must pass a feature and a command to execute a RPC.\r\n");
-        return;
+        return kFailure;
     }
 
     if ( !atoi_small( get_param_string( params, 0 ), &feature )
       || !atoi_small( get_param_string( params, 1 ), &command ) ) {
         print( "Bad feature or command argument." );
-        return;
+        return kFailure;
     }
 
-    /*unsigned int argc = params->num_params - 2;
+    unsigned int argc = params->num_params - 2;
     if ( argc > 3 ) {
         print( "A maximum of 3 params is allowed\n" );
-        return;
+        return kFailure;
     }
-    int i;
-    int intParams[3];
-    char* bufferParam = NULL;
 
-    for ( i=2; i<params->num_params; ++i) {
-        int d;
-        char* str = get_param_string( params, i );
-        if ( !atoi_small( str, &intParams[i-2] ) ) {
-            if ( i == params->num_params-1 ) {
-                bufferParam = str;
-            } else {
-                print( "Only one param can be a buffer, and it must be the last param.\n" );
-                return;
+    if ( argc > 0 )
+    {
+        int i;
+        int intParams[3];
+        char* bufferParam = NULL;
+
+        for ( i=2; i<params->num_params; ++i) {
+            char* str = get_param_string( params, i );
+            if ( !atoi_small( str, &intParams[i-2] ) ) {
+                if ( i == params->num_params-1 ) {
+                    bufferParam = str;
+                } else {
+                    print( "Only one param can be a buffer, and it must be the last param.\n" );
+                    return kFailure;
+                }
             }
         }
+
+        unsigned char plist = plist_define0();
+        unsigned char lastParamType = ((bufferParam==NULL)?kMIBInt16Type:kMIBBufferType);
+        if ( argc == 1 ) {
+            plist = plist_define1( lastParamType );
+        } else if ( argc == 2 ) {
+            plist = plist_define2( kMIBInt16Type, lastParamType );
+        } else {// argc == 3
+            plist = plist_define3( kMIBInt16Type, kMIBInt16Type, lastParamType );
+        }
+
+        bus_master_compose_params(plist);
+        for ( i=0; i<argc-1; ++i )
+            set_intparam(i, intParams[i]);
+
+        if ( lastParamType == kMIBInt16Type )
+            set_intparam(argc-1, intParams[argc-1]);
+        else
+            memcpy( get_buffer_loc(argc-1), bufferParam, strlen(bufferParam) );
+    } else {
+        bus_master_compose_params(plist_define0());
     }
-
-    unsigned char plist = plist_define0();
-    unsigned char lastParamType = ((bufferParam==NULL)?kMIBInt16Type:kMIBBufferType);
-    if ( argc == 1 ) {
-        plist = plist_define1( lastParamType );
-    } else if ( argc == 2 ) {
-        plist = plist_define2( kMIBInt16Type, lastParamType );
-    } else {// argc == 3
-        plist = plist_define3( kMIBInt16Type, kMIBInt16Type, lastParamType );
-    }*/
-
-    //TODO: Possibly listen for a ton of bytes here, we need to support sending over large firmware files.
-
-    // For now, only support two random int params - the test blink RPC accepts this
-    bus_master_compose_params(plist_define2(kMIBInt16Type, kMIBInt16Type));
-    set_intparam(0, 6);
-    set_intparam(1, 5);
-
     
-    
-    bus_master_rpc_async(NULL, kControllerPICAddress, feature&0xFF, command&0xFF);
+    bus_master_rpc_async(rpc_callback, kControllerPICAddress, feature&0xFF, command&0xFF);
     print( "Sending RPC...\n" );
+    return kPending;
 }

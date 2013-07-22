@@ -1,6 +1,10 @@
 #ifndef _pic24_h
 #define _pic24_h
 
+#ifndef __PIC24F16KA101__
+#error PIC24 CODE INCLUDED FOR ANOTHER DEVICE!
+#endif
+
 #include <p24Fxxxx.h>
 #include "common_types.h"
 #include "pic24asm.h"

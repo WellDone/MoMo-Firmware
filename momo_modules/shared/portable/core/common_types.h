@@ -8,14 +8,16 @@ typedef unsigned short bool;
 #define false 0
 #define true 1
 
-// UART
-typedef enum
-{
-    U1 = 0,
-    U2 = 1
-} UARTPort;
-
 typedef signed char 	int8;
 typedef unsigned char	uint8;
+typedef signed int      int16;
+typedef unsigned int    uint16;
+typedef signed long     int32;
+typedef unsigned long   uint32;
+
+inline uint16 makeu16( uint8 high, uint8 low );
+inline uint16 make16( int8 high, int8 low );
+inline uint32 makeu32( uint16 high, uint16 low );
+inline uint32 make32( int16 high, int16 low );
 
 #endif
