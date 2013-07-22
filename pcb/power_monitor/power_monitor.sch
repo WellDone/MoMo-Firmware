@@ -6300,25 +6300,25 @@ Source: AVX .. aphvc.pdf</description>
 <instance part="IC1" gate="G$1" x="12.7" y="96.52"/>
 <instance part="IC2" gate="G$1" x="12.7" y="76.2"/>
 <instance part="IC3" gate="G$1" x="55.88" y="86.36"/>
-<instance part="IC1" gate="P" x="-43.18" y="99.06"/>
+<instance part="IC1" gate="P" x="-55.88" y="78.74"/>
 <instance part="IC2" gate="P" x="-66.04" y="78.74"/>
-<instance part="IC3" gate="P" x="93.98" y="88.9"/>
+<instance part="IC3" gate="P" x="-48.26" y="78.74"/>
 <instance part="R2" gate="G$1" x="-7.62" y="88.9" rot="R90"/>
 <instance part="R3" gate="G$1" x="58.42" y="71.12" rot="R180"/>
 <instance part="R4" gate="G$1" x="35.56" y="83.82" rot="R180"/>
 <instance part="R7" gate="G$1" x="35.56" y="88.9" rot="R180"/>
 <instance part="R8" gate="G$1" x="43.18" y="96.52" rot="R270"/>
 <instance part="VCC4" gate="G$1" x="-66.04" y="88.9"/>
-<instance part="VCC5" gate="G$1" x="-43.18" y="109.22"/>
-<instance part="GND1" gate="1" x="-43.18" y="88.9"/>
+<instance part="VCC5" gate="G$1" x="-55.88" y="88.9"/>
+<instance part="GND1" gate="1" x="-55.88" y="68.58"/>
 <instance part="GND4" gate="1" x="-66.04" y="68.58"/>
-<instance part="GND5" gate="1" x="93.98" y="78.74"/>
+<instance part="GND5" gate="1" x="-48.26" y="68.58"/>
 <instance part="GND6" gate="1" x="43.18" y="104.14" rot="R180"/>
 <instance part="U$6" gate="G$1" x="33.02" y="30.48"/>
 <instance part="U$7" gate="G$1" x="7.62" y="5.08"/>
 <instance part="P+1" gate="1" x="15.24" y="27.94"/>
 <instance part="VCC7" gate="G$1" x="-7.62" y="101.6"/>
-<instance part="P+2" gate="1" x="93.98" y="99.06"/>
+<instance part="P+2" gate="1" x="-48.26" y="88.9"/>
 </instances>
 <busses>
 <bus name="PICBUS:CLK,DAT,IRQ">
