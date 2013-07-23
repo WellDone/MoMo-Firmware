@@ -26,7 +26,6 @@ void push_firmware_start(void)
 	uint32 length = make32( get_uint16_param(1), get_uint16_param(2) );
 	uint8 i, index;
 
-	_RA0 = 1;
 	if ( firmware_bucket_count == kNumFirmwareBuckets )
 	{
 		//ERROR
@@ -48,6 +47,7 @@ void push_firmware_start(void)
 	set_intparam( 0, index ); // We expect the caller to use this new offset to call us again with the next chunk
 
 	bus_slave_setreturn( kNoMIBError | kHasReturnValue );
+	_RA0 = 1;
 }
 
 void push_firmware_chunk(void)
@@ -56,12 +56,12 @@ void push_firmware_chunk(void)
 		//ERROR
 		return;
 	}
-	_RA1 = !_RA1;
 	MIBBufferParameter *buf = get_buffer_param(0);
 	intel_hex16_body* hex = (intel_hex16_body*)&buf->data; // Exactly 19 bytes, yay!
 
 	if ( hex->record_type == HEX_DATA_REC )
 	{
+		_RA1 = !_RA1;
 		// PARSE HEX16 AND DUMP TO FLASH
 		uint32 addr = make32(the_firmware_buckets[firmware_bucket_count].addr_high, hex->address);
 
@@ -70,6 +70,7 @@ void push_firmware_chunk(void)
 		//      We never use the top higher bits (>16) of addr.
 		if ( addr > the_firmware_buckets[firmware_bucket_count].firmware_length ) {
 			//ERROR
+			_RA0 = 0;
 			firmware_push_started = false;
 			return;
 		}
