@@ -68,14 +68,14 @@ void bus_init(uint8 address)
 
 static uint8 get_param_spec(uint8 handler_index)
 {
-	the_features[mib_state.feature_index]->commands[handler_index].params;
+	return the_features[mib_state.feature_index]->commands[handler_index].params;
 }
 
 uint8 validate_param_spec(uint8 handler_index)
 {
 	uint8 spec = get_param_spec(handler_index);
 
-	return (mib_state.bus_command.param_spec & 0b11100000) == spec);
+	return (mib_state.bus_command.param_spec & plist_spec_mask) == spec;
 }
 
 uint8 plist_int_count(uint8 plist)

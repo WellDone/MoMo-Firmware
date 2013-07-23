@@ -260,6 +260,7 @@ CommandStatus handle_rtcc(command_params *params)
 
 static void rpc_callback(unsigned char a) 
 {
+    /*
     //TODO: Parse the response better.
     if ( !(a & kNoMIBError) )
     {
@@ -273,6 +274,7 @@ static void rpc_callback(unsigned char a)
         print_byte( get_uint16_param(0) );
         print("\n");
     }
+    */
     set_command_result( true );
 }
 
@@ -297,17 +299,20 @@ CommandStatus handle_rpc(command_params *params)
         return kFailure;
     }
 
+    unsigned char param_spec = plist_spec_empty();
     if ( argc > 0 )
     {
         int i;
         int intParams[3];
         char* bufferParam = NULL;
+        uint8 intCount = argc;
 
         for ( i=2; i<params->num_params; ++i) {
             char* str = get_param_string( params, i );
             if ( !atoi_small( str, &intParams[i-2] ) ) {
                 if ( i == params->num_params-1 ) {
                     bufferParam = str;
+                    intCount--;
                 } else {
                     print( "Only one param can be a buffer, and it must be the last param.\n" );
                     return kFailure;
@@ -315,29 +320,18 @@ CommandStatus handle_rpc(command_params *params)
             }
         }
 
-        unsigned char plist = plist_define0();
-        unsigned char lastParamType = ((bufferParam==NULL)?kMIBInt16Type:kMIBBufferType);
-        if ( argc == 1 ) {
-            plist = plist_define1( lastParamType );
-        } else if ( argc == 2 ) {
-            plist = plist_define2( kMIBInt16Type, lastParamType );
-        } else {// argc == 3
-            plist = plist_define3( kMIBInt16Type, kMIBInt16Type, lastParamType );
+        if ( bufferParam ) {
+            param_spec = plist_spec( intCount, strlen(bufferParam) );
+            memcpy( plist_get_buffer(intCount), bufferParam, strlen(bufferParam) );
+        } else {
+            param_spec = plist_ints( intCount );
         }
 
-        bus_master_compose_params(plist);
-        for ( i=0; i<argc-1; ++i )
-            set_intparam(i, intParams[i]);
-
-        if ( lastParamType == kMIBInt16Type )
-            set_intparam(argc-1, intParams[argc-1]);
-        else
-            memcpy( get_buffer_loc(argc-1), bufferParam, strlen(bufferParam) );
-    } else {
-        bus_master_compose_params(plist_define0());
+        for ( i=0; i<intCount; ++i )
+            plist_set_int16(i, intParams[i]);
     }
     
-    bus_master_rpc_async(rpc_callback, kControllerPICAddress, feature&0xFF, command&0xFF);
+    bus_master_rpc_async(rpc_callback, kControllerPICAddress, feature&0xFF, command&0xFF, param_spec );
     print( "Sending RPC...\n" );
     return kPending;
 }

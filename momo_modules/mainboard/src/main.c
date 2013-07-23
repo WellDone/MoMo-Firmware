@@ -53,63 +53,6 @@ void blink_light1(void)
 	_RA0 = !_RA0;
 }
 
-void send_erase_message(void)
-{
-    bus_master_rpc_async(NULL, 8, 255, 0x00);
-}
-
-void send_write_message(void)
-{
-    MIBBufferParameter *param3;
-    char *msg = "test";
-
-    bus_master_compose_params(plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBBufferType));
-    set_intparam(0, 0);
-    set_intparam(1, 1<<12);
-    param3 = get_buffer_param(2);
-    memmove(get_buffer_loc(2), msg, 5);
-    param3->header.len = 5;
-
-    bus_master_rpc_async(NULL, 8, 255, 0x01);
-}
-
-void send_read_message(void)
-{
-    bus_master_compose_params(plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBInt16Type));
-    set_intparam(0, 0);
-    set_intparam(1, 1<<12);
-    set_intparam(2, 5);
-
-    bus_master_rpc_async(NULL, 8, 255, 0x02);
-}
-
-void send_test_message(void)
-{
-    static unsigned int i = 0;
-
-    if (i == 0)
-        send_erase_message();
-    else if(i==1)
-        send_write_message();
-    else if(i==2)
-        send_read_message();
-
-    ++i;
-
-    if (i == 3)
-        i = 0;
-}
-
-void send_blink_message(void)
-{
-    bus_master_compose_params(plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBInt16Type));
-    set_intparam(0, 5);
-    set_intparam(1, 10);
-    set_intparam(2, 1);
-
-    bus_master_rpc_async(NULL, 0x10, 0x07, 0x55);
-}
-
 ScheduledTask task1;
 ScheduledTask i2c;
 

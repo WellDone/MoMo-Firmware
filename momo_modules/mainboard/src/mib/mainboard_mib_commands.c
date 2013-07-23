@@ -4,7 +4,7 @@
 DEFINE_FEATURE_MAP()
 {
 	MIB_FEATURE(test),
-	MIB_FEATURE(programming),
+	//MIB_FEATURE(programming),
 	MIB_FEATURE(controller),
 	MIB_FEATURE(firmware_cache)
 };

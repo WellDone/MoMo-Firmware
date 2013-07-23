@@ -25,8 +25,7 @@ static void parse_firmware_line(char* buf, int len, bool overflown)
         print( ")\n" );
 
         // CANCEL.  TODO: Wait for return before indicating failure on UART
-        bus_master_compose_params( plist_define0() );
-        bus_master_rpc_async( NULL, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x02 );
+        bus_master_rpc_async( NULL, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x02, plist_empty() );
 
         set_command_result( false );
         return;
@@ -52,9 +51,8 @@ static void push_more_firmware()
 {
     if ( firmwareChunk.body.record_type == HEX_EOF_REC )
         firmware_done = true;
-    bus_master_compose_params( plist_define1(kMIBBufferType) );
-    memcpy( get_buffer_loc( 0 ), (char*)&firmwareChunk.body, (unsigned int)sizeof(intel_hex16_body) );
-    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x01 );
+    memcpy( plist_get_buffer( 0 ), (char*)&firmwareChunk.body, (unsigned int)sizeof(intel_hex16_body) );
+    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x01, plist_with_buffer(0,sizeof(intel_hex16_body)) );
 }
 
 CommandStatus handle_push_firmware(command_params* params)
@@ -73,11 +71,10 @@ CommandStatus handle_push_firmware(command_params* params)
     }
     firmware_done = false;
 
-    bus_master_compose_params( plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBInt16Type) );
-    set_intparam( 0, type );
-    set_intparam( 1, 0 ); // 0 HIGH BITS of firmware_length
-    set_intparam( 2, firmware_length );
-    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x00 );
+    plist_set_int16( 0, type );
+    plist_set_int16( 1, 0 ); // 0 HIGH BITS of firmware_length
+    plist_set_int16( 2, firmware_length );
+    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x00, plist_ints(3) );
     return kPending;
 }
 
@@ -94,10 +91,9 @@ void pull_firmware_callback(unsigned char a)
 
     if (false) //TODO: Basecase
     {
-        bus_master_compose_params( plist_define2(kMIBInt16Type, kMIBInt16Type) );
-        set_intparam( 0, current_index );
-        set_intparam( 1, current_offset );
-        bus_master_rpc_async( pull_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x04 );
+        plist_set_int16( 0, current_index );
+        plist_set_int16( 1, current_offset );
+        bus_master_rpc_async( pull_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x04, plist_no_buffer(2) );
     } else {
         set_command_result(true);
     }
@@ -117,9 +113,8 @@ CommandStatus handle_pull_firmware(command_params* params)
 
     current_index = index&0xFF;
     current_offset = 0;
-    bus_master_compose_params( plist_define2(kMIBInt16Type, kMIBInt16Type) );
-    set_intparam( 0, current_index );
-    set_intparam( 1, current_offset );
-    bus_master_rpc_async( pull_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x04 );
+    plist_set_int16( 0, current_index );
+    plist_set_int16( 1, current_offset );
+    bus_master_rpc_async( pull_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x04, plist_no_buffer(2) );
     return kPending;
 }

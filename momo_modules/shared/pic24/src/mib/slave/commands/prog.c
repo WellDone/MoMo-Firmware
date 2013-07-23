@@ -6,7 +6,7 @@
  * Erase the pic24 program portion of the flash memory
  *
  */
-
+/*
 void erase_primaryfirmware(void)
 {
 	mem_clear_subsection(kPic24FirmwareSubsection1);
@@ -58,3 +58,4 @@ DEFINE_MIB_FEATURE_COMMANDS(programming)
 	{2, read_from_nvram, plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBInt16Type) }
 };
 DEFINE_MIB_FEATURE(programming);
+*/

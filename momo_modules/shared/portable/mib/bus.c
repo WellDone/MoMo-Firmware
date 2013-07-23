@@ -35,4 +35,20 @@ void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len
 	i2c_receive_message();
 }
 
+void bus_slave_send(unsigned char* buffer, uint8 len, unsigned char imm)					\
+{
+	mib_state.bus_msg.address = kInvalidI2CAddress | imm;
+	mib_state.bus_msg.data_ptr = buffer;
+	mib_state.bus_msg.last_data = buffer + len;
+	i2c_send_message();
+}
+
+void bus_slave_receive(unsigned char* buffer, uint8 len, unsigned char imm) 				\
+{
+	mib_state.bus_msg.address = kInvalidI2CAddress | imm;
+	mib_state.bus_msg.data_ptr = buffer;
+	mib_state.bus_msg.last_data = buffer + len;
+	i2c_receive_message();
+}
+
 #endif

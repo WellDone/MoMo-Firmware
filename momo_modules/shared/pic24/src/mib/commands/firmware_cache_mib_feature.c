@@ -22,8 +22,8 @@ static firmware_bucket __attribute__((space(data))) the_firmware_buckets[kNumFir
 
 void push_firmware_start(void)
 {
-	uint8 type = get_uint16_param(0)&0xFF;
-	uint32 length = make32( get_uint16_param(1), get_uint16_param(2) );
+	uint8 type = plist_get_int16(0)&0xFF;
+	uint32 length = make32( plist_get_int16(1), plist_get_int16(2) );
 	uint8 i, index;
 
 	if ( firmware_bucket_count == kNumFirmwareBuckets )
@@ -43,10 +43,9 @@ void push_firmware_start(void)
 
 	firmware_push_started = true;
 
-	loadparams(plist_1param(kMIBInt16Type));
-	set_intparam( 0, index ); // We expect the caller to use this new offset to call us again with the next chunk
+	plist_set_int16( 0, index ); // We expect the caller to use this new offset to call us again with the next chunk
 
-	bus_slave_setreturn( kNoMIBError | kHasReturnValue );
+	bus_slave_setreturn( pack_return_status( kNoMIBError, kIntSize ) );
 	_RA0 = 1;
 }
 
@@ -56,8 +55,8 @@ void push_firmware_chunk(void)
 		//ERROR
 		return;
 	}
-	MIBBufferParameter *buf = get_buffer_param(0);
-	intel_hex16_body* hex = (intel_hex16_body*)&buf->data; // Exactly 19 bytes, yay!
+	//TODO: Validate length
+	intel_hex16_body* hex = (intel_hex16_body*)plist_get_buffer(0); // Exactly 19 bytes, yay!
 
 	if ( hex->record_type == HEX_DATA_REC )
 	{
@@ -76,7 +75,7 @@ void push_firmware_chunk(void)
 		}
 		addr += the_firmware_buckets[firmware_bucket_count].base_address;
 
-		mem_write( addr, hex->data, buf->header.len - 3 /*address and record_type*/ );
+		mem_write( addr, hex->data, plist_get_buffer_length() - 3 /*address and record_type*/ );
 	}
 	else if ( hex->record_type == HEX_EXTADDR_REC )
 	{
@@ -91,6 +90,7 @@ void push_firmware_chunk(void)
 		firmware_push_started = false;
 		_RA0 = 0;
 	}
+	bus_slave_setreturn( pack_return_status(kNoMIBError, 0) );
 }
 
 void push_firmware_cancel(void)
@@ -102,22 +102,21 @@ void push_firmware_cancel(void)
 
 void get_firmware_info(void)
 {
-	uint8 index = get_uint16_param(0)&0xFF;
+	uint8 index = plist_get_int16(0)&0xFF;
 	if ( index >= firmware_bucket_count ) {
 		//ERROR
 		return;
 	}
-	loadparams(plist_define3(kMIBInt16Type,kMIBInt16Type,kMIBInt16Type));
-	set_intparam( 0, the_firmware_buckets[index].module_type );
-	set_intparam( 1, the_firmware_buckets[index].firmware_length >> 16 );
-	set_intparam( 2, the_firmware_buckets[index].firmware_length & 0xFFFF );
+	plist_set_int16( 0, the_firmware_buckets[index].module_type );
+	plist_set_int16( 1, the_firmware_buckets[index].firmware_length >> 16 );
+	plist_set_int16( 2, the_firmware_buckets[index].firmware_length & 0xFFFF );
 
-	bus_slave_setreturn( kNoMIBError | kHasReturnValue );
+	bus_slave_setreturn( pack_return_status( kNoMIBError, 3*kIntSize ) );
 }
 void pull_firmware_chunk(void)
 {
-	uint8 index = get_uint16_param(0)&0xFF; //TODO: Use module id/address instead?
-	uint16 offset = get_uint16_param(1);
+	uint8 index = plist_get_int16(0)&0xFF; //TODO: Use module id/address instead?
+	uint16 offset = plist_get_int16(1);
 
 	if ( index < firmware_bucket_count || offset > the_firmware_buckets[index].firmware_length ) {
 		//ERROR
@@ -131,18 +130,15 @@ void pull_firmware_chunk(void)
 	if ( chunk_size > kBusMaxMessageSize - 2 )
 		chunk_size = kBusMaxMessageSize - 2;
 
-	loadparams(plist_define1(kMIBBufferType));
-	mem_read( address, get_buffer_loc(0), chunk_size );
-	get_buffer_param(0)->header.len = chunk_size;
+	mem_read( address, plist_get_buffer(0), chunk_size );
 
-	bus_slave_setreturn( kNoMIBError | kHasReturnValue );
+	bus_slave_setreturn( pack_return_status( kNoMIBError, chunk_size ) );
 }
 
 void get_firmware_count(void)
 {
-	loadparams(plist_define1(kMIBInt16Type));
-	set_intparam( 0, firmware_bucket_count );
-	bus_slave_setreturn( kNoMIBError | kHasReturnValue );
+	plist_set_int16( 0, firmware_bucket_count );
+	bus_slave_setreturn( pack_return_status( kNoMIBError, kIntSize ) );
 }
 
 void clear_firmware_cache(void)
@@ -151,15 +147,15 @@ void clear_firmware_cache(void)
 	firmware_push_started = false;
 	_RA0 = 0;
 	
-	bus_slave_setreturn( kNoMIBError );	
+	bus_slave_setreturn( pack_return_status( kNoMIBError, 0 ) );	
 }
 DEFINE_MIB_FEATURE_COMMANDS(firmware_cache) {
-	{0x00, push_firmware_start, plist_define3(kMIBInt16Type,kMIBInt16Type,kMIBInt16Type) },
-	{0x01, push_firmware_chunk, plist_define1(kMIBBufferType) },
-	{0x02, push_firmware_cancel, plist_define0() },
-	{0x03, get_firmware_info, plist_define1(kMIBInt16Type) },
-	{0x04, pull_firmware_chunk, plist_define2(kMIBInt16Type,kMIBInt16Type) },
-	{0x05, get_firmware_count, plist_define0() },
-	{0x0A, clear_firmware_cache, plist_define0() }
+	{0x00, push_firmware_start, plist_spec( 3, false ) },
+	{0x01, push_firmware_chunk, plist_spec( 0, true ) },
+	{0x02, push_firmware_cancel, plist_spec_empty() },
+	{0x03, get_firmware_info, plist_spec( 1, false ) },
+	{0x04, pull_firmware_chunk, plist_spec( 2, false ) },
+	{0x05, get_firmware_count, plist_spec_empty() },
+	{0x0A, clear_firmware_cache, plist_spec_empty() }
 };
 DEFINE_MIB_FEATURE(firmware_cache);
