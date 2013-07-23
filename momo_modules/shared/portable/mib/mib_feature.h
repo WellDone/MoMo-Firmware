@@ -28,7 +28,7 @@ typedef struct {
 #define IMPORT_MIB_FEATURE(name) extern feature_map MIB_FEATURE_OBJ(name)
 
 #define DEFINE_FEATURE_MAP() static const feature_map* the_mib_features[] = 
-#define REGISTER_FEATURE_MAP() register_mib_features(the_mib_features, sizeof(the_mib_features)/sizeof(feature_map) )
+#define REGISTER_FEATURE_MAP() register_mib_features(the_mib_features, sizeof(the_mib_features)/sizeof(feature_map*) )
 
 void register_mib_features( const feature_map** features, unsigned int count );
 

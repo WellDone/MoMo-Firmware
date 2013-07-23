@@ -260,7 +260,19 @@ CommandStatus handle_rtcc(command_params *params)
 
 static void rpc_callback(unsigned char a) 
 {
-    print( "RETURN" );
+    //TODO: Parse the response better.
+    if ( !(a & kNoMIBError) )
+    {
+        //print("An error occurred: ");
+        //print_byte( a );
+    }
+    print("(success)\n");
+    if ( a & kHasReturnValue )
+    {
+        print("RETURN: ");
+        print_byte( get_uint16_param(0) );
+        print("\n");
+    }
     set_command_result( true );
 }
 

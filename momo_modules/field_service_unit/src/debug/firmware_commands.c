@@ -17,27 +17,22 @@ static void request_firmware_line();
 static void push_more_firmware();
 static void parse_firmware_line(char* buf, int len, bool overflown)
 {
-    if (len == 1 && *buf == EOT)
-    {
-        firmware_done = true;
-        set_command_result( true );
-        return;
-    }
-    if ( !compress_intel_hex16_ascii( (intel_hex16_ascii*)buf, &firmwareChunk ) )
+    if ( !compress_intel_hex16_ascii( (intel_hex16_ascii*)buf, &firmwareChunk, len ) )
     {
         buf[len] = '\0';
         print( "Bad HEX line (" );
         print( buf );
         print( ")\n" );
+
+        // CANCEL.  TODO: Wait for return before indicating failure on UART
+        bus_master_compose_params( plist_define0() );
+        bus_master_rpc_async( NULL, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x02 );
+
         set_command_result( false );
         return;
     }
 
-    firmware_populated = true;
-    if ( waiting_for_uart ) {
-        push_more_firmware();
-    }
-    waiting_for_uart = false;
+    push_more_firmware();
 }
 static void request_firmware_line()
 {
@@ -48,29 +43,18 @@ static void request_firmware_line()
 // I2C FIRMWARE PUSH
 static void push_firmware_callback(unsigned char a)
 {
-    // TODO: Retry on failure?
-    if (firmware_done) {
-        put(DEBUG_UART, ACK);
-        return;
-    }
-
-    if (firmware_populated)
-        push_more_firmware();
+    if ( !firmware_done )
+        request_firmware_line();
     else
-        waiting_for_uart = true;
+        set_command_result( true );
 }
 static void push_more_firmware()
 {
-    if (firmware_done) {
-        //DO NOTHING
-    } else {
-        bus_master_compose_params( plist_define1(kMIBBufferType) );
-        memcpy( get_buffer_loc( 0 ), (char*)&firmwareChunk.body, (unsigned int)sizeof(intel_hex16_body) );
-        bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x04 );
-
-        firmware_populated = false;
-        request_firmware_line();
-    }
+    if ( firmwareChunk.body.record_type == HEX_EOF_REC )
+        firmware_done = true;
+    bus_master_compose_params( plist_define1(kMIBBufferType) );
+    memcpy( get_buffer_loc( 0 ), (char*)&firmwareChunk.body, (unsigned int)sizeof(intel_hex16_body) );
+    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x01 );
 }
 
 CommandStatus handle_push_firmware(command_params* params)
@@ -87,15 +71,13 @@ CommandStatus handle_push_firmware(command_params* params)
         print( "Invalid module type or firmware length.\n" );
         return kFailure;
     }
-    firmware_populated = false;
     firmware_done = false;
-    waiting_for_uart = false;
-    request_firmware_line();
 
-    bus_master_compose_params( plist_define2(kMIBInt16Type, kMIBInt16Type) );
+    bus_master_compose_params( plist_define3(kMIBInt16Type, kMIBInt16Type, kMIBInt16Type) );
     set_intparam( 0, type );
-    set_intparam( 1, firmware_length );
-    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x03 );
+    set_intparam( 1, 0 ); // 0 HIGH BITS of firmware_length
+    set_intparam( 2, firmware_length );
+    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x00 );
     return kPending;
 }
 
@@ -105,10 +87,10 @@ static uint16 current_offset;
 static char asciiFirmwareChunk[sizeof(intel_hex16_ascii)+1];
 void pull_firmware_callback(unsigned char a)
 {
-    expand_intel_hex16_binary( (intel_hex16*)get_buffer_param(0), (intel_hex16_ascii*)asciiFirmwareChunk );
+    //expand_intel_hex16_binary( (intel_hex16*)get_buffer_param(0), (intel_hex16_ascii*)asciiFirmwareChunk );
     //TODO: HOW DO WE GET BACK RETURN VALUES!?!
-    asciiFirmwareChunk[sizeof(asciiFirmwareChunk)] = '\0';
-    print( asciiFirmwareChunk );
+    //asciiFirmwareChunk[sizeof(asciiFirmwareChunk)] = '\0';
+    //print( asciiFirmwareChunk );
 
     if (false) //TODO: Basecase
     {
