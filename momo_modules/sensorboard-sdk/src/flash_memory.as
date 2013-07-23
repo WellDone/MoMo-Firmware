@@ -1,7 +1,10 @@
 #include <xc.inc>
+#define _DEFINES_ONLY
 #include "bootloader.h"
+#undef _DEFINES_ONLY
 
-global _flash_erase_application,_flash_write_row
+global _flash_erase_application,_flash_write_row, _flash_erase_row
+global _check_bootloader
 
 
 PSECT text_flash,local,class=CODE,delta=2
@@ -34,7 +37,7 @@ prepare_row_address:
 
 ;taking in a row number in W, erase that flash row
 ;affects EEADR{L,H}
-flash_erase_row:
+_flash_erase_row:
     call 	prepare_row_address
     bsf		FREE 					;perform an erase on next WR command, cleared by hardware
     call	unlock_and_write
@@ -48,7 +51,7 @@ _flash_erase_application:
 	movwf 	FSR1L					;current row in FSR1L
 	erase_app_loop:
 	movf  	FSR1L,w
-	call  	flash_erase_row
+	call  	_flash_erase_row
 	incf 	FSR1L,f 				;current row++
 	movlw	kNumFlashRows			;if row == memsize, we're done
 	subwf	FSR1L,w
@@ -58,13 +61,29 @@ _flash_erase_application:
 	bsf		GIE
 	return
 
+;Returns 0 if the magic number does not indicate bootloader mode
+;otherwise returns the address of the device to get the application code from
+_check_bootloader:
+	MOVLW 0x87
+	MOVWF FSR1H
+	MOVLW 0xFF
+	MOVWF FSR1L
+	MOVF INDF1,W 	;magic is now in W
+	xorlw kReflashMagicNumber
+	btfss ZERO
+	retlw 0
+	movlw 0xFE
+	movwf FSR1L
+	movf INDF1,W
+	return
+	
+
 ;taking in the row to write in the W register
 ;and given the first 32 bytes of bank0 GPR
 ;filled with the row we want to write, do the write.
 _flash_write_row:
 	bcf		GIE
 	call 	prepare_row_address		;load in the row we want to write and get ready for writing flash
-	movwf	FSR1L					;cache row to write in FSR1L
 	movlw	kBootloaderBufferLoc
 	movwf	FSR0L
 	clrf	FSR0H 					;FSR0 now points to row array
@@ -77,7 +96,7 @@ _flash_write_row:
 	moviw	FSR0++
 	movwf	BANKMASK(EEDATH)
 	movlw	1
-	subwf	FSR1H					;check if we're at the last row, will be zero
+	subwf	FSR1H,w					;check if we're at the last row, will be zero
 	btfsc	ZERO
 	bcf		LWLO 					;actually write if this is the last row
 	call 	unlock_and_write

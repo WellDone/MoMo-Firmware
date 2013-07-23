@@ -13,7 +13,6 @@
 uint8 get_num_features();
 uint8 get_feature(uint8 feature);
 uint8 get_command(uint8 command);
-uint8 get_spec(uint8 index);
 uint8 get_magic();
 
 uint8 find_handler(void)

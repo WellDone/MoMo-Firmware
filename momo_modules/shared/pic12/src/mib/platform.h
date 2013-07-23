@@ -8,6 +8,8 @@
 #define kMIBEndpointAddress		0x7FA		//the last 6 bytes of program memory
 #define kMIBMagicNumber			0xAA
 
+#pragma switch space
+
 typedef struct
 {
 	unsigned char num_features;
