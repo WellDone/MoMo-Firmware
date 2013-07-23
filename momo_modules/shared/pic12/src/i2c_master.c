@@ -1,8 +1,8 @@
 #include "i2c.h"
 #include "bus_master.h"
 
-extern volatile 				I2CStatus i2c_status;
-extern bank1 unsigned char 		i2c_slave_address;
+extern bank1 volatile 			I2CStatus i2c_status;
+extern unsigned char 			i2c_slave_address;
 
 #define i2c_msg		(&mib_state.bus_msg)
 
@@ -30,6 +30,7 @@ inline void i2c_master_receivedata()
 		i2c_begin_receive();
 }
 
+//#pragma interrupt_level 1
 void i2c_master_disable()
 {
 	//TODO: check if we are in the middle of sending an RPC and try later
@@ -51,6 +52,7 @@ void i2c_master_disable()
     SSP1IE = 1;
 }
 
+//#pragma interrupt_level 1
 void i2c_master_enable()
 {
 	SSP1IE = 0;
@@ -96,7 +98,7 @@ void i2c_master_interrupt()
 	{
 		case kI2CSendAddressState:
 		i2c_transmit(i2c_msg->address);
-		i2c_status.state = (((i2c_msg->address) & 0x01) == 0) ? kI2CSendDataState : kI2CReceiveDataState;
+		i2c_choose_direction();
 		break;
 
 		case kI2CReceiveDataState:
@@ -120,20 +122,20 @@ void i2c_master_interrupt()
 		case kI2CSendChecksumState:
 		i2c_msg->checksum = (~i2c_msg->checksum) + 1;
 		i2c_transmit(i2c_msg->checksum);
-		i2c_status.state = kI2CUserCallbackState;
+		i2c_status.state = kI2CReceivedChecksumState;
 		break;
 
-		case kI2CUserCallbackState:
+		case kI2CReceivedChecksumState:
+		i2c_status.state = kI2CUserCallbackState;
 		if (i2c_byte_nacked())
 			i2c_status.last_error = kI2CNackReceived;		//Check if the data was successfully sent
 
 		//This data is now sent or received, we need to execute the callback to see what to do next
-		bus_master_callback(); //It is the job of the user callback to decide what to do
+		//The callback will be executed in mainline code (bus_master_rpc_sync is waiting on i2c_status.state)
+		//bus_master_callback(); //It is the job of the user callback to decide what to do
 		break;
 
 		case kI2CIdleState:
-		case kI2CReceivedAddressState:
-		case kI2CForceStopState:
 		case kI2CDisabledState:
 		break;
 	}

@@ -12,7 +12,7 @@ static void bus_slave_callcommand();
 static void bus_slave_startcommand()
 {
 	//Initialize all the state
-	mib_state.slave_state = kMIBSearchCommand;
+	set_slave_state(kMIBSearchCommand);
 	mib_state.slave_handler = kInvalidMIBIndex;
 	mib_state.num_reads = 0;
 
@@ -21,26 +21,13 @@ static void bus_slave_startcommand()
 	bus_slave_receive((unsigned char *)&mib_state.bus_command, sizeof(MIBCommandPacket), 0);
 }
 
-void bus_slave_seterror(unsigned char error)
-{
-	mib_state.bus_returnstatus.result = error;
-	mib_state.bus_returnstatus.len = 0;
-
-	mib_state.slave_state = kMIBProtocolError;
-}
-
 /*
- * The the return status.  The high order bit indicates if a return value is present in 
- * the mib_buffer with 1 being yes and 0 being no.
+ * Set the return status, the high order 3 bits define the status, the low order 5 bits set the 
+ * length of the return value
  */
 void bus_slave_setreturn(uint8 status)
 {
-	mib_state.bus_returnstatus.result = status & 0x7F; //clear high order bit
-
-	if (!BIT_TEST(status,7))
-		mib_state.bus_returnstatus.len = 0;
-	else
-		mib_state.bus_returnstatus.len = ((MIBParameterHeader*)mib_buffer)->len + sizeof(MIBParameterHeader);
+	mib_state.bus_returnstatus.return_status = status;
 }
 
 static void bus_slave_searchcommand()
@@ -59,17 +46,17 @@ static void bus_slave_searchcommand()
 		return;
 	}
 
-	if (mib_state.bus_command.param_length > kBusMaxMessageSize)
+	if (plist_param_length(mib_state.bus_command.param_spec) > kBusMaxMessageSize)
 	{
 		bus_slave_seterror(kParameterTooLong);
 		return;
 	}
 
 	//initialize i2c to receive parameters if there are any
-	if (mib_state.bus_command.param_length > 0)
-		bus_slave_receive(mib_buffer, mib_state.bus_command.param_length, 0);
+	if (plist_param_length(mib_state.bus_command.param_spec) > 0)
+		bus_slave_receive(mib_buffer, plist_param_length(mib_state.bus_command.param_spec), 0);
 	
-	mib_state.slave_state = kMIBFinishCommand;
+	set_slave_state(kMIBFinishCommand);
 }
 
 /*
@@ -85,7 +72,7 @@ static uint8 bus_slave_validateparams()
 		return 0;
 	}
 
-	if (!validate_params(mib_state.slave_handler))
+	if (!validate_param_spec(mib_state.slave_handler))
 	{
 		bus_slave_seterror(kWrongParameterType); //Make sure the parameter checksum was valid.
 		return 0;
@@ -107,7 +94,7 @@ void bus_slave_reset()
 {
 	//A write after any number of reads is a protocol reset so we reset ourselves back to idle
 	//This is a failsafe to make sure we can't get into a state where the slave locks up
-	mib_state.slave_state = kMIBIdleState;
+	set_slave_state(kMIBIdleState);
 	mib_state.num_reads = 0;
 	i2c_slave_setidle();
 }
@@ -118,11 +105,11 @@ void bus_slave_callback()
 	{
 		if (i2c_slave_is_read())
 		{
-			mib_state.num_reads += 1;
+			bus_inc_numreads();
 
 			//Odd reads are for the return status
 			//Even reads are for the return value
-			if (mib_state.num_reads & 0x01)
+			if (bus_numreads_odd())
 			{
 				/*
 				 * To allow for bus error recovery, we keep resending the return status and return value (if any) on all
@@ -136,7 +123,9 @@ void bus_slave_callback()
 
 				//If we don't expect to send a return value, finish the command after this transmission
 				if (mib_state.bus_returnstatus.len == 0)
-					mib_state.slave_state = kMIBFinishCommand;
+				{
+					set_slave_state(kMIBFinishCommand);
+				}
 			}
 			else
 			{
@@ -144,7 +133,7 @@ void bus_slave_callback()
 				//if there wasn't one, then this is a protocol error (or a failed return status checksum) 
 				//since there shouldn't have been a second read so we can send garbage since it will be 
 				//ignored
-				if (mib_state.bus_returnstatus.len != 0)
+				if (bus_has_returnvalue())
 				{
 					bus_slave_send((unsigned char *)mib_buffer, mib_state.bus_returnstatus.len, kSendImmediately);
 				}
@@ -153,12 +142,12 @@ void bus_slave_callback()
 					bus_slave_send((unsigned char *)mib_buffer, 1, kSendImmediately); //protocol error so just send 1 byte, doesn't matter
 				}
 				
-				mib_state.slave_state = kMIBFinishCommand;
+				set_slave_state(kMIBFinishCommand);
 
 				//Make sure we can never overflow
 				//Just toggle back and forth between 1, 2 and 3. Clear the slave handler though so
 				//that we don't recall the function
-				if (mib_state.num_reads == 3)
+				if (bus_numreads_full())
 				{
 					mib_state.slave_handler = kInvalidMIBIndex;
 					mib_state.num_reads = 1; 
@@ -171,7 +160,7 @@ void bus_slave_callback()
 			//If this is not a special situation (protocol reset or start of command) ignore the address byte
 			//and wait for the data to be clocked in.
 			
-			if (mib_state.num_reads != 0)
+			if (bus_numreads_nonzero())
 				bus_slave_reset();
 			else if (mib_state.slave_state == kMIBIdleState)
 			{

@@ -72,8 +72,6 @@
       - --asmlist 
       - --double=24 
       - --float=24 
-      - --rom=0-4FF
-      - --ram=default,-20-50
       - --opt=all,-asmfile
       - --addrqual=require 
       - --mode=pro 
@@ -100,8 +98,6 @@
       - --asmlist 
       - --double=24 
       - --float=24 
-      - --rom=0-4FF
-      - --ram=default,-20-50
       - --opt=all,-asmfile
       - --addrqual=require 
       - --mode=pro 
@@ -126,9 +122,9 @@
       - -m./build/release/MoMo-sensorboard-bootloader.map
       - --asmlist 
       - --double=24 
-      - --float=24 
-      - --rom=0-4FF 
-      - --ram=default,-20-50
+      - --float=24
+      #- --rom=0-44F 
+      - --ram=default,-20-6D
       - --opt=all,-asmfile
       - --addrqual=require 
       - --mode=pro 
@@ -141,9 +137,10 @@
       #- -L-pstrings=CODE
       - "${1}"
       - "../shared/pic12/build/release/libPIC12shared.lpp"
-      - "../shared/pic12/src/mib/mib_hal.asm"
-      - "src/flash_memory.asm"
-      #- "src/mib/slave/command_map.asm"
+      - "../shared/pic12/src/mib/mib_hal.as"
+      - "../shared/pic12/src/i2c_utilities.as"
+      - "src/flash_memory.as"
+      - "src/mib/slave/command_map.as"
       - -o${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE

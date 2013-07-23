@@ -17,8 +17,8 @@ enum
 
 #define kI2CFlagMask (  kDisableI2CSlewControlFlag | kSMBusLevelCompliantFlag )
 
-#define i2c_set_master_mode()       {uint8 old = SSPCON1 & 0xF0; old |= 0b1000; SSPCON1 = old;}
-#define i2c_set_slave_mode()        {uint8 old = SSPCON1 & 0xF0; old |= 0b0110; SSPCON1 = old;}
+#define i2c_set_master_mode()       SSP1CON1 = 0b00111000            //enable and set to master mode (0b1000)
+#define i2c_set_slave_mode()        SSP1CON1 = 0b00010110            //enable and set to slave mode (0b0110)
 
 #define i2c_release_clock()         CKP = 1
 #define i2c_send_start()            SEN = 1
@@ -43,18 +43,18 @@ enum
 #define kInvalidI2CAddress                0x01                //Also not in use by i2c protocol
 #define i2c_address_valid(address)  (!(address > 0 && address < 4))
 
+//CANNOT CHANGE ENUM: Used in i2c_utilities.as
 typedef enum
 {
     kI2CIdleState = 0,
-    kI2CSendAddressState,
-    kI2CReceivedAddressState,
-    kI2CSendDataState,
-    kI2CSendChecksumState,
-    kI2CReceiveDataState,
-    kI2CReceiveChecksumState,
-    kI2CUserCallbackState,
-    kI2CDisabledState,          //When the slave logic is using the bus, disable the master and vice-versa
-    kI2CForceStopState          //When a stop condition is asserted on the bus, make sure we clean up everything
+    kI2CSendAddressState = 1,
+    kI2CSendDataState = 2,
+    kI2CSendChecksumState = 3,
+    kI2CReceiveDataState = 4,
+    kI2CReceiveChecksumState = 5,
+    kI2CUserCallbackState = 6,
+    kI2CDisabledState = 7,          //When the slave logic is using the bus, disable the master and vice-versa
+	kI2CReceivedChecksumState = 8
 } I2CLogicState;
 
 typedef enum
@@ -81,8 +81,8 @@ enum
 
 typedef struct
 {
-    uint8               slave_active:1;
     uint8               state:7;
+    uint8               slave_active:1;
     I2CErrorCode        last_error;
 } I2CStatus;
 
@@ -91,13 +91,14 @@ void i2c_enable(unsigned char slave_address);
 void i2c_disable();
 
 //Shared Common Functions
-void  i2c_send_message();
 void  i2c_receive_message();
 
 void i2c_start_transmission();
 void i2c_finish_transmission();
 
 //Master Functions
+void    i2c_master_send_message();
+void    i2c_master_receive_message();
 void    i2c_master_setidle();
 void    i2c_master_enable();
 void    i2c_master_disable();
@@ -108,10 +109,15 @@ void    i2c_slave_receivedata();
 void    i2c_slave_receivechecksum();
 void    i2c_slave_setidle();
 void    i2c_slave_sendbyte();
+void    i2c_slave_send_message();
+void    i2c_slave_receive_message();
 void    i2c_slave_interrupt();
 
 uint8         i2c_lasterror();
 I2CLogicState i2c_state();
 uint8         i2c_slave_active();
+
+//Utility Functions (i2c_utilities.as)
+void i2c_choose_direction();
 
 #endif

@@ -5,9 +5,9 @@
 #include "i2c.h"
 #include "bus.h"
 
-volatile I2CStatus i2c_status;
+bank1 volatile I2CStatus i2c_status;
 
-bank1 unsigned char i2c_slave_address;
+unsigned char i2c_slave_address;
 
 //Internal functions
 static void i2c_master_receivedata();
@@ -56,6 +56,7 @@ void i2c_disable()
     SSPEN = 0;
 }
 
+//#pragma interrupt_level 1
 void i2c_start_transmission()
 {
     if (i2c_status.state == kI2CIdleState)
@@ -67,47 +68,46 @@ void i2c_start_transmission()
     i2c_status.last_error = kI2CNoError; //Initialize last error
 }
 
+//#pragma interrupt_level 1
 void i2c_finish_transmission()
 {
     i2c_send_stop();
     i2c_master_disable();
 }
 
-void i2c_send_message()
+void i2c_master_send_message()
 {
     mib_state.bus_msg.checksum = 0;
-
-    //Check if this is a slave transmission
-    if (!i2c_address_valid(mib_state.bus_msg.address))
-    {
-        i2c_status.state = kI2CSendDataState;
-        if (mib_state.bus_msg.address == kInvalidImmediateAddress) //check if we should send immediately
-            i2c_slave_sendbyte();
-
-        return;
-    }
-
     mib_state.bus_msg.address <<= 1;
     CLEAR_BIT(mib_state.bus_msg.address, 0); //set write indication
 
     i2c_start_transmission();
 }
 
-void i2c_receive_message()
+void i2c_slave_send_message()
 {
     mib_state.bus_msg.checksum = 0;
 
-    //Check if this is a slave reception
-    if (!i2c_address_valid(mib_state.bus_msg.address))
-    {
-        i2c_status.state = kI2CReceiveDataState;
-        return;
-    }
+    i2c_status.state = kI2CSendDataState;
+    if (mib_state.bus_msg.address == kInvalidImmediateAddress) //check if we should send immediately
+        i2c_slave_sendbyte();
+}
+
+void i2c_master_receive_message()
+{
+    mib_state.bus_msg.checksum = 0;
 
     mib_state.bus_msg.address <<= 1;
     SET_BIT(mib_state.bus_msg.address, 0); //set read indication
 
     i2c_start_transmission();
+}
+
+void i2c_slave_receive_message()
+{
+    mib_state.bus_msg.checksum = 0;
+
+    i2c_status.state = kI2CReceiveDataState;
 }
 
 uint8 i2c_lasterror()

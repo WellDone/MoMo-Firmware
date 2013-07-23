@@ -6,7 +6,6 @@
 //Slave Routines
 void bus_slave_callback();
 void bus_slave_reset();
-void bus_slave_seterror(uint8 error);
 void bus_slave_setreturn(uint8 status);
 
 #endif
