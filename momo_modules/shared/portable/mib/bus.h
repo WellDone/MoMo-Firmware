@@ -40,7 +40,8 @@ typedef enum
 #define set_master_state(state)			{mib_state.combined_state &= 0b10001111; mib_state.combined_state |= shift_master_state(state);}
 #define shift_slave_state(state)		(state << 2)
 #define set_slave_state(state)			{mib_state.combined_state &= 0b111110011; mib_state.combined_state |= shift_slave_state(state);}
-#define bus_has_returnvalue()			(mib_state.bus_returnstatus.return_status & 0b11111000)
+#define bus_has_returnvalue()			(mib_state.bus_returnstatus.len != 0)
+#define bus_get_returnvalue_length()	(mib_state.bus_returnstatus.len)
 #define bus_inc_numreads()				(mib_state.combined_state += 1)							//okay since numreads cannot be more than 2 so this won't overflow
 #define bus_numreads_odd()				(mib_state.combined_state & 0x01)
 #define bus_numreads_full()				((mib_state.combined_state & 0b11) == 0b11)

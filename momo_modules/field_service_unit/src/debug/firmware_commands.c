@@ -17,7 +17,7 @@ static void request_firmware_line();
 static void push_more_firmware();
 static void parse_firmware_line(char* buf, int len, bool overflown)
 {
-    if ( !compress_intel_hex16_ascii( (intel_hex16_ascii*)buf, &firmwareChunk, len ) )
+    if ( !compress_intel_hex16( (intel_hex16_ascii*)buf, &firmwareChunk, len ) )
     {
         buf[len] = '\0';
         print( "Bad HEX line (" );
@@ -42,6 +42,11 @@ static void request_firmware_line()
 // I2C FIRMWARE PUSH
 static void push_firmware_callback(unsigned char a)
 {
+    if ( a != kNoMIBError ) {
+        firmware_done = true;
+        set_command_result(false);
+        return;
+    }
     if ( !firmware_done )
         request_firmware_line();
     else
@@ -52,7 +57,7 @@ static void push_more_firmware()
     if ( firmwareChunk.body.record_type == HEX_EOF_REC )
         firmware_done = true;
     memcpy( plist_get_buffer( 0 ), (char*)&firmwareChunk.body, (unsigned int)sizeof(intel_hex16_body) );
-    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x01, plist_with_buffer(0,sizeof(intel_hex16_body)) );
+    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x01, plist_with_buffer(0,firmwareChunk.data_length+3) );
 }
 
 CommandStatus handle_push_firmware(command_params* params)
@@ -84,10 +89,17 @@ static uint16 current_offset;
 static char asciiFirmwareChunk[sizeof(intel_hex16_ascii)+1];
 void pull_firmware_callback(unsigned char a)
 {
-    //expand_intel_hex16_binary( (intel_hex16*)get_buffer_param(0), (intel_hex16_ascii*)asciiFirmwareChunk );
-    //TODO: HOW DO WE GET BACK RETURN VALUES!?!
-    //asciiFirmwareChunk[sizeof(asciiFirmwareChunk)] = '\0';
-    //print( asciiFirmwareChunk );
+    if ( a == kNoMIBError )
+    {
+        sendf( DEBUG_UART, "%d bytes received:\n", bus_get_returnvalue_length() );
+        plist_get_buffer(0)[bus_get_returnvalue_length()] = '\0';
+        print( plist_get_buffer(0) );
+        print( "\n");
+    } else {
+        sendf( DEBUG_UART, "Failed to pull firmware chunk (%d).\n", a );
+        set_command_result( false );
+        return;
+    }
 
     if (false) //TODO: Basecase
     {
@@ -107,7 +119,7 @@ CommandStatus handle_pull_firmware(command_params* params)
 
     int index;
     if ( !atoi_small( get_param_string( params, 0 ), &index ) || index < 0 ) {
-        print( "Invalid module type or firmware length." );
+        print( "Invalid firmware index.\n" );
         return kFailure;
     }
 

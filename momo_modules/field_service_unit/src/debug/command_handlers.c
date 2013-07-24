@@ -258,23 +258,25 @@ CommandStatus handle_rtcc(command_params *params)
     return kSuccess;
 }
 
-static void rpc_callback(unsigned char a) 
+static void rpc_callback(unsigned char status) 
 {
-    /*
-    //TODO: Parse the response better.
-    if ( !(a & kNoMIBError) )
+    if ( status != kNoMIBError )
     {
-        //print("An error occurred: ");
-        //print_byte( a );
+        print("An error occurred: ");
+        print_byte( status );
+        set_command_result( false );
+        return;
     }
     print("(success)\n");
-    if ( a & kHasReturnValue )
+    if ( bus_get_returnvalue_length() == kIntSize ) { //TODO: MACRO
+        print_byte( plist_get_int16(0) ); // TODO: Typed return value
+    }
+    else
     {
-        print("RETURN: ");
-        print_byte( get_uint16_param(0) );
+        plist_get_buffer(0)[bus_get_returnvalue_length()] = '\0';
+        print(plist_get_buffer(0));
         print("\n");
     }
-    */
     set_command_result( true );
 }
 

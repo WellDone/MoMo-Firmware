@@ -119,7 +119,7 @@ void bus_slave_callback()
 				bus_slave_callcommand();
 
 				//slave callback should set the return status via bus_slave_setreturn and set mib_buffer to point to the return value if any
-				bus_slave_send((unsigned char*)&mib_state.bus_returnstatus, sizeof(MIBReturnValueHeader), kSendImmediately);
+				bus_slave_send(&mib_state.bus_returnstatus.return_status, sizeof(MIBReturnValueHeader), kSendImmediately);
 
 				//If we don't expect to send a return value, finish the command after this transmission
 				if (mib_state.bus_returnstatus.len == 0)

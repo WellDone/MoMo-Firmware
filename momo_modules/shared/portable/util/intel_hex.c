@@ -1,15 +1,14 @@
 #include "intel_hex.h"
 #include "utilities.h"
 
-bool compress_intel_hex16_ascii( intel_hex16_ascii* in, intel_hex16* out, uint8 in_len )
+bool compress_intel_hex16( intel_hex16_ascii* in, intel_hex16* out, uint8 in_len )
 {
-	if ( in_len < 3 )
+	if ( in_len < 11 )
 		return false;
 	uint8 data_length = hexbyte_to_binary( in->data_length );
 	if ( in->startcode != intel_hex_startcode || data_length > 16 )
 		return false;
-
-	if ( in_len < data_length + 11 )
+	if ( in_len != (2*data_length) + 11 )
 		return false;
 
 	out->data_length = data_length;
@@ -27,8 +26,10 @@ bool compress_intel_hex16_ascii( intel_hex16_ascii* in, intel_hex16* out, uint8 
 	return true;
 }
 
-void expand_intel_hex16_binary( intel_hex16* in, intel_hex16_ascii* out )
+bool uncompress_intel_hex16( intel_hex16* in, intel_hex16_ascii* out, uint8 in_len )
 {
+	if ( in_len < 5 || in_len < in->data_length + 5 )
+		return false;
 	binary_to_hexbyte( in->data_length, out->data_length );
 	binary_to_hexbyte( in->body.address >> 8, out->address );
 	binary_to_hexbyte( in->body.address && 0xFF, out->address+2 );
@@ -42,4 +43,5 @@ void expand_intel_hex16_binary( intel_hex16* in, intel_hex16_ascii* out )
 		out_ptr += 2;
 	}
 	binary_to_hexbyte( in->checksum, out->checksum );
+	return true;
 }

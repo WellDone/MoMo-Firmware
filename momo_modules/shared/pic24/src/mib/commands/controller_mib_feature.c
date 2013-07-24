@@ -23,7 +23,7 @@ void register_module(void)
 	     || plist_get_buffer_length() != sizeof( momo_module_descriptor ) )
 	{
 		//TODO: Better error granularity
-		bus_slave_seterror( kUnknownError );
+		bus_slave_seterror( kCallbackError );
 		return;
 	}
 
@@ -39,7 +39,7 @@ void describe_module(void)
 	unsigned long index = plist_get_int16(0);
 	if ( index >= module_count )
 	{
-		bus_slave_seterror( kUnknownError );
+		bus_slave_seterror( kCallbackError );
 		return;
 	}
 

@@ -29,7 +29,7 @@ typedef struct {
 	char checksum    [2];
 } intel_hex16_ascii;
 
-bool compress_intel_hex16_ascii( intel_hex16_ascii* in, intel_hex16* out, uint8 in_len );
-void expand_intel_hex16_binary( intel_hex16* in, intel_hex16_ascii* out );
+bool compress_intel_hex16( intel_hex16_ascii* in, intel_hex16* out, uint8 in_len );
+bool uncompress_intel_hex16( intel_hex16* in, intel_hex16_ascii* out, uint8 in_len );
 
 #endif
