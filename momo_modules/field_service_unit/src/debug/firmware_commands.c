@@ -62,24 +62,21 @@ static void push_more_firmware()
 
 CommandStatus handle_push_firmware(command_params* params)
 {
-    if ( params->num_params != 2 ) {
-        print( "USAGE: push-firmware <module_type> <firmware_length>\n" );
+    if ( params->num_params != 1 ) {
+        print( "USAGE: push-firmware <module_type>\n" );
         return kFailure;
     }
 
     int type;
     int firmware_length;
-    if ( !atoi_small( get_param_string( params, 0 ), &type ) || type < 0
-      || !atoi_small( get_param_string( params, 1 ), &firmware_length ) || firmware_length < 0 ) {
-        print( "Invalid module type or firmware length.\n" );
+    if ( !atoi_small( get_param_string( params, 0 ), &type ) || type < 0 ) {
+        print( "Invalid module type.\n" );
         return kFailure;
     }
     firmware_done = false;
 
     plist_set_int16( 0, type );
-    plist_set_int16( 1, 0 ); // 0 HIGH BITS of firmware_length
-    plist_set_int16( 2, firmware_length );
-    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x00, plist_ints(3) );
+    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x00, plist_ints(1) );
     return kPending;
 }
 

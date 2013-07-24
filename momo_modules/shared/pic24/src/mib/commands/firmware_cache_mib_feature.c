@@ -16,14 +16,13 @@ typedef struct {
 } firmware_bucket;
 #define kFirmwareBucketBaseAddress  ((uint32)MEMORY_SUBSECTION_SIZE * 10) // probably an ok spot.
 // 16kb memory - the maximum for pic24.  pic12 is 2000 words (3kb?) so we could have a bunch o smaller buckets
-#define MAX_FIRMWARE_SIZE           (MEMORY_SUBSECTION_SIZE * 16)
+#define MAX_FIRMWARE_SIZE           ((uint32)MEMORY_SUBSECTION_SIZE * 16)
 #define kNumFirmwareBuckets         8
 static firmware_bucket __attribute__((space(data))) the_firmware_buckets[kNumFirmwareBuckets];
 
 void push_firmware_start(void)
 {
 	uint8 type = plist_get_int16(0)&0xFF;
-	uint32 length = make32( plist_get_int16(1), plist_get_int16(2) );
 	uint8 i, index;
 
 	if ( firmware_bucket_count == kNumFirmwareBuckets )
@@ -34,7 +33,7 @@ void push_firmware_start(void)
 	index = firmware_bucket_count;
 
 	the_firmware_buckets[index].module_type = type;
-	the_firmware_buckets[index].firmware_length = length;
+	the_firmware_buckets[index].firmware_length = 0;
 	the_firmware_buckets[index].base_address = kFirmwareBucketBaseAddress + (uint32)index * (uint32)MAX_FIRMWARE_SIZE;
 	the_firmware_buckets[index].addr_high = 0;
 	
@@ -62,19 +61,19 @@ void push_firmware_chunk(void)
 	{
 		// PARSE HEX16 AND DUMP TO FLASH
 		uint32 addr = make32(the_firmware_buckets[firmware_bucket_count].addr_high, hex->address);
+		uint8 length = plist_get_buffer_length()-3; /*address and record_type*/
 
-		//TODO: Since we only have a uin16 as the firmware_length, 
-		//      sending a really large firmware will actually break here.
-		//      We never use the top higher bits (>16) of addr.
-		if ( addr > the_firmware_buckets[firmware_bucket_count].firmware_length ) {
+		if ( addr+length > MAX_FIRMWARE_SIZE ) {
 			bus_slave_seterror(kCallbackError);
 			_RA0 = 0;
 			firmware_push_started = false;
 			return;
 		}
+		if ( addr+length > the_firmware_buckets[firmware_bucket_count].firmware_length )
+			the_firmware_buckets[firmware_bucket_count].firmware_length = addr+length;
 		addr += the_firmware_buckets[firmware_bucket_count].base_address;
 
-		if ( !mem_write( addr, hex->data, plist_get_buffer_length() - 3 /*address and record_type*/ ) )
+		if ( !mem_write( addr, hex->data, length ) )
 		{
 			bus_slave_seterror(kCallbackError);
 			_RA0 = 0;
@@ -159,7 +158,7 @@ void clear_firmware_cache(void)
 	bus_slave_setreturn( pack_return_status( kNoMIBError, 0 ) );	
 }
 DEFINE_MIB_FEATURE_COMMANDS(firmware_cache) {
-	{0x00, push_firmware_start, plist_spec( 3, false ) },
+	{0x00, push_firmware_start, plist_spec( 1, false ) },
 	{0x01, push_firmware_chunk, plist_spec( 0, true ) },
 	{0x02, push_firmware_cancel, plist_spec_empty() },
 	{0x03, get_firmware_info, plist_spec( 1, false ) },

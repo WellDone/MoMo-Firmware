@@ -22,8 +22,10 @@ CommandStatus handle_echo_params(command_params *params)
 {
   unsigned int i;
 
-  if (params->num_params == 0)
+  if (params->num_params == 0) {
     print( "No parameters were passed.\r\n");
+    return kFailure;
+  }
   else
   {
     for (i=0; i<params->num_params; ++i)
@@ -262,20 +264,23 @@ static void rpc_callback(unsigned char status)
 {
     if ( status != kNoMIBError )
     {
-        print("An error occurred: ");
-        print_byte( status );
+        sendf( DEBUG_UART, "An error occurred, code %d.\n", status );
         set_command_result( false );
         return;
     }
-    print("(success)\n");
-    if ( bus_get_returnvalue_length() == kIntSize ) { //TODO: MACRO
-        print_byte( plist_get_int16(0) ); // TODO: Typed return value
-    }
-    else
+    if ( bus_get_returnvalue_length() > 0 )
     {
-        plist_get_buffer(0)[bus_get_returnvalue_length()] = '\0';
-        print(plist_get_buffer(0));
-        print("\n");
+        if ( bus_get_returnvalue_length() == kIntSize ) { //TODO: MACRO
+            print_byte( plist_get_int16(0) ); // TODO: Typed return value
+        }
+        else
+        {
+            plist_get_buffer(0)[bus_get_returnvalue_length()] = '\0';
+            print(plist_get_buffer(0));
+            print("\n");
+        }
+    } else {
+        print( "(success, nothing returned)\n" );
     }
     set_command_result( true );
 }

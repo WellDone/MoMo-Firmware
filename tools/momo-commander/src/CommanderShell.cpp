@@ -16,37 +16,61 @@ CMDRES::CODE listDevices( const Shell& shell, const ArgList& args ) {
 	}
 }
 
-CMDRES::CODE StartSubShell( FTDIConnectionIterator i ) {
+CMDRES::CODE StartSubShell( FTDIConnectionIterator i, ArgList& args ) {
 	FTDIShell sub_shell( *i );
 	sub_shell.Activate();
-	ArgList args;
 	return sub_shell.Do( args );
 }
 CMDRES::CODE connect( const Shell& shell, const ArgList& args ) {
 	const CommanderShell& cshell = reinterpret_cast<const CommanderShell&>( shell );
 	if ( !cshell.FTDI().Refresh() )
 		return CMDRES::kError;
+
+	ArgList newArgs;
+	std::string deviceID = "";
+	for ( int i=0; i<args.size(); ++i )
+	{
+		if ( args[i] == "-D" )
+		{
+			if ( i+1 < args.size() ) {
+				deviceID = args[++i];
+			}
+			else
+			{
+				printf("\033[31mNo device ID specified.\033[0m\n");
+				return CMDRES::kError;
+			}
+		} else {
+			newArgs.push_back(args[i]);
+		}
+	}
+
+	FTDIConnectionIterator conn;
 	if ( cshell.FTDI().ConnectionCount() == 0 ) {
 		printf("\033[31mNo MoMo devices detected!\033[31m\n");
 		return CMDRES::kError;
-	} else if ( args.size() == 2 ) {
-		for ( FTDIConnectionIterator i = cshell.FTDI().ConnectionIteratorBegin(); i != cshell.FTDI().ConnectionIteratorEnd(); ++i)
+	} else if ( !deviceID.empty() ) {
+		for ( conn = cshell.FTDI().ConnectionIteratorBegin(); conn != cshell.FTDI().ConnectionIteratorEnd(); ++conn )
 		{
-			if ( i->SerialNumber() == args[0] ) {
-				return StartSubShell( i );
+			if ( conn->SerialNumber() == deviceID ) {
+				break;
 			}
 		}
-		printf( "\033[31mInvalid device ID.\033[0m\n" );
-		return CMDRES::kError;
-	} 
+		if ( conn == cshell.FTDI().ConnectionIteratorEnd() )
+		{
+			printf( "\033[31mInvalid device ID.\033[0m\n" );
+			return CMDRES::kError;
+		}
+	}
 	else if ( cshell.FTDI().ConnectionCount() == 1 )
 	{
-		return StartSubShell( cshell.FTDI().ConnectionIteratorBegin() );	
+		conn = cshell.FTDI().ConnectionIteratorBegin();
 	} else {
-		printf( "More than one device detected, please pass a device ID.\n" );
+		printf( "More than one device detected, please pass a device ID with -D <device>.\n" );
 		return CMDRES::kError;
 	}
-	return CMDRES::kSuccess;
+
+	return StartSubShell( conn, newArgs );
 }
 
 CommanderShell::CommanderShell()

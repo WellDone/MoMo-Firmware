@@ -25,8 +25,9 @@ CMDRES::CODE commandNotFound(const Shell& shell, const ArgList& args) {
 	return CMDRES::kError;
 }
 
-Shell::Shell( bool addEchoCommand /* = true */ )
+Shell::Shell( FILE* input, bool addEchoCommand /* = true */ )
 	: m_prompt( "momo-commander" )
+	, m_input( input )
 {
 	RegisterCommand( "*", commandNotFound );
 	RegisterCommand( "exit", exitCommand );
@@ -41,16 +42,17 @@ void Shell::PrintHelp() {
 	}
 }
 
-void parse( ArgList& args, char* line)
+void parse( ArgList& args, std::string& line)
 {
-    while ( *line != '\0' ) {
-		while ( *line == ' ' || *line == '\t' || *line == '\n' )
-			*line++ = '\0';
-		if ( *line != '\0' )
-			args.push_back(line);
-		while ( *line != '\0' && *line != ' ' && 
-			    *line != '\t' && *line != '\n' )  
-			line++;
+	int i=0;
+    while ( line[i] != '\0' ) {
+		while ( line[i] == ' ' || line[i] == '\t' || line[i] == '\n' )
+			line[i++] = '\0';
+		if ( line[i] != '\0' )
+			args.push_back(&line[i]);
+		while ( line[i] != '\0' && line[i] != ' ' && 
+			    line[i] != '\t' && line[i] != '\n' )  
+			i++;
 	}
 }
 CMDRES::CODE Shell::ExecuteCommand( const ArgList& args ) {
@@ -73,16 +75,24 @@ void Shell::Prompt() {
 	if ( !m_prompt.empty() )
 		printf("\033[36m%s\033[0m$ ", m_prompt.c_str() );
 }
-CMDRES::CODE Shell::Do( const ArgList& in_args ) {
+bool Shell::TryGetLine( std::string& out ) {
 	char line[1024];
 	line[0] = '\0';
+	if ( fgets(line, sizeof(line), stdin) == 0 )
+		return false;
+	line[ strlen(line)-1 ] = '\0'; // Drop the \n
+	out = std::string( line );
+	return true;
+}
+
+CMDRES::CODE Shell::Do( const ArgList& in_args ) {
 	ArgList args;
 
 	if ( Startup( in_args ) != CMDRES::kSuccess )
-		return CMDRES::kError;
+		return CMDRES::kQuit;
 	Prompt();
-	while  (fgets(line, sizeof(line), stdin) != 0) {
-		line[ strlen(line)-1 ] = '\0'; // Drop the \n
+	std::string line;
+	while ( TryGetLine(line) ) {
 		args.clear();
 		parse(args, line);
 		switch( ExecuteCommand(args) ) {

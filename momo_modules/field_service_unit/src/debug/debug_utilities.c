@@ -16,12 +16,12 @@ void print_byte( BYTE b )
       print("0");
     mask = mask >> 1;
   }
-  print("\r\n");
+  print("\n");
 }
 
 void println( const char* msg ) {
   print( msg );
-  print( "\r\n" );
+  print( "\n" );
 }
 
 static void getln_callback(char* buf, int len, bool overflown)

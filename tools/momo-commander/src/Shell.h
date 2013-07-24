@@ -18,11 +18,12 @@ typedef CMDRES::CODE (*command_handler)( const Shell& shell, const ArgList& );
 class Shell
 {
 public:
-	Shell( bool addEchoCommand = true );
+	Shell( FILE* input = stdin, bool addEchoCommand = true );
 	CMDRES::CODE Do( const ArgList& args );
 
 	void RegisterCommand( const std::string& name, command_handler handler );
 	void SetPrompt( const char* prompt ) { m_prompt = prompt; }
+	bool TryGetLine( std::string& out );
 
 	virtual CMDRES::CODE Startup( const ArgList& args ) { return CMDRES::kSuccess; };
 private:
@@ -41,6 +42,8 @@ private:
 
 	CommandMap m_commands;
 	command_handler m_catchAllHandler;
+
+	FILE* m_input;
 };
 
 #endif
