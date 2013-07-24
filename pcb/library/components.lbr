@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.025" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
+<grid distance="0.05" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -2467,11 +2467,12 @@ MAX3223-MAX3243.pdf</description>
 <pad name="GND" x="0" y="-2.54" drill="1.016" shape="long"/>
 <pad name="V4." x="0" y="-5.08" drill="1.016" shape="long"/>
 <pad name="PGND" x="0" y="-7.62" drill="1.016" shape="long"/>
-<wire x1="-1.778" y1="11.43" x2="6.35" y2="11.43" width="0.254" layer="21"/>
-<wire x1="6.35" y1="11.43" x2="6.35" y2="-8.89" width="0.254" layer="21"/>
-<wire x1="6.35" y1="-8.89" x2="-1.778" y2="-8.89" width="0.254" layer="21"/>
-<wire x1="-1.778" y1="-8.89" x2="-1.778" y2="11.43" width="0.254" layer="21"/>
 <text x="2.54" y="9.525" size="1.27" layer="21">1</text>
+<wire x1="1.6002" y1="11.684" x2="10.1092" y2="11.684" width="0.254" layer="21"/>
+<wire x1="1.6002" y1="-9.144" x2="10.1092" y2="-9.144" width="0.254" layer="21"/>
+<wire x1="10.1092" y1="11.684" x2="10.1092" y2="-9.144" width="0.254" layer="21"/>
+<wire x1="1.6002" y1="11.684" x2="1.6002" y2="-9.144" width="0.254" layer="21"/>
+<text x="2.54" y="-8.89" size="1.27" layer="25">&gt;NAME</text>
 </package>
 <package name="SO14">
 <description>&lt;b&gt;SMALL OUTLINE INTEGRATED CIRCUIT&lt;/b&gt;&lt;p&gt;
