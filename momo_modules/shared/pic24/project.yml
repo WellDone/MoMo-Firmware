@@ -6,16 +6,27 @@
   :use_auxiliary_dependencies: TRUE
   :build_root: build
   :release_build: TRUE
+  :test_file_prefix: test_
+  :use_mocks: TRUE
 
 :release_build:
   :output: libPIC24shared.a
   :use_assembly: TRUE
 
+
+:extension:
+  :executable: .a 
+
 :paths:
+  :test:
+    - +:test/**
   :source:
     - +:./src/**
     - +:../portable/**
-
+  :include:
+    - +:../../../tools/**
+    - +:/opt/microchip/xc16/v1.10/include/lega-c
+  
 :defines:
   # in order to add common defines:
   #  1) remove the trailing [] from the :common: section
@@ -33,6 +44,20 @@
   :test_preprocess:
     - *common_defines
     - TEST
+    
+:cmock:
+  :mock_prefix: mock_
+  :when_no_prototypes: :warn
+  :enforce_strict_ordering: TRUE
+  :plugins:
+    - :ignore
+    - :callback
+  :treat_as:
+    uint8:    HEX8
+    uint16:   HEX16
+    uint32:   UINT32
+    int8:     INT8
+    bool:     UINT8
 
 :tools:
   :release_compiler:
@@ -69,6 +94,39 @@
       - qc
       - ${2}
       - ${1}
+
+  :test_compiler:
+    :executable: xc16-gcc
+    :arguments:
+      - -mcpu=24F16KA101
+      - -x c
+      - -c
+      - "${1}"
+      - -o "${2}"
+      - -I"$": COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR
+      - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
+      - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
+      - -Wall
+      #- -Werror  # We can't keep this on during test becuase of a CMock pointer issue
+      - -O1
+      - -mlarge-code
+      - -mlarge-arrays
+
+  :test_linker:
+    :executable: xc16-gcc
+    :arguments:
+      - -mcpu=24F16KA101
+      - ${1}
+      - -o "./build/test/TestBuild.out"
+      - -Wl,-Tp24F16KA101.gld,-Map=./build/release/TestOutput.map,--report-mem
+
+  :test_fixture:
+    :executable: ruby
+    :name: "Microchip simulator test fixture"
+    :stderr_redirect: :win #inform Ceedling what model of $stderr capture to use
+    :arguments:
+      - test/simulation/sim_test_fixture.rb
+
 :plugins:
   :load_paths:
     - ../../../tools/ceedling/plugins
