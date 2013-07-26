@@ -8321,7 +8321,7 @@ Source: www.kingbright.com</description>
 <part name="VCC2" library="supply1" deviceset="VCCINT" device=""/>
 <part name="GND8" library="supply1" deviceset="GND" device=""/>
 <part name="U2" library="components" deviceset="MCP1702" device=""/>
-<part name="C5" library="rcl" deviceset="C-US" device="C0402" value="22 uF"/>
+<part name="C5" library="rcl" deviceset="C-US" device="C0402" value="1 uF"/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
 <part name="VCC4" library="supply1" deviceset="VCCINT" device=""/>

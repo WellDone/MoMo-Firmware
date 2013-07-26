@@ -1779,7 +1779,7 @@ design rules under a new name.</description>
 <attribute name="NAME" x="48.4632" y="20.447" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="51.1048" y="24.0538" size="1.27" layer="27" rot="R180"/>
 </element>
-<element name="C5" library="rcl" package="C0402" value="22 uF" x="49.5046" y="23.4188" smashed="yes">
+<element name="C5" library="rcl" package="C0402" value="1 uF" x="49.5046" y="23.4188" smashed="yes">
 <attribute name="NAME" x="50.292" y="23.0632" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="48.8696" y="21.5138" size="1.27" layer="27"/>
 </element>
@@ -2501,18 +2501,6 @@ design rules under a new name.</description>
 <wire x1="35.8394" y1="9.779" x2="36.5626" y2="9.779" width="0.1524" layer="1"/>
 </signal>
 </signals>
-<errors>
-<approved hash="4,1,5e02075d3fb4c117"/>
-<approved hash="4,1,1a049b5ca3b52712"/>
-<approved hash="4,1,ba08df5207bb4123"/>
-<approved hash="4,1,f609f35623a23305"/>
-<approved hash="4,1,c60bbf5747be111c"/>
-<approved hash="4,16,5e02075d3fb4c117"/>
-<approved hash="4,16,1a049b5ca3b52712"/>
-<approved hash="4,16,ba08df5207bb4123"/>
-<approved hash="4,16,f609f35623a23305"/>
-<approved hash="4,16,c60bbf5747be111c"/>
-</errors>
 </board>
 </drawing>
 </eagle>
