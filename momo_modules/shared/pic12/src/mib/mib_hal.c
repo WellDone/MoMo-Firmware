@@ -8,6 +8,7 @@
 
 #include "bus.h"
 #include "mib_hal.h"
+#include "executive.h"
 
 
 uint8 get_num_features();
@@ -19,6 +20,15 @@ uint8 find_handler(void)
 {
 	uint8 found_feat;
 	uint8 cmd = mib_state.bus_command.command;
+
+	//Executive features are handled locally and not passed on to the application module
+	if (mib_state.bus_command.feature == kMIBExecutiveFeature)
+	{
+		if (cmd < kNumExecutiveCommands)
+			return cmd;
+		else
+			return kInvalidMIBIndex;
+	}
 
 	//Make sure there's valid application code loaded and it has a proper mib callback table
 	if (get_magic() != kMIBMagicNumber)
