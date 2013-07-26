@@ -64,9 +64,13 @@ void push_firmware_chunk(void)
 		uint8 length = plist_get_buffer_length()-3; /*address and record_type*/
 
 		if ( addr+length > MAX_FIRMWARE_SIZE ) {
+			// Drop this chunk on the floor, we don't support flashing configuration bits (yet)
+			/*
 			bus_slave_seterror(kCallbackError);
 			_RA0 = 0;
 			firmware_push_started = false;
+			*/
+			bus_slave_setreturn( pack_return_status(kNoMIBError, 0) );
 			return;
 		}
 		if ( addr+length > the_firmware_buckets[firmware_bucket_count].firmware_length )
