@@ -285,11 +285,12 @@ static void rpc_callback(unsigned char status)
     set_command_result( true );
 }
 
+#define RPC_META_ARGC 3
 CommandStatus handle_rpc(command_params *params)
 {
     int  address, feature, command;
 
-    if (params->num_params < 3) {
+    if (params->num_params < RPC_META_ARGC) {
         print( "You must pass a device address, feature and a command to execute a RPC.\r\n");
         return kFailure;
     }
@@ -305,23 +306,17 @@ CommandStatus handle_rpc(command_params *params)
         return kFailure;
     }
 
-    unsigned int argc = params->num_params - 3;
-    if ( argc > 3 ) {
-        print( "A maximum of 3 params is allowed\n" );
-        return kFailure;
-    }
-
     unsigned char param_spec = plist_spec_empty();
-    if ( argc > 0 )
+    if ( params->num_params > RPC_META_ARGC )
     {
         int i;
         int intParams[3];
         char* bufferParam = NULL;
-        uint8 intCount = argc;
+        uint8 intCount = params->num_params - RPC_META_ARGC;
 
-        for ( i=3; i<params->num_params; ++i) {
+        for ( i=RPC_META_ARGC; i<params->num_params; ++i) {
             char* str = get_param_string( params, i );
-            if ( !atoi_small( str, &intParams[i-2] ) ) {
+            if ( !atoi_small( str, &intParams[i-RPC_META_ARGC] ) ) {
                 if ( i == params->num_params-1 ) {
                     bufferParam = str;
                     intCount--;
@@ -330,6 +325,12 @@ CommandStatus handle_rpc(command_params *params)
                     return kFailure;
                 }
             }
+        }
+
+        if ( intCount > 3 )
+        {
+            print( "A maximum of 3 int params is allowed." )
+            return kFailure;
         }
 
         if ( bufferParam ) {
