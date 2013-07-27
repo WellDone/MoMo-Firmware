@@ -1,4 +1,5 @@
 #include <xc.inc>
+#include "executive.h"
 
 ;mib_params.asm
 ;Assembly routines for dealing with MIB things in an efficient way
@@ -6,11 +7,23 @@
 
 GLOBAL _mib_state, _mib_buffer,_call_handler,_get_feature,_get_command, _bus_slave_seterror
 GLOBAL _validate_param_spec,_get_magic,_get_num_features,_plist_int_count,_plist_param_length
+GLOBAL _exec_call_cmd, _exec_get_spec
 
 PSECT text100,local,class=CODE,delta=2
 
 ;Given an index into the handler table in application code, call that handler
+;if the command is handled by the executive, jump to the executive table
 _call_handler:
+	movwf FSR1L
+	movlb 1
+	movlw kMIBExecutiveFeature
+	xorwf BANKMASK(_mib_state+0),w ;see if feature matches kMIBExecutiveFeature
+	btfss ZERO
+	GOTO call_app
+	movf FSR1L,w
+	GOTO _exec_call_cmd
+	call_app:
+	movf FSR1L,w
 	GOTO 0x7FE				;branch to the goto in high memory that redirects to the application code's mib callback table
 
 _get_feature:
@@ -20,6 +33,16 @@ _get_command:
 	GOTO 0x7FC
 
 _get_param_spec:
+	movwf FSR1L
+	movlb 1
+	movlw kMIBExecutiveFeature
+	xorwf BANKMASK(_mib_state+0),w ;see if feature matches kMIBExecutiveFeature
+	btfss ZERO
+	GOTO call_spec
+	movf FSR1L,w
+	GOTO _exec_get_spec
+	call_spec:
+	movf FSR1L,w
 	GOTO 0x7FD
 
 ;indirect read the highest byte from program memory
@@ -57,7 +80,7 @@ _plist_param_length:
 _validate_param_spec:
 	call _get_param_spec		;handler spec in w
 	movlb 1
-	xorwf BANKMASK(_mib_state+3),w ;passed spec xor handler spec
+	xorwf BANKMASK(_mib_state+2),w ;passed spec xor handler spec
 	andlw 0b11100000 				;only look at spec, ignore length
 	btfsc ZERO						;if they match w should be zero
 	retlw 1 

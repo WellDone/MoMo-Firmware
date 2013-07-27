@@ -287,20 +287,25 @@ static void rpc_callback(unsigned char status)
 
 CommandStatus handle_rpc(command_params *params)
 {
-    int feature, command;
+    int  address, feature, command;
 
-    if (params->num_params < 2) {
-        print( "You must pass a feature and a command to execute a RPC.\r\n");
+    if (params->num_params < 3) {
+        print( "You must pass a device address, feature and a command to execute a RPC.\r\n");
         return kFailure;
     }
 
-    if ( !atoi_small( get_param_string( params, 0 ), &feature )
-      || !atoi_small( get_param_string( params, 1 ), &command ) ) {
+    if (!atoi_small( get_param_string(params, 0), &address)) {
+        print("Invalid MIB Address");
+        return kFailure;
+    }
+
+    if ( !atoi_small( get_param_string( params, 1 ), &feature )
+      || !atoi_small( get_param_string( params, 2 ), &command ) ) {
         print( "Bad feature or command argument." );
         return kFailure;
     }
 
-    unsigned int argc = params->num_params - 2;
+    unsigned int argc = params->num_params - 3;
     if ( argc > 3 ) {
         print( "A maximum of 3 params is allowed\n" );
         return kFailure;
@@ -314,7 +319,7 @@ CommandStatus handle_rpc(command_params *params)
         char* bufferParam = NULL;
         uint8 intCount = argc;
 
-        for ( i=2; i<params->num_params; ++i) {
+        for ( i=3; i<params->num_params; ++i) {
             char* str = get_param_string( params, i );
             if ( !atoi_small( str, &intParams[i-2] ) ) {
                 if ( i == params->num_params-1 ) {
@@ -338,7 +343,7 @@ CommandStatus handle_rpc(command_params *params)
             plist_set_int16(i, intParams[i]);
     }
     
-    bus_master_rpc_async(rpc_callback, kControllerPICAddress, feature&0xFF, command&0xFF, param_spec );
+    bus_master_rpc_async(rpc_callback, address, feature&0xFF, command&0xFF, param_spec );
     print( "Sending RPC...\n" );
     return kPending;
 }

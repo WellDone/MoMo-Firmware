@@ -55,8 +55,8 @@ void main()
     initialize();
     bus_init(13);
 
-    prepare_reflash(0x25);
-    enter_bootloader();
+    //prepare_reflash(0x25);
+    //enter_bootloader();
     
     
 
