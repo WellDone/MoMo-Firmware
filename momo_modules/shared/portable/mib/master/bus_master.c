@@ -40,13 +40,24 @@ void bus_master_rpc_async(mib_rpc_function callback, unsigned char address, unsi
 
 uint8 bus_master_rpc_sync(unsigned char address)
 {
+	
+	//Multimaster support, wait until the bus is idle before starting an RPC call
+	wait_and_start:
+	while (!bus_is_idle())
+		;
 
 	bus_master_sendrpc(address);
 
 	while(mib_state.rpc_done != 1)
 	{
 		if (i2c_status.state == kI2CUserCallbackState)
+		{
+			//If we collided, wait for the bus to become clear and start again.
+			if (i2c_status.last_error == kI2CCollision)
+				goto wait_and_start;
+
 			bus_master_callback();
+		}
 	}
 
 	//FIXME: Extract result code and return.

@@ -55,20 +55,9 @@ void main()
     initialize();
     bus_init(13);
 
-    //prepare_reflash(0x25);
-    //enter_bootloader();
-    
+    check_enter_bootloader();
     
 
-    // 0x7ff is highest word in flash memory for pic12lf1822
-    // if application is loaded, highest byte will be 0x55
-    //if (flash_memory_read (0x7FF) == 0x3455) {
-        /*#asm
-            GOTO 0x200;
-        #endasm*/
-    //}
-
-Bootloader:
     while (1) {
         ;
     }

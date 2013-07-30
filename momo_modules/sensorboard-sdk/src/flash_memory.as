@@ -4,7 +4,7 @@
 #undef _DEFINES_ONLY
 
 global _flash_erase_application,_flash_write_row, _flash_erase_row
-global _check_bootloader
+global _check_bootloader, _get_firmware_id
 
 
 PSECT text_flash,local,class=CODE,delta=2
@@ -76,7 +76,16 @@ _check_bootloader:
 	movwf FSR1L
 	movf INDF1,W
 	return
-	
+
+;Given that a proper bootloader preparation structure is written
+;in high memory, return the firmware id that we should program
+_get_firmware_id:
+	MOVLW 0x87
+	MOVWF FSR1H
+	MOVLW 0xFD
+	MOVWF FSR1L
+	MOVF INDF1,W
+	return
 
 ;taking in the row to write in the W register
 ;and given the first 32 bytes of bank0 GPR

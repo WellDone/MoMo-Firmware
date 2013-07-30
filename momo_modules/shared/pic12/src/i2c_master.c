@@ -62,6 +62,7 @@ void i2c_master_enable()
 	
 	i2c_status.slave_active = 0;
 	i2c_status.state = kI2CIdleState;
+	i2c_status.last_error = kI2CNoError;
 
 	SSP1ADD = 0x09; //Set baud rate to 100 khz for 4 mhz internal oscillator
 	i2c_set_master_mode();
@@ -93,7 +94,16 @@ inline void i2c_master_receivechecksum()
 
 void i2c_master_interrupt()
 {
-	//TODO add code for handling bus collision arbitration losses and stops
+	//If a collision happened, notify mainline code so we can restart the transmission.
+	if (BCL1IF)
+	{
+		i2c_status.last_error = kI2CCollision;
+		i2c_status.state = kI2CUserCallbackState;
+
+		BCL1IF = 0;
+		return;
+	}
+
 	switch(i2c_status.state)
 	{
 		case kI2CSendAddressState:

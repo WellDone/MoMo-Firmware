@@ -329,7 +329,7 @@ CommandStatus handle_rpc(command_params *params)
 
         if ( intCount > 3 )
         {
-            print( "A maximum of 3 int params is allowed." )
+            print( "A maximum of 3 int params is allowed." );
             return kFailure;
         }
 

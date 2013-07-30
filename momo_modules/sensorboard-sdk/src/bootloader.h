@@ -16,8 +16,10 @@
 #include "platform.h"
 #include "flash_memory.h"
 
+void set_firmware_id(uint8 bucket);
 void prepare_reflash(uint8 source);
-void enter_bootloader();
+void check_enter_bootloader();
+void flip_bootbuffer_endianness();
 #endif
 
 #endif

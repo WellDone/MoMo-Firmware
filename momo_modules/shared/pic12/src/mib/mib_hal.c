@@ -9,6 +9,7 @@
 #include "bus.h"
 #include "mib_hal.h"
 #include "executive.h"
+#include <pic12f1822.h>
 
 
 uint8 get_num_features();
@@ -58,4 +59,21 @@ void bus_init(uint8 address)
 	mib_state.master_state = kMIBIdleState;
 	
 	i2c_enable(address);
+}
+
+uint8 bus_is_idle()
+{
+	//bus is idle if no start and no stop conditions have been detected and SCL and SDA are both high
+	if ((!SSPSTATbits.P) && (!SSPSTATbits.S))
+	{
+		if (RA1 && RA2)
+			return 1;
+	}
+
+	//If a stop has been asserted with no starts, the bus is idle
+	if (SSPSTATbits.P && (!SSPSTATbits.S))
+		return 1;
+
+	//Otherwise it is not idle
+	return 0;
 }
