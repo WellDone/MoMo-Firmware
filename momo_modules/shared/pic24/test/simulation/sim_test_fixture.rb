@@ -1,4 +1,4 @@
-OUT_FILE = "test/simulation/out.txt"
+OUT_FILE = "build/test/out.txt"
 File.delete OUT_FILE if File.exists? OUT_FILE 
 IO.popen("sim30 test/simulation/sim_instructions.txt")
 sleep 1
