@@ -25,7 +25,7 @@
     - +:../portable/**
   :include:
     - +:../../../tools/**
-    #- +:/opt/microchip/xc16/v1.10/include/lega-c
+    #- +:/opt/microchip/xc16/v1.10/include
   
 :defines:
   # in order to add common defines:
@@ -127,6 +127,29 @@
     :arguments:
       - test/simulation/sim_test_fixture.rb
 
+  :test_includes_preprocessor:
+    :executable: xc16-gcc
+    :arguments:
+      - -E
+      - -MM
+      - -MG
+      - -I"$": COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR
+      - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
+      - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
+      - -D$: DEFINES_TEST_PREPROCESS
+      - "${1}"
+
+  :test_file_preprocessor:
+    :executable: xc16-gcc
+    :arguments:
+      - -E
+      - -I"$": COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR
+      - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
+      - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
+      - -D$: DEFINES_TEST_PREPROCESS
+      - "${1}"
+      - -o "${2}"
+  
 :plugins:
   :load_paths:
     - ../../../tools/ceedling/plugins
