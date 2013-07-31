@@ -276,7 +276,7 @@ static void rpc_callback(unsigned char status)
         else
         {
             plist_get_buffer(0)[bus_get_returnvalue_length()] = '\0';
-            print(plist_get_buffer(0));
+            print((const char*)plist_get_buffer(0));
             print("\n");
         }
     } else {

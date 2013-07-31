@@ -105,6 +105,8 @@ extern bank1 unsigned char 	mib_buffer[kBusMaxMessageSize];
 #ifndef _MACRO_SMALL_FUNCTIONS
 void bus_send(unsigned char address, unsigned char *buffer, unsigned char len);
 void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len);
+void bus_slave_send(unsigned char* buffer, uint8 len, unsigned char imm);
+void bus_slave_receive(unsigned char* buffer, uint8 len, unsigned char imm);
 #else
 
 #define bus_slave_send(buffer, len, imm)					\
