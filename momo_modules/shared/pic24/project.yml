@@ -25,8 +25,7 @@
     - +:../portable/**
   :include:
     - +:../../../tools/**
-    #- +:/opt/microchip/xc16/v1.10/include
-  
+
 :defines:
   # in order to add common defines:
   #  1) remove the trailing [] from the :common: section
@@ -44,7 +43,6 @@
   :test_preprocess:
     - *common_defines
     - TEST
-    
 :cmock:
   :mock_prefix: mock_
   :when_no_prototypes: :warn
@@ -66,7 +64,7 @@
       - -mcpu=24F16KA101
       - -x c
       - -c
-      - "${1}"
+      - ${1}
       - -o ${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE
@@ -101,8 +99,8 @@
       - -mcpu=24F16KA101
       - -x c
       - -c
-      - "${1}"
-      - -o "${2}"
+      - ${1}
+      - -o ${2}
       - -I"$": COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
@@ -137,7 +135,7 @@
       - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
       - -D$: DEFINES_TEST_PREPROCESS
-      - "${1}"
+      - ${1}
 
   :test_file_preprocessor:
     :executable: xc16-gcc
@@ -147,9 +145,9 @@
       - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
       - -D$: DEFINES_TEST_PREPROCESS
-      - "${1}"
-      - -o "${2}"
-  
+      - ${1}
+      - -o ${2}
+
 :plugins:
   :load_paths:
     - ../../../tools/ceedling/plugins
