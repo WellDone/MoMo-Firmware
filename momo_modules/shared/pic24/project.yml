@@ -25,7 +25,7 @@
     - +:../portable/**
   :include:
     - +:../../../tools/**
-    - +:/opt/microchip/xc16/v1.10/include/lega-c
+    #- +:/opt/microchip/xc16/v1.10/include/lega-c
   
 :defines:
   # in order to add common defines:
@@ -37,7 +37,7 @@
     - CMOCK_MEM_INDEX_TYPE=uint16_t
     - CMOCK_MEM_PTR_AS_INT=uint16_t
     - CMOCK_MEM_ALIGN=1
-    - CMOCK_MEM_SIZE=8192
+    - CMOCK_MEM_SIZE=1024
   :test:
     - *common_defines
     - TEST

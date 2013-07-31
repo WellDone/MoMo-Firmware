@@ -1,0 +1,4 @@
+test_mib_hal.c:13:test_find_handler:PASS
+-----------------------
+1 Tests 0 Failures 0 Ignored
+OK
