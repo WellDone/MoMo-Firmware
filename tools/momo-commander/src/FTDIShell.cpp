@@ -33,7 +33,6 @@ void* ReadLoop( void* arg ) {
 		if ( syncronizer.exiting ) {
 			break;
 		}
-		sleep(1);
 	}
 	return 0;
 }

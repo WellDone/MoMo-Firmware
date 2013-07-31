@@ -66,7 +66,7 @@ int main(void)
     _TRISB0 = 0;
 
     _RA1 = 0;
-    _RA0 = 0;
+    _RA0 = 1;
 
     register_reset_handlers();
     handle_reset();
