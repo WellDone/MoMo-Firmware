@@ -160,7 +160,6 @@ BYTE hexbyte_to_binary( char* hex ) {
     {
         /* take care of HEX files where lower case letters are used */
         ch = to_upper_case(*hex);
-        ch = *hex;
         
         /* convert character to integer value */
         if (ch >= 'A')

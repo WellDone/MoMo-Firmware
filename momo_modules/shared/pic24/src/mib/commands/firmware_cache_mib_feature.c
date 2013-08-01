@@ -45,7 +45,6 @@ void push_firmware_start(void)
 	plist_set_int16( 0, index ); // We expect the caller to use this new offset to call us again with the next chunk
 
 	bus_slave_setreturn( pack_return_status( kNoMIBError, kIntSize ) );
-	_RA0 = 1;
 }
 
 void push_firmware_chunk(void)
@@ -54,6 +53,7 @@ void push_firmware_chunk(void)
 		bus_slave_seterror(kCallbackError);
 		return;
 	}
+	_RA0 = !_RA0;
 	//TODO: Validate length
 	intel_hex16_body* hex = (intel_hex16_body*)plist_get_buffer(0); // Exactly 19 bytes, yay!
 
@@ -99,6 +99,7 @@ void push_firmware_chunk(void)
 		_RA0 = 0;
 	}
 	bus_slave_setreturn( pack_return_status(kNoMIBError, 0) );
+	_RA1 = !_RA1;
 }
 
 void push_firmware_cancel(void)

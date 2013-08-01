@@ -38,7 +38,6 @@ void FTDIConnection::Close() {
 
 std::string FTDIConnection::Read()
 {
-	unsigned char * pcBufRead = NULL;
 	DWORD	dwRxSize = 0;
 	DWORD   dwBytesRead;
 	FT_STATUS	ftStatus;
@@ -48,21 +47,26 @@ std::string FTDIConnection::Read()
 	ftStatus = FT_GetQueueStatus(m_deviceHandle, &dwRxSize);
 	if(ftStatus == FT_OK) {
 		if (dwRxSize > 0) {
+			unsigned char * pcBufRead = NULL;
 			pcBufRead = (unsigned char*)malloc(dwRxSize);
-			ftStatus = FT_Read(m_deviceHandle, pcBufRead, dwRxSize, &dwBytesRead);
-			if (ftStatus != FT_OK) {
-				printf("Error FT_Read(%d)\n", (int)ftStatus);
+			if ( pcBufRead )
+			{
+				ftStatus = FT_Read(m_deviceHandle, pcBufRead, dwRxSize, &dwBytesRead);
+				if (ftStatus != FT_OK) {
+					printf("Error FT_Read(%d)\n", (int)ftStatus);
+				} else {
+					//printf("FT_Read read %d bytes.", (int)dwBytesRead );
+					ret = std::string( (const char*)pcBufRead, (size_t)dwRxSize );
+				}
+				free( pcBufRead );
 			} else {
-				//printf("FT_Read read %d bytes.", (int)dwBytesRead );
-				ret = std::string( (const char*)pcBufRead, (size_t)dwRxSize );
+				printf("malloc failure!\n");
 			}
 		}
 	}
 	else {
 		printf("Error FT_GetQueueStatus(%d)\n", (int)ftStatus);	
 	}
-	if (pcBufRead)
-		free( pcBufRead );
 	return ret;
 }
 
