@@ -1,6 +1,7 @@
 #include <xc.inc>
 #define _DEFINES_ONLY
 #include "bootloader.h"
+#include "constants.h"
 #undef _DEFINES_ONLY
 
 global _flash_erase_application,_flash_write_row, _flash_erase_row
@@ -88,7 +89,8 @@ _load_boot_address:
 ;If the device is in bootloader mode returns the address of 
 ;the device to get the application code from
 _get_boot_source:
-	clrf FSR1H
+	MOVLW 0x87
+	MOVWF FSR1H
 	movlw 0xFE
 	movwf FSR1L
 	movf INDF1,W

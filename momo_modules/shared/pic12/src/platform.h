@@ -4,9 +4,7 @@
 #include <pic12f1822.h>
 #include "common_types.h"
 #include "bit_utilities.h"
-
-#define kMIBEndpointAddress		0x7FA		//the last 6 bytes of program memory
-#define kMIBMagicNumber			0xAA
+#include "constants.h"
 
 #pragma switch space
 

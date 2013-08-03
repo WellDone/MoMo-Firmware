@@ -8,7 +8,7 @@
   :test_file_prefix: test_
 
 :release_build:
-  :output: MoMo-sensorboard-bootloader.hex
+  :output: momo-mib12-executive.hex
   :use_assembly: TRUE
 
 :environment:

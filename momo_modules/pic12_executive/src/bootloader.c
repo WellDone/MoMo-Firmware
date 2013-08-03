@@ -9,6 +9,7 @@
  */
 
 #include "bootloader.h"
+#include "constants.h"
 #include "bus_master.h"
 #include <string.h>
 

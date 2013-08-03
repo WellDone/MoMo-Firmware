@@ -4,6 +4,7 @@
 
 void main(void)
 {
+	TRISA5 = 0;
 	volatile unsigned char i,j;
 	while(1)
 	{
@@ -15,4 +16,9 @@ void main(void)
 		
 		RA5 = !RA5;
 	}
+}
+
+void interrupt_handler(void)
+{
+
 }

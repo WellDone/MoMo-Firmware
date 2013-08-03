@@ -2,12 +2,11 @@
 ;3 structures defining the features, commands and handlers that we support
 
 #include <xc.inc>
+#include "constants.h"
 
 ;Define the number of supported features and where to store the callback table pointer
 ;in ROM
 #define kNumFeatures 			0
-#define kMIBEndpointAddress		0x7FA		//the last 6 bytes of program memory
-#define kMIBMagicNumber			0xAA
 
 ;Define ways to create parameter specs simply
 #define plist_param_n(n, type) 					((type & 0x01) << (n+3))
@@ -25,6 +24,8 @@ PSECT mibmap,abs,ovrld,local,class=CODE,delta=2
 
 ;High memory command structure for processing mib slave endpoints
 org 	kMIBEndpointAddress
+retlw 	0
+retlw 	0
 retlw 	kNumFeatures
 goto 	mibfeatures
 goto 	mibcommands

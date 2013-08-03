@@ -9,5 +9,5 @@ task :clean_shared do
 	sh "(cd ../shared/pic12/; rake clean;)"
 end
 
-task :default => %w[ clean test:all release ]
+task :default => %w[ clean clean_shared shared test:all release ]
 task :full => %w[ clean clean_shared default ]
