@@ -23,6 +23,7 @@
     - -:test/support
   :source:
     - src/**
+    - +:../shared/portable/mib/**
   :include:
     - +:../shared/pic12/src/**
     - +:../shared/portable/**
@@ -137,8 +138,8 @@
       #- -L-pstrings=CODE
       - "${1}"
       - "../shared/pic12/build/release/libPIC12shared.lpp"
-      - "../shared/pic12/src/mib/mib_hal.as"
-      - "../shared/pic12/src/i2c_utilities.as"
+      - "src/mib/mib_hal.as"
+      - "src/i2c_utilities.as"
       - "src/flash_memory.as"
       - "src/mib/executive_commands.as"
       - -o${2}

@@ -15,6 +15,7 @@
   :source:
     - +:./src/**
     - +:../portable/**
+    - -:../portable/mib/**
 
 :environment:
 
