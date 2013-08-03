@@ -23,10 +23,11 @@ typedef union
 {
 	struct
 	{
+		uint8 wdt_enabled	: 1; //cannot change position (referenced by watchdog.as)
 		uint8 valid_app 	: 1;
 		uint8 bootload_mode : 1;
 		uint8 registered	: 1;
-		uint8 reserved		: 6; 
+		uint8 reserved		: 4; 
 	};
 
 	uint8 status;

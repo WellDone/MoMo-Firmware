@@ -2,7 +2,7 @@
 
 #include "platform.h"
 
-void main(void)
+void task(void)
 {
 	TRISA5 = 0;
 	volatile unsigned char i,j;
@@ -21,4 +21,9 @@ void main(void)
 void interrupt_handler(void)
 {
 
+}
+
+void initialize(void)
+{
+	
 }

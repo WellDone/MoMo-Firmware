@@ -1,19 +1,23 @@
 #include <pic12f1822.h>
 #include "bus_master.h"
 #include "bootloader.h"
+#include "appcode.h"
+#include "watchdog.h"
 
 //Configuration Words
 #pragma config FOSC=INTOSC      /* Use internal oscillator as the frequency oscillator. */
-#pragma config WDTE=OFF         /* Disable the watchdog timer. */
-#pragma config PLLEN=OFF        /* Disbable 4x phase lock loop. */
+#pragma config WDTE=0b01         /* Enable the watchdog timer under software control. */
+#pragma config PLLEN=OFF        /* Disable 4x phase lock loop. */
 #pragma config WRT=OFF          /* Flash memory write protection off. */
 
 MIBExecutiveStatus status;
 
 void initialize();
 void restore_status();
+void check_app_fault();
 
 void interrupt service_isr() {
+    wdt_pushenabled();
     // Handle i2c interrupts (MSSP) in the bootloader.
     if (SSP1IF == 1) 
     {
@@ -28,10 +32,12 @@ void interrupt service_isr() {
     } 
     else if (status.valid_app)
     {
-        #asm
-        GOTO kFirstApplicationRow*16+1
-        #endasm
+        wdt_enable(); 
+        call_app_interrupt();
+        wdt_disable();
     }
+
+    wdt_popenabled();
 }
 
 void main() 
@@ -47,18 +53,30 @@ void main()
         restore_status();   //Update our status on what mode we should be in now
     }
 
+    check_app_fault();
+
     if (status.valid_app)
     {  
-        #asm
-        GOTO kFirstApplicationRow*16
-        #endasm
+        wdt_enable();
+        call_app_init();
+        wdt_disable();
+
+        while(1)
+        {
+            wdt_enable();
+            call_app_task();
+            wdt_disable();
+
+            sleep();
+        }
     }
-    while (1) {
+
+    //Otherwise wait forever for new firmware to be downloaded
+    while (1)
         ;
-    }
 }
 
-void initialize ()
+void initialize()
 {
     /* Software HS internal oscilator at 4 Mhz */
     OSCCON = (0b1101 << 3);
@@ -69,6 +87,7 @@ void initialize ()
 
     /* Set all PORTA pins to be input. */
     TRISA = 0xff;
+    RA5 = 0;
 
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
     ANSELA = 0;
@@ -79,6 +98,7 @@ void initialize ()
     GIE = 1;
     /* Enable peripheral interrupts. */
     PEIE = 1;
+    wdt_settimeout(k1SecondTimeout);
 }
 
 void restore_status()
@@ -94,5 +114,24 @@ void restore_status()
     {
         status.registered = 1;
         bus_init(13);
+    }
+
+    //If we ended the last 
+}
+
+/*
+ * If we reset because of a watchdog timeout, assume the application code failed, and delay before recalling it
+ * so that we have a chance to reflash if necessary
+ */
+void check_app_fault()
+{
+    if (nTO == 0)
+    {
+        wdt_settimeout(k4SecondTimeout);
+        TRISA5 = 0;
+        sleep();
+        TRISA5 = 1;
+        wdt_settimeout(k1SecondTimeout);
+        nTO = 1;
     }
 }
