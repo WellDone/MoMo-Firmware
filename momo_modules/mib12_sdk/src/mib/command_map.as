@@ -5,7 +5,7 @@
 
 ;Define the number of supported features and where to store the callback table pointer
 ;in ROM
-#define kNumFeatures 			1
+#define kNumFeatures 			0
 #define kMIBEndpointAddress		0x7FA		//the last 6 bytes of program memory
 #define kMIBMagicNumber			0xAA
 
@@ -22,7 +22,6 @@
 #define plist_define3(type1, type2, type3)		plist_define(3, plist_3params(type1, type2, type3))
 
 PSECT mibmap,abs,ovrld,local,class=CODE,delta=2
-global _blink_pin
 
 ;High memory command structure for processing mib slave endpoints
 org 	kMIBEndpointAddress
@@ -37,17 +36,16 @@ PSECT mibstructs,local,class=CONST,delta=2
 
 mibhandlers:
 BRW
-GOTO 	_blink_pin
 
 mibfeatures:
 BRW
-RETLW 	1
+RETLW 	0
 
 mibcommands:
 BRW
 RETLW 0
-RETLW 1
+RETLW 0
 
 mibspecs:
 BRW
-RETLW plist_define1(0)
+RETLW 0

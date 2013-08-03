@@ -39,13 +39,16 @@ void i2c_master_disable()
 
 	SSP1IE = 0;
 	GCEN = 0;
+	SSPEN = 0;
     
-    SSPOV = 0; //clear overflow bit
-
-	SSP1ADD = i2c_slave_address;
 	i2c_set_slave_mode();
-
 	SEN = 1;
+
+	SSPEN = 1;
+	SSP1ADD = i2c_slave_address;
+
+	i2c_receive();
+    SSPOV = 0; //clear overflow bit
 
     /* Enable the MSSP interrupt (for i2c). */
     SSP1IF = 0;
@@ -57,6 +60,7 @@ void i2c_master_enable()
 {
 	SSP1IE = 0;
 	GCEN = 0;
+	SSPEN = 0;
 
 	SEN = 0; //This has a different meaning in Master mode
 	
@@ -64,8 +68,11 @@ void i2c_master_enable()
 	i2c_status.state = kI2CIdleState;
 	i2c_status.last_error = kI2CNoError;
 
-	SSP1ADD = 0x09; //Set baud rate to 100 khz for 4 mhz internal oscillator
 	i2c_set_master_mode();
+
+	SSPEN = 1;
+	SSP1ADD = 0x09; //Set baud rate to 100 khz for 4 mhz internal oscillator
+	
 
     /* Enable the MSSP interrupt (for i2c). */
     SSP1IF = 0;

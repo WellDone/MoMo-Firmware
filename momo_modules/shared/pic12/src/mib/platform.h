@@ -43,4 +43,6 @@ typedef struct
 #define i2c_slave_state()		i2c_state()
 #define i2c_master_state()		i2c_state()
 
+uint8 get_magic();
+
 #endif

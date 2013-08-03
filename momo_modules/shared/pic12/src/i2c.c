@@ -71,8 +71,10 @@ void i2c_start_transmission()
 //#pragma interrupt_level 1
 void i2c_finish_transmission()
 {
+    RA5 = !RA5;
     i2c_send_stop();
     i2c_master_disable();
+    RA5 = !RA5;
 }
 
 void i2c_master_send_message()

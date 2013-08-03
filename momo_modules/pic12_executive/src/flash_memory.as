@@ -4,7 +4,10 @@
 #undef _DEFINES_ONLY
 
 global _flash_erase_application,_flash_write_row, _flash_erase_row
-global _check_bootloader, _get_firmware_id
+global _get_boot_source, _get_firmware_id, _get_magic,_mib_buffer
+global _copy_mib_to_boot,_load_boot_address
+
+global _boot_count
 
 
 PSECT text_flash,local,class=CODE,delta=2
@@ -61,17 +64,31 @@ _flash_erase_application:
 	bsf		GIE
 	return
 
-;Returns 0 if the magic number does not indicate bootloader mode
-;otherwise returns the address of the device to get the application code from
-_check_bootloader:
-	MOVLW 0x87
-	MOVWF FSR1H
-	MOVLW 0xFF
-	MOVWF FSR1L
-	MOVF INDF1,W 	;magic is now in W
-	xorlw kReflashMagicNumber
-	btfss ZERO
-	retlw 0
+;take in a byte specifying a flash row number and load the 16 bit address
+;of the first byte of that row into the mib_buffer in position 1
+;the low order byte is assumed to contain the offset with the row so it is
+;combined with a logical or.
+_load_boot_address:
+	movlb 0
+	lslf _boot_count,w
+	movlb 1
+	movwf FSR1L
+
+	andlw 0xF0
+	swapf WREG
+	movwf BANKMASK(_mib_buffer+3)
+	
+	movf  FSR1L,w
+	andlw 0x0F
+	swapf WREG
+	iorwf BANKMASK(_mib_buffer+2),f
+	return
+
+
+;If the device is in bootloader mode returns the address of 
+;the device to get the application code from
+_get_boot_source:
+	clrf FSR1H
 	movlw 0xFE
 	movwf FSR1L
 	movf INDF1,W
@@ -85,6 +102,25 @@ _get_firmware_id:
 	MOVLW 0xFD
 	MOVWF FSR1L
 	MOVF INDF1,W
+	return
+
+;Given an offset in W, copy 16 bytes from the mib_buffer
+;to the programming buffer + offset
+_copy_mib_to_boot:
+	movlb 3
+	clrf   FSR0H
+	addlw kBootloaderBufferLoc
+	movwf FSR0L
+	clrf   FSR1H
+	movlw _mib_buffer
+	movwf FSR1L
+	movlw 16		;copy in byte at a time
+	movwf BANKMASK(EEDATL)
+	copyloop:
+	moviw FSR1++ 	;copy one byte
+	movwi FSR0++ 	
+	decfsz BANKMASK(EEDATL)
+	goto copyloop
 	return
 
 ;taking in the row to write in the W register

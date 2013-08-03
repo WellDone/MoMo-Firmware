@@ -54,13 +54,16 @@ uint8 bus_master_rpc_sync(unsigned char address)
 		{
 			//If we collided, wait for the bus to become clear and start again.
 			if (i2c_status.last_error == kI2CCollision)
+			{
+				i2c_status.last_error == kI2CNoError;
 				goto wait_and_start;
+			}
 
 			bus_master_callback();
 		}
 	}
 
-	//FIXME: Extract result code and return.
+	return mib_state.bus_returnstatus.result;
 }
 
 #endif

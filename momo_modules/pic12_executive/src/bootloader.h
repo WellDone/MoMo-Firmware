@@ -1,7 +1,7 @@
 #ifndef __bootloader_h__
 #define __bootloader_h__
 
-#define kFirstApplicationRow	78
+#define kFirstApplicationRow	79
 #define kNumFlashRows			128
 #define kFlashRowSize			16		//words
 #define kBootloaderBufferLoc	0x20	//bootloader uses first 32 bytes of ram in bank0 to cache flash row
@@ -16,10 +16,24 @@
 #include "platform.h"
 #include "flash_memory.h"
 
-void set_firmware_id(uint8 bucket);
-void prepare_reflash(uint8 source);
-void check_enter_bootloader();
-void flip_bootbuffer_endianness();
+void 	set_firmware_id(uint8 bucket);
+void 	prepare_reflash(uint8 source);
+void 	enter_bootloader();
+uint8 	get_half_row(uint8 offset);
+
+typedef union
+{
+	struct
+	{
+		uint8 valid_app 	: 1;
+		uint8 bootload_mode : 1;
+		uint8 registered	: 1;
+		uint8 reserved		: 6; 
+	};
+
+	uint8 status;
+} MIBExecutiveStatus;
+
 #endif
 
 #endif

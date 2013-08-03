@@ -19,11 +19,12 @@
 uint8 app_buffer[32] @ 0x20;
 uint8 boot_source @ 0x40;
 uint8 boot_count  @ 0x41;
-unsigned int boot_address @ 0x42;
-uint8 boot_id @ 0x44;
-uint8 i @ 0x45;
-uint8 tmp @ 0x46;
+uint8 boot_id @ 0x42;
+uint8 i @ 0x43;
+uint8 tmp @ 0x44;
+uint8 invalid_row @ 0x45;
 
+extern MIBExecutiveStatus status;
 
 void set_firmware_id(uint8 bucket)
 {
@@ -32,58 +33,43 @@ void set_firmware_id(uint8 bucket)
 
 void prepare_reflash(uint8 source)
 {
+	status.valid_app = 0;
+
 	set_flash_word(14, source, kRetlwHighWord);
 	set_flash_word(15, kReflashMagicNumber, kRetlwHighWord);
 	flash_erase_row(kNumFlashRows-1);
 	flash_write_row(kNumFlashRows-1); //Write the source and magic number into the memory
 }
 
-void check_enter_bootloader()
+uint8 get_half_row(uint8 offset)
 {
-	boot_source = check_bootloader();
+	plist_set_int8(0, 0, boot_id);
+	plist_set_int8(0, 1, 0);
+	plist_set_int8(1, 0, offset);
+	bus_master_prepare(0x07, 0x04, plist_no_buffer(2));
 
-	//If boot source is 0 the magic was wrong, we're not in bootloader mode
-	if (boot_source == 0)
-		return;
+	load_boot_address();
 
+	invalid_row |= bus_master_rpc_sync(boot_source);
+	copy_mib_to_boot(offset);
+}
+
+void enter_bootloader()
+{
+	boot_source = get_boot_source();
 	boot_id = get_firmware_id();
 
 	for (boot_count = kFirstApplicationRow; boot_count < kNumFlashRows; ++boot_count)
 	{
-		//Multiply by 16 to convert from rows to words then by 2 to convert to bytes
-		boot_address = ((unsigned int)(boot_count)) << 5;
-		
-		bus_master_prepare(0x07, 0x04, plist_no_buffer(2));
-    	plist_set_int16(0,boot_id);
-    	plist_set_int16(1,boot_address);
+    	invalid_row = 0;
 
-    	bus_master_rpc_sync(boot_source);
-    	memcpy(app_buffer, mib_buffer, 20);
-
-    	//2nd half of the row
-    	boot_address += 8;
-    	bus_master_prepare(0x07, 0x04, plist_no_buffer(2));
-    	plist_set_int16(0,boot_id);
-    	plist_set_int16(1,boot_address);
-
-    	bus_master_rpc_sync(boot_source);
-    	memcpy(app_buffer+20, mib_buffer, 12);
-
-    	//Data from the pic24 comes in big endian format, we expect little endian
-    	//so flip the buffer.
-    	flip_bootbuffer_endianness();
+    	get_half_row(0);
+    	get_half_row(16);
 
 		flash_erase_row(boot_count);
-		flash_write_row(boot_count);
-	}
-}
-
-void flip_bootbuffer_endianness()
-{
-	for (i=0; i<32; i+=2)
-	{
-		tmp = app_buffer[i];
-		app_buffer[i] = app_buffer[i+1];
-		app_buffer[i+1] = tmp;
+		//If there was a problem receiving the row, don't program it.  This is usually b/c
+		//the row is not defined in the application hex file, so it should be all 1's (unprogrammed)
+		if (!invalid_row)
+			flash_write_row(boot_count);
 	}
 }
