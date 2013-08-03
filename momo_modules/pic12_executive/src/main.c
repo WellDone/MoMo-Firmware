@@ -6,11 +6,11 @@
 
 //Configuration Words
 #pragma config FOSC=INTOSC      /* Use internal oscillator as the frequency oscillator. */
-#pragma config WDTE=0b01         /* Enable the watchdog timer under software control. */
+#pragma config WDTE=SWDTEN  /* Enable the watchdog timer under software control. */
 #pragma config PLLEN=OFF        /* Disable 4x phase lock loop. */
 #pragma config WRT=OFF          /* Flash memory write protection off. */
 
-MIBExecutiveStatus status;
+__persistent MIBExecutiveStatus status;
 
 void initialize();
 void restore_status();
@@ -41,9 +41,7 @@ void interrupt service_isr() {
 }
 
 void main() 
-{
-    status.status = 0;
-    
+{    
     initialize();
     restore_status();
 
@@ -91,8 +89,6 @@ void initialize()
 
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
     ANSELA = 0;
-    /* Turn Timer1 on with 1:8 prescale using FOSC/4 as source. */
-    T1CON = 0x31;
     
     /* Enable interrupts globally. */
     GIE = 1;
@@ -115,8 +111,6 @@ void restore_status()
         status.registered = 1;
         bus_init(13);
     }
-
-    //If we ended the last 
 }
 
 /*
@@ -125,13 +119,13 @@ void restore_status()
  */
 void check_app_fault()
 {
-    if (nTO == 0)
+    if (status.wdt_timedout)
     {
         wdt_settimeout(k4SecondTimeout);
+        wdt_enable();
         TRISA5 = 0;
         sleep();
         TRISA5 = 1;
         wdt_settimeout(k1SecondTimeout);
-        nTO = 1;
     }
 }

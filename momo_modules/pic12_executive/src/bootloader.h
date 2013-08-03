@@ -27,7 +27,8 @@ typedef union
 		uint8 valid_app 	: 1;
 		uint8 bootload_mode : 1;
 		uint8 registered	: 1;
-		uint8 reserved		: 4; 
+		uint8 wdt_timedout	: 1; //cannot change, referenced in watchdog.as
+		uint8 reserved 		: 3; 
 	};
 
 	uint8 status;

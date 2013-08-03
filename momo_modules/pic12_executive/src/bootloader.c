@@ -25,7 +25,7 @@ uint8 i @ 0x43;
 uint8 tmp @ 0x44;
 uint8 invalid_row @ 0x45;
 
-extern MIBExecutiveStatus status;
+extern __persistent MIBExecutiveStatus status;
 
 void set_firmware_id(uint8 bucket)
 {

@@ -81,7 +81,6 @@
       - --warn=0 
       - --summary=default,+psect,-class,+mem,-hex,-file 
       - --output=default,-inhx032 
-      - --runtime=default,+clear,+init,-keep,-no_startup,+osccal,+oscval:0,resetbits,-download,+stackcall,+clib #"--errformat=%f:%l: error: %s" "--warnformat=%f:%l: warning: %s" "--msgformat=%f:%l: advisory: %s" 
       #- -L-pstrings=CODE
       - "${1}"
       - -o${2}
@@ -107,7 +106,6 @@
       - --warn=0 
       - --summary=default,+psect,-class,+mem,-hex,-file 
       - --output=default,-inhx032 
-      - --runtime=default,+clear,+init,-keep,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib #"--errformat=%f:%l: error: %s" "--warnformat=%f:%l: warning: %s" "--msgformat=%f:%l: advisory: %s" 
       #- -L-pstrings=CODE
       - "${1}"
       - -o${2}
@@ -134,7 +132,7 @@
       - --warn=0 
       - --summary=default,+psect,-class,+mem,-hex,-file 
       - --output=default,-inhx032 
-      - --runtime=default,+clear,+init,-keep,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib #"--errformat=%f:%l: error: %s" "--warnformat=%f:%l: warning: %s" "--msgformat=%f:%l: advisory: %s" 
+      - --runtime=default,+clear,+keep,+init,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib #"--errformat=%f:%l: error: %s" "--warnformat=%f:%l: warning: %s" "--msgformat=%f:%l: advisory: %s" 
       #- -L-pstrings=CODE
       - "${1}"
       - "../shared/pic12/build/release/libPIC12shared.lpp"

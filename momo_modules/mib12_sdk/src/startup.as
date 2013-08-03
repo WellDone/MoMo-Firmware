@@ -3,7 +3,7 @@
 #include <xc.inc>
 
 
-global _main,_task,_initialize,_interrupt_handler,start,intlevel1
+global _main, _task,_initialize,_interrupt_handler,start,intlevel1
 
 PSECT reset_vec,global,class=CODE,delta=2
 start:
@@ -11,7 +11,6 @@ goto _initialize
 goto _interrupt_handler
 goto _task
 
-_main:
 intlevel1:
 
 PSECT powerup,global,class=CODE,delta=2
