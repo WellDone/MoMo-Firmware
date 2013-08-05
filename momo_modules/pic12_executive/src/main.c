@@ -85,6 +85,7 @@ void initialize()
 
     /* Set all PORTA pins to be input. */
     TRISA = 0xff;
+    TRISA5 = 0;
     RA5 = 0;
 
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
@@ -115,7 +116,8 @@ void restore_status()
 
 /*
  * If we reset because of a watchdog timeout, assume the application code failed, and delay before recalling it
- * so that we have a chance to reflash if necessary
+ * so that we have a chance to reflash if necessary.  
+ * TODO: remap pins on GSM pic so that A5 is on alarm pin to make it consistent with out modules.
  */
 void check_app_fault()
 {
@@ -123,9 +125,9 @@ void check_app_fault()
     {
         wdt_settimeout(k4SecondTimeout);
         wdt_enable();
-        TRISA5 = 0;
+        //TRISA5 = 0;
         sleep();
-        TRISA5 = 1;
+        //TRISA5 = 1;
         wdt_settimeout(k1SecondTimeout);
     }
 }

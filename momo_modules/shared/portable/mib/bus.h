@@ -57,6 +57,7 @@ typedef enum
 	kMIBFinalizeMessage
 } MIBMasterState;
 
+//10 bytes long
 typedef struct 
 {
 	//Shared Buffers
@@ -96,8 +97,7 @@ typedef struct
 
 #ifndef __NO_EXTERN_MIB_STATE__
 
-extern bank1 MIBState 		mib_state;
-extern bank1 unsigned char 	mib_buffer[kBusMaxMessageSize];
+#include "mib_state.h"
 
 #endif
 

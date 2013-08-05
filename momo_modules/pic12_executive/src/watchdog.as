@@ -12,7 +12,7 @@ PSECT wdt_utils,local,class=CODE,delta=2
 ;before the disabling occured.
 _wdt_pushenabled:
 	BANKSEL WDTCON
-	movf WDTCON,w
+	movf BANKMASK(WDTCON),w
 	andlw 1
 	bcf SWDTEN
 	BANKSEL _status

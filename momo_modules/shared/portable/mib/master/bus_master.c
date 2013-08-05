@@ -2,7 +2,7 @@
 #include <string.h>
 
 #ifdef _PIC12
-extern bank1 volatile 			I2CStatus i2c_status;
+extern bank1 volatile I2CStatus i2c_status;
 #endif
 
 //Local Prototypes that should not be called outside of this file

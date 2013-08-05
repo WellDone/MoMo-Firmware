@@ -1,12 +1,6 @@
 //bus.c
 
-//This is where we declare all the MIB state, so don't pull in the external definitions
-#define __NO_EXTERN_MIB_STATE__
-
 #include "bus.h"
-
-bank1 MIBState 			mib_state;
-bank1 unsigned char 	mib_buffer[kBusMaxMessageSize];
 
 //These functions are too small to be efficiently used on the PIC12 which must pass parameters
 /*
