@@ -54,11 +54,11 @@ uint8 find_handler(void)
 
 void bus_init(uint8 address)
 {
+	i2c_enable(address);
+
 	mib_state.num_reads = 0;
 	mib_state.slave_state = kMIBIdleState;
-	mib_state.master_state = kMIBIdleState;
-	
-	i2c_enable(address);
+	mib_state.master_state = kMIBIdleState;	
 }
 
 uint8 bus_is_idle()

@@ -1,5 +1,6 @@
 #include <xc.inc>
 #include "executive.h"
+#include "constants.h"
 
 ;mib_params.asm
 ;Assembly routines for dealing with MIB things in an efficient way
@@ -7,7 +8,7 @@
 
 GLOBAL _mib_state, _mib_buffer,_call_handler,_get_feature,_get_command, _bus_slave_seterror
 GLOBAL _validate_param_spec,_get_magic,_get_num_features,_plist_int_count,_plist_param_length
-GLOBAL _exec_call_cmd, _exec_get_spec
+GLOBAL _exec_call_cmd, _exec_get_spec, _get_mib_block
 
 PSECT text100,local,class=CODE,delta=2
 
@@ -45,14 +46,22 @@ _get_param_spec:
 	movf FSR1L,w
 	GOTO 0x7FD
 
+;Given a word offset in the mib module definition block
+;in w, return the value at that address
+_get_mib_block:
+	movwf FSR1L
+	movlw low kMIBEndpointAddress
+	addwf FSR1L
+	movlw 0x87
+	movwf FSR1H
+	movf  INDF1,w
+	return
+
+
 ;indirect read the highest byte from program memory
 _get_magic:
-	MOVLW 0x87
-	MOVWF FSR1H
-	MOVLW 0xFF
-	MOVWF FSR1L
-	MOVF INDF1,W
-	RETURN
+	movlw kMIBMagicOffset
+	goto  _get_mib_block		;tail call
 
 _get_num_features:
 	GOTO 0x7FA
@@ -86,13 +95,6 @@ _validate_param_spec:
 	retlw 1 
 	retlw 0
 
-;void bus_slave_seterror(uint8 error)
-;{
-;	mib_state.bus_returnstatus.return_status = 0;
-;	mib_state.bus_returnstatus.return_status |= (error << 5);
-;
-;	set_slave_state(kMIBProtocolError);  kMIBProtocolError is 3
-;}
 ;bus_returnstatus is at mib_state+7
 _bus_slave_seterror:
 	movlb 1

@@ -1,6 +1,7 @@
 //app_main.c
 
 #include "platform.h"
+#include "watchdog.h"
 
 void task(void)
 {
@@ -12,6 +13,8 @@ void task(void)
 		{
 			for (j=0; j<255;++j)
 				;
+
+			clearwdt();
 		}
 		
 		RA5 = !RA5;

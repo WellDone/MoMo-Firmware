@@ -1,8 +1,9 @@
 ;command_map.asm
 ;3 structures defining the features, commands and handlers that we support
 
-#include <xc.inc>
+;#include <xc.inc>
 #include "constants.h"
+#include "definitions.h"
 
 ;Define the number of supported features and where to store the callback table pointer
 ;in ROM
@@ -23,9 +24,18 @@
 PSECT mibmap,abs,ovrld,local,class=CODE,delta=2
 
 ;High memory command structure for processing mib slave endpoints
+
 org 	kMIBEndpointAddress
-retlw 	0
-retlw 	0
+
+;Module Name (must be exactly 8 characters long)
+db 		ModuleName
+
+;Module information
+retlw 	ModuleType
+retlw 	ModuleVersion
+retlw 	ModuleFlags
+
+;MIB endpoint information
 retlw 	kNumFeatures
 goto 	mibfeatures
 goto 	mibcommands

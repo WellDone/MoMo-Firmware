@@ -3,6 +3,8 @@
 #include "bootloader.h"
 #include "appcode.h"
 #include "watchdog.h"
+#include "registration.h"
+#include "mib_definitions.h"
 
 //Configuration Words
 #pragma config FOSC=INTOSC      /* Use internal oscillator as the frequency oscillator. */
@@ -23,9 +25,12 @@ void interrupt service_isr() {
     {
         while (SSP1IF == 1)
         {
+            RA5 = !RA5;
             SSP1IF = 0; //Do this because with our slow clock we might miss an interrupt
             if (i2c_slave_active()) 
+            {
                 i2c_slave_interrupt();
+            }
             else
                 i2c_master_interrupt();
         }
@@ -68,10 +73,14 @@ void main()
             sleep();
         }
     }
-
     //Otherwise wait forever for new firmware to be downloaded
     while (1)
-        ;
+    {
+        wdt_settimeout(k1SecondTimeout);
+        wdt_enable();
+        sleep();
+        wdt_disable();   
+    }
 }
 
 void initialize()
@@ -105,12 +114,27 @@ void restore_status()
     else if (get_magic() == kReflashMagicNumber)
         status.bootload_mode = 1;
 
-    //TODO: mib autoregistration
     //Request an address from controller pic
     if (!status.registered)
     {
-        status.registered = 1;
-        bus_init(13);
+        uint8 address = 0;
+
+        //Wait 1 second to make the controller had time to power on
+        //in case this is a power on reset
+        wdt_settimeout(k1SecondTimeout);
+        wdt_enable();
+        sleep();
+        wdt_disable();
+
+        bus_init(kMIBUnenumeratedAddress);
+
+        address = register_module();
+
+        if (address > 0)
+        {
+            bus_init(address);
+            status.registered = 1;
+        }
     }
 }
 

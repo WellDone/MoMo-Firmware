@@ -27,5 +27,6 @@
 #define i2c_master_state()		i2c_state()
 
 uint8 get_magic();
+uint8 get_mib_block(uint8 offset);
 
 #endif
