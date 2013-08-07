@@ -9,3 +9,6 @@ dist
 *.l#?
 .DS_Store
 momo_modules/shared/pic12/*.obj
+momo_modules/mib12_sdk/funclist
+momo_modules/pic12_executive/l.obj
+momo_modules/mib12_sdk/l.obj
