@@ -1,21 +1,15 @@
 ---
-
 :project:
   :use_exceptions: FALSE
   :use_test_preprocessor: TRUE
   :use_auxiliary_dependencies: TRUE
   :build_root: build
   :release_build: TRUE
+  :test_file_prefix: test_
 
 :release_build:
-  :output: libPIC12shared.lpp
+  :output: momo-mib12-executive.hex
   :use_assembly: TRUE
-
-:paths:
-  :source:
-    - +:./src/**
-    - +:../portable/**
-    - -:../portable/mib/**
 
 :environment:
 
@@ -23,11 +17,24 @@
   :object: .p1
   :executable: .hex
 
+:paths:
+  :test:
+    - +:test/**
+    - -:test/support
+  :source:
+    - src/**
+    - +:../shared/portable/mib/**
+  :include:
+    - +:../shared/pic12/src/**
+    - +:../shared/portable/**
+  :support:
+    - test/support
+
 :defines:
   # in order to add common defines:
   #  1) remove the trailing [] from the :common: section
   #  2) add entries to the :common: section (e.g. :test: has TEST defined)
-  :commmon: &common_defines
+  :commmon: &common_defines 
     - __PIC12LF1822__
     - UNITY_INT_WIDTH=8
     - CMOCK_MEM_INDEX_TYPE=uint8_t
@@ -40,6 +47,20 @@
   :test_preprocess:
     - *common_defines
     - TEST
+
+:cmock:
+  :mock_prefix: mock_
+  :when_no_prototypes: :warn
+  :enforce_strict_ordering: TRUE
+  :plugins:
+    - :ignore
+    - :callback
+  :treat_as:
+    uint8:    HEX8
+    uint16:   HEX16
+    uint32:   UINT32
+    int8:     INT8
+    bool:     UINT8
 
 :tools:
   :release_compiler:
@@ -59,9 +80,8 @@
       - -N31  
       - --warn=0 
       - --summary=default,+psect,-class,+mem,-hex,-file 
-      - --output=lpp
-      - --runtime=default,+clear,+init,-keep,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib #"--errformat=%f:%l: error: %s" "--warnformat=%f:%l: warning: %s" "--msgformat=%f:%l: advisory: %s" 
-      - -L-pstrings=CODE
+      - --output=default,-inhx032 
+      #- -L-pstrings=CODE
       - "${1}"
       - -o${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
@@ -71,7 +91,7 @@
   :release_assembler:
     :executable: xc8 
     :arguments:
-      - -C
+      - --pass1
       - --chip=12F1822 
       - -Q 
       - -G 
@@ -85,8 +105,8 @@
       - -N31  
       - --warn=0 
       - --summary=default,+psect,-class,+mem,-hex,-file 
-      - --runtime=default,+clear,+init,-keep,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib #"--errformat=%f:%l: error: %s" "--warnformat=%f:%l: warning: %s" "--msgformat=%f:%l: advisory: %s" 
-      - -L-pstrings=CODE
+      - --output=default,-inhx032 
+      #- -L-pstrings=CODE
       - "${1}"
       - -o${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
@@ -101,7 +121,9 @@
       - -m./build/release/MoMo-sensorboard-bootloader.map
       - --asmlist 
       - --double=24 
-      - --float=24 
+      - --float=24
+      - --rom=0-4EF 
+      - --ram=default,-20-60
       - --opt=all,-asmfile
       - --addrqual=require 
       - --mode=pro 
@@ -109,19 +131,27 @@
       - -N31  
       - --warn=0 
       - --summary=default,+psect,-class,+mem,-hex,-file 
-      - --output=lpp
-      - --runtime=default,+clear,+init,-keep,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib #"--errformat=%f:%l: error: %s" "--warnformat=%f:%l: warning: %s" "--msgformat=%f:%l: advisory: %s" 
-      - -L-pstrings=CODE
+      - --output=default,-inhx032 
+      - --runtime=default,+clear,+keep,+init,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib #"--errformat=%f:%l: error: %s" "--warnformat=%f:%l: warning: %s" "--msgformat=%f:%l: advisory: %s" 
+      #- -L-pstrings=CODE
       - "${1}"
+      - "../shared/pic12/build/release/libPIC12shared.lpp"
+      - "src/mib/mib_hal.as"
+      - "src/i2c_utilities.as"
+      - "src/flash_memory.as"
+      - "src/mib/executive_commands.as"
+      - "src/watchdog.as"
       - -o${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_RELEASE_AND_VENDOR
       - -V
+
 :plugins:
   :load_paths:
-    - ../../../tools/ceedling/plugins
-    - ../../../tools/ceedling-plugins
+    - ../../tools/ceedling/plugins
+    - ../../tools/ceedling-plugins
   :enabled:
     - stdout_pretty_tests_report
+    - module_generator
 ...

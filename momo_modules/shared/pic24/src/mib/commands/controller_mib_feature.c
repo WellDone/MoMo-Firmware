@@ -6,7 +6,7 @@
 #include "mib_features.h"
 
 #define MAX_MODULES 8
-#define MODULE_BASE_ADDRESS 10
+#define MODULE_BASE_ADDRESS 11
 static momo_module_descriptor the_modules[MAX_MODULES];
 static unsigned int module_count = 0;
 

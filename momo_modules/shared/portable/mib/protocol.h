@@ -55,7 +55,9 @@ typedef void (*mib_callback)(void);
 #define plist_matches(plist,spec)     ((plist & plist_spec_mask) == spec)
 
 #define plist_set_int16(n, val)			((int*)mib_buffer)[n] = val
+#define plist_set_int8(n, hi, val)		mib_buffer[(n<<1) + hi] = val
 #define plist_get_int16(n)				((int*)mib_buffer)[n]
+#define plist_get_int8(n)				mib_buffer[n<<1]
 #define plist_get_buffer(n)				(mib_buffer + (n << 1))
 #define plist_get_buffer_length()		(mib_state.bus_command.param_spec & 0b00011111)
 
