@@ -6,6 +6,21 @@
 #ifndef __i2c_defines_h__
 #define __i2c_defines_h__
 
+#ifdef __PIC16LF1823__
+#define SDAPIN		RC0	
+#define SCLPIN		RC1
+#define SDATRIS		TRISC0
+#define SCLTRIS		TRISC1
+#else
+#ifdef __PIC12LF1822__
+#define SDAPIN		RA2	
+#define SCLPIN		RA1
+#define SDATRIS		TRISA2
+#define SCLTRIS		TRISA1
+#else
+#error Unsupported Platform, need to know i2c pin locations.
+#endif
+#endif
 
 #define kI2CIdleState 				0
 #define kI2CSendAddressState 		1

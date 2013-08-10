@@ -8,13 +8,6 @@
 
 #pragma switch space
 
-/*
- * The pic12 skeleton code looks for a MIBEndpointInfo structure
- * at a specific address at the top of program memory and uses this 
- * to find handlers.  If there is no application code loaded, the magic
- * number will be wrong and MIB will not load any application endpoints.
- */
-
 //Do not compile components that are not needed on the pic12 to make sure the compiler doesn't choke
 #define _PIC12
 #define _PIC12LEAN

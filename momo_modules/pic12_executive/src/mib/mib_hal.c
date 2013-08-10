@@ -9,7 +9,7 @@
 #include "bus.h"
 #include "mib_hal.h"
 #include "executive.h"
-#include <pic12f1822.h>
+#include <xc.h>
 
 
 uint8 get_num_features();
@@ -66,7 +66,7 @@ uint8 bus_is_idle()
 	//bus is idle if no start and no stop conditions have been detected and SCL and SDA are both high
 	if ((!SSPSTATbits.P) && (!SSPSTATbits.S))
 	{
-		if (RA1 && RA2)
+		if (SDAPIN && SCLPIN)
 			return 1;
 	}
 

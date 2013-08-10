@@ -142,8 +142,8 @@ _i2c_set_master_mode:
 _i2c_enable:
 	lslf WREG,w
 	movlb 1
-	bsf TRISA1
-	bsf TRISA2
+	bsf SDATRIS
+	bsf SCLTRIS
 
 	BANKSEL _i2c_slave_address
 	movwf BANKMASK(_i2c_slave_address)

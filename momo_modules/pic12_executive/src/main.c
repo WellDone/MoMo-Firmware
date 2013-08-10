@@ -1,4 +1,4 @@
-#include <pic12f1822.h>
+#include <xc.h>
 #include "bus_master.h"
 #include "bootloader.h"
 #include "appcode.h"
@@ -94,8 +94,9 @@ void initialize()
 
     /* Set all PORTA pins to be input. */
     TRISA = 0xff;
-    TRISA5 = 0;
-    RA5 = 0;
+    TRISC = 0xff;
+    TRISC2 = 0;
+    RC2 = 0;
 
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
     ANSELA = 0;
