@@ -1,5 +1,7 @@
 *.o
 build
+build_pic12
+build_pic16
 dist
 */nbproject/*
 *.sublime-project

@@ -12,6 +12,7 @@
   :use_assembly: TRUE
 
 :environment:
+  #- :PIC_DEVICE_DEFINE: "#{ENV['PIC_DEVICE_DEFINE']}" #"
 
 :extension:
   :object: .p1
@@ -35,7 +36,6 @@
   #  1) remove the trailing [] from the :common: section
   #  2) add entries to the :common: section (e.g. :test: has TEST defined)
   :commmon: &common_defines 
-    - __PIC12LF1822__
     - UNITY_INT_WIDTH=8
     - CMOCK_MEM_INDEX_TYPE=uint8_t
     - CMOCK_MEM_PTR_AS_INT=uint8_t
@@ -87,6 +87,7 @@
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_RELEASE_AND_VENDOR
+      - -D$: "#{ENV['PIC_DEVICE_DEFINE']}" #"
 
   :release_assembler:
     :executable: xc8 
@@ -112,6 +113,7 @@
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_RELEASE_AND_VENDOR
+      - -D$: PIC_DEVICE_DEFINE
 
   :release_linker:
     :executable: xc8 
