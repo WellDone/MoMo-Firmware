@@ -9,4 +9,6 @@ extern uint8 get_boot_source();
 extern uint8 get_firmware_id();
 extern void copy_mib_to_boot(uint8 dst_addr);
 extern void load_boot_address();
+
+extern uint8 verify_application();
 #endif

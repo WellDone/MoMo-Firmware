@@ -5,6 +5,7 @@
 #include "bus_master.h"
 #include "utilities.h"
 #include "intel_hex.h"
+#include <string.h>
 
 static intel_hex16 firmwareChunk;
 //TODO: Cleanup
@@ -56,8 +57,8 @@ static void push_more_firmware()
 {
     if ( firmwareChunk.body.record_type == HEX_EOF_REC )
         firmware_done = true;
-    memcpy( plist_get_buffer( 0 ), (char*)&firmwareChunk.body, (unsigned int)sizeof(intel_hex16_body) );
-    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x01, plist_with_buffer(0,firmwareChunk.data_length+3) );
+    memcpy( plist_get_buffer( 0 ), (char*)&(firmwareChunk.body), (unsigned int)sizeof(intel_hex16_body) );
+    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x01, plist_with_buffer(0,(firmwareChunk.data_length+3)) );
 }
 
 CommandStatus handle_push_firmware(command_params* params)
@@ -68,7 +69,6 @@ CommandStatus handle_push_firmware(command_params* params)
     }
 
     int type;
-    int firmware_length;
     if ( !atoi_small( get_param_string( params, 0 ), &type ) || type < 0 ) {
         print( "Invalid module type.\n" );
         return kFailure;

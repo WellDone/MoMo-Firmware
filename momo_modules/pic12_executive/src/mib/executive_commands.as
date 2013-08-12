@@ -5,7 +5,7 @@
 
 #define plist_spec(ni,buffer) (buffer << 7) | plist_ints(ni) )
 
-global _exec_get_spec, _exec_call_cmd, _exec_prepare_reflash, _exec_reset
+global _exec_get_spec, _exec_call_cmd, _exec_prepare_reflash, _exec_reset,_exec_verify
 
 PSECT textexecmap,local,class=CODE,delta=2
 
@@ -16,10 +16,12 @@ exec_cmd_map:
 	brw
 	goto _exec_prepare_reflash
 	goto _exec_reset
+	goto _exec_verify
 
 exec_spec_map:
 	brw
 	retlw (2 << 5)
+	retlw 0
 	retlw 0
 
 _exec_get_spec:

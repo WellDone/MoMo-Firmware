@@ -40,16 +40,12 @@ void bus_master_rpc_async(mib_rpc_function callback, unsigned char address, unsi
 
 uint8 bus_master_rpc_sync(unsigned char address)
 {
-	RC2 = !RC2;
-
 	//Multimaster support, wait until the bus is idle before starting an RPC call
 	wait_and_start:
 	while (!bus_is_idle())
-		;//RC2 = !RC2;
+		;
 
-	//RC2 = !RC2;
 	bus_master_sendrpc(address);
-	//RC2 = !RC2;
 
 	while(mib_state.rpc_done != 1)
 	{
@@ -66,8 +62,6 @@ uint8 bus_master_rpc_sync(unsigned char address)
 			bus_master_callback();
 		}
 	}
-
-	RC2 = !RC2;
 
 	return mib_state.bus_returnstatus.result;
 }

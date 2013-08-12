@@ -8,7 +8,7 @@
   :test_file_prefix: test_
 
 :release_build:
-  :output: momo-mib12-executive.hex
+  :output: MoMo-mib12-application.hex
   :use_assembly: TRUE
 
 :environment:
@@ -23,7 +23,6 @@
     - -:test/support
   :source:
     - src/**
-    - +:../shared/portable/mib/**
   :include:
     - +:../shared/pic12/src/**
     - +:../shared/portable/**
@@ -35,6 +34,7 @@
   #  1) remove the trailing [] from the :common: section
   #  2) add entries to the :common: section (e.g. :test: has TEST defined)
   :commmon: &common_defines 
+    - __PIC16LF1823__
     - UNITY_INT_WIDTH=8
     - CMOCK_MEM_INDEX_TYPE=uint8_t
     - CMOCK_MEM_PTR_AS_INT=uint8_t
@@ -80,19 +80,19 @@
       - --warn=0 
       - --summary=default,+psect,-class,+mem,-hex,-file 
       - --output=default,-inhx032 
-      #- -L-pstrings=CODE
+      - --runtime=default,-init,+no_startup,-osccal,-clear,-clib 
+      - -L-pstrings=CODE
       - "${1}"
       - -o${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_RELEASE_AND_VENDOR
-      - -D__PIC16LF1823__
 
   :release_assembler:
     :executable: xc8 
     :arguments:
       - --pass1
-      - --chip=12F1822 
+      - --chip=16F1823
       - -Q 
       - -G 
       - --asmlist 
@@ -101,12 +101,14 @@
       - --opt=all,-asmfile
       - --addrqual=require 
       - --mode=pro 
+      - --runtime=-init,no_startup,-osccal,-clear,-clib 
       - -P 
       - -N31  
       - --warn=0 
       - --summary=default,+psect,-class,+mem,-hex,-file 
       - --output=default,-inhx032 
-      #- -L-pstrings=CODE
+      - --runtime=default,-init,+no_startup,-osccal,-clear,-clib 
+      - -L-pstrings=CODE
       - "${1}"
       - -o${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
@@ -118,35 +120,34 @@
     :arguments:
       - --chip=16F1823
       - -G 
-      - -m./build/release/MoMo-sensorboard-bootloader.map
+      - -m./build/release/MoMo-mib12-application.map
       - --asmlist 
       - --double=24 
       - --float=24
-      - --rom=0-4E7 
-      - --ram=default,-20-60
+      - --rom=4F0-7EF
+      - --ram=default,-61-7F,-A0-FF
       - --opt=all,-asmfile
       - --addrqual=require 
-      - --mode=pro 
+      - --mode=pro
+      - --runtime=-init,+no_startup,-osccal,-clear,+clib,-plib,+download
       - -P 
       - -N31  
       - --warn=0 
       - --summary=default,+psect,-class,+mem,-hex,-file 
-      - --output=default,-inhx032 
-      - --runtime=default,+clear,+keep,+init,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib #"--errformat=%f:%l: error: %s" "--warnformat=%f:%l: warning: %s" "--msgformat=%f:%l: advisory: %s" 
-      #- -L-pstrings=CODE
+      - --output=default,-inhx032
+      - -L-preset_vec=04F0h
+      - -L-pstrings=CODE
       - "${1}"
-      - "../shared/pic12/build/release/libPIC12shared.lpp"
-      - "src/mib/mib_hal.as"
-      - "src/i2c_utilities.as"
-      - "src/flash_memory.as"
-      - "src/mib/executive_commands.as"
-      - "src/watchdog.as"
-      - "src/mib/mib_api.as"
+      #- "../shared/pic12/build/release/libPIC12shared.lpp"
+      #- "../shared/pic12/src/mib/mib_hal.as"
+      #- "../shared/pic12/src/i2c_utilities.as"
+      - "src/mib/command_map.as"
+      - "src/startup.as"
+      - "src/mib/mib12_api.as"
       - -o${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_RELEASE_AND_VENDOR
-      - -D__PIC16LF1823__
       - -V
 
 :plugins:

@@ -53,7 +53,6 @@ void push_firmware_chunk(void)
 		bus_slave_seterror(kCallbackError);
 		return;
 	}
-	_RA0 = !_RA0;
 	//TODO: Validate length
 	intel_hex16_body* hex = (intel_hex16_body*)plist_get_buffer(0); // Exactly 19 bytes, yay!
 
@@ -80,7 +79,6 @@ void push_firmware_chunk(void)
 		if ( !mem_write( addr, hex->data, length ) )
 		{
 			bus_slave_seterror(kCallbackError);
-			_RA0 = 0;
 			firmware_push_started = false;
 			return;
 		}
@@ -96,17 +94,14 @@ void push_firmware_chunk(void)
 		// We're done!
 		++firmware_bucket_count;
 		firmware_push_started = false;
-		_RA0 = 0;
 	}
 	bus_slave_setreturn( pack_return_status(kNoMIBError, 0) );
-	_RA1 = !_RA1;
 }
 
 void push_firmware_cancel(void)
 {
 	firmware_push_started = false;
 	bus_slave_setreturn( kNoMIBError );
-	_RA0 = 0;
 }
 
 void get_firmware_info(void)
@@ -135,17 +130,19 @@ void pull_firmware_chunk(void)
 	//TODO: Check to make sure firmware type matches device type.  No pic12 code on a pic24 please
 
 	uint16 address = the_firmware_buckets[index].base_address + offset;
-	uint8 chunk_size = the_firmware_buckets[index].firmware_length - offset;
+	uint32 chunk_size = the_firmware_buckets[index].firmware_length - offset;
 	if ( chunk_size > kBusMaxMessageSize )
 		chunk_size = kBusMaxMessageSize;
 
-	if ( !mem_read( address, plist_get_buffer(0), chunk_size ) )
+	uint8 ret_size = chunk_size & 0xFF;
+
+	if ( !mem_read( address, plist_get_buffer(0), ret_size ) )
 	{
 		bus_slave_seterror( kUnknownError );
 		return;
 	}
 
-	bus_slave_setreturn( pack_return_status( kNoMIBError, chunk_size ) );
+	bus_slave_setreturn( pack_return_status( kNoMIBError, ret_size ) );
 }
 
 void get_firmware_count(void)

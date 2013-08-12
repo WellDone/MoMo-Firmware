@@ -318,6 +318,10 @@ CommandStatus handle_rpc(command_params *params)
             char* str = get_param_string( params, i );
             if ( !atoi_small( str, &intParams[i-RPC_META_ARGC] ) ) {
                 if ( i == params->num_params-1 ) {
+                    print("Buffer passed: ");
+                    print(str);
+                    print("\n");
+
                     bufferParam = str;
                     intCount--;
                 } else {
@@ -334,7 +338,7 @@ CommandStatus handle_rpc(command_params *params)
         }
 
         if ( bufferParam ) {
-            param_spec = plist_spec( intCount, strlen(bufferParam) );
+            param_spec = plist_with_buffer( intCount, strlen(bufferParam) );
             memcpy( plist_get_buffer(intCount), bufferParam, strlen(bufferParam) );
         } else {
             param_spec = plist_ints( intCount );

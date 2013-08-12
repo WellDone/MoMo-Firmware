@@ -25,7 +25,6 @@ void interrupt service_isr() {
     {
         while (SSP1IF == 1)
         {
-            RA5 = !RA5;
             SSP1IF = 0; //Do this because with our slow clock we might miss an interrupt
             if (i2c_slave_active()) 
             {
@@ -37,6 +36,7 @@ void interrupt service_isr() {
     } 
     else if (status.valid_app)
     {
+        wdt_settimeout(k1SecondTimeout);
         wdt_enable(); 
         call_app_interrupt();
         wdt_disable();
@@ -57,15 +57,17 @@ void main()
     }
 
     check_app_fault();
-
+    
     if (status.valid_app)
     {  
+        wdt_settimeout(k1SecondTimeout);
         wdt_enable();
         call_app_init();
         wdt_disable();
 
         while(1)
         {
+            wdt_settimeout(k1SecondTimeout);
             wdt_enable();
             call_app_task();
             wdt_disable();
@@ -76,11 +78,9 @@ void main()
     //Otherwise wait forever for new firmware to be downloaded
     while (1)
     {
-        wdt_settimeout(k1SecondTimeout);
-        wdt_enable();
         sleep();
-        wdt_disable();   
     }
+
 }
 
 void initialize()
@@ -100,6 +100,7 @@ void initialize()
 
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
     ANSELA = 0;
+    ANSELC = 0;
     
     /* Enable interrupts globally. */
     GIE = 1;
@@ -140,19 +141,12 @@ void restore_status()
 }
 
 /*
- * If we reset because of a watchdog timeout, assume the application code failed, and delay before recalling it
- * so that we have a chance to reflash if necessary.  
+ * If we reset because of a watchdog timeout, assume the application code failed and disable it.
+ *
  * TODO: remap pins on GSM pic so that A5 is on alarm pin to make it consistent with out modules.
  */
 void check_app_fault()
 {
     if (status.wdt_timedout)
-    {
-        wdt_settimeout(k4SecondTimeout);
-        wdt_enable();
-        //TRISA5 = 0;
-        sleep();
-        //TRISA5 = 1;
-        wdt_settimeout(k1SecondTimeout);
-    }
+        flash_erase_row(kNumFlashRows-1);
 }

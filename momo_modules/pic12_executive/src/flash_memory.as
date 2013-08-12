@@ -6,7 +6,7 @@
 
 global _flash_erase_application,_flash_write_row, _flash_erase_row
 global _get_boot_source, _get_firmware_id, _get_magic,_mib_buffer
-global _copy_mib_to_boot,_load_boot_address
+global _copy_mib_to_boot,_load_boot_address,_verify_application
 
 global _boot_count
 
@@ -38,6 +38,42 @@ prepare_row_address:
     bsf		WREN 					;allow program/erase
     bsf		EEPGD 					;access program space FLASH memory
     return
+
+read_app_row:
+	call 	prepare_row_address
+	movlw 	16
+	movwf 	FSR0L
+
+	read_row_loop
+	bsf  	RD						;in bank 3 from prepare_row_address
+	nop
+	nop
+
+	movf  	BANKMASK(EEDATL),w
+	addwf 	BANKMASK(EEDATH),w
+	addwf 	FSR1H,f
+
+	incf 	BANKMASK(EEADRL),f
+	decfsz  FSR0L
+	goto read_row_loop
+	return
+
+;Calculate an 8-bit checksum of all of application flash
+_verify_application:
+	clrf FSR1H						;store checksum here
+	movlw 	kFirstApplicationRow
+	movwf 	FSR1L					;current row in FSR1L
+	read_app_loop:
+	movf  	FSR1L,w
+	call  	read_app_row
+	incf 	FSR1L,f 				;current row++
+	movlw	kNumFlashRows			;if row == memsize, we're done
+	subwf	FSR1L,w
+	btfss	ZERO
+	goto 	read_app_loop
+
+	movf    FSR1H,w
+	return
 
 ;taking in a row number in W, erase that flash row
 ;affects EEADR{L,H}
