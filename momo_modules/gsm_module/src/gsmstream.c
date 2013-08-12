@@ -7,8 +7,9 @@
  */
 
 #include "mib12_api.h"
+#include "gsm_defines.h"
 
- bit stream_open: 1;
+ bit stream_open;
  uint8 bytes_remaining;
 
  void gsm_openstream()
@@ -22,4 +23,14 @@
  	
 
 
+ }
+
+ void gsm_putstream()
+ {
+
+ }
+
+ void gsm_closestream()
+ {
+ 	
  }

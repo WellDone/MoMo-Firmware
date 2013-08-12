@@ -6,6 +6,7 @@
 #include "definitions.h"
 
 global _gsm_setpower, _gsm_module_on, _gsm_sendcommand, _gsm_readresponse
+global _gsm_openstream,_gsm_putstream,_gsm_closestream
 
 ;Define the number of supported features and where to store the callback table pointer
 ;in ROM
@@ -61,5 +62,9 @@ mibspecs:
 BRW
 RETLW plist_no_buffer(1)
 RETLW 0
+RETLW plist_buffer()
+RETLW 0
+;Stream Feature
+RETLW plist_buffer()
 RETLW plist_buffer()
 RETLW 0

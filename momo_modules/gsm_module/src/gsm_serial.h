@@ -5,9 +5,10 @@
 
 void send_buffer();
 uint8 receive_response();
-void open_gsm_module();
+uint8 open_gsm_module();
 
 void copy_mib();
 void append_carriage();
+uint8 match_response(const char *resp);
 
 #endif

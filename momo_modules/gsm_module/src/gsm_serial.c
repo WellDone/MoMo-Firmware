@@ -2,13 +2,14 @@
 
 #include "platform.h"
 #include "gsm_serial.h"
+#include "gsm_strings.h"
 #include "mib12_api.h"
 #include <string.h>
 
 uint8 gsm_buffer[32];
 uint8 buffer_len;
 
-void open_gsm_module()
+uint8 open_gsm_module()
 {
 	gsm_buffer[0] = 'A';
 	gsm_buffer[1] = 'T';
@@ -18,7 +19,7 @@ void open_gsm_module()
 
 	send_buffer();
 
-	receive_response();
+	return receive_response();
 }
 
 void send_buffer()
@@ -39,29 +40,40 @@ void send_buffer()
 
 uint8 receive_response()
 {
+	RCREG;
+	RCREG;
+	buffer_len = 0;
+
 	if (OERR)
 	{
 		CREN = 0;
 		CREN = 1;
 	}
 
+	RCREG;
+	RCREG;
+
 	while(1)
 	{
 		while(!RCIF)
 			;
 
-		gsm_buffer[buffer_len] = RCREG;
+		gsm_buffer[buffer_len++] = RCREG;
 
-		if (gsm_buffer[buffer_len] == '\n')
+		if (gsm_buffer[buffer_len-1] == '\n')
 		{
-			buffer_len += 1;
-			return 0;
+			RC2 = !RC2;
+			if (match_okay_response())
+			{
+				RC2 = !RC2;
+				return 0;
+			}
+			else if (match_error_response())
+				return 1;
 		}
 
-		buffer_len += 1;
-
 		if (buffer_len == 32)
-			return 1;
+			return 2;
 	}
 }
 

@@ -32,14 +32,17 @@ void task(void)
 {
 	wdt_disable();
 
+
 	while (1)
 	{	
+		RC2 = !RC2;
+
 		if (state.open_module)
 		{
-			//TODO: Check for errors here
-			open_gsm_module();
-			state.open_module = 0;
-			state.module_open = 1;
+			if (open_gsm_module() == 0)
+				state.module_open = 1;
+			
+			state.open_module = 0;	
 		}
 		
 		if (state.module_open)
@@ -54,7 +57,6 @@ void task(void)
 		}
 
 		__delay_ms(250);
-		RC2 = !RC2;
 	}
 }
 
