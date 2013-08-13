@@ -1,12 +1,29 @@
 ;gsm_utils.as
 
 #include <xc.inc>
+#define __DEFINES_ONLY__
+#include "gsm_strings.h"
 
 GLOBAL _match_okay_response,_match_error_response,_gsm_buffer, _buffer_len
+GLOBAL _load_gsm_constant 
 
 PSECT gsmutilstext,local,class=CODE,delta=2
 
-okay_response:
+strtable:
+brw 
+retlw low s_error_response
+retlw high s_error_response
+retlw low s_okay_response
+retlw high s_okay_response
+retlw low s_start_stream
+retlw high s_start_stream
+
+s_start_stream:
+retlw 9
+db 'A','T','+','C','M','G','S','=','"',0
+
+s_okay_response:
+retlw 6			;length
 retlw 13
 retlw 10
 retlw 'O'
@@ -15,33 +32,51 @@ retlw 13
 retlw 10
 retlw 0
 
-error_response:
-retlw 13
-retlw 10
-retlw 'E'
-retlw 'R'
-retlw 'R'
-retlw 'O'
-retlw 'R'
-retlw 13
-retlw 10
-retlw 0
+s_error_response:
+retlw 9
+db 13,10,'E','R','R','O','R',13,10,0
+
+;given an index into the string table
+;load the string into FSR1 and return the length
+;of the string in W
+load_string:
+	lslf WREG,w 		;w*2
+	movwf FSR0L
+	call strtable
+	movwf FSR1L
+	incf FSR0L,w
+	call strtable
+	movwf FSR1H
+    bsf FSR1H,7
+	moviw FSR1++		;length is stored in first position
+	return
+
+;given an index in W, load the string specified into the GSM buffer
+;updating the buffer_len
+_load_gsm_constant:
+	call load_string
+	BANKSEL(_buffer_len)
+	movwf BANKMASK(_buffer_len)
+	movlw low _gsm_buffer
+	movwf FSR0L
+	clrf  FSR0H 
+
+	copyloop:
+	moviw FSR1++
+	btfsc ZERO
+	return
+	movwi FSR0++
+	goto copyloop
 
 _match_okay_response:
-	movlw low okay_response
-	movwf FSR1L
-	movlw (high okay_response) | (1<<7)
-	movwf FSR1H
-	movlw 6
-
+	movlw kOkayString
+	call load_string
 	goto _match_response
 
+
 _match_error_response:
-	movlw low error_response
-	movwf FSR1L
-	movlw (high error_response) | (1<<7)
-	movwf FSR1H
-	movlw 9
+	movlw kErrorString
+	call load_string
 
 	goto _match_response
 
@@ -64,7 +99,7 @@ _match_response:
 	addwf FSR0L,f
 	clrf  FSR0H 					;FSR0 now points to gsm buffer[len - strlen(response)], FSR1 to the response
 
-	match_loop:
+	doloop:
 	moviw FSR1++
 	btfsc ZERO 						;if we reached the end of the match string, it must be a match
 	retlw 1
@@ -72,5 +107,7 @@ _match_response:
 	xorwf INDF0,w
 	btfss ZERO
 	retlw 0							;if they dont match return 0
-	addfsr FSR0,1
-	goto match_loop
+	incf FSR0L,f
+	goto doloop
+
+	retlw 0

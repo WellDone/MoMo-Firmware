@@ -21,3 +21,5 @@ PSECT config,global,class=CODE,delta=2
 PSECT idloc,global,class=CODE,delta=2
 
 PSECT eeprom_data,global,class=CODE,delta=2
+
+END start

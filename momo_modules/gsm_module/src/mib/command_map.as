@@ -43,6 +43,7 @@ goto _gsm_setpower
 goto _gsm_module_on
 goto _gsm_sendcommand
 goto _gsm_readresponse
+
 goto _gsm_openstream
 goto _gsm_putstream
 goto _gsm_closestream
@@ -56,7 +57,7 @@ mibcommands:
 BRW
 RETLW 0
 RETLW kNumDebugCommands
-RETLW kNumStreamCommands
+RETLW kNumStreamCommands+kNumDebugCommands
 
 mibspecs:
 BRW

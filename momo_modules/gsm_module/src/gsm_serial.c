@@ -19,7 +19,9 @@ uint8 open_gsm_module()
 
 	send_buffer();
 
-	return receive_response();
+	receive_response();
+
+	return 0;
 }
 
 void send_buffer()
@@ -50,9 +52,6 @@ uint8 receive_response()
 		CREN = 1;
 	}
 
-	RCREG;
-	RCREG;
-
 	while(1)
 	{
 		while(!RCIF)
@@ -62,10 +61,8 @@ uint8 receive_response()
 
 		if (gsm_buffer[buffer_len-1] == '\n')
 		{
-			RC2 = !RC2;
 			if (match_okay_response())
 			{
-				RC2 = !RC2;
 				return 0;
 			}
 			else if (match_error_response())

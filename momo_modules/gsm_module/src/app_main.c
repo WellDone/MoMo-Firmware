@@ -85,37 +85,6 @@ void enable_serial()
 	RCIF = 0;
 }
 
-/*
- * Initialize the GSM Module and do autobauding to set the baud rate at 57600
- */
-void init_gsm_comms()
-{
-	RCREG;
-	RCREG;
-
-	clearwdt();
-	while(TXIF == 0)
-		;
-
-	TXREG = 'A';
-
-	clearwdt();
-	clearwdt();
-
-	while(TXIF == 0)
-		;
-
-	TXREG = 'T';
-
-	while(TXIF == 0)
-		;
-
-	clearwdt();
-	clearwdt();
-
-	TXREG = '\r';
-}
-
 void initialize(void)
 {	
 	POWERPIN = 1;

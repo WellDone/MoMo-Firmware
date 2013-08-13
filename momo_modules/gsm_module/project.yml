@@ -124,7 +124,7 @@
       - --asmlist 
       - --double=24 
       - --float=24
-      - --rom=4F0-7EF
+      - --rom=4F0-7EE
       - --ram=default,-61-7F,-A0-FF
       - --opt=all,-asmfile
       - --addrqual=require 
