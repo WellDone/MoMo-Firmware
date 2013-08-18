@@ -12,7 +12,7 @@ void test_command(void)
 		bus_slave_seterror( kCallbackError );
 		return;
 	}
-	_RA1 = !_RA1; //Blink light
+	//_RA1 = !_RA1; //Blink light
 	
 	const char* out = "testing...";
 	strcpy( plist_get_buffer(0), out );

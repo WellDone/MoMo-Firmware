@@ -10,6 +10,7 @@
 #include "bus.h"
 #include "mainboard_mib_commands.h"
 #include "report_manager.h"
+#include "memory_manager.h"
 
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
@@ -26,7 +27,7 @@ void handle_all_resets_before(unsigned int type)
     //battery_init();
 
     init_mainboard_mib();
-
+    flash_memory_init();
     mclr_triggered = false;
 }
 
@@ -40,7 +41,7 @@ void handle_all_resets_after(unsigned int type)
     if (!rtcc_enabled())
         enable_rtcc();
 
-    start_report_scheduling();
+    //start_report_scheduling();
 }
 
 void handle_poweron_reset(unsigned int type)

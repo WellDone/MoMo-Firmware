@@ -147,11 +147,12 @@ void bus_slave_callback()
 				//Make sure we can never overflow
 				//Just toggle back and forth between 1, 2 and 3. Clear the slave handler though so
 				//that we don't recall the function
-				if (bus_numreads_full())
-				{
-					mib_state.slave_handler = kInvalidMIBIndex;
-					mib_state.num_reads = 1; 
-				}
+			}
+
+			if (bus_numreads_full())
+			{
+				mib_state.slave_handler = kInvalidMIBIndex;
+				mib_state.num_reads = 1; 
 			}
 		}
 		else

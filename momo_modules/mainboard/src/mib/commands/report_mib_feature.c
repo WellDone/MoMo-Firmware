@@ -6,7 +6,7 @@
 
 static void start_scheduled_reporting(void)
 {
-	start_report_scheduling();
+	taskloop_add(start_report_scheduling);
 	bus_slave_setreturn( pack_return_status(kNoMIBError, 0) );
 }
 

@@ -58,15 +58,12 @@ void task(void)
 			{
 				//Have it send a command
 				mib_packet.feature = 60;
-				mib_packet.command = 1;
+				mib_packet.command = 0;
 				mib_packet.param_spec = 0;
 
 				bus_master_rpc_sync(8);
-				RC2 = !RC2;
 			}
 		}
-
-		
 	}
 }
 
@@ -104,6 +101,8 @@ void initialize(void)
 	GSMPOWERPIN = 0;
 	GSMRESETTRIS = 1;
 	GSMRESETPIN = 0;
+
+	TRISC2 = 1;
 
 	RXDTSEL = 1;
 	TXCKSEL = 1;

@@ -4,6 +4,7 @@
 #include "task_manager.h"
 #include "scheduler.h"
 #include "bus_master.h"
+#include "report_manager.h"
 #include <string.h>
 
 // FBS
@@ -48,12 +49,13 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
+ScheduledTask task1;
+
 void blink_light1(void)
 {
-	_RA0 = !_RA0;
+   scheduler_schedule_task(post_report, kEvery10Seconds, kScheduleForever, &task1);
 }
 
-ScheduledTask task1;
 ScheduledTask i2c;
 
 int main(void)
@@ -64,14 +66,17 @@ int main(void)
     _TRISA0 = 0;
     _TRISB1 = 1;
     _TRISB0 = 0;
+    //_TRISA6 = 0;
 
-    _RA1 = 0;
-    _RA0 = 1;
+    //_RA1 = 1;
+    //_RA0 = 1;
 
     register_reset_handlers();
     handle_reset();
 
-    //scheduler_schedule_task(blink_light1, kEverySecond, kScheduleForever, &task1);
+    //taskloop_add(blink_light1);
+    
+    //scheduler_schedule_task(post_report, kEvery10Seconds, kScheduleForever, &task1);
     //scheduler_schedule_task(send_blink_message, kEverySecond, kScheduleForever, &i2c);
 
     taskloop_loop();
