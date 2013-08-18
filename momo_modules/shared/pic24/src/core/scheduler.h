@@ -7,6 +7,7 @@
 #define __scheduler_h__
 
 #include "task_manager.h"
+#include "rtcc.h"
 
 #define kScheduleForever	0xFF
 

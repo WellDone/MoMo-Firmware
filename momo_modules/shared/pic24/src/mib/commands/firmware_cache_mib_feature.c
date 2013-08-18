@@ -1,7 +1,5 @@
 #include "firmware_cache_mib_feature.h"
 #include "common_types.h"
-#include "protocol.h"
-#include "bus_slave.h"
 #include "memory.h"
 #include "mib_feature_definition.h"
 #include "intel_hex.h"
