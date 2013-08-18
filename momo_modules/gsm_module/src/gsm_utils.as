@@ -5,7 +5,7 @@
 #include "gsm_strings.h"
 
 GLOBAL _match_okay_response,_match_error_response,_gsm_buffer, _buffer_len
-GLOBAL _load_gsm_constant 
+GLOBAL _load_gsm_constant, _match_newmsg, _match_newmsg2digit
 
 PSECT gsmutilstext,local,class=CODE,delta=2
 
@@ -17,6 +17,8 @@ retlw low s_okay_response
 retlw high s_okay_response
 retlw low s_start_stream
 retlw high s_start_stream
+retlw low s_newmsg_response
+retlw high s_newmsg_response
 
 s_start_stream:
 retlw 9
@@ -31,6 +33,9 @@ retlw 'K'
 retlw 13
 retlw 10
 retlw 0
+
+s_newmsg_response:
+db 17, 13, 10, '+', 'C','M','T','I',':',' ','"','S','M','"',',',0, 13, 10, 0
 
 s_error_response:
 retlw 9
@@ -78,6 +83,17 @@ _match_error_response:
 	movlw kErrorString
 	call load_string
 
+	goto _match_response
+
+_match_newmsg:
+	movlw kNewMessageString
+	call load_string
+	goto _match_response
+
+_match_newmsg2digit:
+	movlw kNewMessageString
+	call load_string
+	movlw 18
 	goto _match_response
 
 ;Given a string location specified in FSR1

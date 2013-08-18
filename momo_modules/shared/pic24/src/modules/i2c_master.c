@@ -37,7 +37,12 @@ void i2c_master_disable()
 void i2c_master_enable()
 {
 	if (master.state == kI2CDisabledState)
+	{
+		master.last_error = kI2CNoError;
 		master.state = kI2CIdleState;
+
+		I2C1RCV;
+	}
 }
 
 int i2c_master_lasterror()
@@ -67,13 +72,12 @@ void i2c_master_receivechecksum()
 
 void __attribute__((interrupt,no_auto_psv)) _MI2C1Interrupt()
 {
-	//_RA6 = !_RA6;
-
 	//TODO add code for handling bus collision arbitration losses and stops
 	switch(master.state)
 	{
 		case kI2CSendAddressState:
 		i2c_transmit(i2c_msg->address);
+		I2C1RCV;
 		master.state = (master.dir == kMasterSendData) ? kI2CSendDataState : kI2CReceiveDataState;
 		break;
 

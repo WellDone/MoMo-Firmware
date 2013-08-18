@@ -10,5 +10,6 @@ uint8 open_gsm_module();
 void copy_mib();
 void append_carriage();
 uint8 match_response(const char *resp);
+uint8 wait_for_text();
 
 #endif

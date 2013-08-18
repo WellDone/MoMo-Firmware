@@ -113,6 +113,7 @@ void bus_master_handleerror()
 
 void bus_master_callback()
 {
+	int i;
 	switch(mib_state.master_state)
 	{
 		case kMIBSendParameters:
@@ -173,6 +174,10 @@ void bus_master_callback()
 		case kMIBFinalizeMessage:
 		//Set the flag that this RPC is done for whomever is waiting.
 		mib_state.rpc_done = 1;
+
+		i2c_finish_transmission(); 
+		for(i=0; i<200; ++i)
+			;			
 		
 		#ifndef _PIC12
 		if (mib_state.master_callback != NULL)
@@ -180,8 +185,6 @@ void bus_master_callback()
 		#else
 
 		#endif
-
-		i2c_finish_transmission(); 
 		break;
 	}
 }

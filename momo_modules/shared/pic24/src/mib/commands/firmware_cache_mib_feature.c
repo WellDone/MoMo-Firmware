@@ -153,7 +153,6 @@ void clear_firmware_cache(void)
 {
 	firmware_bucket_count = 0;
 	firmware_push_started = false;
-	_RA0 = 0;
 	
 	bus_slave_setreturn( pack_return_status( kNoMIBError, 0 ) );	
 }

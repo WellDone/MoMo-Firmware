@@ -9,6 +9,24 @@
 uint8 gsm_buffer[32];
 uint8 buffer_len;
 
+typedef union 
+{
+	struct
+	{
+		volatile uint8 open_module:1;
+		volatile uint8 close_module:1;
+		volatile uint8 send_command:1;
+		volatile uint8 module_open:1;
+		volatile uint8 last_response:1;
+		volatile uint8 wait_for_text: 1;
+		volatile uint8 unused:2;
+	};
+
+	volatile uint8 gsm_state;
+} ModuleState;
+
+extern ModuleState state;
+
 uint8 open_gsm_module()
 {
 	gsm_buffer[0] = 'A';
@@ -71,6 +89,42 @@ uint8 receive_response()
 
 		if (buffer_len == 32)
 			return 2;
+	}
+}
+
+uint8 wait_for_text()
+{
+	RCREG;
+	RCREG;
+	buffer_len = 0;
+
+	if (OERR)
+	{
+		CREN = 0;
+		CREN = 1;
+	}
+
+	state.wait_for_text = 1;  
+	while(state.wait_for_text)
+	{
+		if (RCIF)
+		{
+			if (buffer_len == 32)
+				buffer_len = 0;
+
+			gsm_buffer[buffer_len++] = RCREG;
+
+			if (gsm_buffer[buffer_len-1] == '\n')
+			{
+				if (match_newmsg())
+					return 1;
+
+				if (match_newmsg2digit())
+					return 1;
+
+				buffer_len = 2; //reset the buffer after every \r\n so we don't overflow
+			}
+		}
 	}
 }
 

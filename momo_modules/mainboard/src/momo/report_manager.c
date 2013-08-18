@@ -7,6 +7,7 @@
 #include "uart.h"
 #include "base64.h"
 #include <stdlib.h>
+#include <string.h>
 #include "bus_master.h"
 
 #define EVENT_BUFFER_SIZE 1
@@ -26,6 +27,8 @@ typedef struct { //103
 static char base64_report_buffer[BASE64_REPORT_LENGTH+1];
 static char report_server_gsm_address[16] = {'+','2','5','5','7','1','4','2','3','8','4','7','5','\0',0,0};
 extern unsigned int last_battery_voltage;
+
+extern ScheduledTask task1;
 
 static sensor_event event_buffer[EVENT_BUFFER_SIZE];
 bool construct_report()
@@ -89,12 +92,14 @@ void stream_to_gsm() {
     byte_count = kBusMaxMessageSize;
   memcpy( plist_get_buffer(0), base64_report_buffer+report_stream_offset, byte_count );
   report_stream_offset += byte_count;
+
   bus_master_rpc_async( receive_gsm_stream_response, gsm_address, 11, 1, plist_with_buffer(0,byte_count) );
 }
 void receive_gsm_stream_response(unsigned char a) {
   if ( a != kNoMIBError ) {
     return;
   }
+  
   taskloop_add( stream_to_gsm );
 }
 void post_report() {
@@ -110,10 +115,10 @@ void post_report() {
   bus_master_rpc_async( receive_gsm_stream_response, gsm_address, 11, 0, plist_with_buffer(0,strlen(report_server_gsm_address)) );
 }
 
-static ScheduledTask report_task = {0, 0, 0, 0};
+static ScheduledTask report_task;
 static AlarmRepeatTime report_interval = kEvery10Seconds;
 void start_report_scheduling() {
-  scheduler_schedule_task( post_report, report_interval, kScheduleForever, &report_task);
+    scheduler_schedule_task( post_report, report_interval, kScheduleForever, &task1);
 }
 void stop_report_scheduling() {
     scheduler_remove_task( &report_task );
