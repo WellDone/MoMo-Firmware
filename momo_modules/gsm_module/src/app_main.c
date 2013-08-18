@@ -20,7 +20,8 @@ typedef union
 		volatile uint8 send_command:1;
 		volatile uint8 module_open:1;
 		volatile uint8 last_response:1;
-		volatile uint8 unused: 5;
+		volatile uint8 wait_for_text: 1;
+		volatile uint8 unused:2;
 	};
 
 	volatile uint8 gsm_state;
@@ -35,8 +36,6 @@ void task(void)
 
 	while (1)
 	{	
-		RC2 = !RC2;
-
 		if (state.open_module)
 		{
 			if (open_gsm_module() == 0)
@@ -54,9 +53,20 @@ void task(void)
 
 				state.send_command = 0;
 			}
+
+			if (wait_for_text() == 1)
+			{
+				//Have it send a command
+				mib_packet.feature = 60;
+				mib_packet.command = 1;
+				mib_packet.param_spec = 0;
+
+				bus_master_rpc_sync(8);
+				RC2 = !RC2;
+			}
 		}
 
-		__delay_ms(250);
+		
 	}
 }
 
@@ -153,6 +163,7 @@ void gsm_sendcommand()
 	append_carriage();
 	
 	state.send_command = 1;
+	state.wait_for_text = 0;
 	
 	bus_slave_setreturn(pack_return_status(0,0));
 }
