@@ -2,8 +2,8 @@
 #include "controller_mib_feature.h"
 #include <string.h>
 #include "memory.h"
-
-#include "mib_features.h"
+#include "mib_definitions.h"
+#include "mib_feature_definition.h"
 
 #define MAX_MODULES 8
 #define MODULE_BASE_ADDRESS 11

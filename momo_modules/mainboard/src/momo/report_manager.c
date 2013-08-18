@@ -7,6 +7,7 @@
 #include "uart.h"
 #include "base64.h"
 #include <stdlib.h>
+#include "bus_master.h"
 
 #define EVENT_BUFFER_SIZE 1
 typedef struct { //103
@@ -23,7 +24,7 @@ typedef struct { //103
 // base64 length = 4 * ( ( sizeof(sms_report) + 2 ) / 3)
 #define BASE64_REPORT_LENGTH 140
 static char base64_report_buffer[BASE64_REPORT_LENGTH+1];
-
+static char report_server_gsm_address[16] = {'+','2','5','5','7','1','4','2','3','8','4','7','5','\0',0,0};
 extern unsigned int last_battery_voltage;
 
 static sensor_event event_buffer[EVENT_BUFFER_SIZE];
@@ -71,25 +72,63 @@ bool construct_report()
 
   count = base64_encode( (BYTE*)&report, 104, base64_report_buffer, BASE64_REPORT_LENGTH );
   base64_report_buffer[count] = '\0';
-  return (count > 0);
+  return true;
 }
 
+static uint8 report_stream_offset;
+void receive_gsm_stream_response(unsigned char a);
+void stream_to_gsm() {
+  uint8 gsm_address = 11;
+  if ( report_stream_offset >= BASE64_REPORT_LENGTH )
+  {
+    bus_master_rpc_async( NULL, gsm_address, 11, 2, plist_empty() ); //TODO: Handle failure to send
+    return;
+  }
+  uint8 byte_count = BASE64_REPORT_LENGTH-report_stream_offset;
+  if ( byte_count > kBusMaxMessageSize )
+    byte_count = kBusMaxMessageSize;
+  memcpy( plist_get_buffer(0), base64_report_buffer+report_stream_offset, byte_count );
+  report_stream_offset += byte_count;
+  bus_master_rpc_async( receive_gsm_stream_response, gsm_address, 11, 1, plist_with_buffer(0,byte_count) );
+}
+void receive_gsm_stream_response(unsigned char a) {
+  if ( a != kNoMIBError ) {
+    return;
+  }
+  taskloop_add( stream_to_gsm );
+}
 void post_report() {
+  //TODO: Gather sensor data from sensor modules
   if (!construct_report())
     return;
 
-  /*if ( gsm_on() )
-  {
-    gsm_send_sms( MOMO_REPORT_SERVER, base64_report_buffer ); //TODO: Retry on failure?
-    gsm_off();
-    flush_config_to_memory();
-  }*/
+  report_stream_offset = 0;
+
+  //TODO: Get address of GSM module.
+  uint8 gsm_address = 11;
+  memcpy( plist_get_buffer(0), report_server_gsm_address, strlen(report_server_gsm_address) );
+  bus_master_rpc_async( receive_gsm_stream_response, gsm_address, 11, 0, plist_with_buffer(0,strlen(report_server_gsm_address)) );
 }
 
 static ScheduledTask report_task = {0, 0, 0, 0};
+static AlarmRepeatTime report_interval = kEvery10Seconds;
 void start_report_scheduling() {
-    scheduler_schedule_task( post_report, MOMO_REPORT_INTERVAL, kScheduleForever, &report_task);
+  scheduler_schedule_task( post_report, report_interval, kScheduleForever, &report_task);
 }
 void stop_report_scheduling() {
     scheduler_remove_task( &report_task );
+}
+void set_report_scheduling_interval( AlarmRepeatTime interval ) {
+  if ( interval >= kNumAlarmTimes )
+    return;
+  report_interval = interval;
+  if ( BIT_TEST(report_task.flags, kBeingScheduledBit) )
+    scheduler_schedule_task( post_report, report_interval, kScheduleForever, &report_task);
+}
+void set_report_server_gsm_address( const char* address, uint8 len )
+{
+  if ( len >= sizeof(report_server_gsm_address) )
+    return;
+  memcpy( report_server_gsm_address, address, len );
+  report_server_gsm_address[len] = '\0';
 }

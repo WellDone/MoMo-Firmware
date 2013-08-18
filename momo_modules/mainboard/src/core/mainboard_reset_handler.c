@@ -9,6 +9,7 @@
 #include "memory.h"
 #include "bus.h"
 #include "mainboard_mib_commands.h"
+#include "report_manager.h"
 
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
@@ -23,10 +24,7 @@ void handle_all_resets_before(unsigned int type)
     bus_init( kControllerPICAddress );
     configure_SPI();
     //battery_init();
-    //gsm_init();
 
-    //TODO: Move this to MoMo-specific handler?
-    //flash_memory_init();
     init_mainboard_mib();
 
     mclr_triggered = false;
@@ -41,6 +39,8 @@ void handle_all_resets_after(unsigned int type)
     //The RTCC must be enabled for scheduling tasks, so ensure that
     if (!rtcc_enabled())
         enable_rtcc();
+
+    start_report_scheduling();
 }
 
 void handle_poweron_reset(unsigned int type)
