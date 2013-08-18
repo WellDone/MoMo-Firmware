@@ -28,8 +28,6 @@ static char base64_report_buffer[BASE64_REPORT_LENGTH+1];
 static char report_server_gsm_address[16] = {'+','2','5','5','7','1','4','2','3','8','4','7','5','\0',0,0};
 extern unsigned int last_battery_voltage;
 
-extern ScheduledTask task1;
-
 static sensor_event event_buffer[EVENT_BUFFER_SIZE];
 bool construct_report()
 {
@@ -118,7 +116,7 @@ void post_report() {
 static ScheduledTask report_task;
 static AlarmRepeatTime report_interval = kEvery10Seconds;
 void start_report_scheduling() {
-    scheduler_schedule_task( post_report, report_interval, kScheduleForever, &task1);
+    scheduler_schedule_task( post_report, report_interval, kScheduleForever, &report_task);
 }
 void stop_report_scheduling() {
     scheduler_remove_task( &report_task );
