@@ -9,6 +9,8 @@
 uint8 gsm_buffer[32];
 uint8 buffer_len;
 
+uint8 test_siminserted();
+
 typedef union 
 {
 	struct
@@ -31,9 +33,11 @@ uint8 open_gsm_module()
 {
 	gsm_buffer[0] = 'A';
 	gsm_buffer[1] = 'T';
-	gsm_buffer[2] = '\r';
+	gsm_buffer[2] = 'E';
+	gsm_buffer[3] = '0';
+	gsm_buffer[4] = '\r';
 
-	buffer_len = 3;
+	buffer_len = 5;
 
 	send_buffer();
 
@@ -107,6 +111,7 @@ uint8 wait_for_text()
 	state.wait_for_text = 1;  
 	while(state.wait_for_text)
 	{
+		//RC2 = !RC2;
 		if (RCIF)
 		{
 			if (buffer_len == 32)
@@ -115,7 +120,7 @@ uint8 wait_for_text()
 			gsm_buffer[buffer_len++] = RCREG;
 
 			if (gsm_buffer[buffer_len-1] == '\n')
-			{
+			{				
 				if (match_newmsg())
 					return 1;
 

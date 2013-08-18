@@ -6,6 +6,7 @@
 #include "mib12_api.h"
 #include "watchdog.h"
 #include "gsm_serial.h"
+#include "simcard.h"
 
 #define _XTAL_FREQ			4000000
 
@@ -29,10 +30,49 @@ typedef union
 
 ModuleState state;
 
+void gsm_module_on();
+
 void task(void)
 {
 	wdt_disable();
 
+	//Wait until a sim card is inserted and then power up the GSM module
+	while(test_siminserted() == 0)
+	{
+		WDTCON = k1SecondTimeout;
+		wdt_enable();
+		asm("sleep");
+	}
+
+	gsm_module_on();
+
+	if (open_gsm_module() == 0)
+		state.module_open = 1;
+			
+	state.open_module = 0;	
+
+	//wait 15 seconds
+	__delay_ms(15000);
+
+	mib_buffer[0] = '+';
+	mib_buffer[1] = '2';
+	mib_buffer[2] = '5';
+	mib_buffer[3] = '5';
+	mib_buffer[4] = '7';
+	mib_buffer[5] = '1';
+	mib_buffer[6] = '4';
+	mib_buffer[7] = '2';
+	mib_buffer[8] = '3';
+	mib_buffer[9] = '8';
+	mib_buffer[10] = '4';
+	mib_buffer[11] = '7';
+	mib_buffer[12] = '5';
+	mib_packet.param_spec = 13;
+
+	gsm_openstream();
+	mib_buffer[12] = '7';
+	gsm_putstream();
+	gsm_closestream();
 
 	while (1)
 	{	
@@ -102,7 +142,7 @@ void initialize(void)
 	GSMRESETTRIS = 1;
 	GSMRESETPIN = 0;
 
-	TRISC2 = 1;
+	TRISC2 = 0;
 
 	RXDTSEL = 1;
 	TXCKSEL = 1;
@@ -146,14 +186,20 @@ void gsm_module_on()
 
 		__delay_ms(3000);
 
-		if (RA5)
-			state.open_module = 1;
+		state.open_module = 1;
 	}
 
 	mib_buffer[0] = RA5;
 	mib_buffer[1] = 0;
 
 	bus_slave_setreturn(pack_return_status(0,2));
+}
+
+void gsm_testsim()
+{
+	mib_buffer[0] = test_siminserted();
+	mib_buffer[1] = 0;
+	bus_slave_setreturn(pack_return_status(0,2));	
 }
 
 void gsm_sendcommand()

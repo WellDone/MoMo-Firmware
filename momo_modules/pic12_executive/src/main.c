@@ -11,6 +11,8 @@
 #pragma config WDTE=SWDTEN  /* Enable the watchdog timer under software control. */
 #pragma config PLLEN=OFF        /* Disable 4x phase lock loop. */
 #pragma config WRT=OFF          /* Flash memory write protection off. */
+#pragma config LVP=OFF
+#pragma config MCLRE=OFF
 
 __persistent MIBExecutiveStatus status;
 

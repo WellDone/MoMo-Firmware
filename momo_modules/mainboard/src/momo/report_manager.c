@@ -71,6 +71,8 @@ bool construct_report()
     count = read_sensor_events( event_buffer, 1 );
   }
 
+  report.event_count = 20;
+
   count = base64_encode( (BYTE*)&report, 104, base64_report_buffer, BASE64_REPORT_LENGTH );
   base64_report_buffer[count] = '\0';
   return true;
@@ -101,6 +103,12 @@ void receive_gsm_stream_response(unsigned char a) {
   taskloop_add( stream_to_gsm );
 }
 void post_report() {
+    if (!bus_is_idle())
+    {
+      taskloop_add(post_report);
+      return;
+    }
+
   //TODO: Gather sensor data from sensor modules
   if (!construct_report())
     return;

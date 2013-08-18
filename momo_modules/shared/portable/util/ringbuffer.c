@@ -4,6 +4,7 @@
 
 #include "common_types.h"
 #include <string.h>
+#include "pic24.h"
 
 //Internal utility function prototypes
 static void ringbuffer_incr(ringbuffer *buf, unsigned int *index);
@@ -35,12 +36,14 @@ unsigned int ringbuffer_full(ringbuffer *buf)
  */
 void ringbuffer_pop(ringbuffer *buf, void *out)
 {
+    uninterruptible_start();
     unsigned int mask = buf->length - 1;
     unsigned int offset = (buf->start) & mask;
 
     memcpy(out, buf->data + (offset*buf->elem_size), buf->elem_size);
 
     ringbuffer_incr(buf, &buf->start);
+    uninterruptible_end();
 }
 
 /*
@@ -48,6 +51,7 @@ void ringbuffer_pop(ringbuffer *buf, void *out)
  */
 void ringbuffer_push(ringbuffer *buf, void *in)
 {
+    uninterruptible_start();
     unsigned int mask = buf->length - 1;
     unsigned int offset = (buf->end) & mask;
 
@@ -55,13 +59,14 @@ void ringbuffer_push(ringbuffer *buf, void *in)
     if (ringbuffer_full(buf))
         ringbuffer_incr(buf, &buf->start); //We overflowed so we have to increment start too.
     ringbuffer_incr(buf, &buf->end);
+    uninterruptible_end();
 }
 
 //FIXME, should disable interrupts during this routine so that we don't have a race
 //with a preempted interrupt on the non-atomic increment operation.
 static void ringbuffer_incr(ringbuffer *buf, unsigned int *index)
 {
-    *index = (*index+1) & (2*buf->length - 1);
+    *index = (*index+1) & (2*buf->length - 1);   
 }
 
 void ringbuffer_reset(ringbuffer* buf) {

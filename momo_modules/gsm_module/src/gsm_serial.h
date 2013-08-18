@@ -12,4 +12,7 @@ void append_carriage();
 uint8 match_response(const char *resp);
 uint8 wait_for_text();
 
+void gsm_openstream();
+void gsm_putstream();
+void gsm_closestream();
 #endif

@@ -6,12 +6,12 @@
 #include "definitions.h"
 
 global _gsm_setpower, _gsm_module_on, _gsm_sendcommand, _gsm_readresponse
-global _gsm_openstream,_gsm_putstream,_gsm_closestream
+global _gsm_openstream,_gsm_putstream,_gsm_closestream, _gsm_testsim
 
 ;Define the number of supported features and where to store the callback table pointer
 ;in ROM
 #define kNumFeatures 			2
-#define kNumDebugCommands		4
+#define kNumDebugCommands		5
 #define kNumStreamCommands		3
 
 PSECT mibmap,abs,local,class=CODE,delta=2
@@ -43,6 +43,7 @@ goto _gsm_setpower
 goto _gsm_module_on
 goto _gsm_sendcommand
 goto _gsm_readresponse
+goto _gsm_testsim
 
 goto _gsm_openstream
 goto _gsm_putstream
@@ -64,6 +65,7 @@ BRW
 RETLW plist_no_buffer(1)
 RETLW 0
 RETLW plist_buffer()
+RETLW 0
 RETLW 0
 ;Stream Feature
 RETLW plist_buffer()

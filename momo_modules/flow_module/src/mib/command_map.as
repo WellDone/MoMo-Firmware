@@ -10,7 +10,7 @@ global _flowmeter_statuscmd, _flowmeter_readcmd, _flowmeter_oneshotcmd
 ;Define the number of supported features and where to store the callback table pointer
 ;in ROM
 #define kNumFeatures 			1
-#define kNumCommands			2
+#define kNumCommands			3
 
 PSECT mibmap,abs,local,class=CODE,delta=2
 

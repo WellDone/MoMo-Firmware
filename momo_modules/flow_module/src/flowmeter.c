@@ -3,6 +3,7 @@
 #include "flowmeter.h"
 #include "flow_defines.h"
 #include "mib12_api.h"
+#include "watchdog.h"
 
 void flowmeter_set_enabled(uint8 enabled)
 {
@@ -51,6 +52,7 @@ void flowmeter_singlesample(uint8 sampletime)
 	flowmeter_startsampling();
 
 	WDTCON = sampletime;
+	wdt_enable();
 	asm("sleep");
 
 	flowmeter_endsampling();

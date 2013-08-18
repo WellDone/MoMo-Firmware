@@ -17,6 +17,24 @@
 extern uint8 gsm_buffer[32];
 extern uint8 buffer_len;
 
+typedef union 
+{
+	struct
+	{
+		volatile uint8 open_module:1;
+		volatile uint8 close_module:1;
+		volatile uint8 send_command:1;
+		volatile uint8 module_open:1;
+		volatile uint8 last_response:1;
+		volatile uint8 wait_for_text: 1;
+		volatile uint8 unused:2;
+	};
+
+	volatile uint8 gsm_state;
+} ModuleState;
+
+extern ModuleState state;
+
 #define _XTAL_FREQ			4000000
 
  void gsm_openstream()
@@ -58,5 +76,7 @@ extern uint8 buffer_len;
  	buffer_len = 1;
  	send_buffer();
 
+ 	state.wait_for_text = 0;
+ 	
  	bus_slave_setreturn(pack_return_status(0,0));
  }
