@@ -2,7 +2,7 @@
 
 :project:
   :use_exceptions: FALSE
-  :use_test_preprocessor: TRUE
+  #:use_test_preprocessor: TRUE
   :use_auxiliary_dependencies: TRUE
   :build_root: build
   :release_build: TRUE
@@ -24,7 +24,7 @@
     - +:./src/**
     - +:../portable/**
   :include:
-    - +:../../../tools/**
+    #- +:../../../tools/**
 
 :defines:
   # in order to add common defines:
@@ -50,12 +50,6 @@
   :plugins:
     - :ignore
     - :callback
-  :treat_as:
-    uint8:    HEX8
-    uint16:   HEX16
-    uint32:   UINT32
-    int8:     INT8
-    bool:     UINT8
 
 :tools:
   :release_compiler:
@@ -92,7 +86,6 @@
       - qc
       - ${2}
       - ${1}
-
   :test_compiler:
     :executable: xc16-gcc
     :arguments:
@@ -107,8 +100,6 @@
       - -Wall
       #- -Werror  # We can't keep this on during test becuase of a CMock pointer issue
       - -O1
-      - -mlarge-code
-      - -mlarge-arrays
 
   :test_linker:
     :executable: xc16-gcc

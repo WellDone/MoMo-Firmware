@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-unsigned char get_2byte_number(char *input)
+unsigned char get_2byte_number(const char *input)
 {
     char temp[3];
 
@@ -126,21 +126,27 @@ int itoa_small(char *buf, unsigned int len, int num)
     return 9-i-1;
 }
 
-bool atoi_small(const char* buf, int* out)
+bool atoi_small(const char* buf, int16* out)
 {
     *out = 0x0;
-    int i;
-    unsigned int *uout = (unsigned int*) out;
-    for ( i=0; i<strlen(buf); ++i ) {
-        if ( buf[i] == '-' && i==0 ) {
-            *uout &= 0x80000000; // -0
-        } else if ( buf[i] >= '0' && buf[i] <= '9' ) {
-            *uout = *uout * 10;
-            *uout += buf[i]-'0';
+    bool negative = false;
+    int16 tmp = 0;
+
+    if ( *buf == '-' ) {
+        negative = true;
+        ++buf;
+    }
+    while ( *buf != '\0' ) {
+        if ( *buf >= '0' && *buf <= '9' ) {
+            if ( tmp >= 0x10000/10 )
+                return false;
+            tmp *= 10;
+            tmp += *(buf++) -'0';
         } else {
             return false;
         }
     }
+    *out = (negative)?-tmp:tmp;
     return true;
 }
 
