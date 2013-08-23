@@ -10,6 +10,8 @@ unsigned int sprintf_small(char *buffer, unsigned int len, const char *fmt, va_l
 int itoa_small(char *buf, unsigned int len, int num);
 bool atoi_small(const char *buf, int* out);
 
+char to_upper_case( char c );
+
 void print_byte( BYTE b );
 void println( const char* msg );
 

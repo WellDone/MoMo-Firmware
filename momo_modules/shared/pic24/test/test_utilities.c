@@ -1,5 +1,6 @@
 #include "unity.h"
 #include "utilities.h"
+#include <string.h>
 
 void setUp(void) {
 
