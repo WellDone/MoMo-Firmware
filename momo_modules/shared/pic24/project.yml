@@ -2,19 +2,29 @@
 
 :project:
   :use_exceptions: FALSE
-  :use_test_preprocessor: TRUE
+  #:use_test_preprocessor: TRUE
   :use_auxiliary_dependencies: TRUE
   :build_root: build
   :release_build: TRUE
+  :test_file_prefix: test_
+  :use_mocks: TRUE
 
 :release_build:
   :output: libPIC24shared.a
   :use_assembly: TRUE
 
+
+:extension:
+  :executable: .a 
+
 :paths:
+  :test:
+    - +:test/**
   :source:
     - +:./src/**
     - +:../portable/**
+  :include:
+    #- +:../../../tools/**
 
 :defines:
   # in order to add common defines:
@@ -26,13 +36,20 @@
     - CMOCK_MEM_INDEX_TYPE=uint16_t
     - CMOCK_MEM_PTR_AS_INT=uint16_t
     - CMOCK_MEM_ALIGN=1
-    - CMOCK_MEM_SIZE=8192
+    - CMOCK_MEM_SIZE=1024
   :test:
     - *common_defines
     - TEST
   :test_preprocess:
     - *common_defines
     - TEST
+:cmock:
+  :mock_prefix: mock_
+  :when_no_prototypes: :warn
+  :enforce_strict_ordering: TRUE
+  :plugins:
+    - :ignore
+    - :callback
 
 :tools:
   :release_compiler:
@@ -41,7 +58,7 @@
       - -mcpu=24F16KA101
       - -x c
       - -c
-      - "${1}"
+      - ${1}
       - -o ${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE
@@ -69,6 +86,59 @@
       - qc
       - ${2}
       - ${1}
+  :test_compiler:
+    :executable: xc16-gcc
+    :arguments:
+      - -mcpu=24F16KA101
+      - -x c
+      - -c
+      - ${1}
+      - -o ${2}
+      - -I"$": COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR
+      - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
+      - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
+      - -Wall
+      #- -Werror  # We can't keep this on during test becuase of a CMock pointer issue
+      - -O1
+
+  :test_linker:
+    :executable: xc16-gcc
+    :arguments:
+      - -mcpu=24F16KA101
+      - ${1}
+      - -o "./build/test/TestBuild.out"
+      - -Wl,-Tp24F16KA101.gld,-Map=./build/release/TestOutput.map,--report-mem
+
+  :test_fixture:
+    :executable: ruby
+    :name: "Microchip simulator test fixture"
+    :stderr_redirect: :win #inform Ceedling what model of $stderr capture to use
+    :arguments:
+      - test/simulation/sim_test_fixture.rb
+
+  :test_includes_preprocessor:
+    :executable: xc16-gcc
+    :arguments:
+      - -E
+      - -MM
+      - -MG
+      - -I"$": COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR
+      - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
+      - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
+      - -D$: DEFINES_TEST_PREPROCESS
+      - ${1}
+
+  :test_file_preprocessor:
+    :executable: xc16-gcc
+    :arguments:
+      - -E
+      - -I"$": COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR
+      - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
+      - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
+      - -D$: DEFINES_TEST_PREPROCESS
+      - ${1}
+      - -o ${2}
+
 :plugins:
   :load_paths:
     - ../../../tools/ceedling/plugins

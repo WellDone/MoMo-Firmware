@@ -1,0 +1,5 @@
+LD pic24super             
+LC build/test/TestBuild.out
+IO NULL build/test/out.txt
+RP
+E
