@@ -54,7 +54,7 @@ void alive(void)
 {
 	_RA4 = !_RA4;
     //bus_master_compose_params(plist_define0());
-    //bus_master_rpc_async(NULL, 0x08,0x01,0x00);
+    //bus_master_rpc_async(NULL, kMIBControllerAddress,0x01,0x00);
 }
 
 ScheduledTask task;
