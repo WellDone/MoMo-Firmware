@@ -22,7 +22,7 @@ void handle_all_resets_before(unsigned int type)
     //configure_sensor();
     taskloop_init();
     scheduler_init();
-    bus_init( kControllerPICAddress );
+    bus_init( kMIBControllerAddress );
     configure_SPI();
     //battery_init();
 

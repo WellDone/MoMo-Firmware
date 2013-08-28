@@ -47,7 +47,7 @@ uint8 register_module()
 
 	bus_master_prepare(42, 0, plist_with_buffer(0, sizeof(momo_module_descriptor)));
 
-	if (bus_master_rpc_sync(0x08) == 0)
+	if (bus_master_rpc_sync(kMIBControllerAddress) == 0)
 		return plist_get_int8(0);
 	
 	//If we failed, return an invalid mib address to indicate that
