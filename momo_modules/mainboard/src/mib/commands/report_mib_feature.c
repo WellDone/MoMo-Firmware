@@ -7,31 +7,26 @@
 static void start_scheduled_reporting(void)
 {
 	start_report_scheduling();
-	bus_slave_setreturn( pack_return_status(kNoMIBError, 0) );
 }
 
 static void stop_scheduled_reporting(void)
 {
 	stop_report_scheduling();
-	bus_slave_setreturn( pack_return_status(kNoMIBError, 0) );
 }
 
 static void send_report(void)
 {
 	taskloop_add( post_report );
-	bus_slave_setreturn( pack_return_status(kNoMIBError, 0) );	
 }
 
 static void set_reporting_interval(void)
 {
 	set_report_scheduling_interval( plist_get_int16(0) );
-	bus_slave_setreturn( pack_return_status(kNoMIBError, 0) );
 }
 
 static void set_reporting_gsm_address(void)
 {
-	set_report_server_gsm_address( plist_get_buffer(0), plist_get_buffer_length() );
-	bus_slave_setreturn( pack_return_status(kNoMIBError, 0) );
+	set_report_server_gsm_address( (const char*)plist_get_buffer(0), plist_get_buffer_length() );
 }
 
 DEFINE_MIB_FEATURE_COMMANDS(reporting) {

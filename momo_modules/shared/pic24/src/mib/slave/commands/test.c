@@ -15,8 +15,7 @@ void test_command(void)
 	//_RA1 = !_RA1; //Blink light
 	
 	const char* out = "testing...";
-	strcpy( plist_get_buffer(0), out );
-	bus_slave_setreturn(pack_return_status(kNoMIBError,strlen(out)) );
+	bus_slave_return_buffer( out, strlen(out) );
 }
 
 /*

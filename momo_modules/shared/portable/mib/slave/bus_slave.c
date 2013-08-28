@@ -1,4 +1,5 @@
 #include "bus_slave.h"
+#include <string.h>
 
 //static prototypes that are only to be used in this file
 static void bus_slave_startcommand();
@@ -8,6 +9,33 @@ static void bus_slave_callcommand();
 /*
  * MIB Slave Logic 
  */
+
+/*
+ * Set the return status, the high order 3 bits define the status, the low order 5 bits set the 
+ * length of the return value
+ */
+void bus_slave_setreturn(uint8 status)
+{
+	mib_state.bus_returnstatus.return_status = status;
+}
+
+inline void bus_slave_set_returnbuffer_length( uint8 length ) {
+	bus_slave_setreturn( pack_return_status( kNoMIBError, length ) );	
+}
+
+void bus_slave_return_buffer( const void* buff, uint8 length ) {
+	if ( length > kBusMaxMessageSize ) {
+		bus_slave_seterror( kUnknownError ); //TODO: Better
+		return;
+	}
+	memcpy( plist_get_buffer(0), buff, length );
+	bus_slave_set_returnbuffer_length( length );
+}
+
+void bus_slave_return_int16( int16 val ) {
+	plist_set_int16( 0, val );
+	bus_slave_set_returnbuffer_length( kIntSize );
+}
 
 static void bus_slave_startcommand()
 {
@@ -19,15 +47,6 @@ static void bus_slave_startcommand()
 	bus_slave_setreturn(kUnknownError); //Make sure that if nothing else happens we return an error status.
 
 	bus_slave_receive((unsigned char *)&mib_state.bus_command, sizeof(MIBCommandPacket), 0);
-}
-
-/*
- * Set the return status, the high order 3 bits define the status, the low order 5 bits set the 
- * length of the return value
- */
-void bus_slave_setreturn(uint8 status)
-{
-	mib_state.bus_returnstatus.return_status = status;
 }
 
 static void bus_slave_searchcommand()
@@ -85,8 +104,10 @@ static void bus_slave_callcommand()
 {	
 	if (mib_state.slave_handler != kInvalidMIBIndex)
 	{
-		if (bus_slave_validateparams())
+		if (bus_slave_validateparams()) {
+			bus_slave_setreturn( pack_return_status( kNoMIBError, 0 ) );
 			call_handler(mib_state.slave_handler);
+		}
 	}
 }
 
