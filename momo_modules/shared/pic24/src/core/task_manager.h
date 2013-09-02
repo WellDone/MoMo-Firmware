@@ -18,12 +18,19 @@ typedef void (*task_callback)(void);
 
 enum
 {
-    kTaskLoopSleepBit = 0
+    kTaskLoopSleepBit = 0,
+    kTaskLoopLockedBit = 1
 };
 
 typedef struct
 {
-    task_callback taskdata[kMAXTASKS];
+	task_callback callback;
+	bool critical;
+} task_item;
+
+typedef struct
+{
+    task_item taskdata[kMAXTASKS];
     ringbuffer tasks;
 
     unsigned int flags;
@@ -35,6 +42,11 @@ void taskloop_init();
 void taskloop_set_sleep(int sleep);
 
 int taskloop_add(task_callback task);
+int taskloop_add_critical(task_callback task);
+
+void taskloop_lock();
+void taskloop_unlock();
+bool taskloop_locked();
 
 void taskloop_loop();
 int taskloop_process_one();

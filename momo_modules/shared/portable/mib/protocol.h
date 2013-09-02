@@ -40,5 +40,7 @@ typedef struct
 //Slave endpoint handler type
 typedef void (*mib_callback)(void);
 
+//Callback type for master rpc routines
+typedef void (*mib_rpc_function)(unsigned char);
 
 #endif

@@ -7,7 +7,7 @@
 task_list taskqueue;
 void taskloop_init()
 {
-    ringbuffer_create(&taskqueue.tasks, (void*)taskqueue.taskdata, sizeof(task_callback), kMAXTASKS);
+    ringbuffer_create(&taskqueue.tasks, (void*)taskqueue.taskdata, sizeof(task_item), kMAXTASKS);
     taskqueue.flags = 0;
 
     taskloop_set_sleep(0);
@@ -21,39 +21,66 @@ void taskloop_set_sleep(int sleep)
         CLEAR_BIT(taskqueue.flags, kTaskLoopSleepBit);
 }
 
-int taskloop_add(task_callback task)
+int taskloop_add_impl(task_callback task, bool critical )
 {
-    void *object = task;
-    if (ringbuffer_full(&taskqueue.tasks))
+    task_item object;
+    object.callback = task;
+    object.critical = critical;
+    if ( ringbuffer_full( &taskqueue.tasks ) )
         return 0;
 
-    ringbuffer_push(&taskqueue.tasks, &object);
+    ringbuffer_push( &taskqueue.tasks, &object );
 
     return 1;
+}
+
+int taskloop_add(task_callback task)
+{
+    return taskloop_add_impl( task, false );
+}
+
+int taskloop_add_critical(task_callback task)
+{
+    return taskloop_add_impl( task, true );   
+}
+
+void taskloop_lock()
+{
+    SET_BIT(taskqueue.flags, kTaskLoopLockedBit);
+}
+void taskloop_unlock()
+{
+    CLEAR_BIT(taskqueue.flags, kTaskLoopLockedBit);
+}
+bool taskloop_locked()
+{
+    return BIT_TEST(taskqueue.flags, kTaskLoopLockedBit);
 }
 
 void taskloop_loop()
 {
     while(1)
     {
-        while(taskloop_process_one())
+        while( taskloop_process_one() )
             ;
 
-        if (BIT_TEST(taskqueue.flags, kTaskLoopSleepBit))
+        if ( BIT_TEST(taskqueue.flags, kTaskLoopSleepBit) )
             asm_sleep();
 
     }
 }
 int taskloop_process_one()
 {
-    task_callback task;
+    task_item task;
 
     if (ringbuffer_empty(&taskqueue.tasks))
         return 0;
 
     ringbuffer_pop(&taskqueue.tasks, &task);
-
-    task();
+    if ( taskloop_locked() && !task.critical )
+        ringbuffer_push( &taskqueue.tasks, &task );
+    else
+        task.callback();
 
     return 1;
 }

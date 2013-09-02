@@ -26,7 +26,7 @@ void i2c_slave_receivechecksum()
 	i2c_msg->checksum = ~i2c_msg->checksum + 1;
 
 	slave.state = kI2CUserCallbackState;
-	taskloop_add(i2c_slave_callback);
+	taskloop_add_critical(i2c_slave_callback);
 
 	if (check != i2c_msg->checksum)
 		slave.last_error = kI2CInvalidChecksum;
@@ -80,7 +80,7 @@ void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt()
 
 		i2c_master_disable(); //If we receive a valid address, the the master must not be running so take over the i2c data structures
 
-		taskloop_add(i2c_slave_callback);
+		taskloop_add_critical(i2c_slave_callback);
 	}		
 	else 
 	{
@@ -107,7 +107,7 @@ void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt()
 			break;
 
 			case kI2CUserCallbackState:
-			taskloop_add(i2c_slave_callback);
+			taskloop_add_critical(i2c_slave_callback);
 			break;
 
 			default:

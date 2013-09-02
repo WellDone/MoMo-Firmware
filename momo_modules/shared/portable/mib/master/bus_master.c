@@ -1,5 +1,7 @@
 #include "bus_master.h"
 #include <string.h>
+#include "mib_state.h"
+#include "rpc_queue.h"
 
 #ifdef _PIC12
 extern bank1 volatile I2CStatus i2c_status;
@@ -25,15 +27,32 @@ void bus_master_finish(uint8 next)
 }
 
 #ifndef _PIC12
+void bus_master_init()
+{
+	mib_state.rpc_done = 1;
+	rpc_queue_init();
+}
+
+void bus_master_rpc_async_do()
+{
+	const rpc_info* info = rpc_queue_peek();
+	mib_state.bus_command.feature = info->feature;
+	mib_state.bus_command.command = info->cmd;
+	mib_state.bus_command.param_spec = info->param_spec;
+	
+	mib_state.master_callback = info->callback;
+
+	bus_master_sendrpc(info->address);
+	rpc_dequeue(NULL);
+}
+
 void bus_master_rpc_async(mib_rpc_function callback, unsigned char address, unsigned char feature, unsigned char cmd, uint8 spec)
 {
-	mib_state.bus_command.feature = feature;
-	mib_state.bus_command.command = cmd;
-	mib_state.bus_command.param_spec = spec;
-	
-	mib_state.master_callback = callback;
+	rpc_queue( callback, address, feature, cmd, spec );
 
-	bus_master_sendrpc(address);
+	if ( mib_state.rpc_done ) { // Check if we're currently executing an RPC
+		bus_master_rpc_async_do();
+	}
 }
 
 #else
@@ -174,6 +193,8 @@ void bus_master_callback()
 		case kMIBFinalizeMessage:
 		//Set the flag that this RPC is done for whomever is waiting.
 		mib_state.rpc_done = 1;
+		if ( !rpc_queue_empty() )
+				taskloop_add_critical( bus_master_rpc_async_do );
 
 		i2c_finish_transmission(); 
 		for(i=0; i<200; ++i)

@@ -64,6 +64,8 @@ void bus_init(uint8 address)
 
 	i2c_configure(&config);
 	i2c_enable();
+
+	bus_master_init();
 }
 
 static uint8 get_param_spec(uint8 handler_index)

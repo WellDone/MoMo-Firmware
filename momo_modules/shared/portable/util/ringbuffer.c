@@ -17,7 +17,7 @@ void ringbuffer_create(ringbuffer *out, void *data, unsigned int size, unsigned 
     ringbuffer_reset( out );
 }
 
-unsigned int ringbuffer_empty(ringbuffer *buf)
+bool ringbuffer_empty(ringbuffer *buf)
 {
     return (buf->start == buf->end);
 }
@@ -26,7 +26,7 @@ unsigned int ringbuffer_empty(ringbuffer *buf)
  * The ringbuffer is full if the indices have not wrapped the same number of times
  * but still point to the same index when the high bit is masked out.
  */
-unsigned int ringbuffer_full(ringbuffer *buf)
+bool ringbuffer_full(ringbuffer *buf)
 {
     return (buf->end == (buf->start ^ buf->length));
 }
@@ -37,13 +37,18 @@ unsigned int ringbuffer_full(ringbuffer *buf)
 void ringbuffer_pop(ringbuffer *buf, void *out)
 {
     uninterruptible_start();
-    unsigned int mask = buf->length - 1;
-    unsigned int offset = (buf->start) & mask;
-
-    memcpy(out, buf->data + (offset*buf->elem_size), buf->elem_size);
+    if ( out )
+        memcpy(out, ringbuffer_peek( buf ), buf->elem_size);
 
     ringbuffer_incr(buf, &buf->start);
     uninterruptible_end();
+}
+
+void* ringbuffer_peek( ringbuffer *buf )
+{
+    unsigned int mask = buf->length - 1;
+    unsigned int offset = (buf->start) & mask;
+    return buf->data + (offset*buf->elem_size);
 }
 
 /*
