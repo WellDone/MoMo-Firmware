@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.05" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -37,7 +37,7 @@
 <layer number="41" name="tRestrict" color="4" fill="10" visible="yes" active="yes"/>
 <layer number="42" name="bRestrict" color="1" fill="10" visible="yes" active="yes"/>
 <layer number="43" name="vRestrict" color="2" fill="10" visible="yes" active="yes"/>
-<layer number="44" name="Drills" color="7" fill="1" visible="no" active="yes"/>
+<layer number="44" name="Drills" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="45" name="Holes" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="46" name="Milling" color="3" fill="1" visible="no" active="yes"/>
 <layer number="47" name="Measures" color="7" fill="1" visible="yes" active="yes"/>
@@ -2450,22 +2450,18 @@ MAX3223-MAX3243.pdf</description>
 <wire x1="1.27" y1="0" x2="1.27" y2="3.81" width="0.254" layer="51"/>
 <text x="1.4478" y="-2.5654" size="0.8128" layer="23">1</text>
 </package>
-<package name="MOMO-EDGE-8M">
+<package name="MOMO-EDGE-6M">
 <pad name="V28" x="0" y="10.16" drill="1.016" shape="long"/>
-<pad name="NC" x="0" y="7.62" drill="1.016" shape="long"/>
-<pad name="CLK" x="0" y="5.08" drill="1.016" shape="long"/>
-<pad name="DAT" x="0" y="2.54" drill="1.016" shape="long"/>
-<pad name="ALRM" x="0" y="0" drill="1.016" shape="long"/>
+<pad name="CLK" x="0" y="7.62" drill="1.016" shape="long"/>
+<pad name="DAT" x="0" y="5.08" drill="1.016" shape="long"/>
+<pad name="ALARM" x="0" y="2.54" drill="1.016" shape="long"/>
+<pad name="4V" x="0" y="0" drill="1.016" shape="long"/>
 <pad name="GND" x="0" y="-2.54" drill="1.016" shape="long"/>
-<pad name="V4" x="0" y="-5.08" drill="1.016" shape="long"/>
-<pad name="PGND" x="0" y="-7.62" drill="1.016" shape="long"/>
 <wire x1="2.54" y1="11.43" x2="-3.81" y2="11.43" width="0.254" layer="21"/>
-<wire x1="-3.81" y1="11.43" x2="-3.81" y2="-8.89" width="0.254" layer="21"/>
-<wire x1="-3.81" y1="-8.89" x2="2.54" y2="-8.89" width="0.254" layer="21"/>
-<wire x1="2.54" y1="-8.89" x2="2.54" y2="11.43" width="0.254" layer="21"/>
-<text x="-3.175" y="9.525" size="1.27" layer="21">1</text>
-<wire x1="0" y1="-7.62" x2="-3.175" y2="-7.62" width="0.254" layer="49"/>
-<wire x1="0" y1="-5.08" x2="-3.175" y2="-5.08" width="0.254" layer="49"/>
+<wire x1="-3.81" y1="11.43" x2="-3.81" y2="-3.81" width="0.254" layer="21"/>
+<wire x1="-3.81" y1="-3.81" x2="2.54" y2="-3.81" width="0.254" layer="21"/>
+<wire x1="2.54" y1="-3.81" x2="2.54" y2="11.43" width="0.254" layer="21"/>
+<text x="-2.54" y="8.255" size="1.27" layer="21">1</text>
 <wire x1="0" y1="-2.54" x2="-3.175" y2="-2.54" width="0.254" layer="49"/>
 <wire x1="0" y1="0" x2="-3.175" y2="0" width="0.254" layer="49"/>
 <wire x1="0" y1="2.54" x2="-3.175" y2="2.54" width="0.254" layer="49"/>
@@ -2475,19 +2471,17 @@ MAX3223-MAX3243.pdf</description>
 </package>
 <package name="MOMO-EDGE-8F">
 <pad name="V28" x="0" y="10.16" drill="1.016"/>
-<pad name="NV" x="0" y="7.62" drill="1.016"/>
-<pad name="CLK" x="0" y="5.08" drill="1.016"/>
-<pad name="DAT" x="0" y="2.54" drill="1.016"/>
-<pad name="ARLM" x="0" y="0" drill="1.016"/>
+<pad name="CLK" x="0" y="7.62" drill="1.016"/>
+<pad name="DAT" x="0" y="5.08" drill="1.016"/>
+<pad name="ARLM" x="0" y="2.54" drill="1.016"/>
+<pad name="V4" x="0" y="0" drill="1.016"/>
 <pad name="GND" x="0" y="-2.54" drill="1.016"/>
-<pad name="V4." x="0" y="-5.08" drill="1.016"/>
-<pad name="PGND" x="0" y="-7.62" drill="1.016"/>
 <text x="2.54" y="9.525" size="1.27" layer="21">1</text>
 <wire x1="1.6002" y1="11.684" x2="10.1092" y2="11.684" width="0.254" layer="21"/>
-<wire x1="1.6002" y1="-9.144" x2="10.1092" y2="-9.144" width="0.254" layer="21"/>
-<wire x1="10.1092" y1="11.684" x2="10.1092" y2="-9.144" width="0.254" layer="21"/>
-<wire x1="1.6002" y1="11.684" x2="1.6002" y2="-9.144" width="0.254" layer="21"/>
-<text x="2.54" y="-8.89" size="1.27" layer="25">&gt;NAME</text>
+<wire x1="1.6002" y1="-4.064" x2="10.1092" y2="-4.064" width="0.254" layer="21"/>
+<wire x1="10.1092" y1="11.684" x2="10.1092" y2="-4.064" width="0.254" layer="21"/>
+<wire x1="1.6002" y1="11.684" x2="1.6002" y2="-4.064" width="0.254" layer="21"/>
+<text x="6.35" y="1.27" size="1.27" layer="25" rot="R90">&gt;NAME</text>
 </package>
 <package name="SO14">
 <description>&lt;b&gt;SMALL OUTLINE INTEGRATED CIRCUIT&lt;/b&gt;&lt;p&gt;
@@ -2734,26 +2728,12 @@ body 3.9 mm/JEDEC MS-012AC</description>
 <hole x="-5.72" y="-3.81" drill="3.27"/>
 <hole x="4.46" y="-3.81" drill="3.27"/>
 </package>
-<package name="1X08">
+<package name="1X06">
 <description>&lt;b&gt;PIN HEADER&lt;/b&gt;</description>
-<wire x1="5.715" y1="1.27" x2="6.985" y2="1.27" width="0.1524" layer="21"/>
-<wire x1="6.985" y1="1.27" x2="7.62" y2="0.635" width="0.1524" layer="21"/>
-<wire x1="7.62" y1="0.635" x2="7.62" y2="-0.635" width="0.1524" layer="21"/>
-<wire x1="7.62" y1="-0.635" x2="6.985" y2="-1.27" width="0.1524" layer="21"/>
-<wire x1="2.54" y1="0.635" x2="3.175" y2="1.27" width="0.1524" layer="21"/>
 <wire x1="3.175" y1="1.27" x2="4.445" y2="1.27" width="0.1524" layer="21"/>
 <wire x1="4.445" y1="1.27" x2="5.08" y2="0.635" width="0.1524" layer="21"/>
 <wire x1="5.08" y1="0.635" x2="5.08" y2="-0.635" width="0.1524" layer="21"/>
 <wire x1="5.08" y1="-0.635" x2="4.445" y2="-1.27" width="0.1524" layer="21"/>
-<wire x1="4.445" y1="-1.27" x2="3.175" y2="-1.27" width="0.1524" layer="21"/>
-<wire x1="3.175" y1="-1.27" x2="2.54" y2="-0.635" width="0.1524" layer="21"/>
-<wire x1="5.715" y1="1.27" x2="5.08" y2="0.635" width="0.1524" layer="21"/>
-<wire x1="5.08" y1="-0.635" x2="5.715" y2="-1.27" width="0.1524" layer="21"/>
-<wire x1="6.985" y1="-1.27" x2="5.715" y2="-1.27" width="0.1524" layer="21"/>
-<wire x1="-1.905" y1="1.27" x2="-0.635" y2="1.27" width="0.1524" layer="21"/>
-<wire x1="-0.635" y1="1.27" x2="0" y2="0.635" width="0.1524" layer="21"/>
-<wire x1="0" y1="0.635" x2="0" y2="-0.635" width="0.1524" layer="21"/>
-<wire x1="0" y1="-0.635" x2="-0.635" y2="-1.27" width="0.1524" layer="21"/>
 <wire x1="0" y1="0.635" x2="0.635" y2="1.27" width="0.1524" layer="21"/>
 <wire x1="0.635" y1="1.27" x2="1.905" y2="1.27" width="0.1524" layer="21"/>
 <wire x1="1.905" y1="1.27" x2="2.54" y2="0.635" width="0.1524" layer="21"/>
@@ -2761,20 +2741,20 @@ body 3.9 mm/JEDEC MS-012AC</description>
 <wire x1="2.54" y1="-0.635" x2="1.905" y2="-1.27" width="0.1524" layer="21"/>
 <wire x1="1.905" y1="-1.27" x2="0.635" y2="-1.27" width="0.1524" layer="21"/>
 <wire x1="0.635" y1="-1.27" x2="0" y2="-0.635" width="0.1524" layer="21"/>
-<wire x1="-5.08" y1="0.635" x2="-4.445" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="3.175" y1="1.27" x2="2.54" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="2.54" y1="-0.635" x2="3.175" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="4.445" y1="-1.27" x2="3.175" y2="-1.27" width="0.1524" layer="21"/>
 <wire x1="-4.445" y1="1.27" x2="-3.175" y2="1.27" width="0.1524" layer="21"/>
 <wire x1="-3.175" y1="1.27" x2="-2.54" y2="0.635" width="0.1524" layer="21"/>
 <wire x1="-2.54" y1="0.635" x2="-2.54" y2="-0.635" width="0.1524" layer="21"/>
 <wire x1="-2.54" y1="-0.635" x2="-3.175" y2="-1.27" width="0.1524" layer="21"/>
-<wire x1="-3.175" y1="-1.27" x2="-4.445" y2="-1.27" width="0.1524" layer="21"/>
-<wire x1="-4.445" y1="-1.27" x2="-5.08" y2="-0.635" width="0.1524" layer="21"/>
-<wire x1="-1.905" y1="1.27" x2="-2.54" y2="0.635" width="0.1524" layer="21"/>
-<wire x1="-2.54" y1="-0.635" x2="-1.905" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="0.635" x2="-1.905" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-1.905" y1="1.27" x2="-0.635" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="1.27" x2="0" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="0" y1="0.635" x2="0" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="0" y1="-0.635" x2="-0.635" y2="-1.27" width="0.1524" layer="21"/>
 <wire x1="-0.635" y1="-1.27" x2="-1.905" y2="-1.27" width="0.1524" layer="21"/>
-<wire x1="-9.525" y1="1.27" x2="-8.255" y2="1.27" width="0.1524" layer="21"/>
-<wire x1="-8.255" y1="1.27" x2="-7.62" y2="0.635" width="0.1524" layer="21"/>
-<wire x1="-7.62" y1="0.635" x2="-7.62" y2="-0.635" width="0.1524" layer="21"/>
-<wire x1="-7.62" y1="-0.635" x2="-8.255" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="-1.905" y1="-1.27" x2="-2.54" y2="-0.635" width="0.1524" layer="21"/>
 <wire x1="-7.62" y1="0.635" x2="-6.985" y2="1.27" width="0.1524" layer="21"/>
 <wire x1="-6.985" y1="1.27" x2="-5.715" y2="1.27" width="0.1524" layer="21"/>
 <wire x1="-5.715" y1="1.27" x2="-5.08" y2="0.635" width="0.1524" layer="21"/>
@@ -2782,35 +2762,76 @@ body 3.9 mm/JEDEC MS-012AC</description>
 <wire x1="-5.08" y1="-0.635" x2="-5.715" y2="-1.27" width="0.1524" layer="21"/>
 <wire x1="-5.715" y1="-1.27" x2="-6.985" y2="-1.27" width="0.1524" layer="21"/>
 <wire x1="-6.985" y1="-1.27" x2="-7.62" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="-4.445" y1="1.27" x2="-5.08" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="-5.08" y1="-0.635" x2="-4.445" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="-3.175" y1="-1.27" x2="-4.445" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="-9.525" y1="1.27" x2="-8.255" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-8.255" y1="1.27" x2="-7.62" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="-7.62" y1="-0.635" x2="-8.255" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="-7.62" y1="0.635" x2="-7.62" y2="-0.635" width="0.1524" layer="21"/>
 <wire x1="-10.16" y1="0.635" x2="-10.16" y2="-0.635" width="0.1524" layer="21"/>
 <wire x1="-9.525" y1="1.27" x2="-10.16" y2="0.635" width="0.1524" layer="21"/>
 <wire x1="-10.16" y1="-0.635" x2="-9.525" y2="-1.27" width="0.1524" layer="21"/>
 <wire x1="-8.255" y1="-1.27" x2="-9.525" y2="-1.27" width="0.1524" layer="21"/>
-<wire x1="8.255" y1="1.27" x2="9.525" y2="1.27" width="0.1524" layer="21"/>
-<wire x1="9.525" y1="1.27" x2="10.16" y2="0.635" width="0.1524" layer="21"/>
-<wire x1="10.16" y1="0.635" x2="10.16" y2="-0.635" width="0.1524" layer="21"/>
-<wire x1="10.16" y1="-0.635" x2="9.525" y2="-1.27" width="0.1524" layer="21"/>
-<wire x1="8.255" y1="1.27" x2="7.62" y2="0.635" width="0.1524" layer="21"/>
-<wire x1="7.62" y1="-0.635" x2="8.255" y2="-1.27" width="0.1524" layer="21"/>
-<wire x1="9.525" y1="-1.27" x2="8.255" y2="-1.27" width="0.1524" layer="21"/>
 <pad name="1" x="-8.89" y="0" drill="1.016" shape="long" rot="R90"/>
-<pad name="2" x="-6.35" y="0" drill="1.016" shape="long" rot="R90"/>
-<pad name="3" x="-3.81" y="0" drill="1.016" shape="long" rot="R90"/>
-<pad name="4" x="-1.27" y="0" drill="1.016" shape="long" rot="R90"/>
-<pad name="5" x="1.27" y="0" drill="1.016" shape="long" rot="R90"/>
-<pad name="6" x="3.81" y="0" drill="1.016" shape="long" rot="R90"/>
-<pad name="7" x="6.35" y="0" drill="1.016" shape="long" rot="R90"/>
-<pad name="8" x="8.89" y="0" drill="1.016" shape="long" rot="R90"/>
+<pad name="3" x="-6.35" y="0" drill="1.016" shape="long" rot="R90"/>
+<pad name="4" x="-3.81" y="0" drill="1.016" shape="long" rot="R90"/>
+<pad name="5" x="-1.27" y="0" drill="1.016" shape="long" rot="R90"/>
+<pad name="6" x="1.27" y="0" drill="1.016" shape="long" rot="R90"/>
+<pad name="7" x="3.81" y="0" drill="1.016" shape="long" rot="R90"/>
 <text x="-10.2362" y="1.8288" size="1.27" layer="25" ratio="10">&gt;NAME</text>
 <text x="-10.16" y="-3.175" size="1.27" layer="27">&gt;VALUE</text>
-<rectangle x1="6.096" y1="-0.254" x2="6.604" y2="0.254" layer="51"/>
 <rectangle x1="3.556" y1="-0.254" x2="4.064" y2="0.254" layer="51"/>
 <rectangle x1="1.016" y1="-0.254" x2="1.524" y2="0.254" layer="51"/>
 <rectangle x1="-1.524" y1="-0.254" x2="-1.016" y2="0.254" layer="51"/>
 <rectangle x1="-4.064" y1="-0.254" x2="-3.556" y2="0.254" layer="51"/>
 <rectangle x1="-6.604" y1="-0.254" x2="-6.096" y2="0.254" layer="51"/>
 <rectangle x1="-9.144" y1="-0.254" x2="-8.636" y2="0.254" layer="51"/>
-<rectangle x1="8.636" y1="-0.254" x2="9.144" y2="0.254" layer="51"/>
+</package>
+<package name="2917">
+<smd name="-" x="-1.935" y="0" dx="2.37" dy="2.43" layer="1"/>
+<smd name="+" x="1.935" y="0" dx="2.37" dy="2.43" layer="1"/>
+<wire x1="-4.56" y1="-2.55" x2="4.56" y2="-2.55" width="0.127" layer="39"/>
+<wire x1="4.56" y1="-2.55" x2="4.56" y2="2.55" width="0.127" layer="39"/>
+<wire x1="-4.56" y1="2.55" x2="4.56" y2="2.55" width="0.127" layer="39"/>
+<wire x1="-4.56" y1="-2.55" x2="-4.56" y2="2.55" width="0.127" layer="39"/>
+<text x="1" y="-4" size="0.8128" layer="25">&gt;NAME</text>
+<rectangle x1="-2.3" y1="-1.2" x2="-0.8" y2="1.2" layer="51"/>
+<rectangle x1="0.8" y1="-1.2" x2="2.3" y2="1.2" layer="51"/>
+<wire x1="-2.3" y1="1.2" x2="2.3" y2="1.2" width="0.127" layer="51"/>
+<wire x1="2.3" y1="1.2" x2="2.3" y2="-1.2" width="0.127" layer="51"/>
+<wire x1="2.3" y1="-1.2" x2="-2.3" y2="-1.2" width="0.127" layer="51"/>
+<wire x1="-2.3" y1="-1.2" x2="-2.3" y2="1.2" width="0.127" layer="51"/>
+<text x="1.778" y="1.4605" size="1.27" layer="21">+</text>
+</package>
+<package name="CCM03-SIMHOLDER">
+<smd name="VPP" x="-12.35" y="1.27" dx="1.5" dy="1.3" layer="1"/>
+<smd name="IO" x="-12.35" y="-1.27" dx="1.5" dy="1.3" layer="1"/>
+<smd name="SW2" x="-12.35" y="-3.81" dx="1.5" dy="1.3" layer="1"/>
+<smd name="GND" x="-12.35" y="3.81" dx="1.5" dy="1.3" layer="1"/>
+<smd name="VCC" x="12.35" y="3.81" dx="1.5" dy="1.3" layer="1"/>
+<smd name="SW1" x="12.35" y="-3.81" dx="1.5" dy="1.3" layer="1"/>
+<smd name="CLOCK" x="12.35" y="-1.27" dx="1.5" dy="1.3" layer="1"/>
+<smd name="RESET" x="12.35" y="1.27" dx="1.5" dy="1.3" layer="1"/>
+<wire x1="13.4" y1="8.6" x2="-16.55" y2="8.6" width="0.254" layer="21"/>
+<wire x1="13.4" y1="-8.6" x2="-16.55" y2="-8.6" width="0.254" layer="21"/>
+<wire x1="13.4" y1="-8.6" x2="13.4" y2="8.6" width="0.254" layer="21"/>
+<wire x1="-16.55" y1="8.6" x2="-16.55" y2="-8.6" width="0.254" layer="21"/>
+<text x="6.35" y="-7.62" size="1.27" layer="21">&gt;NAME</text>
+</package>
+<package name="RJ-12">
+<hole x="-5.08" y="0" drill="3.28"/>
+<hole x="5.08" y="0" drill="3.28"/>
+<pad name="1" x="-3.17" y="8.89" drill="0.9"/>
+<pad name="3" x="-0.63" y="8.89" drill="0.9"/>
+<pad name="5" x="1.91" y="8.89" drill="0.9"/>
+<pad name="2" x="-1.9" y="6.35" drill="0.9"/>
+<pad name="4" x="0.64" y="6.35" drill="0.9"/>
+<pad name="6" x="3.18" y="6.35" drill="0.9"/>
+<wire x1="-6.6" y1="-7.85" x2="6.6" y2="-7.85" width="0.127" layer="21"/>
+<wire x1="-6.6" y1="10.15" x2="6.6" y2="10.15" width="0.127" layer="21"/>
+<wire x1="-6.6" y1="10.15" x2="-6.6" y2="-7.85" width="0.127" layer="21"/>
+<wire x1="6.6" y1="10.15" x2="6.6" y2="-7.85" width="0.127" layer="21"/>
 </package>
 </packages>
 <symbols>
@@ -3422,11 +3443,9 @@ body 3.9 mm/JEDEC MS-012AC</description>
 <pin name="2.8V" x="5.08" y="20.32" visible="pin" length="short" direction="pwr" rot="R270"/>
 <pin name="4V" x="7.62" y="20.32" visible="pin" length="short" direction="pwr" rot="R270"/>
 <pin name="GND" x="5.08" y="-5.08" visible="pin" length="short" direction="pwr" rot="R90"/>
-<pin name="PGND" x="7.62" y="-5.08" visible="pin" length="short" direction="pwr" rot="R90"/>
 <pin name="CLK" x="-7.62" y="12.7" visible="pin" length="short"/>
 <pin name="DAT" x="-7.62" y="10.16" visible="pin" length="short"/>
 <pin name="ALRM" x="-7.62" y="7.62" visible="pin" length="short"/>
-<pin name="NC" x="-7.62" y="5.08" visible="pin" length="short"/>
 <wire x1="-5.08" y1="17.78" x2="-5.08" y2="-2.54" width="0.254" layer="94"/>
 <wire x1="-5.08" y1="-2.54" x2="10.16" y2="-2.54" width="0.254" layer="94"/>
 <wire x1="10.16" y1="-2.54" x2="10.16" y2="17.78" width="0.254" layer="94"/>
@@ -3434,26 +3453,26 @@ body 3.9 mm/JEDEC MS-012AC</description>
 <text x="-3.81" y="-1.27" size="0.8128" layer="97">Momo Edge</text>
 </symbol>
 <symbol name="PIC16LF1823">
-<pin name="GND" x="2.54" y="-17.78" visible="pin" length="middle" direction="pwr" rot="R90"/>
-<pin name="VCC" x="2.54" y="17.78" visible="pin" length="middle" direction="pwr" rot="R270"/>
+<pin name="GND" x="7.62" y="-17.78" visible="pin" length="middle" direction="pwr" rot="R90"/>
+<pin name="VCC" x="7.62" y="17.78" visible="pin" length="middle" direction="pwr" rot="R270"/>
 <pin name="MCLR" x="-12.7" y="-5.08" visible="pin" length="middle"/>
-<pin name="RA0/IDAT" x="-12.7" y="2.54" visible="pin" length="middle"/>
-<pin name="RA1/ICLK" x="-12.7" y="0" visible="pin" length="middle"/>
-<pin name="SCL" x="-12.7" y="10.16" visible="pin" length="middle"/>
-<pin name="SDA" x="-12.7" y="7.62" visible="pin" length="middle"/>
-<pin name="RC2" x="17.78" y="0" visible="pin" length="middle" rot="R180"/>
-<pin name="RC4" x="17.78" y="-5.08" visible="pin" length="middle" rot="R180"/>
-<pin name="RC3" x="17.78" y="-2.54" visible="pin" length="middle" rot="R180"/>
-<pin name="RA2" x="17.78" y="10.16" visible="pin" length="middle" rot="R180"/>
-<pin name="RA4" x="17.78" y="7.62" visible="pin" length="middle" rot="R180"/>
-<pin name="RA5" x="17.78" y="5.08" visible="pin" length="middle" rot="R180"/>
+<pin name="RA0" x="-12.7" y="2.54" visible="pin" length="middle"/>
+<pin name="RA1" x="-12.7" y="0" visible="pin" length="middle"/>
+<pin name="SCL/RC0" x="-12.7" y="10.16" visible="pin" length="middle"/>
+<pin name="SDA/RC1" x="-12.7" y="7.62" visible="pin" length="middle"/>
+<pin name="RC2" x="22.86" y="0" visible="pin" length="middle" rot="R180"/>
+<pin name="RC4" x="22.86" y="-5.08" visible="pin" length="middle" rot="R180"/>
+<pin name="RC3" x="22.86" y="-2.54" visible="pin" length="middle" rot="R180"/>
+<pin name="RA2" x="22.86" y="10.16" visible="pin" length="middle" rot="R180"/>
+<pin name="RA4" x="22.86" y="7.62" visible="pin" length="middle" rot="R180"/>
+<pin name="RA5" x="22.86" y="5.08" visible="pin" length="middle" rot="R180"/>
 <wire x1="-7.62" y1="12.7" x2="-7.62" y2="-12.7" width="0.254" layer="94"/>
-<wire x1="-7.62" y1="-12.7" x2="12.7" y2="-12.7" width="0.254" layer="94"/>
-<wire x1="12.7" y1="-12.7" x2="12.7" y2="12.7" width="0.254" layer="94"/>
-<wire x1="12.7" y1="12.7" x2="-7.62" y2="12.7" width="0.254" layer="94"/>
-<text x="5.08" y="-11.43" size="0.8128" layer="97">PIC 16LF1823</text>
-<pin name="RC5" x="17.78" y="-7.62" visible="pin" length="middle" rot="R180"/>
-<text x="5.08" y="-15.24" size="1.27" layer="95">&gt;NAME</text>
+<wire x1="-7.62" y1="-12.7" x2="17.78" y2="-12.7" width="0.254" layer="94"/>
+<wire x1="17.78" y1="-12.7" x2="17.78" y2="12.7" width="0.254" layer="94"/>
+<wire x1="17.78" y1="12.7" x2="-7.62" y2="12.7" width="0.254" layer="94"/>
+<text x="10.16" y="-11.43" size="0.8128" layer="97">PIC 16LF1823</text>
+<pin name="RC5" x="22.86" y="-7.62" visible="pin" length="middle" rot="R180"/>
+<text x="10.16" y="-15.24" size="1.27" layer="95">&gt;NAME</text>
 </symbol>
 <symbol name="SIM900">
 <pin name="VBAT" x="0" y="22.86" visible="pin" length="middle" direction="pwr" rot="R270"/>
@@ -4548,29 +4567,29 @@ body 3.9 mm/JEDEC MS-012AC</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="MOMO-EDGE-8M">
+<deviceset name="MOMO-EDGE-6M" prefix="JP">
 <gates>
 <gate name="G$1" symbol="MOMO-8EDGE" x="-2.54" y="-7.62"/>
 </gates>
 <devices>
-<device name="" package="MOMO-EDGE-8M">
+<device name="" package="MOMO-EDGE-6M">
 <connects>
 <connect gate="G$1" pin="2.8V" pad="V28"/>
-<connect gate="G$1" pin="4V" pad="V4"/>
-<connect gate="G$1" pin="ALRM" pad="ALRM"/>
+<connect gate="G$1" pin="4V" pad="4V"/>
+<connect gate="G$1" pin="ALRM" pad="ALARM"/>
 <connect gate="G$1" pin="CLK" pad="CLK"/>
 <connect gate="G$1" pin="DAT" pad="DAT"/>
 <connect gate="G$1" pin="GND" pad="GND"/>
-<connect gate="G$1" pin="NC" pad="NC"/>
-<connect gate="G$1" pin="PGND" pad="PGND"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DIGIKEY-PN" value="609-3327-ND"/>
+</technology>
 </technologies>
 </device>
 </devices>
 </deviceset>
-<deviceset name="MOMO-EDGE-8F">
+<deviceset name="MOMO-EDGE-6F">
 <gates>
 <gate name="G$1" symbol="MOMO-8EDGE" x="-2.54" y="-7.62"/>
 </gates>
@@ -4578,21 +4597,21 @@ body 3.9 mm/JEDEC MS-012AC</description>
 <device name="" package="MOMO-EDGE-8F">
 <connects>
 <connect gate="G$1" pin="2.8V" pad="V28"/>
-<connect gate="G$1" pin="4V" pad="V4."/>
+<connect gate="G$1" pin="4V" pad="V4"/>
 <connect gate="G$1" pin="ALRM" pad="ARLM"/>
 <connect gate="G$1" pin="CLK" pad="CLK"/>
 <connect gate="G$1" pin="DAT" pad="DAT"/>
 <connect gate="G$1" pin="GND" pad="GND"/>
-<connect gate="G$1" pin="NC" pad="NV"/>
-<connect gate="G$1" pin="PGND" pad="PGND"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DIGIKEY-PN" value="S5442-ND"/>
+</technology>
 </technologies>
 </device>
 </devices>
 </deviceset>
-<deviceset name="PIC16LF1823">
+<deviceset name="PIC16LF1823" prefix="U">
 <gates>
 <gate name="G$1" symbol="PIC16LF1823" x="-2.54" y="-2.54"/>
 </gates>
@@ -4601,17 +4620,17 @@ body 3.9 mm/JEDEC MS-012AC</description>
 <connects>
 <connect gate="G$1" pin="GND" pad="14"/>
 <connect gate="G$1" pin="MCLR" pad="4"/>
-<connect gate="G$1" pin="RA0/IDAT" pad="13"/>
-<connect gate="G$1" pin="RA1/ICLK" pad="12"/>
-<connect gate="G$1" pin="RA2" pad="9"/>
+<connect gate="G$1" pin="RA0" pad="13"/>
+<connect gate="G$1" pin="RA1" pad="12"/>
+<connect gate="G$1" pin="RA2" pad="11"/>
 <connect gate="G$1" pin="RA4" pad="3"/>
 <connect gate="G$1" pin="RA5" pad="2"/>
 <connect gate="G$1" pin="RC2" pad="8"/>
 <connect gate="G$1" pin="RC3" pad="7"/>
 <connect gate="G$1" pin="RC4" pad="6"/>
 <connect gate="G$1" pin="RC5" pad="5"/>
-<connect gate="G$1" pin="SCL" pad="10"/>
-<connect gate="G$1" pin="SDA" pad="11"/>
+<connect gate="G$1" pin="SCL/RC0" pad="10"/>
+<connect gate="G$1" pin="SDA/RC1" pad="9"/>
 <connect gate="G$1" pin="VCC" pad="1"/>
 </connects>
 <technologies>
@@ -4620,7 +4639,7 @@ body 3.9 mm/JEDEC MS-012AC</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="SIM900">
+<deviceset name="SIM900" prefix="U">
 <gates>
 <gate name="G$1" symbol="SIM900" x="-7.62" y="2.54"/>
 </gates>
@@ -4689,12 +4708,12 @@ body 3.9 mm/JEDEC MS-012AC</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="SIMHOLDER-8PIN">
+<deviceset name="SIMHOLDER-8PIN" prefix="JP">
 <gates>
 <gate name="G$1" symbol="SIMHOLDER-W-DET" x="-10.16" y="-2.54"/>
 </gates>
 <devices>
-<device name="" package="SIMHOLDER-WITH-SWITCH">
+<device name="PUSH" package="SIMHOLDER-WITH-SWITCH">
 <connects>
 <connect gate="G$1" pin="CLK" pad="SIMCLK"/>
 <connect gate="G$1" pin="DAT" pad="SIMIO"/>
@@ -4706,6 +4725,22 @@ body 3.9 mm/JEDEC MS-012AC</description>
 </connects>
 <technologies>
 <technology name=""/>
+</technologies>
+</device>
+<device name="HING" package="CCM03-SIMHOLDER">
+<connects>
+<connect gate="G$1" pin="CLK" pad="CLOCK"/>
+<connect gate="G$1" pin="DAT" pad="IO"/>
+<connect gate="G$1" pin="GND" pad="GND"/>
+<connect gate="G$1" pin="RST" pad="RESET"/>
+<connect gate="G$1" pin="SW1" pad="SW1"/>
+<connect gate="G$1" pin="SW2" pad="SW2"/>
+<connect gate="G$1" pin="VCC" pad="VCC"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DIGIKEY-PN" value="401-1722-1-ND" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -4735,7 +4770,7 @@ body 3.9 mm/JEDEC MS-012AC</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="TI-HIGHSIDE-PFET">
+<deviceset name="TI-HIGHSIDE-PFET" prefix="U">
 <gates>
 <gate name="G$1" symbol="TI-HIGHSIDE-PSWITCH" x="-2.54" y="-5.08" addlevel="can"/>
 </gates>
@@ -4749,7 +4784,9 @@ body 3.9 mm/JEDEC MS-012AC</description>
 <connect gate="G$1" pin="VOUT" pad="2 3"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DIGIKEY-PN" value="296-34970-1-ND" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -5457,24 +5494,81 @@ body 3.9 mm/JEDEC MS-012AC</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="MOMO-VERT-8M" prefix="JP">
+<deviceset name="MOMO-VERT-6M" prefix="JP">
 <gates>
 <gate name="G$1" symbol="MOMO-8EDGE" x="-2.54" y="-7.62"/>
 </gates>
 <devices>
-<device name="" package="1X08">
+<device name="" package="1X06">
 <connects>
 <connect gate="G$1" pin="2.8V" pad="1"/>
-<connect gate="G$1" pin="4V" pad="7"/>
+<connect gate="G$1" pin="4V" pad="6"/>
 <connect gate="G$1" pin="ALRM" pad="5"/>
 <connect gate="G$1" pin="CLK" pad="3"/>
 <connect gate="G$1" pin="DAT" pad="4"/>
-<connect gate="G$1" pin="GND" pad="6"/>
-<connect gate="G$1" pin="NC" pad="2"/>
-<connect gate="G$1" pin="PGND" pad="8"/>
+<connect gate="G$1" pin="GND" pad="7"/>
 </connects>
 <technologies>
 <technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="P-MOSFET" prefix="Q">
+<gates>
+<gate name="G$1" symbol="P-MOSFET" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="SOT23">
+<connects>
+<connect gate="G$1" pin="DRAIN" pad="3"/>
+<connect gate="G$1" pin="GATE" pad="1"/>
+<connect gate="G$1" pin="SOURCE" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DIGIKEY-PN" value="IRLML6401PBFCT-ND"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="TANTALUM_CAP" prefix="C" uservalue="yes">
+<gates>
+<gate name="G$1" symbol="CAP" x="0" y="-2.54"/>
+</gates>
+<devices>
+<device name="" package="2917">
+<connects>
+<connect gate="G$1" pin="+" pad="+"/>
+<connect gate="G$1" pin="-" pad="-"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DIGIKEY-PN" value="399-4053-1-ND" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="MOMO-SENSOR-RJ11" prefix="JP">
+<gates>
+<gate name="G$1" symbol="MOMO-SENSOR-HEADER" x="-2.54" y="2.54"/>
+</gates>
+<devices>
+<device name="" package="RJ-12">
+<connects>
+<connect gate="G$1" pin="2.8V" pad="1"/>
+<connect gate="G$1" pin="ALARM" pad="4"/>
+<connect gate="G$1" pin="CLK" pad="2"/>
+<connect gate="G$1" pin="DATA" pad="3"/>
+<connect gate="G$1" pin="GND" pad="6"/>
+<connect gate="G$1" pin="VBAT" pad="5"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DIGIKEY-PN" value="AE10383-ND" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
