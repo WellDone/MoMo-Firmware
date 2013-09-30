@@ -383,7 +383,7 @@ reflow soldering</description>
 <wire x1="-2.54" y1="1.2446" x2="-2.54" y2="-1.2446" width="0.254" layer="21"/>
 <wire x1="-1.27" y1="0" x2="-1.27" y2="3.81" width="0.254" layer="51"/>
 <wire x1="1.27" y1="0" x2="1.27" y2="3.81" width="0.254" layer="51"/>
-<text x="1.4478" y="-2.5654" size="0.8128" layer="23">1</text>
+<text x="-2.54" y="-2.54" size="0.8128" layer="25">&gt;NAME</text>
 </package>
 <package name="MOMO-EDGE-8F">
 <pad name="V28" x="0" y="10.16" drill="1.016"/>
@@ -800,7 +800,7 @@ reflow soldering</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="MOMO-EDGE-POWER-M">
+<deviceset name="MOMO-EDGE-POWER-M" prefix="JP">
 <gates>
 <gate name="G$1" symbol="MOMO-POWER" x="-2.54" y="-2.54"/>
 </gates>
@@ -6814,7 +6814,12 @@ Source: http://www.maxim-ic.com .. MAX1551-MAX1555.pdf</description>
 </class>
 </classes>
 <parts>
-<part name="U4" library="components" deviceset="PIC24F16KA101-X_P" device="SSOP"/>
+<part name="U4" library="components" deviceset="PIC24F16KA101-X_P" device="SSOP">
+<attribute name="BATT" value="ASSY-VARIANT"/>
+<attribute name="DIGIKEY-PN" value="PIC24F16KA101-I/SS-ND"/>
+<attribute name="EXTPOWER" value="ASSY-VARIANT"/>
+<attribute name="SOLAR" value="ASSY-VARIANT"/>
+</part>
 <part name="U5" library="components" deviceset="FLASH8M" device="SOP8">
 <attribute name="DIGIKEY-PN" value="M25PX80-VMN6TPCT-ND"/>
 </part>
@@ -6866,28 +6871,35 @@ Source: http://www.maxim-ic.com .. MAX1551-MAX1555.pdf</description>
 <attribute name="DIGIKEY-PN" value="445-1265-1-ND"/>
 </part>
 <part name="U1" library="components" deviceset="XRP7659" device="">
-<attribute name="DIGIKEY-PN" value="1016-1751-1-ND"/>
+<attribute name="DIGIKEY-PN-BATT" value="1016-1751-1-ND"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="1016-1751-1-ND"/>
 </part>
 <part name="C3" library="rcl" deviceset="C-US" device="C0805" value="10uF">
-<attribute name="DIGIKEY-PN" value="587-2985-1-ND"/>
+<attribute name="DIGIKEY-PN-BATT" value="587-2985-1-ND"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="587-2985-1-ND"/>
 </part>
 <part name="P+6" library="supply1" deviceset="+18V" device=""/>
 <part name="C4" library="rcl" deviceset="C-US" device="C0402" value="10 nF">
-<attribute name="DIGIKEY-PN" value="445-1260-1-ND"/>
+<attribute name="DIGIKEY-PN-BATT" value="445-1260-1-ND"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="445-1260-1-ND"/>
 </part>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
 <part name="R9" library="rcl" deviceset="R-US_" device="R0603" value="51k">
-<attribute name="DIGIKEY-PN" value="P510KHCT-ND"/>
+<attribute name="DIGIKEY-PN-BATT" value="P510KHCT-ND"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="P510KHCT-ND"/>
 </part>
 <part name="R10" library="rcl" deviceset="R-US_" device="R0603" value="10k">
-<attribute name="DIGIKEY-PN" value="P10.0KHCT-ND"/>
+<attribute name="DIGIKEY-PN-BATT" value="P10.0KHCT-ND"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="P13.0KHCT-ND "/>
 </part>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
 <part name="U2" library="maxim" deviceset="MAX1555" device="">
-<attribute name="DIGIKEY-PN" value="MAX1555EZK+TCT-ND"/>
+<attribute name="DIGIKEY-PN-BATT" value="MAX1555EZK+TCT-ND"/>
+<attribute name="DIGIKEY-PN-SOLAR" value="MAX1555EZK+TCT-ND"/>
 </part>
 <part name="C8" library="rcl" deviceset="C-US" device="C0402" value="1uF">
-<attribute name="DIGIKEY-PN" value="445-4114-1-ND"/>
+<attribute name="DIGIKEY-PN-BATT" value="445-4114-1-ND"/>
+<attribute name="DIGIKEY-PN-SOLAR" value="445-4114-1-ND"/>
 </part>
 <part name="P+8" library="supply1" deviceset="V+" device=""/>
 <part name="P+9" library="supply1" deviceset="V+" device=""/>
@@ -6895,39 +6907,44 @@ Source: http://www.maxim-ic.com .. MAX1551-MAX1555.pdf</description>
 <attribute name="DIGIKEY-PN" value="MCP1702T-2802E/CBCT-ND"/>
 </part>
 <part name="C9" library="rcl" deviceset="C-US" device="C0402" value="1 uF">
-<attribute name="DIGIKEY-PN" value=""/>
+<attribute name="DIGIKEY-PN" value="445-4114-1-ND"/>
 </part>
 <part name="VCC8" library="supply1" deviceset="VCCINT" device=""/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
 <part name="P+10" library="supply1" deviceset="V+" device=""/>
 <part name="C6" library="rcl" deviceset="C-US" device="C0805" value="10 uF">
-<attribute name="DIGIKEY-PN" value="587-2985-1-ND"/>
+<attribute name="DIGIKEY-PN-BATT" value="587-2985-1-ND"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="587-2985-1-ND"/>
 </part>
 <part name="R6" library="rcl" deviceset="R-US_" device="R0603" value="100K">
-<attribute name="DIGIKEY-PN" value="P100KHCT-ND"/>
+<attribute name="DIGIKEY-PN-BATT" value="P100KHCT-ND"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="P100KHCT-ND"/>
 </part>
 <part name="L1" library="components" deviceset="NR6028-INDUCTOR" device="" value="4.7 uF">
-<attribute name="DIGIKEY-PN" value="587-2100-1-ND"/>
+<attribute name="DIGIKEY-PN-BATT" value="587-2100-1-ND"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="587-2100-1-ND"/>
 </part>
 <part name="D1" library="components" deviceset="DIODE_SS2P3" device="SS2P3">
-<attribute name="DIGIKEY-PN" value="SS2P3-M3/84AGICT-ND"/>
+<attribute name="DIGIKEY-PN-BATT" value="SS2P3-M3/84AGICT-ND"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="SS2P3-M3/84AGICT-ND"/>
 </part>
 <part name="C7" library="rcl" deviceset="C-US" device="C0402" value="1 uF">
-<attribute name="DIGIKEY-PN" value="445-4114-1-ND"/>
+<attribute name="DIGIKEY-PN-BATT" value="445-4114-1-ND"/>
+<attribute name="DIGIKEY-PN-SOLAR" value="445-4114-1-ND"/>
 </part>
 <part name="P+1" library="supply1" deviceset="V+" device=""/>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
 <part name="R4" library="rcl" deviceset="R-US_" device="R0603" value="0R">
-<attribute name="DIGIKEY-PN" value="P0.0GCT-ND"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="P0.0GCT-ND"/>
 </part>
 <part name="R11" library="rcl" deviceset="R-US_" device="R0603" value="0R">
-<attribute name="DIGIKEY-PN" value="641-1332-1-ND"/>
+<attribute name="DIGIKEY-PN-SOLAR" value="641-1332-1-ND"/>
 </part>
-<part name="U$1" library="components" deviceset="MOMO-EDGE-POWER-M" device="">
+<part name="JP5" library="components" deviceset="MOMO-EDGE-POWER-M" device="">
 <attribute name="DIGIKEY-PN" value="A19450-ND"/>
 </part>
-<part name="U$2" library="components" deviceset="MOMO-EDGE-POWER-M" device="">
+<part name="JP4" library="components" deviceset="MOMO-EDGE-POWER-M" device="">
 <attribute name="DIGIKEY-PN" value="A19450-ND"/>
 </part>
 <part name="Q1" library="components" deviceset="P-MOSFET" device=""/>
@@ -6992,7 +7009,12 @@ Source: http://www.maxim-ic.com .. MAX1551-MAX1555.pdf</description>
 and external power.</text>
 </plain>
 <instances>
-<instance part="U4" gate="A" x="-195.58" y="12.7"/>
+<instance part="U4" gate="A" x="-195.58" y="12.7">
+<attribute name="DIGIKEY-PN" x="-195.58" y="12.7" size="1.778" layer="96" display="off"/>
+<attribute name="BATT" x="-195.58" y="12.7" size="1.778" layer="96" display="off"/>
+<attribute name="EXTPOWER" x="-195.58" y="12.7" size="1.778" layer="96" display="off"/>
+<attribute name="SOLAR" x="-195.58" y="12.7" size="1.778" layer="96" display="off"/>
+</instance>
 <instance part="U5" gate="G$1" x="-182.88" y="-48.26">
 <attribute name="DIGIKEY-PN" x="-182.88" y="-48.26" size="1.778" layer="96" display="off"/>
 </instance>
@@ -7046,28 +7068,35 @@ and external power.</text>
 <attribute name="DIGIKEY-PN" x="-129.54" y="-88.9" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="U1" gate="G$1" x="-187.96" y="99.06">
-<attribute name="DIGIKEY-PN" x="-187.96" y="99.06" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" x="-187.96" y="99.06" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" x="-187.96" y="99.06" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="C3" gate="G$1" x="-208.28" y="101.6">
-<attribute name="DIGIKEY-PN" x="-208.28" y="101.6" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" x="-208.28" y="101.6" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" x="-208.28" y="101.6" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="P+6" gate="1" x="-208.28" y="106.68"/>
 <instance part="C4" gate="G$1" x="-167.64" y="104.14" rot="R90">
-<attribute name="DIGIKEY-PN" x="-167.64" y="104.14" size="1.778" layer="96" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" x="-167.64" y="104.14" size="1.778" layer="96" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" x="-167.64" y="104.14" size="1.778" layer="96" rot="R90" display="off"/>
 </instance>
 <instance part="GND10" gate="1" x="-162.56" y="73.66"/>
 <instance part="R9" gate="G$1" x="-142.24" y="93.98" rot="R90">
-<attribute name="DIGIKEY-PN" x="-142.24" y="93.98" size="1.778" layer="96" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" x="-142.24" y="93.98" size="1.778" layer="96" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" x="-142.24" y="93.98" size="1.778" layer="96" rot="R90" display="off"/>
 </instance>
 <instance part="R10" gate="G$1" x="-142.24" y="83.82" rot="R90">
-<attribute name="DIGIKEY-PN" x="-142.24" y="83.82" size="1.778" layer="96" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" x="-142.24" y="83.82" size="1.778" layer="96" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" x="-142.24" y="83.82" size="1.778" layer="96" rot="R90" display="off"/>
 </instance>
 <instance part="GND11" gate="1" x="-142.24" y="68.58"/>
 <instance part="U2" gate="G$1" x="-99.06" y="96.52">
-<attribute name="DIGIKEY-PN" x="-99.06" y="96.52" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" x="-99.06" y="96.52" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-SOLAR" x="-99.06" y="96.52" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="C8" gate="G$1" x="-78.74" y="96.52">
-<attribute name="DIGIKEY-PN" x="-78.74" y="96.52" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" x="-78.74" y="96.52" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-SOLAR" x="-78.74" y="96.52" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="P+8" gate="1" x="-43.18" y="-68.58"/>
 <instance part="P+9" gate="1" x="-78.74" y="104.14"/>
@@ -7082,34 +7111,39 @@ and external power.</text>
 <instance part="GND12" gate="1" x="-208.28" y="91.44"/>
 <instance part="P+10" gate="1" x="-116.84" y="-58.42"/>
 <instance part="C6" gate="G$1" x="-127" y="91.44">
-<attribute name="DIGIKEY-PN" x="-127" y="91.44" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" x="-127" y="91.44" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" x="-127" y="91.44" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="R6" gate="G$1" x="-195.58" y="99.06" rot="R180">
-<attribute name="DIGIKEY-PN" x="-195.58" y="99.06" size="1.778" layer="96" rot="R180" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" x="-195.58" y="99.06" size="1.778" layer="96" rot="R180" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" x="-195.58" y="99.06" size="1.778" layer="96" rot="R180" display="off"/>
 </instance>
 <instance part="L1" gate="G$1" x="-154.94" y="99.06" rot="R90">
-<attribute name="DIGIKEY-PN" x="-154.94" y="99.06" size="1.778" layer="96" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" x="-154.94" y="99.06" size="1.778" layer="96" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" x="-154.94" y="99.06" size="1.778" layer="96" rot="R90" display="off"/>
 </instance>
 <instance part="D1" gate="G$1" x="-160.02" y="86.36" rot="R90">
-<attribute name="DIGIKEY-PN" x="-160.02" y="86.36" size="1.778" layer="96" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" x="-160.02" y="86.36" size="1.778" layer="96" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" x="-160.02" y="86.36" size="1.778" layer="96" rot="R90" display="off"/>
 </instance>
 <instance part="C7" gate="G$1" x="-116.84" y="91.44">
-<attribute name="DIGIKEY-PN" x="-116.84" y="91.44" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-SOLAR" x="-116.84" y="91.44" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" x="-116.84" y="91.44" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="P+1" gate="1" x="-27.94" y="15.24" smashed="yes">
 <attribute name="VALUE" x="-25.4" y="15.24" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="GND1" gate="1" x="-30.48" y="-17.78"/>
 <instance part="R4" gate="G$1" x="-99.06" y="114.3">
-<attribute name="DIGIKEY-PN" x="-99.06" y="114.3" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" x="-99.06" y="114.3" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="R11" gate="G$1" x="-180.34" y="116.84">
-<attribute name="DIGIKEY-PN" x="-180.34" y="116.84" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN-SOLAR" x="-180.34" y="116.84" size="1.778" layer="96" display="off"/>
 </instance>
-<instance part="U$1" gate="G$1" x="-30.48" y="-96.52">
+<instance part="JP5" gate="G$1" x="-30.48" y="-96.52">
 <attribute name="DIGIKEY-PN" x="-30.48" y="-96.52" size="1.778" layer="96" display="off"/>
 </instance>
-<instance part="U$2" gate="G$1" x="-30.48" y="-76.2">
+<instance part="JP4" gate="G$1" x="-30.48" y="-76.2">
 <attribute name="DIGIKEY-PN" x="-30.48" y="-76.2" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="Q1" gate="G$1" x="-116.84" y="-66.04"/>
@@ -7259,7 +7293,7 @@ and external power.</text>
 <segment>
 <pinref part="GND8" gate="1" pin="GND"/>
 <wire x1="-40.64" y1="-78.74" x2="-40.64" y2="-73.66" width="0.1524" layer="91"/>
-<pinref part="U$2" gate="G$1" pin="3.8V"/>
+<pinref part="JP4" gate="G$1" pin="3.8V"/>
 <wire x1="-40.64" y1="-73.66" x2="-33.02" y2="-73.66" width="0.1524" layer="91"/>
 </segment>
 <segment>
@@ -7270,7 +7304,7 @@ and external power.</text>
 <pinref part="GND7" gate="1" pin="GND"/>
 <wire x1="-33.02" y1="-101.6" x2="-40.64" y2="-101.6" width="0.1524" layer="91"/>
 <wire x1="-40.64" y1="-101.6" x2="-40.64" y2="-93.98" width="0.1524" layer="91"/>
-<pinref part="U$1" gate="G$1" pin="3.8V"/>
+<pinref part="JP5" gate="G$1" pin="3.8V"/>
 <wire x1="-40.64" y1="-93.98" x2="-33.02" y2="-93.98" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -7295,7 +7329,7 @@ and external power.</text>
 <pinref part="P+10" gate="1" pin="V+"/>
 </segment>
 <segment>
-<pinref part="U$2" gate="G$1" pin="GND"/>
+<pinref part="JP4" gate="G$1" pin="GND"/>
 <pinref part="P+8" gate="1" pin="V+"/>
 <wire x1="-33.02" y1="-76.2" x2="-43.18" y2="-76.2" width="0.1524" layer="91"/>
 <wire x1="-43.18" y1="-76.2" x2="-43.18" y2="-71.12" width="0.1524" layer="91"/>
@@ -7534,7 +7568,7 @@ and external power.</text>
 <pinref part="P+5" gate="1" pin="+18V"/>
 <wire x1="-33.02" y1="-91.44" x2="-35.56" y2="-91.44" width="0.1524" layer="91"/>
 <wire x1="-35.56" y1="-91.44" x2="-35.56" y2="-96.52" width="0.1524" layer="91"/>
-<pinref part="U$1" gate="G$1" pin="GND"/>
+<pinref part="JP5" gate="G$1" pin="GND"/>
 <wire x1="-35.56" y1="-96.52" x2="-33.02" y2="-96.52" width="0.1524" layer="91"/>
 </segment>
 </net>

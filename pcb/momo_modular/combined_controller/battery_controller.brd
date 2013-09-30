@@ -59,8 +59,6 @@
 <wire x1="65.913" y1="20.9804" x2="65.913" y2="45.0596" width="0.254" layer="20"/>
 <wire x1="34.163" y1="45.085" x2="34.163" y2="12.065" width="0.254" layer="20"/>
 <text x="49.5554" y="41.91" size="1.778" layer="21">+</text>
-<text x="61.7474" y="24.5872" size="0.8128" layer="49">JP5</text>
-<text x="46.9392" y="43.2562" size="0.8128" layer="49">JP4</text>
 <hole x="36.576" y="14.6304" drill="3.3528"/>
 <hole x="36.576" y="42.5196" drill="3.3528"/>
 <wire x1="34.163" y1="45.085" x2="44.7548" y2="45.085" width="0.254" layer="20"/>
@@ -268,7 +266,7 @@ reflow soldering</description>
 <wire x1="-2.54" y1="1.2446" x2="-2.54" y2="-1.2446" width="0.254" layer="21"/>
 <wire x1="-1.27" y1="0" x2="-1.27" y2="3.81" width="0.254" layer="51"/>
 <wire x1="1.27" y1="0" x2="1.27" y2="3.81" width="0.254" layer="51"/>
-<text x="1.4478" y="-2.5654" size="0.8128" layer="23">1</text>
+<text x="-2.54" y="-2.54" size="0.8128" layer="25">&gt;NAME</text>
 </package>
 <package name="MOMO-EDGE-8F">
 <pad name="V28" x="0" y="10.16" drill="1.016"/>
@@ -1701,6 +1699,10 @@ design rules under a new name.</description>
 <element name="U4" library="components" package="SSOP20" value="PIC24F16KA101-X_PSSOP" x="39.9796" y="30.48" smashed="yes" rot="R180">
 <attribute name="NAME" x="40.6522" y="30.8102" size="0.8128" layer="25" ratio="10" rot="R180"/>
 <attribute name="VALUE" x="42.735" y="30.5054" size="1.27" layer="27" ratio="10" rot="R180"/>
+<attribute name="DIGIKEY-PN" value="PIC24F16KA101-I/SS-ND" x="39.9796" y="30.48" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="BATT" value="ASSY-VARIANT" x="39.9796" y="30.48" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="EXTPOWER" value="ASSY-VARIANT" x="39.9796" y="30.48" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="SOLAR" value="ASSY-VARIANT" x="39.9796" y="30.48" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
 <element name="U5" library="components" package="SOP08" value="FLASH8MSOP8" x="40.0304" y="21.1328" smashed="yes" rot="R180">
 <attribute name="NAME" x="40.9448" y="20.0152" size="0.8128" layer="25"/>
@@ -1764,27 +1766,32 @@ design rules under a new name.</description>
 <element name="U1" library="components" package="SOT23-6L" value="XRP7659" x="54.0766" y="15.5956" smashed="yes">
 <attribute name="NAME" x="53.6448" y="15.0622" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="52.1716" y="12.4206" size="1.27" layer="27"/>
-<attribute name="DIGIKEY-PN" value="1016-1751-1-ND" x="54.0766" y="15.5956" size="1.778" layer="27" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="1016-1751-1-ND" x="54.0766" y="15.5956" size="1.778" layer="27" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" value="1016-1751-1-ND" x="54.0766" y="15.5956" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C3" library="rcl" package="C0805" value="10uF" x="54.737" y="19.304" smashed="yes" rot="R90">
 <attribute name="NAME" x="55.499" y="21.8694" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="57.277" y="18.034" size="1.27" layer="27" rot="R90"/>
-<attribute name="DIGIKEY-PN" value="587-2985-1-ND" x="54.737" y="19.304" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="587-2985-1-ND" x="54.737" y="19.304" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" value="587-2985-1-ND" x="54.737" y="19.304" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
 <element name="C4" library="rcl" package="C0402" value="10 nF" x="53.3146" y="12.9286" smashed="yes" rot="R180">
 <attribute name="NAME" x="54.3814" y="12.573" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="53.9496" y="14.8336" size="1.27" layer="27" rot="R180"/>
-<attribute name="DIGIKEY-PN" value="445-1260-1-ND" x="53.3146" y="12.9286" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" value="445-1260-1-ND" x="53.3146" y="12.9286" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="445-1260-1-ND" x="53.3146" y="12.9286" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
 <element name="R9" library="rcl" package="R0603" value="51k" x="51.0032" y="23.5712" smashed="yes" rot="R180">
 <attribute name="NAME" x="52.324" y="23.1648" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="51.6382" y="25.4762" size="1.27" layer="27" rot="R180"/>
-<attribute name="DIGIKEY-PN" value="P510KHCT-ND" x="51.0032" y="23.5712" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" value="P510KHCT-ND" x="51.0032" y="23.5712" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="P510KHCT-ND" x="51.0032" y="23.5712" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
 <element name="R10" library="rcl" package="R0603" value="10k" x="56.4388" y="14.224" smashed="yes" rot="R90">
 <attribute name="NAME" x="57.0992" y="14.6812" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="58.3438" y="13.589" size="1.27" layer="27" rot="R90"/>
-<attribute name="DIGIKEY-PN" value="P10.0KHCT-ND" x="56.4388" y="14.224" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" value="P10.0KHCT-ND" x="56.4388" y="14.224" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="P13.0KHCT-ND " x="56.4388" y="14.224" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
 <element name="U2" library="maxim" package="SOT23-5L" value="MAX1555" x="47.6758" y="27.4066" smashed="yes" rot="R270">
 <attribute name="OC_NEWARK" value="59J2761" x="47.6758" y="27.4066" size="1.778" layer="27" rot="R270" display="off"/>
@@ -1793,12 +1800,14 @@ design rules under a new name.</description>
 <attribute name="OC_FARNELL" value="1628222" x="47.6758" y="27.4066" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="NAME" x="47.2948" y="28.067" size="0.8128" layer="25" rot="R270"/>
 <attribute name="VALUE" x="44.5008" y="29.3116" size="1.27" layer="27" rot="R270"/>
-<attribute name="DIGIKEY-PN" value="MAX1555EZK+TCT-ND" x="47.6758" y="27.4066" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" value="MAX1555EZK+TCT-ND" x="47.6758" y="27.4066" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="DIGIKEY-PN-SOLAR" value="MAX1555EZK+TCT-ND" x="47.6758" y="27.4066" size="1.778" layer="27" rot="R270" display="off"/>
 </element>
 <element name="C8" library="rcl" package="C0402" value="1uF" x="49.784" y="29.8958" smashed="yes" rot="R180">
 <attribute name="NAME" x="50.6984" y="30.5816" size="0.8128" layer="25" rot="R270"/>
 <attribute name="VALUE" x="50.419" y="31.8008" size="1.27" layer="27" rot="R180"/>
-<attribute name="DIGIKEY-PN" value="445-4114-1-ND" x="49.784" y="29.8958" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" value="445-4114-1-ND" x="49.784" y="29.8958" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="DIGIKEY-PN-SOLAR" value="445-4114-1-ND" x="49.784" y="29.8958" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
 <element name="U3" library="components" package="SOT23" value="MCP1702" x="49.0982" y="32.1564" smashed="yes" rot="R270">
 <attribute name="NAME" x="48.6918" y="32.9184" size="0.8128" layer="25" rot="R270"/>
@@ -1808,46 +1817,53 @@ design rules under a new name.</description>
 <element name="C9" library="rcl" package="C0402" value="1 uF" x="46.482" y="32.004" smashed="yes" rot="R90">
 <attribute name="NAME" x="45.847" y="31.369" size="0.8128" layer="25" rot="R90"/>
 <attribute name="VALUE" x="48.387" y="31.369" size="1.27" layer="27" rot="R90"/>
-<attribute name="DIGIKEY-PN" x="46.482" y="32.004" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN" value="445-4114-1-ND" x="46.482" y="32.004" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
 <element name="C6" library="rcl" package="C0805" value="10 uF" x="47.1678" y="22.3774" smashed="yes" rot="R90">
 <attribute name="NAME" x="46.2026" y="19.7104" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="49.7078" y="21.1074" size="1.27" layer="27" rot="R90"/>
-<attribute name="DIGIKEY-PN" value="587-2985-1-ND" x="47.1678" y="22.3774" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" value="587-2985-1-ND" x="47.1678" y="22.3774" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="587-2985-1-ND" x="47.1678" y="22.3774" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
 <element name="R6" library="rcl" package="R0603" value="100K" x="56.2864" y="17.5768" smashed="yes" rot="R90">
 <attribute name="NAME" x="58.5724" y="18.5166" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="58.1914" y="16.9418" size="1.27" layer="27" rot="R90"/>
-<attribute name="DIGIKEY-PN" value="P100KHCT-ND" x="56.2864" y="17.5768" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" value="P100KHCT-ND" x="56.2864" y="17.5768" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="P100KHCT-ND" x="56.2864" y="17.5768" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
 <element name="L1" library="components" package="NR6028-INDUCTOR" value="4.7 uF" x="51.3588" y="15.4178" smashed="yes" rot="R180">
 <attribute name="NAME" x="48.651" y="15.118" size="0.6096" layer="21"/>
-<attribute name="DIGIKEY-PN" value="587-2100-1-ND" x="51.3588" y="15.4178" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" value="587-2100-1-ND" x="51.3588" y="15.4178" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="587-2100-1-ND" x="51.3588" y="15.4178" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
 <element name="D1" library="components" package="DIODE_SS2P3" value="DIODE_SS2P3SS2P3" x="50.8" y="19.9644" smashed="yes">
 <attribute name="NAME" x="49.4411" y="20.4978" size="0.8128" layer="25" rot="R180"/>
-<attribute name="DIGIKEY-PN" value="SS2P3-M3/84AGICT-ND" x="50.8" y="19.9644" size="1.778" layer="27" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="SS2P3-M3/84AGICT-ND" x="50.8" y="19.9644" size="1.778" layer="27" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" value="SS2P3-M3/84AGICT-ND" x="50.8" y="19.9644" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C7" library="rcl" package="C0402" value="1 uF" x="49.7078" y="25.1206" smashed="yes" rot="R180">
 <attribute name="NAME" x="50.7746" y="25.8572" size="0.8128" layer="25" rot="R270"/>
 <attribute name="VALUE" x="50.3428" y="27.0256" size="1.27" layer="27" rot="R180"/>
-<attribute name="DIGIKEY-PN" value="445-4114-1-ND" x="49.7078" y="25.1206" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="DIGIKEY-PN-SOLAR" value="445-4114-1-ND" x="49.7078" y="25.1206" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" value="445-4114-1-ND" x="49.7078" y="25.1206" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
 <element name="R4" library="rcl" package="R0603" value="0R" x="50.5714" y="27.1526" smashed="yes" rot="R90">
 <attribute name="NAME" x="49.8602" y="26.6954" size="0.8128" layer="25" rot="R90"/>
 <attribute name="VALUE" x="52.4764" y="26.5176" size="1.27" layer="27" rot="R90"/>
-<attribute name="DIGIKEY-PN" value="P0.0GCT-ND" x="50.5714" y="27.1526" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="P0.0GCT-ND" x="50.5714" y="27.1526" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
 <element name="R11" library="rcl" package="R0603" value="0R" x="51.0032" y="22.1742" smashed="yes" rot="R180">
 <attribute name="NAME" x="54.3306" y="22.8346" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="51.6382" y="24.0792" size="1.27" layer="27" rot="R180"/>
-<attribute name="DIGIKEY-PN" value="641-1332-1-ND" x="51.0032" y="22.1742" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="DIGIKEY-PN-SOLAR" value="641-1332-1-ND" x="51.0032" y="22.1742" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
-<element name="U$1" library="components" package="MOMO-EDGE-SMALL-2M" value="MOMO-EDGE-POWER-M" x="62.865" y="22.225" rot="R180">
+<element name="JP5" library="components" package="MOMO-EDGE-SMALL-2M" value="MOMO-EDGE-POWER-M" x="62.865" y="22.225" smashed="yes" rot="R180">
 <attribute name="DIGIKEY-PN" value="A19450-ND" x="62.865" y="22.225" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NAME" x="63.754" y="17.1958" size="0.8128" layer="25" rot="R180"/>
 </element>
-<element name="U$2" library="components" package="MOMO-EDGE-SMALL-2M" value="MOMO-EDGE-POWER-M" x="47.7774" y="39.0144">
+<element name="JP4" library="components" package="MOMO-EDGE-SMALL-2M" value="MOMO-EDGE-POWER-M" x="47.7774" y="39.0144" smashed="yes">
 <attribute name="DIGIKEY-PN" value="A19450-ND" x="47.7774" y="39.0144" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="46.8884" y="43.2054" size="0.8128" layer="25"/>
 </element>
 <element name="Q1" library="components" package="SOT23" value="P-MOSFET" x="40.386" y="38.3794" smashed="yes">
 <attribute name="DIGIKEY-PN" value="IRLML6401PBFCT-ND" x="40.386" y="38.3794" size="1.778" layer="27" display="off"/>
@@ -1962,7 +1978,7 @@ design rules under a new name.</description>
 <wire x1="47.7266" y1="33.0708" x2="47.7266" y2="30.8356" width="0.3048" layer="16"/>
 <contactref element="R13" pad="1"/>
 <wire x1="47.7266" y1="34.417" x2="47.6758" y2="34.417" width="0.1524" layer="16"/>
-<contactref element="U$2" pad="2"/>
+<contactref element="JP4" pad="2"/>
 <wire x1="47.7266" y1="33.0708" x2="51.1048" y2="32.3088" width="0.254" layer="16"/>
 <wire x1="51.1048" y1="32.3088" x2="51.1048" y2="39.7002" width="0.254" layer="16"/>
 <wire x1="42.5958" y1="31.496" x2="47.7266" y2="33.0708" width="0.254" layer="16"/>
@@ -2016,7 +2032,7 @@ design rules under a new name.</description>
 <wire x1="53.721" y1="15.621" x2="54.864" y2="15.621" width="0.3048" layer="1"/>
 <wire x1="54.737" y1="20.254" x2="54.737" y2="20.2438" width="0.1524" layer="1"/>
 <wire x1="54.737" y1="20.2438" x2="53.1495" y2="19.9644" width="0.1524" layer="1"/>
-<contactref element="U$1" pad="2"/>
+<contactref element="JP5" pad="2"/>
 <via x="45.5676" y="21.082" extent="1-16" drill="0.5"/>
 <via x="45.5676" y="22.2504" extent="1-16" drill="0.5"/>
 <via x="45.593" y="23.3426" extent="1-16" drill="0.5"/>
@@ -2112,7 +2128,7 @@ design rules under a new name.</description>
 <wire x1="48.9758" y1="28.3566" x2="50.2174" y2="28.3566" width="1.016" layer="1"/>
 <wire x1="50.2174" y1="28.3566" x2="50.5714" y2="28.0026" width="1.016" layer="1"/>
 <contactref element="Q1" pad="2"/>
-<contactref element="U$2" pad="1"/>
+<contactref element="JP4" pad="1"/>
 <wire x1="49.1744" y1="34.417" x2="49.1744" y2="39.0144" width="0.508" layer="16"/>
 <wire x1="49.1744" y1="39.0144" x2="49.0474" y2="39.0144" width="0.508" layer="16"/>
 <contactref element="R12" pad="1"/>
@@ -2349,7 +2365,7 @@ design rules under a new name.</description>
 <wire x1="54.737" y1="18.4268" x2="54.737" y2="18.354" width="0.1524" layer="1"/>
 <wire x1="54.0766" y1="16.8956" x2="54.0766" y2="18.354" width="0.1524" layer="1"/>
 <wire x1="54.0766" y1="18.354" x2="54.737" y2="18.354" width="0.1524" layer="1"/>
-<contactref element="U$1" pad="1"/>
+<contactref element="JP5" pad="1"/>
 <wire x1="51.8532" y1="22.1742" x2="52.2342" y2="22.4536" width="0.1524" layer="1"/>
 <polygon width="0.1524" layer="1" thermals="no">
 <vertex x="53.848" y="16.3322"/>

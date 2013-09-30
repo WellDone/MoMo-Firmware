@@ -2448,7 +2448,7 @@ MAX3223-MAX3243.pdf</description>
 <wire x1="-2.54" y1="1.2446" x2="-2.54" y2="-1.2446" width="0.254" layer="21"/>
 <wire x1="-1.27" y1="0" x2="-1.27" y2="3.81" width="0.254" layer="51"/>
 <wire x1="1.27" y1="0" x2="1.27" y2="3.81" width="0.254" layer="51"/>
-<text x="1.4478" y="-2.5654" size="0.8128" layer="23">1</text>
+<text x="-2.54" y="-2.54" size="0.8128" layer="25">&gt;NAME</text>
 </package>
 <package name="MOMO-EDGE-6M">
 <pad name="V28" x="0" y="10.16" drill="1.016" shape="long"/>
@@ -4551,7 +4551,7 @@ body 3.9 mm/JEDEC MS-012AC</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="MOMO-EDGE-POWER-M">
+<deviceset name="MOMO-EDGE-POWER-M" prefix="JP">
 <gates>
 <gate name="G$1" symbol="MOMO-POWER" x="-2.54" y="-2.54"/>
 </gates>
