@@ -4,66 +4,10 @@ import csv
 import itertools
 from part import Part
 from xml.etree import ElementTree
+from datetime import date
 
 class Board:
-	@staticmethod
-	def FromEagle(brd_file):
-		
-		tree = ElementTree.parse(brd_file)
-		if tree is None:
-			raise ValueError("File %s is not a valid XML file" % brd_file)
-
-		root = tree.getroot()
-
-		elems = root.find("./drawing/board/elements")
-		if elems is None:
-			raise ValueError("File %s does not contain a list of elements.  This is an invalid board file" % brd_file)
-
-		parts = list(elems)
-
-		unknown = []
-		constant = []
-		variable = []
-		variants = find_variants(elems)
-		print "Variants Found"
-		print variants
-
-		#Create a part object for each part that has a valid digikey-pn
-		#If there are multiple digikey part numbers, create a part for each one
-		for part in parts:
-			attribs = part.findall("attribute")
-			popd = filter(lambda x: x.get('name', 'Unnamed').startswith('DIGIKEY-PN'), attribs)
-
-			#If there are no DIGIKEY-PN attributes, this must an error or an unpopulated part
-			#If there are more than one, there must be multiple assembly variants
-			if len(popd) == 0:
-				print "Part %s found with no part number" % part.get('name',"Unknown Name")
-				unknown.append(part.get('name',"Unknown Name"))
-
-			#See if this is a constant part (with no changes in different variants)
-			p = Part.FromBoardElement(part, "")
-			if p:
-				constant.append(p)
-			else:
-				for v in variants:
-					p = Part.FromBoardElement(part, v)
-					if p:
-						variable.append( (v, p) )
-
-		#If only one assembly variant, give it the name Main
-		if len(variants) == 0:
-			return Board("test", 'test', {'MAIN': constant})
-		else:
-			vars = {}
-			#Create multiple variants
-			for var in variants:
-				print "Processing Variant %s" % var
-				vars[var] = constant + filter_sublists(variable, var)
-
-			return Board("test", 'test', vars)
-
-
-	def __init__(self, name, file, variants):
+	def __init__(self, name, file, variants, partname, width, height, revision):
 		"""
 		Create a Board Object with 1 or more assembly variants from the variant dictionary passed in.
 		"""
@@ -71,6 +15,10 @@ class Board:
 		self.name = name
 		self.file = file
 		self.variants = {varname: self._process_variant(var) for (varname,var) in variants.iteritems()}
+		self.partname = partname
+		self.width = width
+		self.height = height
+		self.revision = revision
 
 	def _process_variant(self, parts):
 		"""
@@ -119,17 +67,20 @@ class Board:
 
 		return export
 
-	def export_bom(self, variant, file, title=""):
+	def export_bom(self, variant, file):
 		var = self.variants[variant]
 
 		lineno = 1
+
+		today = date.today()
 
 		with open(file, "wb") as bom:
 			writ = csv.writer(bom)
 
 			writ.writerow(["WellDone"])
-			writ.writerow(["BOM: %s (%s)" % (title, variant)])
-			writ.writerow([])
+			writ.writerow(["BOM: %s (%s)" % (self.partname, variant)])
+			writ.writerow(["Revision: %s" % self.revision])
+			writ.writerow(['Date Created: %s' % (today.strftime('%x'))])
 			writ.writerow([])
 			writ.writerow([])
 
@@ -154,6 +105,75 @@ class Board:
 				writ.writerow(row)
 
 				lineno += 1
+
+	@staticmethod
+	def FromEagle(brd_file):
+		"""
+		Create a Board from EAGLE Board file by parsing attribute tags embedded with the
+		components.  Create different assembly variants for each different configuration
+		specified in the file
+		"""
+		
+		tree = ElementTree.parse(brd_file)
+		if tree is None:
+			raise ValueError("File %s is not a valid XML file" % brd_file)
+
+		root = tree.getroot()
+
+		elems = root.find("./drawing/board/elements")
+		if elems is None:
+			raise ValueError("File %s does not contain a list of elements.  This is an invalid board file" % brd_file)
+
+		parts = list(elems)
+
+		unknown = []
+		constant = []
+		variable = []
+		variants = find_variants(elems)
+		print "Variants Found"
+		print variants
+
+		#Create a part object for each part that has a valid digikey-pn
+		#If there are multiple digikey part numbers, create a part for each one
+		for part in parts:
+			attribs = part.findall("attribute")
+			popd = filter(lambda x: x.get('name', 'Unnamed').startswith('DIGIKEY-PN'), attribs)
+
+			
+			valid_part = False	
+
+			#See if this is a constant part (with no changes in different variants)
+			p = Part.FromBoardElement(part, "")
+			if p:
+				constant.append(p)
+				valid_part = True
+			else:
+				for v in variants:
+					p = Part.FromBoardElement(part, v)
+					if p:
+						variable.append( (v, p) )
+						valid_part = True
+
+			#Make sure this part has information for at least one assembly variant
+			if not valid_part:
+				print "Part %s found with no part number" % part.get('name',"Unknown Name")
+				unknown.append(part.get('name',"Unknown Name"))
+
+		#If only one assembly variant, give it the name Main
+		if len(variants) == 0:
+			return Board("test", 'test', {'MAIN': constant})
+		else:
+			vars = {}
+			#Create multiple variants
+			for var in variants:
+				print "Processing Variant %s" % var
+				vars[var] = constant + filter_sublists(variable, var)
+
+			return Board("test", 'test', vars,
+							partname=find_attribute(root, 'PARTNAME'),
+							width=find_attribute(root, 'WIDTH'),
+							height=find_attribute(root, 'HEIGHT'),
+							revision=find_attribute(root, 'REVISION'))
 
 def remove_prefix(s, prefix):
 	if not s.startswith(prefix):
@@ -183,6 +203,13 @@ def get_variant_id(pn_name):
 		pn_name = pn_name[1:]
 
 	return pn_name
+
+def find_attribute(root, name):
+	attr = root.find("./drawing/board/attributes/attribute[@name='%s']" % name)
+	if attr is None:
+		raise ValueError("Required global board attribute not found: %s" % name)
+
+	return attr.get('value')
 
 def find_variants(root):
 	vars = root.findall(".//attribute[@value='%s']" % 'ASSY-VARIANT')

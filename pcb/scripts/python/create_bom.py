@@ -14,25 +14,8 @@ cboard = Board.FromEagle(cfile)
 gboard = Board.FromEagle(gfile)
 sboard  = Board.FromEagle(sfile)
 
-cbom_ext = cboard.export_list('EXTPOWER')
-cbom_bat = cboard.export_list('BATT')
-cbom_sol = cboard.export_list('SOLAR')
-gbom = gboard.export_list('MAIN')
-sbom = sboard.export_list('MAIN')
-
-gbom *= 5
-sbom *= 5
-cbom_ext *= 2
-cbom_bat *= 2
-cbom_sol *= 2
-
-total = gbom + sbom + cbom_ext + cbom_sol + cbom_bat
-
-order = collections.Counter(total)
-
-order = [(k,v) for (k,v) in order.iteritems()]
-
-order = map(lambda x: (x[0], int(ceil(x[1]*1.1))), order)
-
-for line in order:
-	print "%d, %s" % (line[1],line[0])
+cbom_ext = cboard.export_bom('EXTPOWER','/Users/timburke/Dropbox/Shared - Other People/MoMo Hardware Release Candidate/combined_controller/external_power.csv')
+cbom_bat = cboard.export_bom('BATT','/Users/timburke/Dropbox/Shared - Other People/MoMo Hardware Release Candidate/combined_controller/battery_power.csv')
+cbom_sol = cboard.export_bom('SOLAR','/Users/timburke/Dropbox/Shared - Other People/MoMo Hardware Release Candidate/combined_controller/solar.csv')
+gbom = gboard.export_bom('MAIN', '/Users/timburke/Dropbox/Shared - Other People/MoMo Hardware Release Candidate/gsm_communication/gsm_module.csv')
+sbom = sboard.export_bom('MAIN', '/Users/timburke/Dropbox/Shared - Other People/MoMo Hardware Release Candidate/sensor_dev_board/sensor_dev_board.csv')

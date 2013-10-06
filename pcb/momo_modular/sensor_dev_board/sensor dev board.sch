@@ -161,6 +161,7 @@ CAD and Schematic files for the PIC24Fka101 series of microcontrollers.</descrip
 <wire x1="-6.6" y1="10.15" x2="6.6" y2="10.15" width="0.127" layer="21"/>
 <wire x1="-6.6" y1="10.15" x2="-6.6" y2="-7.85" width="0.127" layer="21"/>
 <wire x1="6.6" y1="10.15" x2="6.6" y2="-7.85" width="0.127" layer="21"/>
+<text x="-2.54" y="-5.08" size="0.8128" layer="25">&gt;NAME</text>
 </package>
 </packages>
 <symbols>

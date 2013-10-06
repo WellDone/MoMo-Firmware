@@ -176,6 +176,7 @@ CAD and Schematic files for the PIC24Fka101 series of microcontrollers.</descrip
 <wire x1="-6.6" y1="10.15" x2="6.6" y2="10.15" width="0.127" layer="21"/>
 <wire x1="-6.6" y1="10.15" x2="-6.6" y2="-7.85" width="0.127" layer="21"/>
 <wire x1="6.6" y1="10.15" x2="6.6" y2="-7.85" width="0.127" layer="21"/>
+<text x="-2.54" y="-5.08" size="0.8128" layer="25">&gt;NAME</text>
 </package>
 </packages>
 </library>
@@ -2460,6 +2461,10 @@ Source: http://www.osram.convergy.de/ ... Lb_q993.pdf</description>
 </library>
 </libraries>
 <attributes>
+<attribute name="HEIGHT" value="1.3"/>
+<attribute name="PARTNAME" value="sensor_dev_board"/>
+<attribute name="REVISION" value="2.0"/>
+<attribute name="WIDTH" value="1.362"/>
 </attributes>
 <variantdefs>
 </variantdefs>
@@ -2675,6 +2680,7 @@ design rules under a new name.</description>
 </element>
 <element name="JP5" library="components" package="RJ-12" value="MOMO-SENSOR-RJ11" x="57.2516" y="4.9784" smashed="yes" rot="R90">
 <attribute name="DIGIKEY-PN" value="AE10383-ND" x="57.2516" y="4.9784" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NAME" x="56.0324" y="4.953" size="0.8128" layer="25" rot="R180"/>
 </element>
 <element name="LED1" library="led" package="CHIP-LED0603" value="" x="35.5092" y="8.4074" smashed="yes" rot="R90">
 <attribute name="NAME" x="37.1348" y="10.0584" size="0.8128" layer="25" rot="R180"/>

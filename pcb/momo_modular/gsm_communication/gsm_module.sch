@@ -8075,6 +8075,8 @@ Source: www.kingbright.com</description>
 </library>
 </libraries>
 <attributes>
+<attribute name="PARTNAME" value="gsm_module"/>
+<attribute name="REVISION" value="3.0"/>
 </attributes>
 <variantdefs>
 </variantdefs>

@@ -90,7 +90,7 @@ def find_mpn(part, variant):
 	"""
 
 	mpn = part.find("./attribute[@name='%s']" % attrib_name('MPN', variant))
-	manu = mpn = part.find("./attribute[@name='%s']" % attrib_name('MANU', variant))
+	manu = part.find("./attribute[@name='%s']" % attrib_name('MANU', variant))
 
 	if mpn is None or manu is None:
 		return (None, None)
