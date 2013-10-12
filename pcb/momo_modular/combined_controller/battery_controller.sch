@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.025" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
@@ -9089,9 +9089,9 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <sheet>
 <plain>
 <wire x1="-226.06" y1="127" x2="-226.06" y2="-111.76" width="0.1524" layer="97" style="longdash"/>
-<wire x1="-226.06" y1="-111.76" x2="-12.7" y2="-111.76" width="0.1524" layer="97" style="longdash"/>
-<wire x1="-12.7" y1="-111.76" x2="-12.7" y2="127" width="0.1524" layer="97" style="longdash"/>
-<wire x1="-12.7" y1="127" x2="-226.06" y2="127" width="0.1524" layer="97" style="longdash"/>
+<wire x1="-226.06" y1="-111.76" x2="10.16" y2="-111.76" width="0.1524" layer="97" style="longdash"/>
+<wire x1="10.16" y1="-111.76" x2="10.16" y2="127" width="0.1524" layer="97" style="longdash"/>
+<wire x1="10.16" y1="127" x2="-226.06" y2="127" width="0.1524" layer="97" style="longdash"/>
 <wire x1="-223.52" y1="-109.22" x2="-223.52" y2="-96.52" width="0.3048" layer="97"/>
 <wire x1="-223.52" y1="-96.52" x2="-223.52" y2="-91.44" width="0.3048" layer="97"/>
 <wire x1="-223.52" y1="-91.44" x2="-223.52" y2="-86.36" width="0.3048" layer="97"/>
@@ -9115,9 +9115,9 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <text x="-216.662" y="-99.314" size="1.778" layer="97">Info</text>
 <text x="-50.8" y="35.56" size="1.778" layer="97">Board Connector</text>
 <text x="-209.55" y="-85.09" size="1.778" layer="97">MoMo Control Module</text>
-<text x="-209.55" y="-90.17" size="1.778" layer="97">9/17/13</text>
+<text x="-209.55" y="-90.17" size="1.778" layer="97">10/7/13</text>
 <text x="-224.79" y="121.92" size="3.81" layer="97">MoMo Control Circuit</text>
-<text x="-208.28" y="-104.14" size="1.778" layer="97">Combined battery, solar 
+<text x="-209.55" y="-101.6" size="1.778" layer="97">Combined battery, solar 
 and external power.</text>
 </plain>
 <instances>
@@ -9796,9 +9796,9 @@ and external power.</text>
 <label x="-139.7" y="-63.5" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U4" gate="A" pin="OC1/IC1/C2OUT/INT2/CTED1/CN8/RA6"/>
-<wire x1="-78.74" y1="12.7" x2="-63.5" y2="12.7" width="0.1524" layer="91"/>
-<label x="-78.74" y="12.7" size="1.778" layer="95"/>
+<pinref part="U4" gate="A" pin="U1RX/U1BCLK/CN6/RB2"/>
+<wire x1="-193.04" y1="-2.54" x2="-198.12" y2="-2.54" width="0.1524" layer="91"/>
+<label x="-200.66" y="-2.54" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="VCCIO" class="0">
@@ -9908,9 +9908,9 @@ and external power.</text>
 <label x="-109.22" y="83.82" size="1.778" layer="95" rot="R90"/>
 </segment>
 <segment>
-<pinref part="U4" gate="A" pin="U1RX/U1BCLK/CN6/RB2"/>
-<wire x1="-193.04" y1="-2.54" x2="-198.12" y2="-2.54" width="0.1524" layer="91"/>
-<label x="-200.66" y="-2.54" size="1.778" layer="95"/>
+<pinref part="U4" gate="A" pin="OC1/IC1/C2OUT/INT2/CTED1/CN8/RA6"/>
+<wire x1="-78.74" y1="12.7" x2="-63.5" y2="12.7" width="0.1524" layer="91"/>
+<label x="-78.74" y="12.7" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>
