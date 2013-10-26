@@ -1,0 +1,21 @@
+import os
+
+
+VariantDir('build/16lf1823','src', duplicate=0)
+
+env = Environment(tools=['xc8_compiler'], ENV = os.environ)
+env['CHIP'] = '16F1823'
+env['CHIPDEFINE'] = '__PIC16LF1823__'
+
+Export('env')
+SConscript('build/16lf1823/SConscript')
+
+VariantDir('build/12lf1822','src', duplicate=0)
+
+env = Environment(tools=['xc8_compiler'], ENV = os.environ)
+env['CHIP'] = '12F1822'
+env['CHIPDEFINE'] = '__PIC12LF1822__'
+
+Export('env')
+SConscript('build/12lf1822/SConscript')
+

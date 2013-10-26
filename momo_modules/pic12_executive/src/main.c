@@ -96,13 +96,16 @@ void initialize()
 
     /* Set all PORTA pins to be input. */
     TRISA = 0xff;
+
+    #ifdef __PIC16LF1823__
     TRISC = 0xff;
     TRISC2 = 0;
     RC2 = 0;
+    ANSELC = 0;
+    #endif
 
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
     ANSELA = 0;
-    ANSELC = 0;
     
     /* Enable interrupts globally. */
     GIE = 1;

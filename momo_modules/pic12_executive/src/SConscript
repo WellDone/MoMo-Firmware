@@ -1,0 +1,31 @@
+import os
+
+incs = []
+incs.append('.')
+incs.append('src')
+incs.append('src/mib')
+incs.append('../shared/pic12/src')
+incs.append('../shared/portable/core')
+incs.append('../shared/portable/mib')
+incs.append('../shared/portable/mib/slave')
+incs.append('../shared/portable/mib/master')
+incs.append('../shared/portable/util')
+
+Import('env')
+env['XC8FLAGS'] = '-G --rom=0-4E7 --summary=default,+psect,-class,+mem,-hex,-file --output=default,-inhx032 --asmlist -P --mode=pro --opt=all,-asmfile --runtime=default,+clear,+keep,+init,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib'
+env['INCLUDE'] = incs
+
+asm_sources = ['flash_memory.as', 'i2c_utilities.as', 'watchdog_asm.as']
+
+srcfiles = Glob('./*.c') + asm_sources				\
+	+ Glob('../../../shared/portable/core/*.c')		\
+	+ Glob('../../../shared/portable/mib/*.c')			\
+	+ Glob('../../../shared/portable/mib/master/*.c')	\
+	+ Glob('../../../shared/portable/mib/slave/*.c')	\
+	+ Glob('./mib/*.c')								\
+	+ Glob('./mib/*.as')							\
+	+ Glob('./mib/slave/commands/*.c')
+
+target = env.xc8('mib12_executive.hex', srcfiles)
+
+Clean(target, ['#funclist', '#l.obj'])
