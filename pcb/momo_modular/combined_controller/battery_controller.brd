@@ -1829,8 +1829,8 @@ design rules under a new name.</description>
 <element name="R9" library="rcl" package="R0603" value="51k" x="44.7294" y="15.1892" smashed="yes" rot="R90">
 <attribute name="NAME" x="43.942" y="12.827" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="46.6344" y="14.5542" size="1.27" layer="27" rot="R90"/>
-<attribute name="DIGIKEY-PN-BATT" value="P510KHCT-ND" x="44.7294" y="15.1892" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="DIGIKEY-PN-EXTPOWER" value="P510KHCT-ND" x="44.7294" y="15.1892" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-BATT" value="P51.0KHCT-ND" x="44.7294" y="15.1892" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="P51.0KHCT-ND" x="44.7294" y="15.1892" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
 <element name="R10" library="rcl" package="R0603" value="10k" x="56.642" y="14.6304" smashed="yes" rot="R90">
 <attribute name="NAME" x="57.5056" y="14.5288" size="0.8128" layer="25"/>

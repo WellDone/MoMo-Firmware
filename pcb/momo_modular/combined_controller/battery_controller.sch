@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.025" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
@@ -8980,8 +8980,8 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 </part>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
 <part name="R9" library="rcl" deviceset="R-US_" device="R0603" value="51k">
-<attribute name="DIGIKEY-PN-BATT" value="P510KHCT-ND"/>
-<attribute name="DIGIKEY-PN-EXTPOWER" value="P510KHCT-ND"/>
+<attribute name="DIGIKEY-PN-BATT" value="P51.0KHCT-ND"/>
+<attribute name="DIGIKEY-PN-EXTPOWER" value="P51.0KHCT-ND"/>
 </part>
 <part name="R10" library="rcl" deviceset="R-US_" device="R0603" value="10k">
 <attribute name="DIGIKEY-PN-BATT" value="P10.0KHCT-ND"/>
