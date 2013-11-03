@@ -35,7 +35,7 @@ void gsm_module_on();
 void task(void)
 {
 	wdt_disable();
-
+	/*
 	//Wait until a sim card is inserted and then power up the GSM module
 	while(test_siminserted() == 0)
 	{
@@ -105,6 +105,11 @@ void task(void)
 			}
 		}
 	}
+
+	*/
+
+	while (1)
+		;
 }
 
 void interrupt_handler(void)
@@ -134,7 +139,7 @@ void enable_serial()
 
 void initialize(void)
 {	
-	POWERPIN = 1;
+	POWERPIN = 0;
 	POWERTRIS = 0;
 
 	GSMPOWERTRIS = 1;
@@ -142,10 +147,10 @@ void initialize(void)
 	GSMRESETTRIS = 1;
 	GSMRESETPIN = 0;
 
-	TRISC2 = 0;
+	GSMSTATUSTRIS = 1;
 
-	RXDTSEL = 1;
-	TXCKSEL = 1;
+	RXDTSEL = 0;
+	TXCKSEL = 0;
 
 	state.gsm_state = 0;
 	buffer_len = 0;
