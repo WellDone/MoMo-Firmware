@@ -1,21 +1,32 @@
 import os
+import utilities
 
+def build_exec_for_chip(chip, define):
+	"""
+	Configure Scons to build the MIB12 Executive for the 8bit pic microchip indicated in the arguments.
+	"""
 
-VariantDir('build/16lf1823','src', duplicate=0)
+	builddir = os.path.join('build', chip)
+	VariantDir(builddir, 'src', duplicate=0)
 
-env = Environment(tools=['xc8_compiler'], ENV = os.environ)
-env['CHIP'] = '16F1823'
-env['CHIPDEFINE'] = '__PIC16LF1823__'
+	env = Environment(tools=['xc8_compiler', 'patch_mib12'], ENV = os.environ)
+	env.AppendENVPath('PATH','../../tools/scripts')
+	env['CHIP'] = chip
+	env['CHIPDEFINE'] = define
+	
+	#Load in all of the xc8 configuration from build_settings
+	mib12conf = utilities.MIB12Config()
+	mib12conf.config_env_for_exec(env)
 
-Export('env')
-SConscript('build/16lf1823/SConscript')
+	Export('env')
+	SConscript(os.path.join(builddir, 'SConscript'))
 
-VariantDir('build/12lf1822','src', duplicate=0)
+	return os.path.join(builddir, 'mib12_executive_patched.hex')
 
-env = Environment(tools=['xc8_compiler'], ENV = os.environ)
-env['CHIP'] = '12F1822'
-env['CHIPDEFINE'] = '__PIC12LF1822__'
+exec16 = build_exec_for_chip('16F1823', '__PIC16LF1823__')
+exec12 = build_exec_for_chip('12F1822', '__PIC12LF1822__')
 
-Export('env')
-SConscript('build/12lf1822/SConscript')
+env = Environment()
 
+env.InstallAs(os.path.join('build', 'output', 'mib12_executive_16lf1823.hex'), exec16)
+env.InstallAs(os.path.join('build', 'output', 'mib12_executive_12lf1822.hex'), exec12)

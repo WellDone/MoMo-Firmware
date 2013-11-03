@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #patch_mib12_api.py
 #XC8 is terrible.  It cannot add a table of API callbacks without dying because it 
 #gets confused about when the functions can be called and starts duplicating code like crazy.
@@ -67,7 +68,10 @@ setreturn = symtab["_bus_slave_setreturn"][0]
 
 ih = intelhex.IntelHex(sys.argv[1])
 
-patch_goto(ih, 16*78+14, main, rpc)
-patch_goto(ih, 16*78+15, main, setreturn)
+res1 = patch_goto(ih, 16*78+14, main, rpc)
+res2 = patch_goto(ih, 16*78+15, main, setreturn)
+
+if res1 is False or res2 is False:
+	sys.exit(1)
 
 ih.write_hex_file(sys.argv[3])

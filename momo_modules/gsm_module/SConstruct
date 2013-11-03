@@ -1,0 +1,8 @@
+import utilities
+import os
+
+hexfile = utilities.build_app_for_chip('16F1823', '__PIC16LF1823__')
+
+env = Environment()
+
+env.InstallAs(os.path.join('build', 'output', 'gsm_module_16lf1823.hex'), hexfile)

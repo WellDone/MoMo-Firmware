@@ -1,0 +1,12 @@
+{
+	"mib12" : 
+	{
+		"executive_rom_range": [0, 1263],
+		"application_ram": [32, 96],
+		"executive_ram": [ [97,127], [160, 191] ],
+
+		"common_xc8_flags": ["-G", "--summary=default,+psect,-class,+mem,-hex,-file", "--output=default,-inhx032", "--asmlist", "-P", "--mode=pro", "--opt=all,-asmfile" ],
+		"exec_xc8_flags": ["--runtime=default,+clear,+keep,+init,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib"],
+		"app_xc8_flags": ["--runtime=-init,+no_startup,-osccal,-clear,+clib,-plib,+download", "-L-preset_vec=04F0h"]
+	}
+}

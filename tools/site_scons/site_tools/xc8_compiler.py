@@ -16,22 +16,34 @@ args = " ".join(xc8_flags)
 
 def xc8_generator(source, target, env, for_signature):
 	"""
-	Create an XC8 command line
+	Create an XC8 command line using the parameter defined in 
+	the environment
 	"""
 
 	incs = []
 
+	args = ['xc8']
+
 	if 'INCLUDE' in env:
 		incs = map(lambda x: '-I'+str(x), env['INCLUDE'])
 
-	src = " ".join(map(lambda x: str(x), source))
-	out = '-o' + str(target[0])
+	src = map(lambda x: str(x), source)
+	out = ['-o' + str(target[0])]
 
-	inc_statement = " ".join(incs)
+	args.extend(make_chip(env))
 
-	return 'xc8 ' + \
-			make_chip(env) + " " + env['XC8FLAGS'] + " " + \
-			inc_statement + " " + args + src + " " + out
+	if 'XC8FLAGS' in env:
+		args.extend(env['XC8FLAGS'])
+
+	args.extend(incs)
+	args.extend(make_rom(env))
+	args.extend(make_ram(env))
+	args.extend(src)
+	args.extend(out)
+
+	args = filter(lambda x: x != "", args)
+
+	return " ".join(args)
 
 def xc8_emit_int_files(target, source, env):
 	intfiles = map(lambda x: make_int_files(x), source)
@@ -39,13 +51,56 @@ def xc8_emit_int_files(target, source, env):
 	intfiles = reduce(lambda x,y: x+y, intfiles, [])
 
 	target += intfiles + make_int_target_files(target[0])
-	target += make_int_files('startup.as')
+
+	#Application modules have their own startup.as as a source file
+	if "NO_STARTUP" in env:
+		return target, source
+
+	target += ['startup.lst', 'startup.obj', 'startup.rlf']
 	target += ['startup.as']
 
 	return target, source
 
 def make_chip(env):
-	return '--chip=%s -D%s' % (env['CHIP'], env['CHIPDEFINE'])
+	return ['--chip=%s' % env['CHIP'], '-D%s' % env['CHIPDEFINE'] ]
+
+def make_rom(env):
+	romstart = 0
+	romend = -1
+	if 'ROMSTART' in env:
+		romstart = env['ROMSTART']
+
+	if 'ROMEND' in env:
+		romend = env['ROMEND']
+
+	#No rom change specified
+	if romstart == 0 and romend == -1:
+		return [""]
+
+	if romstart == 0 and romend > 0:
+		return ["--ROM=%x-%x" % (romstart, romend)]
+
+	if romstart > 0 and romend > romstart:
+		return ["--ROM=%x-%x" % (romstart, romend)]
+
+	if romstart > 0 and romend == -1:
+		return ["--ROM=default,-0-%x" % (romstart-1)]
+
+	raise ValueError("Unknown ROM Range Values: (%x, %x)" % (romstart, romend))
+
+def make_ram(env):
+	args = ['default']
+	if 'RAMEXCLUDE' in env:
+		exc = map(lambda x:"-{:x}-{:x}".format(x[0],x[1]), env['RAMEXCLUDE'])
+		args.extend(exc)
+
+	if 'RAMINCLUDE' in env:
+		inc = map(lambda x:"+{:x}-{:x}".format(x[0],x[1]), env['RAMINCLUDE'])
+		args.extend(inc)
+
+	ramstatement = ",".join(args)
+
+	return ['--RAM=%s' % ramstatement]
 
 def make_int_files(cfile):
 	"""
