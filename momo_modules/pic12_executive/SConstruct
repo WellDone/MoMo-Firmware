@@ -9,7 +9,7 @@ def build_exec_for_chip(chip, define):
 	builddir = os.path.join('build', chip)
 	VariantDir(builddir, 'src', duplicate=0)
 
-	env = Environment(tools=['xc8_compiler', 'patch_mib12'], ENV = os.environ)
+	env = Environment(tools=['xc8_compiler', 'patch_mib12', 'xc8_symbols'], ENV = os.environ)
 	env.AppendENVPath('PATH','../../tools/scripts')
 	env['CHIP'] = chip
 	env['CHIPDEFINE'] = define

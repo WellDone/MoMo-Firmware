@@ -35,6 +35,15 @@ void gsm_module_on();
 void task(void)
 {
 	wdt_disable();
+
+	__delay_ms(1000);
+
+	POWERPIN = 1;
+
+	__delay_ms(1000);
+
+	gsm_module_on();
+	
 	/*
 	//Wait until a sim card is inserted and then power up the GSM module
 	while(test_siminserted() == 0)

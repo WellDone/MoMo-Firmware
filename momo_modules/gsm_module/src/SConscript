@@ -17,8 +17,7 @@ env['NO_STARTUP'] = True
 
 asm_sources = ['gsm_utils.as', 'app_startup.as', 'mib/command_map.as', 'mib/mib12_api.as']
 
-srcfiles = asm_sources									\
-	+ Glob('./*.c') 									
+srcfiles = asm_sources + Glob('./*.c')									
 
 target = env.xc8('mib12_app_module.hex', srcfiles)
 
