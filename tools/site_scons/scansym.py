@@ -80,11 +80,3 @@ class XC8SymbolTable:
 			f.writelines(defs)
 			f.writelines(c_calls)
 			f.writelines(asm_calls)
-		
-tab = XC8SymbolTable(sys.argv[1])
-
-for x in tab.known_functions:
-	print x
-
-print "Total Size: %d" % tab.total_size
-tab.generate_h_file('out.h')

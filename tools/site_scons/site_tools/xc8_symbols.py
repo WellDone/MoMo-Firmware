@@ -2,7 +2,6 @@ import SCons.Builder
 import scansym
 
 def build_symbols(target, source, env):
-	print source
 	symtab = scansym.XC8SymbolTable(str(source[0]))
 	symtab.generate_h_file(str(target[0]))
 
