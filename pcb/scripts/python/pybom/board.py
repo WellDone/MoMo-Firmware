@@ -101,6 +101,9 @@ class Board:
 			writ.writerow([])
 
 			headers = ["Item", "Qty", "Reference Design", "Value", "Footprint", "Description", "Manufacturer", "Manu. Part", "Distributor", "Dist. Part"]
+			if include_costs:
+				headers += ['Unit Price', 'Line Price']
+
 			writ.writerow(headers)
 
 			for line in var:
@@ -123,9 +126,11 @@ class Board:
 					id = PartIdentifier(line[0])
 					if id.build_reference() in self.oracle:
 						price = self.oracle[id.build_reference()].best_price(quantity, in_stock=True, seller='Digi-Key', exclude_pkg=['Custom Reel'])
-						print "Line %d price: %s (%s, %s)" % (lineno, str(price[0]), price[1], price[2])
-					else:
-						print "Line %d not found in Octopart" % lineno
+						if price is not None:
+							unitprice = price[0]
+							lineprice = num*unitprice
+
+							row += [str(unitprice), str(lineprice)]
 
 				writ.writerow(row)
 
