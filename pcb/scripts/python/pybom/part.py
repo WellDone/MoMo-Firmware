@@ -41,7 +41,7 @@ class Part:
 		(manu, mpn) = find_mpn(elem, variant)
 		digipn = find_digipn(elem, variant)
 
-		if (mpn is not None and manu is not None) or digipn is not None:
+		if (mpn is not None and manu is not None) or (digipn is not None and digipn != ""):
 			return Part(name, pkg, digipn=digipn, mpn=mpn, manu=manu)
 
 		return None
