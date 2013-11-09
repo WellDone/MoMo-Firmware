@@ -7,6 +7,7 @@ from xml.etree import ElementTree
 from datetime import date
 from octopart.identifier import PartIdentifier
 from octopart.octopart import Octopart
+from reference import PCBReferenceLibrary
 
 class Board:
 	def __init__(self, name, file, variants, partname, width, height, revision):
@@ -76,6 +77,8 @@ class Board:
 	def export_bom(self, variant, file, include_costs=False, cost_quantity=1):
 		var = self.variants[variant]
 
+		lib = PCBReferenceLibrary()
+
 		lineno = 1
 
 		today = date.today()
@@ -103,7 +106,7 @@ class Board:
 			for line in var:
 				num = len(line)
 				refs = ", ".join(map(lambda x: x.name, line))
-				foot = line[0].package
+				foot = lib.find_package(line[0].package)[0]
 				value = line[0].value
 				manu = line[0].manu
 				mpn = line[0].mpn

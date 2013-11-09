@@ -1,5 +1,6 @@
 # MoMo Printed Circuit Boards
-This directory contains all of the MoMo PCB files
+This directory contains all of the MoMo PCB files as well as scripts used to convert them into production data.
+All boards must use EAGLE CAD for layout in order to be compatible with our production scripts.
 
 ## PCB Layout
 In the scripts/python directory are a set of tools used to automatically generate production files, BOMS 
