@@ -31,3 +31,6 @@ Every board must define the following global attributes.  These should be define
  * _REVISION_ - a tag specifying the revision level of the board
  * _PARTNAME_ - a name for the board that will be used to generate file names
 
+###Required Configuration
+In order to use thsee scripts you need to configure the location of the Eagle binary on your computer in /config/settings.local.json.  Use the template provided in 
+settings.global.json.  
