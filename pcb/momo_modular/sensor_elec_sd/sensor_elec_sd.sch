@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="4" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="no" active="no"/>
@@ -6391,7 +6391,9 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <part name="R1" library="rcl" deviceset="R-US_" device="R0603" value="10K">
 <attribute name="DIGIKEY-PN" value="P10KGCT-ND"/>
 </part>
-<part name="JP2" library="components" deviceset="MOMO-VERT-6M" device=""/>
+<part name="JP2" library="components" deviceset="MOMO-VERT-6M" device="">
+<attribute name="DIGIKEY-PN" value="S7004-ND"/>
+</part>
 <part name="P+2" library="supply1" deviceset="V+" device=""/>
 <part name="VCC4" library="supply1" deviceset="VCCINT" device=""/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
@@ -6505,7 +6507,9 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <instance part="R1" gate="G$1" x="15.24" y="17.78" rot="R90">
 <attribute name="DIGIKEY-PN" x="15.24" y="17.78" size="1.778" layer="96" rot="R90" display="off"/>
 </instance>
-<instance part="JP2" gate="G$1" x="-86.36" y="-15.24"/>
+<instance part="JP2" gate="G$1" x="-86.36" y="-15.24">
+<attribute name="DIGIKEY-PN" x="-86.36" y="-15.24" size="1.778" layer="96" display="off"/>
+</instance>
 <instance part="P+2" gate="1" x="-78.74" y="7.62"/>
 <instance part="VCC4" gate="G$1" x="-81.28" y="7.62"/>
 <instance part="GND3" gate="1" x="-81.28" y="-22.86"/>
