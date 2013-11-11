@@ -1422,6 +1422,27 @@ Metric Code Size 3216</description>
 </package>
 </packages>
 </library>
+<library name="pinhead">
+<description>&lt;b&gt;Pin Header Connectors&lt;/b&gt;&lt;p&gt;
+&lt;author&gt;Created by librarian@cadsoft.de&lt;/author&gt;</description>
+<packages>
+<package name="1X01">
+<description>&lt;b&gt;PIN HEADER&lt;/b&gt;</description>
+<wire x1="-0.635" y1="1.27" x2="0.635" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="1.27" x2="1.27" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="1.27" y1="0.635" x2="1.27" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="1.27" y1="-0.635" x2="0.635" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="-1.27" y1="0.635" x2="-1.27" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="1.27" x2="-1.27" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="-1.27" y1="-0.635" x2="-0.635" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="-1.27" x2="-0.635" y2="-1.27" width="0.1524" layer="21"/>
+<pad name="1" x="0" y="0" drill="1.016" shape="octagon"/>
+<text x="-1.3462" y="1.8288" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="-1.27" y="-3.175" size="1.27" layer="27">&gt;VALUE</text>
+<rectangle x1="-0.254" y1="-0.254" x2="0.254" y2="0.254" layer="51"/>
+</package>
+</packages>
+</library>
 </libraries>
 <attributes>
 <attribute name="HEIGHT" value="1.3"/>
@@ -1735,6 +1756,9 @@ design rules under a new name.</description>
 </element>
 <element name="JP5" library="components" package="SCREWTERM4" value="SCREWTERM4" x="11.2776" y="33.2232">
 <attribute name="DIGIKEY-PN" value="A98335-ND" x="11.2776" y="33.2232" size="1.016" layer="27" display="off"/>
+</element>
+<element name="JP6" library="pinhead" package="1X01" value="" x="6.2484" y="24.2316" smashed="yes">
+<attribute name="VALUE" x="4.9784" y="21.0566" size="1.27" layer="27"/>
 </element>
 </elements>
 <signals>
@@ -2087,10 +2111,17 @@ design rules under a new name.</description>
 <wire x1="12.446" y1="19.941" x2="12.446" y2="22.352" width="0.1524" layer="1"/>
 <wire x1="12.446" y1="22.352" x2="10.668" y2="22.352" width="0.1524" layer="1"/>
 <wire x1="10.668" y1="22.352" x2="10.668" y2="21.59" width="0.1524" layer="1"/>
-<wire x1="10.668" y1="21.59" x2="7.62" y2="21.59" width="0.1524" layer="1"/>
+<wire x1="10.668" y1="21.59" x2="9.7536" y2="21.59" width="0.1524" layer="1"/>
+<wire x1="9.4488" y1="21.59" x2="7.62" y2="21.59" width="0.1524" layer="1"/>
 <wire x1="7.62" y1="21.59" x2="7.62" y2="17.018" width="0.1524" layer="1"/>
 <wire x1="7.62" y1="17.018" x2="6.35" y2="17.018" width="0.1524" layer="1"/>
 <wire x1="6.35" y1="17.018" x2="6.5024" y2="17.106" width="0.1524" layer="1"/>
+<contactref element="JP6" pad="1"/>
+<wire x1="6.2484" y1="24.2316" x2="8.0772" y2="22.4028" width="0.1524" layer="16"/>
+<wire x1="8.0772" y1="22.4028" x2="9.7536" y2="22.4028" width="0.1524" layer="16"/>
+<via x="9.7536" y="22.4028" extent="1-16" drill="0.5"/>
+<wire x1="9.7536" y1="22.4028" x2="9.7536" y2="21.59" width="0.1524" layer="1"/>
+<wire x1="9.7536" y1="21.59" x2="9.4488" y2="21.59" width="0.1524" layer="1"/>
 </signal>
 <signal name="SCL">
 <contactref element="JP2" pad="3"/>
@@ -2224,10 +2255,9 @@ design rules under a new name.</description>
 </polygon>
 <contactref element="U3" pad="5"/>
 <wire x1="37.5056" y1="24.638" x2="35.554" y2="24.638" width="0.1524" layer="1"/>
-<wire x1="28.478" y1="19.7968" x2="29.8704" y2="19.7968" width="0.1524" layer="1"/>
-<wire x1="29.8704" y1="19.7968" x2="29.8704" y2="19.812" width="0.1524" layer="1"/>
-<wire x1="29.8704" y1="19.812" x2="37.5056" y2="19.812" width="0.1524" layer="1"/>
+<wire x1="28.478" y1="19.812" x2="37.5056" y2="19.812" width="0.1524" layer="1"/>
 <wire x1="37.5056" y1="19.812" x2="37.5056" y2="24.638" width="0.1524" layer="1"/>
+<wire x1="28.478" y1="19.812" x2="28.478" y2="19.7968" width="0.1524" layer="1"/>
 </signal>
 <signal name="ISENSE">
 <contactref element="U3" pad="3"/>
