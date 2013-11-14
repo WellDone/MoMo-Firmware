@@ -15,3 +15,5 @@ momo_modules/mib12_sdk/funclist
 momo_modules/pic12_executive/l.obj
 momo_modules/mib12_sdk/l.obj
 *.pyc
+funclist
+*.sconsign.dblite

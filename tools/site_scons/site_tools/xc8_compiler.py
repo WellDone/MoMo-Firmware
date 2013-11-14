@@ -46,7 +46,9 @@ def xc8_generator(source, target, env, for_signature):
 	return " ".join(args)
 
 def xc8_emit_int_files(target, source, env):
-	intfiles = map(lambda x: make_int_files(x), source)
+	targetdir = str(target[0].get_dir())
+
+	intfiles = map(lambda x: make_int_files(x, targetdir), source)
 
 	intfiles = reduce(lambda x,y: x+y, intfiles, [])
 
@@ -56,8 +58,8 @@ def xc8_emit_int_files(target, source, env):
 	if "NO_STARTUP" in env:
 		return target, source
 
-	target += ['startup.lst', 'startup.obj', 'startup.rlf']
-	target += ['startup.as']
+	target += map(lambda x: os.path.join(targetdir, x), ['startup.lst', 'startup.obj', 'startup.rlf'])
+	target += map(lambda x: os.path.join(targetdir, x), ['startup.as'])
 
 	return target, source
 
@@ -102,23 +104,26 @@ def make_ram(env):
 
 	return ['--RAM=%s' % ramstatement]
 
-def make_int_files(cfile):
+def make_int_files(cfile, folder):
 	"""
 	Given an Scons node representing a c or as file, create the xc8 intermediate targets
 	"""
 	name,ext = os.path.splitext(os.path.basename(str(cfile)))
 
-	if ext == ".c":
-		return [name + '.d', name + '.p1', name + '.pre']
-	elif ext == ".as":
-		return [name + '.d', name + '.lst', name + '.pre', name + '.obj', name + '.rlf']
+	ints = []
 
-	return []
+	if ext == ".c":
+		ints = [name + '.d', name + '.p1', name + '.pre']
+	elif ext == ".as":
+		ints = [name + '.d', name + '.lst', name + '.pre', name + '.obj', name + '.rlf']
+
+	return map(lambda x: os.path.join(folder, x), ints)
 
 def make_int_target_files(target):
 	name,ext = os.path.splitext(os.path.basename(str(target)))
+	outdir = str(target.get_dir())
 
-	return [name+'.as', name+'.cmf',name+'.cof',name+'.hxl',name+'.sdb',name+'.sym', name + '.lst', name + '.obj', name + '.rlf']
+	return map(lambda x: os.path.join(outdir, x), [name+'.as', name+'.cmf',name+'.cof',name+'.hxl',name+'.sdb',name+'.sym', name + '.lst', name + '.obj', name + '.rlf'])
 
 
 _xc8_hex = SCons.Builder.Builder(

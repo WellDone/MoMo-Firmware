@@ -4,15 +4,9 @@ incs = []
 incs.append('.')
 incs.append('src')
 incs.append('src/mib')
-incs.append('../shared/pic12/src')
-incs.append('../shared/portable/core')
-incs.append('../shared/portable/mib')
-incs.append('../shared/portable/mib/slave')
-incs.append('../shared/portable/mib/master')
-incs.append('../shared/portable/util')
 
 Import('env')
-env['INCLUDE'] = incs
+env['INCLUDE'] += incs
 
 asm_sources = ['flash_memory.as', 'i2c_utilities.as', 'watchdog_asm.as']
 

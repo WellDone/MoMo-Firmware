@@ -1,7 +1,8 @@
 import os
+import pic12_unit
 import utilities
 
-def build_exec_for_chip(chip, define):
+def build_exec_for_chip(chip):
 	"""
 	Configure Scons to build the MIB12 Executive for the 8bit pic microchip indicated in the arguments.
 	"""
@@ -11,56 +12,18 @@ def build_exec_for_chip(chip, define):
 
 	env = Environment(tools=['xc8_compiler', 'patch_mib12', 'xc8_symbols'], ENV = os.environ)
 	env.AppendENVPath('PATH','../../tools/scripts')
-	env['CHIP'] = chip
-	env['CHIPDEFINE'] = define
 	
 	#Load in all of the xc8 configuration from build_settings
 	mib12conf = utilities.MIB12Config()
-	mib12conf.config_env_for_exec(env)
+	mib12conf.config_env_for_exec(env, chip)
 
 	Export('env')
 	SConscript(os.path.join(builddir, 'SConscript'))
 
 	return [os.path.join(builddir, 'mib12_executive_patched.hex'), os.path.join(builddir, 'mib12_executive_symbols.h')]
 
-def build_exec_unittest(test_files, chip, define):
-	"""
-	Build the unit test described by the source files test_files
-	"""
-
-	builddir = os.path.join('build', chip)
-	testdir = os.path.join('build', 'test', chip)
-	
-	env = Environment(tools=['xc8_compiler', 'patch_mib12', 'merge_mib12_app'], ENV = os.environ)
-	env.AppendENVPath('PATH','../../tools/scripts')
-	env['CHIP'] = chip
-	env['CHIPDEFINE'] = define
-
-	incs = []
-	incs.append('.')
-	incs.append('src')
-	incs.append('src/mib')
-	incs.append('../shared/pic12/src')
-	incs.append('../shared/portable/core')
-	incs.append('../shared/portable/mib')
-	incs.append('../shared/portable/mib/slave')
-	incs.append('../shared/portable/mib/master')
-	incs.append('../shared/portable/util')
-
-	env['INCLUDE'] = incs
-	
-	#Load in all of the xc8 configuration from build_settings
-	mib12conf = utilities.MIB12Config()
-	mib12conf.config_env_for_app(env)
-
-	srcfiles = ['../shared/pic12/test/mib12_exec_unittest.c', '../shared/pic12/test/mib12_exec_unittest_startup.as']
-
-	apphex = env.xc8(os.path.join(testdir, 'test_app.hex'), srcfiles)
-	outhex = env.merge_mib12_app(os.path.join(testdir, 'test_combined.hex'), [os.path.join(builddir, 'mib12_executive_patched.hex'), apphex])
-
-
-exec16 = build_exec_for_chip('16F1823', '__PIC16LF1823__')
-exec12 = build_exec_for_chip('12F1822', '__PIC12LF1822__')
+exec16 = build_exec_for_chip('16LF1823')
+exec12 = build_exec_for_chip('12LF1822')
 
 env = Environment()
 
@@ -70,6 +33,6 @@ env.InstallAs(os.path.join('build', 'output', 'mib12_symbols_16lf1823.h'), exec1
 env.InstallAs(os.path.join('build', 'output', 'mib12_executive_12lf1822.hex'), exec12[0])
 env.InstallAs(os.path.join('build', 'output', 'mib12_symbols_12lf1822.h'), exec12[1])
 
-build_exec_unittest([], '16F1823', '__PIC16LF1823__')
+pic12_unit.build_exec_unittest([], 'fake', '16LF1823')
 
 Default(os.path.join('build', 'output'))

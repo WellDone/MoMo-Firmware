@@ -1,0 +1,6 @@
+{
+	"external_tools":
+	{
+		"eagle": "/opt/eagle-6.5.0/bin/eagle"
+	}
+}
