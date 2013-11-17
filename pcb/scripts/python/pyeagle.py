@@ -176,3 +176,5 @@ def zipfab(path, output):
 	zip.close()
 
 build_production('/home/timburke/src/welldone/MoMo-Firmware/pcb/momo_modular/sensor_elec_sd/sensor_elec_sd.brd','/home/timburke/Dropbox/Shared - Other People/MoMo Core Hardware/sensor_elec_sd')
+build_production('/home/timburke/src/welldone/MoMo-Firmware/pcb/momo_modular/gsm_communication/gsm_module.brd','/home/timburke/Dropbox/Shared - Other People/MoMo Core Hardware/gsm_module')
+build_production('/home/timburke/src/welldone/MoMo-Firmware/pcb/momo_modular/combined_controller/battery_controller.brd','/home/timburke/Dropbox/Shared - Other People/MoMo Core Hardware/controller')

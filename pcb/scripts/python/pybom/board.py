@@ -66,7 +66,8 @@ class Board:
 			pn = line[0].digipn
 			if pn is None or pn == "":
 				ignored.append(line[0].name)
-
+				continue
+				
 			export += [pn]*len(line)
 
 		print "Ignoring Parts"
