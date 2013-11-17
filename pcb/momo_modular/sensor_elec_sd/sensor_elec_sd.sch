@@ -6439,7 +6439,7 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 </part>
 <part name="VCC3" library="supply1" deviceset="VCCINT" device=""/>
 <part name="R1" library="rcl" deviceset="R-US_" device="R0603" value="10K">
-<attribute name="DIGIKEY-PN" value="P10KGCT-ND"/>
+<attribute name="DIGIKEY-PN" value="P10.0KHCT-ND"/>
 </part>
 <part name="JP2" library="components" deviceset="MOMO-VERT-6M" device="">
 <attribute name="DIGIKEY-PN" value="S7004-ND"/>
@@ -6450,7 +6450,7 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <part name="GND4" library="supply1" deviceset="GND" device=""/>
 <part name="U3" library="components" deviceset="TS1100" device=""/>
 <part name="R2" library="rcl" deviceset="R-US_" device="R2512" value="0.001R">
-<attribute name="DIGKEY-PN" value="CRF2512-FV-R001ELFCT-ND"/>
+<attribute name="DIGIKEY-PN" value="CRF2512-FV-R001ELFCT-ND"/>
 </part>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
 <part name="C4" library="rcl" deviceset="C-US" device="C0402K" value="47 nF">
@@ -6459,16 +6459,28 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
 <part name="JP3" library="components" deviceset="5MM-SCREWTERM-2POS" device=""/>
 <part name="C5" library="rcl" deviceset="C-US" device="C0402K" value="100 nF">
-<attribute name="DIGKIEY-PN" value="445-1265-1-ND"/>
+<attribute name="DIGIKEY-PN" value="445-1265-1-ND"/>
 </part>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
 <part name="VCC5" library="supply1" deviceset="VCCINT" device=""/>
-<part name="R3" library="rcl" deviceset="R-US_" device="R0603"/>
-<part name="R4" library="rcl" deviceset="R-US_" device="R0603"/>
-<part name="R5" library="rcl" deviceset="R-US_" device="R0603"/>
-<part name="R6" library="rcl" deviceset="R-US_" device="R0603"/>
-<part name="R7" library="rcl" deviceset="R-US_" device="R0603"/>
-<part name="R8" library="rcl" deviceset="R-US_" device="R0603"/>
+<part name="R3" library="rcl" deviceset="R-US_" device="R0603" value="620K 1%">
+<attribute name="DIGIKEY-PN" value="P620KHCT-ND"/>
+</part>
+<part name="R4" library="rcl" deviceset="R-US_" device="R0603" value="100K 1%">
+<attribute name="DIGIKEY-PN" value="P100KHCT-ND"/>
+</part>
+<part name="R5" library="rcl" deviceset="R-US_" device="R0603" value="620K 1%">
+<attribute name="DIGIKEY-PN" value="P620KHCT-ND"/>
+</part>
+<part name="R6" library="rcl" deviceset="R-US_" device="R0603" value="100K 1%">
+<attribute name="DIGIKEY-PN" value="P100KHCT-ND"/>
+</part>
+<part name="R7" library="rcl" deviceset="R-US_" device="R0603" value="806K 1%">
+<attribute name="DIGIKEY-PN" value="P806KHCT-ND"/>
+</part>
+<part name="R8" library="rcl" deviceset="R-US_" device="R0603" value="100K 1%">
+<attribute name="DIGIKEY-PN" value="P100KHCT-ND"/>
+</part>
 <part name="C6" library="rcl" deviceset="C-US" device="C0402K" value="100 nF">
 <attribute name="DIGIKEY-PN" value="445-1265-1-ND"/>
 </part>
@@ -6482,7 +6494,7 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
 <part name="R11" library="rcl" deviceset="R-US_" device="R0603" value="100K">
-<attribute name="DIGIKEY-PN" value="P100KGCT-ND"/>
+<attribute name="DIGIKEY-PN" value="P100KHCT-ND"/>
 </part>
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
 <part name="C9" library="rcl" deviceset="C-US" device="C1206K" value="22 uF">
@@ -6568,7 +6580,7 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <instance part="GND4" gate="1" x="15.24" y="-27.94"/>
 <instance part="U3" gate="G$1" x="-78.74" y="45.72"/>
 <instance part="R2" gate="G$1" x="-76.2" y="66.04">
-<attribute name="DIGKEY-PN" x="-76.2" y="66.04" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN" x="-76.2" y="66.04" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="GND5" gate="1" x="-76.2" y="33.02"/>
 <instance part="C4" gate="G$1" x="-58.42" y="45.72">
@@ -6577,16 +6589,28 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <instance part="GND6" gate="1" x="-58.42" y="33.02"/>
 <instance part="JP3" gate="G$1" x="-55.88" y="73.66"/>
 <instance part="C5" gate="G$1" x="-2.54" y="68.58">
-<attribute name="DIGKIEY-PN" x="-2.54" y="68.58" size="1.778" layer="96" display="off"/>
+<attribute name="DIGIKEY-PN" x="-2.54" y="68.58" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="GND7" gate="1" x="-2.54" y="60.96"/>
 <instance part="VCC5" gate="G$1" x="-2.54" y="73.66"/>
-<instance part="R3" gate="G$1" x="-88.9" y="-55.88" rot="R90"/>
-<instance part="R4" gate="G$1" x="-88.9" y="-66.04" rot="R90"/>
-<instance part="R5" gate="G$1" x="-73.66" y="-55.88" rot="R90"/>
-<instance part="R6" gate="G$1" x="-73.66" y="-66.04" rot="R90"/>
-<instance part="R7" gate="G$1" x="-58.42" y="-55.88" rot="R90"/>
-<instance part="R8" gate="G$1" x="-58.42" y="-66.04" rot="R90"/>
+<instance part="R3" gate="G$1" x="-88.9" y="-55.88" rot="R90">
+<attribute name="DIGIKEY-PN" x="-88.9" y="-55.88" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
+<instance part="R4" gate="G$1" x="-88.9" y="-66.04" rot="R90">
+<attribute name="DIGIKEY-PN" x="-88.9" y="-66.04" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
+<instance part="R5" gate="G$1" x="-73.66" y="-55.88" rot="R90">
+<attribute name="DIGIKEY-PN" x="-73.66" y="-55.88" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
+<instance part="R6" gate="G$1" x="-73.66" y="-66.04" rot="R90">
+<attribute name="DIGIKEY-PN" x="-73.66" y="-66.04" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
+<instance part="R7" gate="G$1" x="-58.42" y="-55.88" rot="R90">
+<attribute name="DIGIKEY-PN" x="-58.42" y="-55.88" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
+<instance part="R8" gate="G$1" x="-58.42" y="-66.04" rot="R90">
+<attribute name="DIGIKEY-PN" x="-58.42" y="-66.04" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
 <instance part="C6" gate="G$1" x="-83.82" y="-66.04">
 <attribute name="DIGIKEY-PN" x="-83.82" y="-66.04" size="1.778" layer="96" display="off"/>
 </instance>
