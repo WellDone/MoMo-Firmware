@@ -4,6 +4,7 @@
 
 import json
 import os.path
+import re
 
 data_filename = 'library.json'
 data_file = os.path.join(os.path.dirname(__file__), 'resources', data_filename)
@@ -14,6 +15,9 @@ class PCBReferenceLibrary:
 			self.lib = json.load(f)
 
 		self._import_packages()
+		self._import_descriptions()
+		self.valued_types = set(self.lib["types_with_values"])
+		self._alpha_re = re.compile(r"^[a-zA-Z]*")
 
 	def _import_packages(self):
 		pkgs = self.lib['footprint_names']
@@ -22,6 +26,44 @@ class PCBReferenceLibrary:
 
 		for name,val in pkgs.iteritems():
 			self.packages[name] = set(val)
+
+	def _import_descriptions(self):
+		self.descs = self.lib['description_templates']
+
+	def find_description(self, name, value):
+		"""
+		Look to see if there is a template for generating the description
+		of this piece based on its reference type R, C, etc and its value
+		"""
+		t = self._alpha_re.match(name)
+
+		if t is None:
+			return None
+
+		cat = t.group(0)
+
+		if cat in self.descs:
+			return self.descs[cat].format(value=value)
+		
+		return None
+
+	def has_value(self, name):
+		"""
+		Look up if this type has a meaningful value and return True if so, 
+		otherwise False.
+		"""
+		
+		t = self._alpha_re.match(name)
+
+		if t is None:
+			return False
+
+		cat = t.group(0)
+
+		if cat in self.valued_types:
+			return True
+
+		return False
 
 	def find_package(self, pkg):
 		"""

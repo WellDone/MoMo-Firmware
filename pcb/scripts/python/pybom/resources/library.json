@@ -8,5 +8,14 @@
 		"SMD 0805" : ["0805", "C0805", "C0805K"],
 		"SMD 6028" : ["NR6028-INDUCTOR"],
 		"Through Hole" : ["1X06", "MOMO-EDGE-8F", "MOMO-EDGE-SMALL-2M"]
-	}
+	},
+
+	"description_templates":
+	{
+		"R": "{value} Resistor",
+		"C": "{value} Capacitor",
+		"L": "{value} Inductor"
+	},
+
+	"types_with_values": ["C", "R", "L"]
 }

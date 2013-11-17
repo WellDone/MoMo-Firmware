@@ -15,6 +15,10 @@ be left blank or non existent
  * _MPN_ - This is the Manufacturer's part number for the part.  Either MPN or DIGIKEY-PN must be set for every part on the board that
 should be populated.
  * _MANU_ - The manufacturer's name.  If MPN is used to specify the part, MANU should be specified as well.
+ * _FOOTPRINT_ - If the part does not have a standard SMD footprint link 0402, 0603, etc, they FOOTPRINT should be explicitly defined so
+ that it can be used to create a BOM automatically.  If this is a through hole part, the footprint should be given as "Through Hole"
+ * _DESCRIPTION_ - If the part canot have a generic description made for it (currently only works for Resistors, Capacitors and Inductors)
+ then the explicit description should be given in this attribute.
 
 ###Assembly Variants
 If a board can be assembled in various ways, this should be indicated by creating various assembly variants.  An assembly variant can 

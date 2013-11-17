@@ -5807,7 +5807,9 @@ body 3.9 mm/JEDEC MS-012AC</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="2 position screw terminal" constant="no"/>
 <attribute name="DIGIKEY-PN" value="277-1667-ND"/>
+<attribute name="FOOTPRINT" value="Through Hole" constant="no"/>
 </technology>
 </technologies>
 </device>

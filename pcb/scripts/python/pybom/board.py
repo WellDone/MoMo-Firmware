@@ -67,7 +67,7 @@ class Board:
 			if pn is None or pn == "":
 				ignored.append(line[0].name)
 				continue
-				
+
 			export += [pn]*len(line)
 
 		print "Ignoring Parts"
@@ -116,7 +116,7 @@ class Board:
 				mpn = line[0].mpn
 				distpn = line[0].digipn
 				dist = ""
-				descr = ""
+				descr = line[0].desc
 				if distpn:
 					dist = "Digikey"
 

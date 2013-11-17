@@ -9012,7 +9012,7 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <attribute name="DIGIKEY-PN-BATT" value="P100KHCT-ND"/>
 <attribute name="DIGIKEY-PN-EXTPOWER" value="P100KHCT-ND"/>
 </part>
-<part name="L1" library="components" deviceset="NR6028-INDUCTOR" device="" value="4.7 uF">
+<part name="L1" library="components" deviceset="NR6028-INDUCTOR" device="" value="4.7 uH">
 <attribute name="DIGIKEY-PN-BATT" value="587-2100-1-ND"/>
 <attribute name="DIGIKEY-PN-EXTPOWER" value="587-2100-1-ND"/>
 </part>

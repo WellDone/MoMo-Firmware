@@ -1,6 +1,7 @@
 #part.py
 
 import re
+import reference
 
 known_types = {
 	"C": "capacitor",
@@ -22,6 +23,8 @@ class Part:
 	An electronic component.
 	"""
 
+	ref = reference.PCBReferenceLibrary()
+
 	@staticmethod
 	def FromBoardElement(elem, variant):
 		"""
@@ -38,15 +41,23 @@ class Part:
 		name = elem.get('name', 'Unnamed')
 		value = elem.get('value', 'No Value')
 
+		#allow overriding this package with a custom attribute
+		pkg = find_attribute(elem, 'FOOTPRINT', variant, pkg)
+		desc = find_attribute(elem, 'DESCRIPTION', variant, None)	
+
+		#Only keep the value for part types where that is meaningful
+		if not Part.ref.has_value(name):
+			value = None
+
 		(manu, mpn) = find_mpn(elem, variant)
 		digipn = find_digipn(elem, variant)
 
 		if (mpn is not None and manu is not None) or (digipn is not None and digipn != ""):
-			return Part(name, pkg, digipn=digipn, mpn=mpn, manu=manu)
+			return Part(name, pkg, digipn=digipn, mpn=mpn, manu=manu, value=value, desc=desc)
 
 		return None
 
-	def __init__(self, name, package, mpn=None, manu=None, digipn=None, value=None):
+	def __init__(self, name, package, mpn=None, manu=None, digipn=None, value=None, desc=None):
 		"""
 		Create a part object from the data passed
 		"""
@@ -57,6 +68,11 @@ class Part:
 		self.manu = manu
 		self.value = value
 		self.digipn = digipn
+		self.desc = desc
+
+		#If no description is given try creating a generic one based on the type of the part (resistor, etc)
+		if self.desc is None:
+			self.desc = Part.ref.find_description(self.name, self.value)
 
 	def _parse_type(self, type):
 		refs = type.split(',')
@@ -82,6 +98,23 @@ def attrib_name(name, variant):
 		return name
 
 	return name + '-' + variant
+
+def find_attribute(part, name, variant, default=None):
+	"""
+	Find the attribute corresponding the given variant, or if that doesn't exist, 
+	the value corresponding to MAIN, otherwise return the given default
+	"""
+
+	attrib_var = part.find("./attribute[@name='%s']" % attrib_name(name, variant))
+	attrib_main = part.find("./attribute[@name='%s']" % attrib_name(name, 'MAIN'))
+
+	if attrib_var is not None:
+		return attrib_var.get('value')
+
+	if attrib_main is not None:
+		return attrib_main.get('value')
+
+	return default
 
 def find_mpn(part, variant):
 	"""
