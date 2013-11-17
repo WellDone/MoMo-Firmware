@@ -9,10 +9,16 @@ import os.path
 import os
 from pybom.board import Board
 import zipfile
+import importlib
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'tools', 'python'))
+import momo_utilities.config
+
+settings = momo_utilities.config.ConfigFile('settings')
 
 def execute_eagle(args):
-	#TODO: replace this with a config file
-	eagle = '/Applications/EAGLE-6.4.0/EAGLE.app/Contents/MacOS/EAGLE'
+	eagle = settings['external_tools/eagle']
 
 	with open(os.devnull, 'wb') as DEVNULL:
 		subprocess.check_call([eagle] + args, stdout=DEVNULL, stderr=DEVNULL)
@@ -169,4 +175,6 @@ def zipfab(path, output):
 
 	zip.close()
 
-build_production('/Users/timburke/Projects/MoMo-Firmware/pcb/momo_modular/combined_controller/battery_controller.brd','/Users/timburke/Desktop/')
+build_production('/home/timburke/src/welldone/MoMo-Firmware/pcb/momo_modular/sensor_elec_sd/sensor_elec_sd.brd','/home/timburke/Dropbox/Shared - Other People/MoMo Core Hardware/sensor_elec_sd')
+build_production('/home/timburke/src/welldone/MoMo-Firmware/pcb/momo_modular/gsm_communication/gsm_module.brd','/home/timburke/Dropbox/Shared - Other People/MoMo Core Hardware/gsm_module')
+build_production('/home/timburke/src/welldone/MoMo-Firmware/pcb/momo_modular/combined_controller/battery_controller.brd','/home/timburke/Dropbox/Shared - Other People/MoMo Core Hardware/controller')

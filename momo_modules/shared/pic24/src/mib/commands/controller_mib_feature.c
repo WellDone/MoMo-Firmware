@@ -13,9 +13,7 @@ static unsigned int module_count = 0;
 
 void get_module_count(void)
 {	
-	plist_set_int16(0, module_count);
-	
-	bus_slave_setreturn(pack_return_status(kNoMIBError, kIntSize));
+	bus_slave_return_int16( module_count );
 }
 
 void register_module(void)
@@ -24,14 +22,13 @@ void register_module(void)
 	     || plist_get_buffer_length() != sizeof( momo_module_descriptor ) )
 	{
 		//TODO: Better error granularity
-		bus_slave_seterror( kCallbackError );
+		bus_slave_seterror( kCallbackError ); //TODO: User error
 		return;
 	}
 
-	memcpy( (void*)(&the_modules[module_count]), plist_get_buffer(0), plist_get_buffer_length() );
+	memcpy( (void*)(&the_modules[module_count]), plist_get_buffer(0), sizeof( momo_module_descriptor ) );
 
-	plist_set_int16( 0, MODULE_BASE_ADDRESS + module_count );
-	bus_slave_setreturn( pack_return_status(kNoMIBError, kIntSize) );
+	bus_slave_return_int16( MODULE_BASE_ADDRESS + module_count );
 	++module_count;
 }
 
@@ -40,13 +37,11 @@ void describe_module(void)
 	unsigned long index = plist_get_int16(0);
 	if ( index >= module_count )
 	{
-		bus_slave_seterror( kCallbackError );
+		bus_slave_seterror( kCallbackError ); //TODO: User error
 		return;
 	}
-
-	memcpy( (void*) plist_get_buffer(0), &the_modules[index], sizeof(momo_module_descriptor) );
 	
-	bus_slave_setreturn( pack_return_status( kNoMIBError, sizeof(momo_module_descriptor) ) );
+	bus_slave_return_buffer( (const char*)&the_modules[index], sizeof(momo_module_descriptor) );
 }
 
 void cleanup_unresponsive_modules() // Schedule periodically

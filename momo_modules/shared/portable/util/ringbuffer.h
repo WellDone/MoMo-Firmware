@@ -22,8 +22,9 @@ typedef struct
 void ringbuffer_create(ringbuffer *out, void *data, unsigned int size, unsigned int length);
 void ringbuffer_push(ringbuffer *buf, void *data);
 void ringbuffer_pop(ringbuffer *buf, void *out);
-unsigned int ringbuffer_empty(ringbuffer *buf);
-unsigned int ringbuffer_full(ringbuffer *buf);
+void* ringbuffer_peek(ringbuffer *buf);
+bool ringbuffer_empty(ringbuffer *buf);
+bool ringbuffer_full(ringbuffer *buf);
 void ringbuffer_reset(ringbuffer *buf);
 
 #endif

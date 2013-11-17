@@ -140,7 +140,7 @@ static void std_rx_callback( UARTPort port, char data );
 static inline void std_rx_callback_task( UARTPort port ) {
     UART_STATUS* stat = STAT(port);
 
-    stat->rx_newline_callback( stat->rx_linebuffer, stat->rx_linebuffer_cursor-stat->rx_linebuffer, stat->rx_linebuffer_remaining == 0 );
+    stat->rx_newline_callback( (char*)stat->rx_linebuffer, stat->rx_linebuffer_cursor-stat->rx_linebuffer, stat->rx_linebuffer_remaining == 0 );
     // It is up to the caller to clear out the buffer and re-register the callback.
 }
 static void std_rx_callback_task_U1() {
@@ -306,7 +306,7 @@ void sendf(UARTPort port, const char *fmt, ...)
 
     // This is a hack, but it works.
     ringbuffer_reset( &stat->send_buffer );
-    stat->send_buffer.end += sprintf_small(stat->send_buffer_data, UART_BUFFER_SIZE, fmt, argp);
+    stat->send_buffer.end += sprintf_small((char*)stat->send_buffer_data, UART_BUFFER_SIZE, fmt, argp);
 
     va_end(argp);
 

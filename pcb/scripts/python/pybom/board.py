@@ -5,6 +5,9 @@ import itertools
 from part import Part
 from xml.etree import ElementTree
 from datetime import date
+from octopart.identifier import PartIdentifier
+from octopart.octopart import Octopart
+from reference import PCBReferenceLibrary
 
 class Board:
 	def __init__(self, name, file, variants, partname, width, height, revision):
@@ -20,19 +23,6 @@ class Board:
 		self.height = height
 		self.revision = revision
 
-	def _process_variant(self, parts):
-		"""
-		Group items by unique key and return tuples of identical parts
-		"""
-
-		bomitems = []
-
-		sparts = sorted(parts, key=lambda x:x.unique_id())
-		for k,g in itertools.groupby(sparts, lambda x:x.unique_id()):
-			bomitems.append(list(g))
-
-		return bomitems
-
 	def list_variants(self):
 		print "Assembly Variants"
 
@@ -45,6 +35,23 @@ class Board:
 		print "Variant", key
 		for v in var:
 			print map(lambda x: x.name, v)
+
+	def get_unique_parts(self):
+		parts = {}
+
+		for v in self.variants.iterkeys():
+			for line in self.variants[v]:
+				part = PartIdentifier(line[0])
+				parts[part.build_reference()] = part
+
+		return parts
+
+	def lookup_parts(self):
+		parts = self.get_unique_parts()
+
+		op = Octopart()
+
+		self.oracle = op.match_identifiers(parts.values())
 
 	def export_list(self, variant):
 		"""
@@ -59,6 +66,7 @@ class Board:
 			pn = line[0].digipn
 			if pn is None or pn == "":
 				ignored.append(line[0].name)
+				continue
 
 			export += [pn]*len(line)
 
@@ -67,12 +75,17 @@ class Board:
 
 		return export
 
-	def export_bom(self, variant, file):
+	def export_bom(self, variant, file, include_costs=False, cost_quantity=1):
 		var = self.variants[variant]
+
+		lib = PCBReferenceLibrary()
 
 		lineno = 1
 
 		today = date.today()
+
+		if include_costs:
+			self.lookup_parts()
 
 		with open(file, "wb") as bom:
 			writ = csv.writer(bom)
@@ -81,26 +94,44 @@ class Board:
 			writ.writerow(["BOM: %s (%s)" % (self.partname, variant)])
 			writ.writerow(["Revision: %s" % self.revision])
 			writ.writerow(['Date Created: %s' % (today.strftime('%x'))])
+
+			if include_costs:
+				writ.writerow(['Costs calculated for %d units' % cost_quantity])
+
 			writ.writerow([])
 			writ.writerow([])
 
 			headers = ["Item", "Qty", "Reference Design", "Value", "Footprint", "Description", "Manufacturer", "Manu. Part", "Distributor", "Dist. Part"]
+			if include_costs:
+				headers += ['Unit Price', 'Line Price']
+
 			writ.writerow(headers)
 
 			for line in var:
 				num = len(line)
 				refs = ", ".join(map(lambda x: x.name, line))
-				foot = line[0].package
+				foot = lib.find_package(line[0].package)[0]
 				value = line[0].value
 				manu = line[0].manu
 				mpn = line[0].mpn
 				distpn = line[0].digipn
 				dist = ""
-				descr = ""
+				descr = line[0].desc
 				if distpn:
 					dist = "Digikey"
 
 				row = [lineno, num, refs, value, foot, descr, manu, mpn, dist, distpn]
+
+				if include_costs:
+					quantity = num*cost_quantity
+					id = PartIdentifier(line[0])
+					if id.build_reference() in self.oracle:
+						price = self.oracle[id.build_reference()].best_price(quantity, in_stock=True, seller='Digi-Key', exclude_pkg=['Custom Reel'])
+						if price is not None:
+							unitprice = price[0]
+							lineprice = num*unitprice
+
+							row += [str(unitprice), str(lineprice)]
 
 				writ.writerow(row)
 
@@ -174,6 +205,20 @@ class Board:
 							width=find_attribute(root, 'WIDTH'),
 							height=find_attribute(root, 'HEIGHT'),
 							revision=find_attribute(root, 'REVISION'))
+
+	def _process_variant(self, parts):
+		"""
+		Group items by unique key and return tuples of identical parts
+		"""
+
+		bomitems = []
+
+		sparts = sorted(parts, key=lambda x:x.unique_id())
+		for k,g in itertools.groupby(sparts, lambda x:x.unique_id()):
+			bomitems.append(list(g))
+
+		return bomitems
+
 
 def remove_prefix(s, prefix):
 	if not s.startswith(prefix):

@@ -40,9 +40,7 @@ void push_firmware_start(void)
 
 	firmware_push_started = true;
 
-	plist_set_int16( 0, index ); // We expect the caller to use this new offset to call us again with the next chunk
-
-	bus_slave_setreturn( pack_return_status( kNoMIBError, kIntSize ) );
+	bus_slave_return_int16( index ); // We expect the caller to use this new offset to call us again with the next chunk
 }
 
 void push_firmware_chunk(void)
@@ -67,7 +65,6 @@ void push_firmware_chunk(void)
 			_RA0 = 0;
 			firmware_push_started = false;
 			*/
-			bus_slave_setreturn( pack_return_status(kNoMIBError, 0) );
 			return;
 		}
 		if ( addr+length > the_firmware_buckets[firmware_bucket_count].firmware_length )
@@ -93,13 +90,11 @@ void push_firmware_chunk(void)
 		++firmware_bucket_count;
 		firmware_push_started = false;
 	}
-	bus_slave_setreturn( pack_return_status(kNoMIBError, 0) );
 }
 
 void push_firmware_cancel(void)
 {
 	firmware_push_started = false;
-	bus_slave_setreturn( kNoMIBError );
 }
 
 void get_firmware_info(void)
@@ -113,7 +108,7 @@ void get_firmware_info(void)
 	plist_set_int16( 1, the_firmware_buckets[index].firmware_length >> 16 );
 	plist_set_int16( 2, the_firmware_buckets[index].firmware_length & 0xFFFF );
 
-	bus_slave_setreturn( pack_return_status( kNoMIBError, 3*kIntSize ) );
+	bus_slave_set_returnbuffer_length( 3*kIntSize ); // TODO: Is there a better way to return multiple ints?
 }
 void pull_firmware_chunk(void)
 {
@@ -140,21 +135,18 @@ void pull_firmware_chunk(void)
 		return;
 	}
 
-	bus_slave_setreturn( pack_return_status( kNoMIBError, ret_size ) );
+	bus_slave_set_returnbuffer_length( ret_size );
 }
 
 void get_firmware_count(void)
 {
-	plist_set_int16( 0, firmware_bucket_count );
-	bus_slave_setreturn( pack_return_status( kNoMIBError, kIntSize ) );
+	bus_slave_return_int16( firmware_bucket_count );
 }
 
 void clear_firmware_cache(void)
 {
 	firmware_bucket_count = 0;
 	firmware_push_started = false;
-	
-	bus_slave_setreturn( pack_return_status( kNoMIBError, 0 ) );	
 }
 DEFINE_MIB_FEATURE_COMMANDS(firmware_cache) {
 	{0x00, push_firmware_start, plist_spec( 1, false ) },

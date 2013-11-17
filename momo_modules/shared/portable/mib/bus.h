@@ -6,11 +6,6 @@
 #include "i2c.h"
 #include "protocol.h"
 
-#define kControllerPICAddress	0x08
-
-//Callback type for master rpc routines
-typedef 	void (*mib_rpc_function)(unsigned char);
-
 //Bus error codes that can be returned
 enum
 {

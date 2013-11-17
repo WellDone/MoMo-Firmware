@@ -7,7 +7,7 @@
 void 			bus_master_callback();
 #ifndef _PIC12
 void 			bus_master_rpc_async(mib_rpc_function callback, unsigned char address, unsigned char feature, unsigned char cmd, unsigned char spec);
-
+void      bus_master_init();
 #else
 #define			bus_master_prepare(ftr, cmd, spc)  			\
 				{											\

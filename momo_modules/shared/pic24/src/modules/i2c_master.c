@@ -107,7 +107,7 @@ void __attribute__((interrupt,no_auto_psv)) _MI2C1Interrupt()
 
 		case kI2CUserCallbackState:
 		//This data is now sent or received, we need to execute the callback to see what to do next
-		taskloop_add(i2c_callback); //It is the job of the user callback to decide whether to 
+		taskloop_add_critical(i2c_callback); //It is the job of the user callback to decide whether to 
 		break;
 
 		case kI2CIdleState:

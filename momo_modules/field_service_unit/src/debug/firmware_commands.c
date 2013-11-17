@@ -26,7 +26,7 @@ static void parse_firmware_line(char* buf, int len, bool overflown)
         print( ")\n" );
 
         // CANCEL.  TODO: Wait for return before indicating failure on UART
-        bus_master_rpc_async( NULL, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x02, plist_empty() );
+        bus_master_rpc_async( NULL, kMIBControllerAddress, MIB_FEATURE_ID(firmware_cache), 0x02, plist_empty() );
 
         set_command_result( false );
         return;
@@ -58,7 +58,7 @@ static void push_more_firmware()
     if ( firmwareChunk.body.record_type == HEX_EOF_REC )
         firmware_done = true;
     memcpy( plist_get_buffer( 0 ), (char*)&(firmwareChunk.body), (unsigned int)sizeof(intel_hex16_body) );
-    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x01, plist_with_buffer(0,(firmwareChunk.data_length+3)) );
+    bus_master_rpc_async( push_firmware_callback, kMIBControllerAddress, MIB_FEATURE_ID(firmware_cache), 0x01, plist_with_buffer(0,(firmwareChunk.data_length+3)) );
 }
 
 CommandStatus handle_push_firmware(command_params* params)
@@ -76,7 +76,7 @@ CommandStatus handle_push_firmware(command_params* params)
     firmware_done = false;
 
     plist_set_int16( 0, type );
-    bus_master_rpc_async( push_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x00, plist_ints(1) );
+    bus_master_rpc_async( push_firmware_callback, kMIBControllerAddress, MIB_FEATURE_ID(firmware_cache), 0x00, plist_ints(1) );
     return kPending;
 }
 
@@ -102,7 +102,7 @@ void pull_firmware_callback(unsigned char a)
     {
         plist_set_int16( 0, current_index );
         plist_set_int16( 1, current_offset );
-        bus_master_rpc_async( pull_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x04, plist_no_buffer(2) );
+        bus_master_rpc_async( pull_firmware_callback, kMIBControllerAddress, MIB_FEATURE_ID(firmware_cache), 0x04, plist_no_buffer(2) );
     } else {
         set_command_result(true);
     }
@@ -124,6 +124,6 @@ CommandStatus handle_pull_firmware(command_params* params)
     current_offset = 0;
     plist_set_int16( 0, current_index );
     plist_set_int16( 1, current_offset );
-    bus_master_rpc_async( pull_firmware_callback, kControllerPICAddress, MIB_FEATURE_ID(firmware_cache), 0x04, plist_no_buffer(2) );
+    bus_master_rpc_async( pull_firmware_callback, kMIBControllerAddress, MIB_FEATURE_ID(firmware_cache), 0x04, plist_no_buffer(2) );
     return kPending;
 }

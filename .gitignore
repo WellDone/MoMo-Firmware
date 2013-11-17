@@ -12,6 +12,7 @@ dist
 .DS_Store
 momo_modules/shared/pic12/*.obj
 l.obj
+config/*.local.json
 *.pyc
 funclist
 *.sconsign.dblite
