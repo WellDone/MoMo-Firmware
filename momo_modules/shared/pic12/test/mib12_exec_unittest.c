@@ -6,9 +6,13 @@
 #include "platform.h"
 #include "watchdog.h"
 
+extern void loghex(char val);
+extern void finish_tests();
+
 void task(void)
 {
-
+	loghex(0xAA);
+	finish_tests();
 }
 
 void interrupt_handler(void)

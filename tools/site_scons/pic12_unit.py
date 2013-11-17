@@ -32,10 +32,11 @@ def build_exec_unittest(test_files, name, chip):
 	env['TESTCHIP'] = sim
 	env['TESTNAME'] = name
 
-	srcfiles = ['../shared/pic12/test/mib12_exec_unittest.c', '../shared/pic12/test/mib12_exec_unittest_startup.as']
+	srcfiles = ['../shared/pic12/test/mib12_exec_unittest.c', '../shared/pic12/test/mib12_exec_unittest_startup.as', '../shared/pic12/test/test_log.as']
 
 	apphex = env.xc8(os.path.join(testdir, name + '_app.hex'), srcfiles)
-	outhex = env.merge_mib12_app(os.path.join(outdir, name + '.hex'), [os.path.join(builddir, 'mib12_executive_patched.hex'), apphex[0]])
+	localexec = env.Command(os.path.join(testdir, 'mib12_executive_local.hex'), os.path.join(builddir, 'mib12_executive_patched.hex'), action='python ../../tools/scripts/patch_start.py $SOURCE $TARGET')
+	outhex = env.merge_mib12_app(os.path.join(outdir, name + '.hex'), [localexec, apphex[0]])
 
 	outscript = env.Command([os.path.join(outdir, 'test.stc'), os.path.join(outdir, 'test.log')], outhex, action=build_unittest_script)
 
