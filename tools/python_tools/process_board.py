@@ -1,8 +1,11 @@
 #!/usr/bin/python
 
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
+
 import argparse
 import pybom.board
-import sys
 import itertools
 import math
 
@@ -23,7 +26,7 @@ def create_order(board, output, excess):
 	pass
 
 
-#Main Logic
+###Main Logic###
 boards = map(lambda x: pybom.board.Board.FromEagle(x), args.boards)
 order_rat = 1.0
 

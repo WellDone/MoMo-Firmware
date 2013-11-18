@@ -1,9 +1,13 @@
 #create_bom.py
 
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
+
+import momo_utilities.config
 from pybom.board import Board
 import collections
 from math import ceil
-import sys
 import csv
 
 cfile = '/home/timburke/src/welldone/MoMo-Firmware/pcb/momo_modular/combined_controller/battery_controller.brd'
