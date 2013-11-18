@@ -24,8 +24,8 @@ void adc_configure(const ADCConfig *config)
 
 	//Setup interupt
 	_AD1IF = 0; //Clear interrupt flag
-	_AD1IE = 1; //Enable interrupt
-	_AD1IP = 1; //Low priority interrupt
+	//_AD1IE = 1; //Enable interrupt
+	//_AD1IP = 1; //Low priority interrupt
 
 	if (config->oneshot)
 	{
@@ -56,9 +56,9 @@ unsigned int adc_convert_one()
     value = ADC1BUF0;
 
     //Set everything back to the way it was (this needs to stay synced with adc_configure
-    _AD1IE = 1;
-    _SMPI = kADCInterruptRate;
     _AD1IF = 0;
+    //_AD1IE = 1;
+    _SMPI = kADCInterruptRate;
 
     return value;
 }

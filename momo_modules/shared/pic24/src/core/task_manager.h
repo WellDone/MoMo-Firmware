@@ -14,7 +14,7 @@
 
 #define kMAXTASKS 16 //NB Must be a power of 2 since it will be used for a ringbuffer
 
-typedef void (*task_callback)(void);
+typedef void (*task_callback)(int);
 
 enum
 {
@@ -22,31 +22,31 @@ enum
     kTaskLoopLockedBit = 1
 };
 
-typedef struct
+typedef struct task_struct
 {
-	task_callback callback;
-	bool critical;
-} task_item;
+	task_callback 	callback;
+	int 			callback_arg;
+
+	struct task_struct *next;
+} task_info;
 
 typedef struct
 {
-    task_item taskdata[kMAXTASKS];
-    ringbuffer tasks;
+    task_info tasks[kMAXTASKS];
 
-    unsigned int flags;
-} task_list;
+    task_info *free;
+    task_info *runnable;
+    task_info *pending;
+    int flags;
+
+} taskmanager_data;
 
 //functions
 void taskloop_init();
 
 void taskloop_set_sleep(int sleep);
 
-int taskloop_add(task_callback task);
-int taskloop_add_critical(task_callback task);
-
-void taskloop_lock();
-void taskloop_unlock();
-bool taskloop_locked();
+int taskloop_add(task_callback task, int arg);
 
 void taskloop_loop();
 int taskloop_process_one();

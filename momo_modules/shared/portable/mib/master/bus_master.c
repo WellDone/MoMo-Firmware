@@ -73,7 +73,6 @@ uint8 bus_master_rpc_sync(unsigned char address)
 			//If we collided, wait for the bus to become clear and start again.
 			if (i2c_status.last_error == kI2CCollision)
 			{
-				//RC2 = !RC2;
 				i2c_status.last_error = kI2CNoError;
 				goto wait_and_start;
 			}
