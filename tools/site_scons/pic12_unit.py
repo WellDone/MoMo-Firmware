@@ -7,7 +7,7 @@ import utilities
 
 def build_exec_unittest(test_files, name, chip):
 	"""
-	Build the unit test described by the source files test_files
+	Build the unit test described by the source files <test_files>
 	"""
 
 	builddir = os.path.join('build', chip)
@@ -56,8 +56,8 @@ def build_unittest_script(source, target, env):
 		f.write('processor %s\n' % sim)
 		f.write('load s %s\n' % os.path.basename(str(source[0])))
 		f.write('break w 0x291, reg(0x291) == 0x00\n')
-		f.write('log w p12f1822.ccpr1l\n')
-		f.write('log w p12f1822.ccpr1h\n')
+		f.write('log w %s.ccpr1l\n' % sim)
+		f.write('log w %s.ccpr1h\n' % sim)
 		f.write('log on %s\n' % os.path.basename(str(target[1])))
 		f.write('run\n')
 

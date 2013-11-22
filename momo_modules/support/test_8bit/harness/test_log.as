@@ -14,7 +14,7 @@
 
 global _loghex, _finish_tests, _assert_address
 
-PSECT unittest_data,class=COMMON,delta=1
+PSECT bssCOMMON,class=COMMON,delta=1
 banksave: ds 1
 regsave: ds 1
 fsrlsave: ds 1
