@@ -3,7 +3,7 @@ This directory contains all of the MoMo PCB files as well as scripts used to con
 All boards must use EAGLE CAD for layout in order to be compatible with our production scripts.
 
 ## PCB Layout
-In the scripts/python directory are a set of tools used to automatically generate production files, BOMS 
+The MoMo build system includes a set of python based tools used to automatically generate production files, BOMS 
 and cost estimates from EAGLE board files.  In order for a board to be compatible with these scripts, it
 must be made to conform with the following requirements.
 
@@ -17,13 +17,15 @@ should be populated.
  * _MANU_ - The manufacturer's name.  If MPN is used to specify the part, MANU should be specified as well.
  * _FOOTPRINT_ - If the part does not have a standard SMD footprint link 0402, 0603, etc, they FOOTPRINT should be explicitly defined so
  that it can be used to create a BOM automatically.  If this is a through hole part, the footprint should be given as "Through Hole"
- * _DESCRIPTION_ - If the part canot have a generic description made for it (currently only works for Resistors, Capacitors and Inductors)
+ * _DESCRIPTION_ - If the part cannot have a generic description made for it (currently only works for Resistors, Capacitors and Inductors)
  then the explicit description should be given in this attribute.
 
 ###Assembly Variants
-If a board can be assembled in various ways, this should be indicated by creating various assembly variants.  An assembly variant can 
-either populate a certain part, not populate a certain part or change a part.  To do this, change the DIGIKEY-PN or MPN attribute for the part
-to contain -VARIANT where variant is the name of the assembly variant.  A part with only DIGIKEY-PN (or MPN) set will be assumed to be populated
+In order to save on PCB fabrication costs, sometimes a single circuit board will be made flexible so that it can be customized at assembly
+time by simply change or not populating certain parts.  Each different way the same board can be assembled is called an Assembly Variant.
+
+If a board has several assembly variants, this should be indicated by specifying certain attributes on the board.  An assembly variant can 
+either populate a certain part, not populate a certain part or replace a part with a different one.  To do this, change the DIGIKEY-PN or MPN attribute for the part to contain -VARIANT where variant is the name of the assembly variant.  A part with only DIGIKEY-PN (or MPN) set will be assumed to be populated
 in every assembly variant. A part with DIGIKEY-PN-VAR1 and DIGIKEY-PN-VAR2 will be populated only in Assembly Variants VAR1 and VAR2.  
 
 ###Global Attributes
@@ -36,5 +38,5 @@ Every board must define the following global attributes.  These should be define
  * _PARTNAME_ - a name for the board that will be used to generate file names
 
 ###Required Configuration
-In order to use thsee scripts you need to configure the location of the Eagle binary on your computer in /config/settings.local.json.  Use the template provided in 
-settings.global.json.  
+In order to use these scripts you need to configure the location of the Eagle binary on your computer in /config/settings.local.json.  Use the template provided in:
+settings.global.json
