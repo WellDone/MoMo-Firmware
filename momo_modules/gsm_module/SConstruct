@@ -1,7 +1,7 @@
 import utilities
 import os
 
-hexfile = utilities.build_app_for_chip('16F1823', '__PIC16LF1823__')
+hexfile = utilities.build_app_for_chip('16F1823')
 
 env = Environment()
 

@@ -1,4 +1,5 @@
 #include <xc.inc>
+#include "asm_macros.inc"
 #include "mib12_executive_symbols.h"
 
 global _begin_tests
@@ -9,4 +10,4 @@ BEGINFUNCTION _begin_tests
 	movlw 0xEE
 	call _loghex
 	return
-ENDFUNCTION _end_tests
+ENDFUNCTION _begin_tests

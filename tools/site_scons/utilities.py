@@ -41,8 +41,7 @@ def build_app_for_chip(chip):
 	
 	#Load in all of the xc8 configuration from build_settings
 	mib12conf = MIB12Config()
-	mib12conf.config_env_for_app(env)
-	mib12conf.config_env_for_chip(chip, env)
+	mib12conf.config_env_for_app(env, chip)
 	Export('env')
 	SConscript(os.path.join(builddir, 'SConscript'))
 

@@ -5,6 +5,10 @@ import sys
 import re
 import statements
 from statements.unknown import UnknownStatement
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from hex8 import symbols
 
 class LogFile:	
 
@@ -39,6 +43,7 @@ class LogFile:
 
 		#at this point we have the indices corresponding to all control statements
 		#and their lengths build the statements
+		self.symtab = symtab
 
 		#initialize program counter
 		self.current_address = 0
@@ -54,19 +59,29 @@ class LogFile:
 
 		return UnknownStatement(statement, self)
 
-	def pretty_print(self):
-	    HEADER = '\033[95m'
-	    OKBLUE = '\033[94m'
-	    OKGREEN = '\033[92m'
-	    WARNING = '\033[93m'
-	    FAIL = '\033[91m'
-	    ENDC = '\033[0m'
-
+	def pretty_print(self, color=True):
 	    for entry in self.entries:
-	    	if entry.error():
-	    		print FAIL + entry.format() + ENDC
-	    	else:
-	    		print OKBLUE + entry.format() + ENDC
+	    	print entry.format_line(self.symtab, use_colors=color)
+
+	def save(self, path):
+		with open(path, "w") as f:
+			for entry in self.entries:
+				f.write(entry.format_line(self.symtab, use_colors=False) + '\n')
+
+	def test_passed(self):
+		for entry in self.entries:
+			if entry.error():
+				return False
+
+		return True
+
+	def save_status(self, path):
+		with open(path, "w") as f:
+			if self.test_passed():
+				f.write('PASSED')
+			else:
+				f.write('FAILED')
+
 def extract_info(entry):
 	info = {}
 
@@ -79,7 +94,3 @@ def extract_info(entry):
 	info['dest'] = entry[9]
 
 	return info
-	
-
-log = LogFile(sys.argv[1], symtab=sys.argv[2])
-log.pretty_print()

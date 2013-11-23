@@ -90,6 +90,10 @@ class XC8SymbolTable:
 		"""
 
 		i = bisect.bisect_right(self.lookup, addr)
+		i -= 1
+
+		if i < 0:
+			return None
 
 		offset = addr - self.known_functions[i][1]
 

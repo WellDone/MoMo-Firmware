@@ -110,6 +110,7 @@ _assertv:
 _loghex:
 	call	_savestate
 	call	logcaller
+	
 
 	;set log type
 	movlw 	LOGHEX
@@ -133,6 +134,7 @@ _emit_data:
 	return
 
 _finish_tests:
+	call logcaller
 	banksel CONTROLBANK
 	movlw FINISH
 	movwf CONTROLREG

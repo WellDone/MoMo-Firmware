@@ -17,11 +17,30 @@ class LogStatement:
 		"""
 		return False
 
-	def format_line(self, symtab):
-		func = symtab.map_address(self.address)
+	def format_line(self, symtab, use_colors):
+		HEADER = '\033[95m'
+		OKBLUE = '\033[94m'
+		OKGREEN = '\033[92m'
+		WARNING = '\033[93m'
+		FAIL = '\033[91m'
+		ENDC = '\033[0m'
+
+		func = None
+
+		color = OKBLUE
+		if self.error():
+			color = FAIL
+
+		if use_colors is not True:
+			HEADER = ''
+			color = ''
+			ENDC = ''
+
+		if symtab is not None:
+			func = symtab.map_address(self.address)
 
 		header = 'Address 0x%X: ' % self.address
 		if func is not None:
-			header = '%s + %d: ' % (func[0], func[1])
+			header = HEADER + '%s+%d: ' % (func[0], func[1]) + ENDC
 
-		return header + self.format()
+		return header + color + self.format() + ENDC
