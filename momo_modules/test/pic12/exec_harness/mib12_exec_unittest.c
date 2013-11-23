@@ -3,15 +3,13 @@
  * The standard driver file for a unit test meant to be run on the mib12_executive
  */
 
-#include "platform.h"
-#include "watchdog.h"
-
-extern void loghex(char val);
+//User test files must define this function
+extern void begin_tests();
 extern void finish_tests();
 
 void task(void)
 {
-	loghex(0xAA);
+	begin_tests();	
 	finish_tests();
 }
 

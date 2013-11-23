@@ -7,32 +7,31 @@ def build_exec_for_chip(chip):
 	Configure Scons to build the MIB12 Executive for the 8bit pic microchip indicated in the arguments.
 	"""
 
-	builddir = os.path.join('build', chip)
-	VariantDir(builddir, 'src', duplicate=0)
+	mib12conf = utilities.MIB12Config()
+	dirs = mib12conf.build_dirs(chip)
+	
+	VariantDir(dirs['build'], 'src', duplicate=0)
 
 	env = Environment(tools=['xc8_compiler', 'patch_mib12', 'xc8_symbols'], ENV = os.environ)
 	env.AppendENVPath('PATH','../../tools/scripts')
-	
+
 	#Load in all of the xc8 configuration from build_settings
-	mib12conf = utilities.MIB12Config()
 	mib12conf.config_env_for_exec(env, chip)
 
 	Export('env')
-	SConscript(os.path.join(builddir, 'SConscript'))
+	SConscript(os.path.join(dirs['build'], 'SConscript'))
 
-	return [os.path.join(builddir, 'mib12_executive_patched.hex'), os.path.join(builddir, 'mib12_executive_symbols.h')]
+	prods = [os.path.join(dirs['build'], 'mib12_executive_patched.hex'), os.path.join(dirs['build'], 'mib12_executive_symbols.h'), os.path.join(dirs['build'], 'mib12_executive_symbols.stb')]
 
-exec16 = build_exec_for_chip('16LF1823')
-exec12 = build_exec_for_chip('12LF1822')
+	hexfile = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_%s.hex' % chip), prods[0])
+	symheader = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_symbols_%s.h' % chip), prods[1])
+	symtable = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_symbols_%s.stb' % chip), prods[2])
+	
+	return [hexfile, symheader, symtable]
 
-env = Environment()
+#Build for all targets
+utilities.for_all_targets('pic12_executive', build_exec_for_chip)
 
-env.InstallAs(os.path.join('build', 'output', 'mib12_executive_16lf1823.hex'), exec16[0])
-env.InstallAs(os.path.join('build', 'output', 'mib12_symbols_16lf1823.h'), exec16[1])
-
-env.InstallAs(os.path.join('build', 'output', 'mib12_executive_12lf1822.hex'), exec12[0])
-env.InstallAs(os.path.join('build', 'output', 'mib12_symbols_12lf1822.h'), exec12[1])
-
-pic12_unit.build_exec_unittest([], 'fake', '16LF1823')
+pic12_unit.build_exec_unittest(['test/test_basic.as'], 'test_basic', '16LF1823')
 
 Default(os.path.join('build', 'output'))

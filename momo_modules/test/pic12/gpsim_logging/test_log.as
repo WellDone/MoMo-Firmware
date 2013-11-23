@@ -1,4 +1,4 @@
-//test_log.as
+;test_log.as
 
 #include <xc.inc>
 
@@ -12,8 +12,9 @@
 #define LOGHEX		0x01
 #define LOGSTRING	0x02
 #define LOGCALLER 	0x03
+#define ASSERTFAIL 	0x04
 
-global _loghex, _finish_tests
+global _loghex, _finish_tests, _assertv
 
 ;These must be in common ram since we cannot switch banks
 ;while accessing them
@@ -79,22 +80,57 @@ logcaller:
 
 	return
 
+;For asserts, the value we're comparing should be in FSR0L and the
+;value that it should be will be in W
+_assertv:
+	call _savestate
+	call logcaller
+
+	xorwf FSR0L,w
+	btfss ZERO
+	goto  assert_failed
+
+	call _restorestate
+	return
+	
+	assert_failed:
+	movlw ASSERTFAIL
+	call _emit_control
+
+	movf regsave,w
+	call _emit_data
+	movf FSR0L,w
+	call _emit_data
+
+	goto _finish_tests
+
+
 ;Log the value of the w register into the unit test logging register
 ;Uses: WREG
 _loghex:
 	call	_savestate
 	call	logcaller
 
-	banksel CONTROLBANK
+	;set log type
 	movlw 	LOGHEX
-	movwf 	CONTROLREG
+	call _emit_control
 
 	;save the value
 	movf 	regsave,w
-	banksel LOGBANK
-	movwf 	LOGREG
+	call _emit_data
 
 	goto _restorestate
+
+;Emit the W value into the control register
+_emit_control:
+	banksel CONTROLBANK
+	movwf 	CONTROLREG
+	return
+
+_emit_data:
+	banksel LOGBANK
+	movwf 	LOGREG
+	return
 
 _finish_tests:
 	banksel CONTROLBANK

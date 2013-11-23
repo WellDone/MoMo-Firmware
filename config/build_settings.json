@@ -5,20 +5,20 @@
 		"application_ram": [32, 96],
 		"executive_ram": [ [97,120], [160, 191] ],
 
-		"common_xc8_flags": ["-G", "--summary=default,+psect,-class,+mem,-hex,-file", "-Mlinker_results.map", "--output=default,-inhx032", "--asmlist", "-P", "--mode=pro", "--opt=all,-asmfile" ],
+		"common_xc8_flags": ["-G", "--summary=default,+psect,-class,+mem,-hex,-file", "--output=default,-inhx032", "--asmlist", "-P", "--mode=pro", "--opt=all,-asmfile" ],
 		"exec_xc8_flags": ["--runtime=default,+clear,+keep,+init,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib"],
 		"app_xc8_flags": ["--runtime=-init,+no_startup,-osccal,-clear,+clib,-plib,+download", "-L-preset_vec=04F0h"],
 
 		"chip_aliases" : 
 		{
-			"PIC12LF1822": ["12F1822", "12LF1822"],
-			"PIC16LF1823": ["16F1823", "16LF1823"]
+			"12lf1822": ["12F1822", "12LF1822"],
+			"16lf1823": ["16F1823", "16LF1823"]
 		},
 
 		"chip_definitions" :
 		{
-			"PIC12LF1822": ["12F1822", "__PIC12LF1822__", "p12f1822"],
-			"PIC16LF1823": ["16F1823", "__PIC16LF1823__", "p16f1823"]
+			"12lf1822": ["12F1822", "__PIC12LF1822__", "p12f1822"],
+			"16lf1823": ["16F1823", "__PIC16LF1823__", "p16f1823"]
 		},
 
 		"includes" :
@@ -29,7 +29,18 @@
 			"../shared/portable/mib/slave",
 			"../shared/portable/mib/master",
 			"../shared/portable/util"
-		]
+		],
+
+		"known_targets" :
+		[
+			"12lf1822",
+			"16lf1823"
+		],
+
+		"module_targets" :
+		{
+			"gsm_module": ["16lf1823"]
+		}
 	},
 
 	"reference" :

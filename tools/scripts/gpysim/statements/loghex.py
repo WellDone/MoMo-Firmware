@@ -10,4 +10,4 @@ class LogHex (LogStatement):
 		self.pull_info(log)
 
 	def format(self):
-		return "Address 0x%X logged 0x%X (LogHex)" % (self.address, self.data)
+		return "Logged 0x%X" % (self.data)

@@ -10,31 +10,45 @@ def build_exec_unittest(test_files, name, chip):
 	Build the unit test described by the source files <test_files>
 	"""
 
-	builddir = os.path.join('build', chip)
-	testdir = os.path.join('build', 'test', chip, name, 'objects')
-	outdir = os.path.join('build', 'test', chip, name)
+	mib12conf = utilities.MIB12Config()
+
+	dirs = mib12conf.build_dirs(chip)
+
+	builddir = dirs['build']
+	testdir = os.path.join(dirs['test'], name, 'objects')
+	finaldir = dirs['output']
+	outdir = os.path.join(dirs['test'], name)
 	
-	env = Environment(tools=['xc8_compiler', 'patch_mib12', 'merge_mib12_app'], ENV = os.environ)
+	env = Environment(tools=['xc8_compiler', 'patch_mib12', 'merge_mib12_app', 'merge_mib12_sym'], ENV = os.environ)
 	env.AppendENVPath('PATH','../../tools/scripts')
 
 	incs = []
 	incs.append('.')
 	incs.append('src')
 	incs.append('src/mib')
+	incs.append(testdir)
 
 	env['INCLUDE'] = incs
-	
+
+	#Copy over the symbol file so we can reference it
+	symfile = Command(os.path.join(testdir, 'mib12_executive_symbols.h'),  os.path.join(builddir, 'mib12_executive_symbols.h'), Copy("$TARGET", "$SOURCE"))
+	execsymtab = Command(os.path.join(testdir, 'symbols.stb'),  os.path.join(builddir, 'mib12_executive_symbols.stb'), Copy("$TARGET", "$SOURCE"))
+
+	symtab = env.merge_mib12_symbols([os.path.join(outdir, 'symbols.stb')], [execsymtab, os.path.join(testdir, name + '_app.sym')])
+
 	#Load in all of the xc8 configuration from build_settings
-	mib12conf = utilities.MIB12Config()
 	mib12conf.config_env_for_app(env, chip)
 	alias,define,sim = mib12conf.find_chip_info(chip)
 
 	env['TESTCHIP'] = sim
 	env['TESTNAME'] = name
 
-	srcfiles = ['../shared/pic12/test/mib12_exec_unittest.c', '../shared/pic12/test/mib12_exec_unittest_startup.as', '../shared/pic12/test/test_log.as']
+	srcfiles = test_files
+	srcfiles += ['../test/pic12/exec_harness/mib12_exec_unittest.c', '../test/pic12/exec_harness/mib12_exec_unittest_startup.as', '../test/pic12/gpsim_logging/test_log.as']
 
 	apphex = env.xc8(os.path.join(testdir, name + '_app.hex'), srcfiles)
+	env.Depends(apphex[0], symfile)
+
 	localexec = env.Command(os.path.join(testdir, 'mib12_executive_local.hex'), os.path.join(builddir, 'mib12_executive_patched.hex'), action='python ../../tools/scripts/patch_start.py $SOURCE $TARGET')
 	outhex = env.merge_mib12_app(os.path.join(outdir, name + '.hex'), [localexec, apphex[0]])
 
@@ -60,5 +74,3 @@ def build_unittest_script(source, target, env):
 		f.write('log w %s.ccpr1h\n' % sim)
 		f.write('log on %s\n' % os.path.basename(str(target[1])))
 		f.write('run\n')
-
-	return 0

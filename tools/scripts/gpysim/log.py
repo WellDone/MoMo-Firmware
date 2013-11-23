@@ -8,7 +8,7 @@ from statements.unknown import UnknownStatement
 
 class LogFile:	
 
-	def __init__(self, filename):
+	def __init__(self, filename, symtab=None):
 		with open(filename, "r") as f:
 			lines = f.readlines()
 
@@ -48,15 +48,25 @@ class LogFile:
 		
 		self.entries = filter(lambda x:x.keep() == True, entries)
 
-		for entry in self.entries:
-			print entry.format()
-
 	def _process_statement(self, statement):
 		if statement['control']['value'] in statements.statements:
 			return statements.statements[statement['control']['value']](statement, self)
 
 		return UnknownStatement(statement, self)
 
+	def pretty_print(self):
+	    HEADER = '\033[95m'
+	    OKBLUE = '\033[94m'
+	    OKGREEN = '\033[92m'
+	    WARNING = '\033[93m'
+	    FAIL = '\033[91m'
+	    ENDC = '\033[0m'
+
+	    for entry in self.entries:
+	    	if entry.error():
+	    		print FAIL + entry.format() + ENDC
+	    	else:
+	    		print OKBLUE + entry.format() + ENDC
 def extract_info(entry):
 	info = {}
 
@@ -71,4 +81,5 @@ def extract_info(entry):
 	return info
 	
 
-log = LogFile(sys.argv[1])
+log = LogFile(sys.argv[1], symtab=sys.argv[2])
+log.pretty_print()

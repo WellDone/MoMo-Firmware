@@ -4,6 +4,7 @@ import scansym
 def build_symbols(target, source, env):
 	symtab = scansym.XC8SymbolTable(str(source[0]))
 	symtab.generate_h_file(str(target[0]))
+	symtab.generate_stb_file(str(target[1]))
 
 _build_sym_h = SCons.Builder.Builder(
 	action = build_symbols

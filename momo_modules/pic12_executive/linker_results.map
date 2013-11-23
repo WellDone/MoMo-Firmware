@@ -3,10 +3,10 @@ Microchip MPLAB XC8 Compiler V1.21 ()
 Linker command line:
 
 --edf=/opt/microchip/xc8/dat/en_msgs.txt -cs \
-  -h+build/test/16LF1823/fake/objects/fake_app.sym \
-  --cmf=build/test/16LF1823/fake/objects/fake_app.cmf -z -Q16F1823 \
-  -o/tmp/cgtaXsQFt -preset_vec=04F0h -Mlinker_results.map -ver=XC8 \
-  -ACONST=04F0h-04FFh,0500h-05FFhx3 -ACODE=04F0h-07FFh \
+  -h+build/test/16lf1823/test_basic/objects/test_basic_app.sym \
+  --cmf=build/test/16lf1823/test_basic/objects/test_basic_app.cmf -z \
+  -Q16F1823 -o/tmp/cgtE7xLvX -preset_vec=04F0h -Mlinker_results.map \
+  -ver=XC8 -ACONST=04F0h-04FFh,0500h-05FFhx3 -ACODE=04F0h-07FFh \
   -ASTRCODE=04F0h-07FFh -AENTRY=04F0h-04FFh,0500h-05FFhx3 \
   -ASTRING=04F0h-04FFh,0500h-05FFhx3 -ACOMMON=079h-07Fh -ABANK0=020h-060h \
   -ABIGRAM=02000h-02040h -ARAM=020h-060h -AABS1=020h-07Fh,0A0h-0BFh \
@@ -24,9 +24,10 @@ Linker command line:
   -ACONFIG=08007h-08008h -pconfig=CONFIG -DCONFIG=2 -AIDLOC=08000h-08003h \
   -pidloc=IDLOC -DIDLOC=2 -AEEDATA=00h-0FFh/0F000h -peeprom_data=EEDATA \
   -DEEDATA=2 -DCODE=2 -DSTRCODE=2 -DSTRING=2 -DCONST=2 -DENTRY=2 -k \
-  build/test/16LF1823/fake/objects/fake_app.obj \
-  build/test/16LF1823/fake/objects/mib12_exec_unittest_startup.obj \
-  build/test/16LF1823/fake/objects/test_log.obj 
+  build/test/16lf1823/test_basic/objects/test_basic_app.obj \
+  build/test/16lf1823/test_basic/objects/test_basic.obj \
+  build/test/16lf1823/test_basic/objects/mib12_exec_unittest_startup.obj \
+  build/test/16lf1823/test_basic/objects/test_log.obj 
 
 Object code version is 3.11
 
@@ -35,29 +36,32 @@ Machine type is 16F1823
 
 
                 Name                               Link     Load   Length Selector   Space Scale
-build/test/16LF1823/fake/objects/fake_app.obj
-                text3                               7C7      7C7        1      F8E       0
-                text2                               7C8      7C8        1      F90       0
-                text1                               7CA      7CA        4      F94       0
-                maintext                            7C9      7C9        1      F92       0
+build/test/16lf1823/test_basic/objects/test_basic_app.obj
+                text3                               7B5      7B5        1      F6A       0
+                text2                               7B6      7B6        1      F6C       0
+                text1                               7B9      7B9        3      F72       0
+                maintext                            7B7      7B7        1      F6E       0
                 cinit                               7FE      7FE        2      FFC       0
-build/test/16LF1823/fake/objects/mib12_exec_unittest_startup.obj
+build/test/16lf1823/test_basic/objects/test_basic.obj
+                text_unittest                       7B8      7B8        1      F70       0
+build/test/16lf1823/test_basic/objects/mib12_exec_unittest_startup.obj
                 reset_vec                           4F0      4F0        3      9E0       0
-build/test/16LF1823/fake/objects/test_log.obj
-                text_unittest                       7CE      7CE       30      F9C       0
+build/test/16lf1823/test_basic/objects/test_log.obj
+                text_unittest                       7BC      7BC       42      F78       0
                 bssCOMMON                            79       79        5       79       0
 
 TOTAL           Name                               Link     Load   Length     Space
         CLASS   CONST          
 
         CLASS   CODE           
-                text3                               7C7      7C7        1         0
-                text2                               7C8      7C8        1         0
-                text1                               7CA      7CA        4         0
-                maintext                            7C9      7C9        1         0
+                text3                               7B5      7B5        1         0
+                text2                               7B6      7B6        1         0
+                text1                               7B9      7B9        3         0
+                maintext                            7B7      7B7        1         0
                 cinit                               7FE      7FE        2         0
+                text_unittest                       7B8      7B8        1         0
                 reset_vec                           4F0      4F0        3         0
-                text_unittest                       7CE      7CE       30         0
+                text_unittest                       7BC      7BC       42         0
 
         CLASS   STRCODE        
 
@@ -153,11 +157,12 @@ SEGMENTS        Name                           Load    Length   Top    Selector 
 
                 bssCOMMON                      000079  000005  00007E        79       0  COMMON      1
                 reset_vec                      0004F0  000003  0004F3       9E0       0  CODE        2
-                text3                          0007C7  000001  0007C8       F8E       0  CODE        2
-                text2                          0007C8  000001  0007C9       F90       0  CODE        2
-                maintext                       0007C9  000001  0007CA       F92       0  CODE        2
-                text1                          0007CA  000004  0007CE       F94       0  CODE        2
-                text_unittest                  0007CE  000030  0007FE       F9C       0  CODE        2
+                text3                          0007B5  000001  0007B6       F6A       0  CODE        2
+                text2                          0007B6  000001  0007B7       F6C       0  CODE        2
+                maintext                       0007B7  000001  0007B8       F6E       0  CODE        2
+                text_unittest                  0007B8  000001  0007B9       F70       0  CODE        2
+                text1                          0007B9  000003  0007BC       F72       0  CODE        2
+                text_unittest                  0007BC  000042  0007FE       F78       0  CODE        2
                 cinit                          0007FE  000002  000800       FFC       0  CODE        2
 
 
@@ -166,12 +171,12 @@ UNUSED ADDRESS RANGES
         Name                Unused          Largest block    Delta
         BANK0            0020-0060             41           1
         BIGRAM           2000-2040             41           1
-        CODE             04F3-07C6            2D4           2
+        CODE             04F3-07B4            2C2           2
         COMMON           0079-007D              5           1
         CONFIG           8007-8008              2           2
-        CONST            04F3-07C6            100           2
+        CONST            04F3-07B4            100           2
         EEDATA           F000-F0FF            100           2
-        ENTRY            04F3-07C6            100           2
+        ENTRY            04F3-07B4            100           2
         IDLOC            8000-8003              4           2
         RAM              0020-0060             41           1
         SFR0             0005-001F             1B           1
@@ -199,16 +204,15 @@ UNUSED ADDRESS RANGES
         SFR28            0E00-0E78             79           1
         SFR29            0E80-0EF8             79           1
         SFR3             0180-01F8             79           1
-        SFR30            0F00-0F78             79           1
-        SFR31            0F80-0F8D              E           1
+        SFR30            0F00-0F69             6A           1
         SFR4             0200-0278             79           1
         SFR5             0280-02F8             79           1
         SFR6             0300-0378             79           1
         SFR7             0380-03F8             79           1
         SFR8             0400-0478             79           1
         SFR9             0480-04F8             79           1
-        STRCODE          04F3-07C6            2D4           2
-        STRING           04F3-07C6            100           2
+        STRCODE          04F3-07B4            2C2           2
+        STRING           04F3-07B4            100           2
 
                                   Symbol Table
 
@@ -239,27 +243,29 @@ __S0                        (abs)        0800
 __S1                        (abs)        0000
 ___latbits                  (abs)        0000
 __end_of__initialization    cinit        07FE
-__end_of_initialize         text3        07C8
-__end_of_interrupt_handler  text2        07C9
-__end_of_main               maintext     07CA
-__end_of_task               text1        07CE
+__end_of_initialize         text3        07B6
+__end_of_interrupt_handler  text2        07B7
+__end_of_main               maintext     07B8
+__end_of_task               text1        07BC
 __initialization            cinit        07FE
 __pcstackCOMMON             cstackCOMMON 0000
-__pmaintext                 maintext     07C9
+__pmaintext                 maintext     07B7
 __ptext0                    text0        0000
-__ptext1                    text1        07CA
-__ptext2                    text2        07C8
-__ptext3                    text3        07C7
+__ptext1                    text1        07B9
+__ptext2                    text2        07B6
+__ptext3                    text3        07B5
 __size_of_initialize        (abs)        0000
 __size_of_interrupt_handler (abs)        0000
 __size_of_main              (abs)        0000
 __size_of_task              (abs)        0000
+_assertv                    text_unittest 07DF
+_begin_tests                text_unittest 07B8
 _finish_tests               text_unittest 07FA
-_initialize                 text3        07C7
-_interrupt_handler          text2        07C8
-_loghex                     text_unittest 07F1
-_main                       maintext     07C9
-_task                       text1        07CA
+_initialize                 text3        07B5
+_interrupt_handler          text2        07B6
+_loghex                     text_unittest 07ED
+_main                       maintext     07B7
+_task                       text1        07B9
 btemp                       (abs)        007E
 end_of_initialization       cinit        07FE
 intlevel1                   reset_vec    04F3
@@ -272,7 +278,7 @@ FUNCTION INFORMATION:
 
  *************** function _main *****************
  Defined at:
-		line 29 in file "/home/timburke/src/welldone/MoMo-Firmware/momo_modules/shared/pic12/test/mib12_exec_unittest.c"
+		line 27 in file "/home/timburke/src/welldone/MoMo-Firmware/momo_modules/test/pic12/exec_harness/mib12_exec_unittest.c"
  Parameters:    Size  Location     Type
 		None
  Auto vars:     Size  Location     Type
@@ -301,7 +307,7 @@ Total ram usage:        0 bytes
 
  *************** function _task *****************
  Defined at:
-		line 13 in file "/home/timburke/src/welldone/MoMo-Firmware/momo_modules/shared/pic12/test/mib12_exec_unittest.c"
+		line 11 in file "/home/timburke/src/welldone/MoMo-Firmware/momo_modules/test/pic12/exec_harness/mib12_exec_unittest.c"
  Parameters:    Size  Location     Type
 		None
  Auto vars:     Size  Location     Type
@@ -323,7 +329,7 @@ Total ram usage:        0 bytes
  Hardware stack levels used:    1
  Hardware stack levels required when called:    1
  This function calls:
-		_loghex
+		_begin_tests
 		_finish_tests
  This function is called by:
 		Interrupt level 1
@@ -332,7 +338,7 @@ Total ram usage:        0 bytes
 
  *************** function _interrupt_handler *****************
  Defined at:
-		line 19 in file "/home/timburke/src/welldone/MoMo-Firmware/momo_modules/shared/pic12/test/mib12_exec_unittest.c"
+		line 17 in file "/home/timburke/src/welldone/MoMo-Firmware/momo_modules/test/pic12/exec_harness/mib12_exec_unittest.c"
  Parameters:    Size  Location     Type
 		None
  Auto vars:     Size  Location     Type
@@ -361,7 +367,7 @@ Total ram usage:        0 bytes
 
  *************** function _initialize *****************
  Defined at:
-		line 24 in file "/home/timburke/src/welldone/MoMo-Firmware/momo_modules/shared/pic12/test/mib12_exec_unittest.c"
+		line 22 in file "/home/timburke/src/welldone/MoMo-Firmware/momo_modules/test/pic12/exec_harness/mib12_exec_unittest.c"
  Parameters:    Size  Location     Type
 		None
  Auto vars:     Size  Location     Type
@@ -397,11 +403,11 @@ shared
 
 shared estimated size: 0
 
-/home/timburke/src/welldone/MoMo-Firmware/momo_modules/shared/pic12/test/mib12_exec_unittest.c
-		_main          		CODE           	07C9	0000	1
-		_task          		CODE           	07CA	0000	4
-		_initialize    		CODE           	07C7	0000	1
-		_interrupt_hand		CODE           	07C8	0000	1
+/home/timburke/src/welldone/MoMo-Firmware/momo_modules/test/pic12/exec_harness/mib12_exec_unittest.c
+		_main          		CODE           	07B7	0000	1
+		_task          		CODE           	07B9	0000	3
+		_initialize    		CODE           	07B5	0000	1
+		_interrupt_hand		CODE           	07B6	0000	1
 
-/home/timburke/src/welldone/MoMo-Firmware/momo_modules/shared/pic12/test/mib12_exec_unittest.c estimated size: 7
+/home/timburke/src/welldone/MoMo-Firmware/momo_modules/test/pic12/exec_harness/mib12_exec_unittest.c estimated size: 6
 

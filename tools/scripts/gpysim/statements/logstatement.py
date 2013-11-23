@@ -10,3 +10,18 @@ class LogStatement:
 		deleted from the Log object list of logging statements
 		"""
 		return True
+
+	def error(self):
+		"""
+		Override for logging statements that indicate errors, rather than ones that are just informational
+		"""
+		return False
+
+	def format_line(self, symtab):
+		func = symtab.map_address(self.address)
+
+		header = 'Address 0x%X: ' % self.address
+		if func is not None:
+			header = '%s + %d: ' % (func[0], func[1])
+
+		return header + self.format()

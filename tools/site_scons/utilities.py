@@ -48,6 +48,13 @@ def build_app_for_chip(chip):
 
 	return os.path.join(builddir, 'mib12_app_module.hex')
 
+def for_all_targets(module, func):
+	conf = MIB12Config()
+
+	targets = conf.get_targets(module)
+
+	for target in targets:
+		func(target)
 
 class MIB12Config:
 	def __init__(self):
@@ -60,6 +67,8 @@ class MIB12Config:
 		self.exec_flags = conf['mib12']['exec_xc8_flags']
 		self.app_flags = conf['mib12']['app_xc8_flags']
 		self.common_incs = conf['mib12']['includes']
+		self.targets = conf['mib12']['known_targets']
+		self.mod_targets = conf['mib12']['module_targets']
 
 		self.common_incs = map(lambda x: os.path.normpath(x), self.common_incs); #Change path separator on Windows if necessary
 
@@ -69,7 +78,7 @@ class MIB12Config:
 		self.chip_names = {}
 
 		for key,aliases in chips.iteritems():
-			self.chip_names[key] = set(aliases)
+			self.chip_names[key] = set(aliases + [key])
 
 		self.chip_info = {}
 		chip_defs = conf['mib12']['chip_definitions']
@@ -136,17 +145,47 @@ class MIB12Config:
 			raise ValueError("Chip %s not found in build_settings.json, cannot target that chip." % chip)
 
 	def find_chip_info(self, chip):
-		found = None
-		for key,vals in self.chip_names.iteritems():
-			if chip in vals:
-				found = key
-				break
-
-		if found is None:
-			raise KeyError("Chip not found")
+		found = self.get_chip_name(chip)
 
 		return self.chip_info[found]
 
+	def get_chip_name(self, chip):
+		found = None
+		for key,vals in self.chip_names.iteritems():
+			if chip in vals:
+				return key
+
+		raise ValueError('Chip %s not found in build_settings, do not know about this chip target' % chip)
+
+	def get_targets(self, module):
+		"""
+		Return a list of the targest that this module should be built for
+		"""
+		if module in self.mod_targets:
+			return self.mod_targets[module]
+
+		return self.targets
+
+	def build_dirs(self, chip):
+		"""
+		Return a dictionary with the cannonical build directory hierarchy for a given chip target.
+		Defines:
+		- build: build/chip
+		- output: build/output
+		- test: build/test/chip
+		where chip is the cannonical name for the chip passed in
+		"""
+
+		name = self.get_chip_name(chip)
+
+		build = os.path.join('build', name)
+		output = os.path.join('build', 'output')
+		test = os.path.join('build', 'test', name)
+
+		return {'build': build, 'output': output, 'test': test}
+
+	def output_dir(self):
+		return os.path.join('build', 'output')
 
 	def _ensure_flags(self, env):
 		if "XC8FLAGS" not in env:
