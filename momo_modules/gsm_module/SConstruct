@@ -1,8 +1,7 @@
 import utilities
 import os
+import pic12_unit
 
-hexfile = utilities.build_app_for_chip('16F1823')
+hexfile = utilities.build_app_for_chip('gsm_module', '16F1823')
 
-env = Environment()
-
-env.InstallAs(os.path.join('build', 'output', 'gsm_module_16lf1823.hex'), hexfile)
+pic12_unit.build_unittest([], 'test_basic', '16LF1823', type='application')

@@ -20,5 +20,6 @@ asm_sources = ['gsm_utils.as', 'app_startup.as', 'mib/command_map.as', 'mib/mib1
 srcfiles = asm_sources + Glob('./*.c')									
 
 target = env.xc8('mib12_app_module.hex', srcfiles)
+symtab = env.build_symbols(['mib12_app_module_symbols.h', 'mib12_app_module_symbols.stb'],['mib12_app_module.sym'])
 
 Clean(target, ['#funclist', '#l.obj'])

@@ -28,24 +28,31 @@ def load_settings():
 
 	ValueError('Could not load global build settings file (config/build_settings.json)')
 
-def build_app_for_chip(chip):
+def build_app_for_chip(name, chip):
 	"""
 	Configure Scons to build an application module for the 8bit pic microchip indicated in the argument chip.
 	"""
 
-	builddir = os.path.join('build', chip)
+	mib12conf = MIB12Config()
+	dirs = mib12conf.build_dirs(chip)
+
+	builddir = dirs['build']
 	VariantDir(builddir, 'src', duplicate=0)
 
-	env = Environment(tools=['xc8_compiler', 'patch_mib12'], ENV = os.environ)
+	env = Environment(tools=['xc8_compiler', 'patch_mib12', 'xc8_symbols'], ENV = os.environ)
 	env.AppendENVPath('PATH','../../tools/scripts')
 	
 	#Load in all of the xc8 configuration from build_settings
-	mib12conf = MIB12Config()
 	mib12conf.config_env_for_app(env, chip)
 	Export('env')
 	SConscript(os.path.join(builddir, 'SConscript'))
 
-	return os.path.join(builddir, 'mib12_app_module.hex')
+	prods = [os.path.join(dirs['build'], 'mib12_app_module.hex'), os.path.join(dirs['build'], 'mib12_app_module_symbols.h'), os.path.join(dirs['build'], 'mib12_app_module_symbols.stb')]
+
+	hexfile = env.InstallAs(os.path.join(dirs['output'], 'name_%s.hex' % chip), prods[0])
+	symheader = env.InstallAs(os.path.join(dirs['output'], 'name_symbols_%s.h' % chip), prods[1])
+	symtable = env.InstallAs(os.path.join(dirs['output'], 'name_symbols_%s.stb' % chip), prods[2])
+
 
 def for_all_targets(module, func):
 	conf = MIB12Config()

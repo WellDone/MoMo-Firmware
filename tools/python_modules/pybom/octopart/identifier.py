@@ -1,10 +1,16 @@
 #identifier.py
 
 class PartIdentifier:
-	def __init__(self, part):
-		self.sku = part.digipn
-		self.mpn = part.mpn
-		self.manu = part.manu
+	def __init__(self, part=None, digipn=None):
+
+		if digipn is not None:
+			self.sku = digipn
+			self.mpn = None
+			self.manu = None
+		else:
+			self.sku = part.digipn
+			self.mpn = part.mpn
+			self.manu = part.manu
 
 	def build_reference(self):
 		if self.sku:

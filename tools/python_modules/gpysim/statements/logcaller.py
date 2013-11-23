@@ -9,7 +9,7 @@ class LogCaller (LogStatement):
 		addr_high = statement['data'][1]['value']
 
 		self.address = addr_high*256 + addr_low
-		log.current_address = self.address-2 		#We log the return address, which is the next instruction to be executed
+		log.current_address = self.address-1 		#We log the return address, which is the next instruction to be executed
 
 	def keep(self):
 		return False
