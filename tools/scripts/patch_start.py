@@ -5,8 +5,9 @@
 
 import intelhex
 import sys
+import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'tools', 'python'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python'))
 import hex8.patch
 
 ih = intelhex.IntelHex(sys.argv[1])

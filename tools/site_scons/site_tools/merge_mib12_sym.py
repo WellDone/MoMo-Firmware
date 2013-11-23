@@ -1,5 +1,9 @@
 import SCons.Builder
-import scansym
+
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'python'))
+from hex8 import symbols
 
 def merge_sym(target, source, env):
 	"""
@@ -7,7 +11,7 @@ def merge_sym(target, source, env):
 	being an application hex, merge the two into a complete application hex
 	"""
 
-	first = scansym.XC8SymbolTable(str(source[0]))
+	first = symbols.XC8SymbolTable(str(source[0]))
 
 	first.merge(str(source[1]))
 	first.generate_stb_file(str(target[0]))

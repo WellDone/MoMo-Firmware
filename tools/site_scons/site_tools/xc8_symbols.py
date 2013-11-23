@@ -1,8 +1,11 @@
 import SCons.Builder
-import scansym
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'python'))
+from hex8 import symbols
 
 def build_symbols(target, source, env):
-	symtab = scansym.XC8SymbolTable(str(source[0]))
+	symtab = symbols.XC8SymbolTable(str(source[0]))
 	symtab.generate_h_file(str(target[0]))
 	symtab.generate_stb_file(str(target[1]))
 
