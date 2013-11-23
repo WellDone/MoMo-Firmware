@@ -6,7 +6,7 @@ import os
 import os.path
 import utilities
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
 from gpysim import log
 import hex8.symbols
 

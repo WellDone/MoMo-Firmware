@@ -4,7 +4,7 @@ import SCons.Builder
 import os
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'python'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'python_modules'))
 import momo_utilities.config
 
 settings = momo_utilities.config.ConfigFile('settings')

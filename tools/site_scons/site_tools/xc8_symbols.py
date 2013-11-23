@@ -1,7 +1,7 @@
 import SCons.Builder
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'python'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'python_modules'))
 from hex8 import symbols
 
 def build_symbols(target, source, env):

@@ -9,7 +9,7 @@ import intelhex
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
 
 import hex8.patch
 
