@@ -48,7 +48,7 @@ def build_unittest(test_files, name, chip, type):
 	incs.append('src/mib')
 	incs.append(testdir)
 
-	env['INCLUDE'] = incs
+	env['INCLUDE'] += incs
 
 	#Copy over the symbol file from the module we're testing so we can reference it
 	symfile = Command(os.path.join(testdir, 'symbols.h'),  os.path.join(builddir, orig_symfile), Copy("$TARGET", "$SOURCE"))
@@ -63,8 +63,8 @@ def build_unittest(test_files, name, chip, type):
 	env['TESTNAME'] = name
 	env['TESTAPPEND'] = mib12conf.get_chip_name(chip)
 
-	srcfiles = test_files
-	srcfiles += test_harness
+	#Must do this in 1 statement so we don't modify test_files
+	srcfiles = test_files + test_harness
 
 	apphex = env.xc8(os.path.join(testdir, name + '_unit.hex'), srcfiles)
 	env.Depends(apphex[0], symfile)
@@ -111,7 +111,6 @@ def build_unittest_script(target, source, env):
 	name = env['TESTNAME']
 
 	with open(str(target[0]), "w") as f:
-		print "Hello"
 		f.write('processor %s\n' % sim)
 		f.write('load s %s\n' % os.path.basename(str(source[0])))
 		f.write('break w 0x291, reg(0x291) == 0x00\n')
@@ -138,3 +137,4 @@ def build_formatted_log_name(env):
 
 def build_status_name(env):
 	return os.path.join('build', 'test', 'output', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.status')
+

@@ -1,6 +1,6 @@
 ;Name: test_basic
 ;Targets: all
-;Type: executive
+;Type: application
 ;Description: Test to ensure that the basic unit testing framework is working
 ;and that this test can be compile, run and interpreted.  
 

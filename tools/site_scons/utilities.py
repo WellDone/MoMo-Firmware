@@ -55,12 +55,16 @@ def build_app_for_chip(name, chip):
 
 
 def for_all_targets(module, func):
-	conf = MIB12Config()
-
-	targets = conf.get_targets(module)
+	targets = get_module_targets(module)
 
 	for target in targets:
 		func(target)
+
+def get_module_targets(module):
+	conf = MIB12Config()
+	targets = conf.get_targets(module)
+
+	return targets
 
 class MIB12Config:
 	def __init__(self):

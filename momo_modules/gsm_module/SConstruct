@@ -1,7 +1,3 @@
-import utilities
-import os
-import pic12_unit
+import autobuild
 
-hexfile = utilities.build_app_for_chip('gsm_module', '16F1823')
-
-pic12_unit.build_unittest([], 'test_basic', '16LF1823', type='application')
+autobuild.autobuild_pic12('gsm_module', test_dir='test')

@@ -5,11 +5,12 @@
 
 //User test files must define this function
 extern void begin_tests();
-extern void finish_tests();
 
+//This function is defined in test_log.as
+extern void finish_tests();
 
 void main()
 {
-	//begin_tests();	
+	begin_tests();	
 	finish_tests();
 } 

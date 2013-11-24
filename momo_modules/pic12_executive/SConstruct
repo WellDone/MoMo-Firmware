@@ -1,6 +1,10 @@
 import os
 import pic12_unit
+import unit_test12
+import unit_test
 import utilities
+
+module_name = 'pic12_executive'
 
 def build_exec_for_chip(chip):
 	"""
@@ -30,8 +34,9 @@ def build_exec_for_chip(chip):
 	return [hexfile, symheader, symtable]
 
 #Build for all targets
-utilities.for_all_targets('pic12_executive', build_exec_for_chip)
+utilities.for_all_targets(module_name, build_exec_for_chip)
 
-pic12_unit.build_exec_unittest(['test/test_basic.as'], 'test_basic', '16LF1823')
+#Build all unit tests
+unit_test.build_units('test', utilities.get_module_targets(module_name), subclass=unit_test12.Pic12UnitTest)
 
 Default(os.path.join('build', 'output'))
