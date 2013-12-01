@@ -49,9 +49,9 @@ def build_app_for_chip(name, chip):
 
 	prods = [os.path.join(dirs['build'], 'mib12_app_module.hex'), os.path.join(dirs['build'], 'mib12_app_module_symbols.h'), os.path.join(dirs['build'], 'mib12_app_module_symbols.stb')]
 
-	hexfile = env.InstallAs(os.path.join(dirs['output'], 'name_%s.hex' % chip), prods[0])
-	symheader = env.InstallAs(os.path.join(dirs['output'], 'name_symbols_%s.h' % chip), prods[1])
-	symtable = env.InstallAs(os.path.join(dirs['output'], 'name_symbols_%s.stb' % chip), prods[2])
+	hexfile = env.InstallAs(os.path.join(dirs['output'], '%s_%s.hex' % (name, chip)), prods[0])
+	symheader = env.InstallAs(os.path.join(dirs['output'], '%s_symbols_%s.h' % (name, chip)), prods[1])
+	symtable = env.InstallAs(os.path.join(dirs['output'], '%s_symbols_%s.stb' % (name, chip)), prods[2])
 
 
 def for_all_targets(module, func):

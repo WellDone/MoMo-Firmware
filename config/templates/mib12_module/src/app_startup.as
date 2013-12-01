@@ -1,6 +1,6 @@
 ;startup.as
 
-#include <xc.inc>
+\#include <xc.inc>
 
 
 global _main, _task,_initialize,_interrupt_handler,start,intlevel1
