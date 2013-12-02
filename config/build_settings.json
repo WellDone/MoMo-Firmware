@@ -40,7 +40,16 @@
 		"module_targets" :
 		{
 			"gsm_module": ["16lf1823"]
+		},
+
+		"test" :
+		{
+			"includes": 
+			[
+				"../test/pic12/gpsim_logging"
+			]
 		}
+
 	},
 
 	"reference" :

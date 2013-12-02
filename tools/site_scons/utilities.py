@@ -82,6 +82,8 @@ class MIB12Config:
 
 		self.common_incs = map(lambda x: os.path.normpath(x), self.common_incs); #Change path separator on Windows if necessary
 
+		self.conf = conf
+
 		#Load chip information
 		chips = conf['mib12']['chip_aliases']
 
@@ -140,6 +142,7 @@ class MIB12Config:
 
 		#MIB12 Executive takes all ram in first 
 		env['RAMEXCLUDE'] = self.executive_ram
+		env['NO_STARTUP'] = True
 
 	def config_env_for_chip(self, chip, env):
 		"""

@@ -22,7 +22,7 @@ def build_unittest(test_files, name, chip, type):
 	if type == "executive":
 		orig_name = 'mib12_executive_symbols'
 		mib12conf.config_env_for_app(env, chip)
-		test_harness = ['../test/pic12/exec_harness/mib12_exec_unittest.c', '../test/pic12/exec_harness/mib12_exec_unittest_startup.as', '../test/pic12/gpsim_logging/test_log.as']
+		test_harness = ['../test/pic12/exec_harness/mib12_exec_unittest.c', '../test/pic12/exec_harness/mib12_api.as', '../test/pic12/exec_harness/mib12_exec_unittest_startup.as', '../test/pic12/gpsim_logging/test_log.as', '../test/pic12/gpsim_logging/test_mib.as']
 	elif type == "application":
 		orig_name = "mib12_app_module_symbols"
 		mib12conf.config_env_for_exec(env, chip)
@@ -47,6 +47,7 @@ def build_unittest(test_files, name, chip, type):
 	incs.append('src')
 	incs.append('src/mib')
 	incs.append(testdir)
+	incs.extend(mib12conf.conf["mib12"]["test"]["includes"])
 
 	env['INCLUDE'] += incs
 

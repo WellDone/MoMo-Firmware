@@ -86,6 +86,7 @@ _assertv:
 	call _savestate
 	call logcaller
 
+	movf regsave,w
 	xorwf FSR0L,w
 	btfss ZERO
 	goto  assert_failed
@@ -97,9 +98,11 @@ _assertv:
 	movlw ASSERTFAIL
 	call _emit_control
 
-	movf regsave,w
-	call _emit_data
+	;Emit actual value and then value that we wanted
 	movf FSR0L,w
+	call _emit_data
+
+	movf regsave,w
 	call _emit_data
 
 	goto _finish_tests

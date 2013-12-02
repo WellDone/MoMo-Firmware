@@ -5,8 +5,8 @@
 ;binary so that application modules can find them.  This file defines symbols
 ;for calling those functions so that application C code can use them
 
-\#include <xc.inc>
-\#include "constants.h"
+#include <xc.inc>
+#include "constants.h"
 
 global _bus_master_rpc_sync, _bus_slave_setreturn
 global _mib_buffer,_mib_packet

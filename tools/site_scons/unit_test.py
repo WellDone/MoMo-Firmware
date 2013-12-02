@@ -142,7 +142,6 @@ def find_units(parent, subclass):
 	tests = []
 
 	for f in files:
-		print f
 		tests.append(subclass([f]))
 
 	return tests
