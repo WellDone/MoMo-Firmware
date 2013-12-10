@@ -5,7 +5,7 @@
 #include "constants.h"
 #include "definitions.h"
 
-global _gsm_setpower, _gsm_module_on, _gsm_sendcommand, _gsm_readresponse
+global _gsm_module_on, _gsm_sendcommand, _gsm_power_on, _gsm_dumpbuffer
 global _gsm_openstream,_gsm_putstream,_gsm_closestream, _gsm_testsim
 
 ;Define the number of supported features and where to store the callback table pointer
@@ -39,11 +39,11 @@ PSECT mibstructs,local,class=CONST,delta=2
 
 mibhandlers:
 BRW
-goto _gsm_setpower
 goto _gsm_module_on
+goto _gsm_power_on
 goto _gsm_sendcommand
-goto _gsm_readresponse
 goto _gsm_testsim
+goto _gsm_dumpbuffer
 
 goto _gsm_openstream
 goto _gsm_putstream
@@ -62,11 +62,14 @@ RETLW kNumStreamCommands+kNumDebugCommands
 
 mibspecs:
 BRW
-RETLW plist_no_buffer(1)
+;Debug Feature
+RETLW 0
 RETLW 0
 RETLW plist_buffer()
 RETLW 0
 RETLW 0
+RETLW 0
+
 ;Stream Feature
 RETLW plist_buffer()
 RETLW plist_buffer()

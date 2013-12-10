@@ -17,5 +17,5 @@ _bus_slave_setreturn equ (kFirstApplicationRow-1)*16 + 15
 
 ;API Data Structure
 psect mibstate class=BANK1,abs
-_mib_buffer equ 0xA2
-_mib_packet equ 0xB6
+_mib_buffer equ 0xA0
+_mib_packet equ 0xB4

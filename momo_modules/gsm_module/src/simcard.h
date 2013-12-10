@@ -4,6 +4,8 @@
 #define __simcard_h__
 
 #include "platform.h"
-uint8 test_siminserted();
+
+void simdet_idle();
+uint8 simdet_detect();
 
 #endif

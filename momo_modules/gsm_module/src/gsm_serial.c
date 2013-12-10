@@ -2,14 +2,11 @@
 
 #include "platform.h"
 #include "gsm_serial.h"
+#include "global_state.h"
 #include "gsm_strings.h"
 #include "mib12_api.h"
+#include "gsm_defines.h"
 #include <string.h>
-
-uint8 gsm_buffer[32];
-uint8 buffer_len;
-
-uint8 test_siminserted();
 
 typedef union 
 {
@@ -29,6 +26,27 @@ typedef union
 
 extern ModuleState state;
 
+void enable_serial()
+{
+	TXEN = 1;
+	SYNC = 0;
+	SPEN = 1;
+
+	BRGH = 1;
+	BRG16 = 1;
+
+	SPBRGH = 0;
+	SPBRGL = 16;
+
+	CREN = 1;
+	
+	//clear the contents of RCREG
+	RCREG;
+	RCREG;
+
+	RCIF = 0;
+}
+
 uint8 open_gsm_module()
 {
 	gsm_buffer[0] = 'A';
@@ -40,7 +58,24 @@ uint8 open_gsm_module()
 	buffer_len = 5;
 
 	send_buffer();
+	receive_response();
 
+	__delay_ms(200);
+
+	gsm_buffer[0] = 'A';
+	gsm_buffer[1] = 'T';
+	gsm_buffer[2] = '+';
+	gsm_buffer[3] = 'C';
+	gsm_buffer[4] = 'M';
+	gsm_buffer[5] = 'E';
+	gsm_buffer[6] = 'E';
+	gsm_buffer[7] = '=';
+	gsm_buffer[8] = '0';
+	gsm_buffer[9] = '\r';
+
+	buffer_len = 10;
+
+	send_buffer();
 	receive_response();
 
 	return 0;
@@ -94,43 +129,8 @@ uint8 receive_response()
 		if (buffer_len == 32)
 			return 2;
 	}
-}
 
-uint8 wait_for_text()
-{
-	RCREG;
-	RCREG;
-	buffer_len = 0;
-
-	if (OERR)
-	{
-		CREN = 0;
-		CREN = 1;
-	}
-
-	state.wait_for_text = 1;  
-	while(state.wait_for_text)
-	{
-		//RC2 = !RC2;
-		if (RCIF)
-		{
-			if (buffer_len == 32)
-				buffer_len = 0;
-
-			gsm_buffer[buffer_len++] = RCREG;
-
-			if (gsm_buffer[buffer_len-1] == '\n')
-			{				
-				if (match_newmsg())
-					return 1;
-
-				if (match_newmsg2digit())
-					return 1;
-
-				buffer_len = 2; //reset the buffer after every \r\n so we don't overflow
-			}
-		}
-	}
+	return 3;
 }
 
 void copy_mib()
@@ -141,6 +141,16 @@ void copy_mib()
 
 	for (i=0; i<buffer_len; ++i)
 		gsm_buffer[i] = mib_buffer[i];
+}
+
+uint8 copy_to_mib()
+{
+	uint8 i;
+
+	for (i=0;i<buffer_len; ++i)
+		mib_buffer[i] = gsm_buffer[i];
+
+	return buffer_len;
 }
 
 void append_carriage()
