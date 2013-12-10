@@ -9,8 +9,11 @@ class UnitTest:
 		self.desc = ''
 		self.targets = None
 
+		self.basedir = os.path.dirname(files[0])
+
 		self._check_files()
 		self._extract_header(files[0])
+		self._check_files()
 
 		self.status = "Unknown"
 	
@@ -129,6 +132,8 @@ class UnitTest:
 					self._parse_targets(val)
 				elif name == 'description':
 					self.desc = val
+				elif name == 'additional':
+					self.files += (os.path.join(self.basedir, val), )
 				elif name == 'type':
 					self.type = val
 
@@ -137,8 +142,13 @@ def find_units(parent, subclass):
 
 	#ignore hidden files
 	files = filter(lambda x: x[0] != '.', files)
+
+	#ignore files that start with support_
+	files = filter(lambda x: not x.startswith("support_"), files)
+
 	files = [os.path.join(parent, f) for f in files]
-	
+
+
 	tests = []
 
 	for f in files:

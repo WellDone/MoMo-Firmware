@@ -79,6 +79,7 @@ class MIB12Config:
 		self.common_incs = conf['mib12']['includes']
 		self.targets = conf['mib12']['known_targets']
 		self.mod_targets = conf['mib12']['module_targets']
+		self.app_maps = conf['mib12']['application_map_reserve']
 
 		self.common_incs = map(lambda x: os.path.normpath(x), self.common_incs); #Change path separator on Windows if necessary
 
@@ -133,6 +134,7 @@ class MIB12Config:
 		self._ensure_flags(env)
 
 		env['ROMSTART'] = self.rom_range[1]+1
+		env['ROMEND'] = self.app_maps[self.get_chip_name(chip)][0] - 1 #Make sure we don't let the code overlap with the MIB map in high memory
 
 		env['XC8FLAGS'] += self.common_flags
 		env['XC8FLAGS'] += self.app_flags
