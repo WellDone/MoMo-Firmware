@@ -39,13 +39,15 @@ BEGINFUNCTION _find_handler
 	retlw kInvalidMIBIndex
 	retf mibcmd
 
+	;Check if there is an application module loaded and see if it
+	;defines this endpoint
+	notexecutive:
 	call _get_magic
 	xorlw kMIBMagicNumber
 	;skipz
 		btfss ZERO
 	retlw kInvalidMIBIndex
 
-	notexecutive:
 	;iterate through all of the features seeing if this matches
 	movlw 0
 	movwf FSR0L
@@ -57,7 +59,6 @@ BEGINFUNCTION _find_handler
 		retlw kInvalidMIBIndex
 	movf FSR0L,w
 	call _get_feature
-	movwf FSR0H
 	;skipnewf mibfeature
 		xorwf mibfeature,w
 		btfsc ZERO
@@ -66,15 +67,16 @@ BEGINFUNCTION _find_handler
 	goto feature_loop
 
 	found_feature:
-	movf FSR0H,w
+	movf FSR0L,w
+	movwf FSR0H
 	call _get_command
 	addwf mibcmd,w
 	movwf FSR0L			;FSR0L now has cmd+get_command(found_feat)
 	incf  FSR0H,w
-	call _get_command
+	call _get_command 	;W now has get_command(found_feat+1)
 	;skipgefw FSR0L
 		subwf FSR0L,w
-		btfss CARRY
+		btfsc CARRY		;This is CARRY NOT BORROW, we want ~BORROW
 		retlw kInvalidMIBIndex
 
 	movf FSR0L,w
