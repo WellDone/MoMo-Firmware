@@ -20,6 +20,10 @@ GLOBAL _i2c_enable
 
 PSECT text_i2c_utils,local,class=CODE,delta=2
 
+#define clearbit(reg, id)	bcf reg&0x7F, reg##_##id##_POSN
+#define setbit(reg, id)		bsf reg&0x7F, reg##_##id##_POSN
+#define bittfsc(reg, id)	btfsc reg&0x7F, reg##_##id##_POSN
+
 ;Set the i2c_status state to either kI2CSendDataState or kI2CReceiveDataState based on whether
 ;bit 1 of address is set
 ;i2c_status.state = (((i2c_msg->address) & 0x01) == 0) ? kI2CSendDataState : kI2CReceiveDataState;
@@ -121,11 +125,11 @@ BEGINFUNCTION _i2c_set_master_mode
 
 	bcf SSP1IE ;bank 1
 	movlb 4
-	bcf GCEN
-	bcf SSPEN
-	bcf SEN
+	clearbit(SSP1CON2, GCEN)
+	clearbit(SSP1CON1, SSPEN)
+	clearbit(SSP1CON2, SEN)
 	btfss FSR1H,0 		;slave mode SEN=1
-	bsf SEN
+	setbit (SSP1CON2, SEN)
 
 	movlw kI2CMasterMode
 	btfss FSR1H,0
@@ -196,7 +200,7 @@ BEGINFUNCTION _i2c_core_transfer
 	movwf INDF0
 	done:	;in both cases w now contains the last byte sent or received
 	btfss FSR1H,7	;if we're in slave mode, release the clock
-	bsf   CKP		
+	setbit(SSP1CON1, CKP)		
 	movlb 1
 	addwf BANKMASK(bus_checksum),f
 	incf BANKMASK(bus_dataptr),f
@@ -265,7 +269,7 @@ BEGINFUNCTION _i2c_master_interrupt
 	call _i2c_setstate
 	movf BANKMASK(i2cerror),w
 	movlb 4
-	btfsc ACKSTAT
+	bittfsc(SSP1CON2, ACKSTAT)
 	movlw kI2CNackReceived
 	movlb 1
 	movwf BANKMASK(i2cerror)

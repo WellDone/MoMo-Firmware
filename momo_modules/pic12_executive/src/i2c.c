@@ -15,13 +15,13 @@ static void i2c_master_receivechecksum();
 void i2c_disable()
 {
     //Disable general call interrupt
-    GCEN = 0;
+    SSP1CON2bits.GCEN = 0;
 
     //disable interrupts
     SSP1IE = 0;
 
     //disable serial port
-    SSPEN = 0;
+    SSPCONbits.SSPEN = 0;
 }
 
 //#pragma interrupt_level 1

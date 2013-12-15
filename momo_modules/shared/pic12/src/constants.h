@@ -13,7 +13,7 @@
  * kept in sync between the mib12 executive, and the build scripts for each application
  * module, i.e. it should not be changed very often.
  */
-#define kFirstApplicationRow	79
+//#define kFirstApplicationRow	79		Defined in the build system now, see /config/build_settings.json
 #define kAppInitAddress			kFirstApplicationRow*16
 #define kAppInterruptAddress	kFirstApplicationRow*16+1
 #define kAppTaskAddress			kFirstApplicationRow*16+2

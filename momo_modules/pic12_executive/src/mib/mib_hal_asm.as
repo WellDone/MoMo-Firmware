@@ -2,15 +2,84 @@
 #include "executive.h"
 #include "constants.h"
 #include "asm_macros.inc"
+#include "asm_branches.inc"
 
 ;mib_params.asm
 ;Assembly routines for dealing with MIB things in an efficient way
 ;very quickly and with minimal code overhead
 
 GLOBAL _mib_state, _mib_buffer,_bus_slave_seterror
-GLOBAL _exec_call_cmd, _exec_get_spec
+GLOBAL _exec_call_cmd, _exec_get_spec, _find_handler
 
 PSECT text100,local,class=CODE,delta=2
+
+mibfeature equ BANKMASK(_mib_state+0)
+mibcmd	   equ BANKMASK(_mib_state+1)
+mibspec	   equ BANKMASK(_mib_state+2)
+
+#define kInvalidMIBIndex 255
+
+EXPAND
+
+;Given a MIB command passed in the MIB packet, decide if
+;we have a handler for that feature,command pair
+;Uses: W, FSR0L,FSR0H
+BEGINFUNCTION _find_handler
+	movlb 1
+	;skipnelf mibfeature,kMIBExecutiveFeature
+		movf mibfeature,w
+		xorlw kMIBExecutiveFeature
+		btfss ZERO
+	goto  notexecutive
+	;Check if the command is less than the number of executive commands
+	;skipltfl mibcmd, kNumExecutiveCommands
+		movlw kNumExecutiveCommands
+		subwf mibcmd,w
+		btfsc CARRY
+	retlw kInvalidMIBIndex
+	retf mibcmd
+
+	call _get_magic
+	xorlw kMIBMagicNumber
+	;skipz
+		btfss ZERO
+	retlw kInvalidMIBIndex
+
+	notexecutive:
+	;iterate through all of the features seeing if this matches
+	movlw 0
+	movwf FSR0L
+	feature_loop:
+	call _get_num_features
+	;skipltfw FSR0L	;return if current feature >= get_num_features()
+	subwf FSR0L,w
+	btfsc CARRY
+		retlw kInvalidMIBIndex
+	movf FSR0L,w
+	call _get_feature
+	movwf FSR0H
+	;skipnewf mibfeature
+		xorwf mibfeature,w
+		btfsc ZERO
+	goto found_feature
+	incf FSR0L,f
+	goto feature_loop
+
+	found_feature:
+	movf FSR0H,w
+	call _get_command
+	addwf mibcmd,w
+	movwf FSR0L			;FSR0L now has cmd+get_command(found_feat)
+	incf  FSR0H,w
+	call _get_command
+	;skipgefw FSR0L
+		subwf FSR0L,w
+		btfss CARRY
+		retlw kInvalidMIBIndex
+
+	movf FSR0L,w
+	return
+ENDFUNCTION _find_handler
 
 ;Given an index into the handler table in application code, call that handler
 ;if the command is handled by the executive, jump to the executive table

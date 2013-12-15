@@ -5,6 +5,7 @@ from SCons.Environment import Environment
 import os
 import fnmatch
 import json as json
+import mib12_config
 
 def find_files(dirname, pattern):
 	"""
@@ -70,34 +71,51 @@ class MIB12Config:
 	def __init__(self):
 		conf = load_settings()
 
-		self.rom_range = conf['mib12']['executive_rom_range']
-		self.app_ram = conf['mib12']['application_ram']
-		self.executive_ram = conf['mib12']['executive_ram']
 		self.common_flags = conf['mib12']['common_xc8_flags']
 		self.exec_flags = conf['mib12']['exec_xc8_flags']
 		self.app_flags = conf['mib12']['app_xc8_flags']
 		self.common_incs = conf['mib12']['includes']
 		self.targets = conf['mib12']['known_targets']
 		self.mod_targets = conf['mib12']['module_targets']
-		self.app_maps = conf['mib12']['application_map_reserve']
 
 		self.common_incs = map(lambda x: os.path.normpath(x), self.common_incs); #Change path separator on Windows if necessary
 
 		self.conf = conf
 
 		#Load chip information
-		chips = conf['mib12']['chip_aliases']
-
 		self.chip_names = {}
-
-		for key,aliases in chips.iteritems():
-			self.chip_names[key] = set(aliases + [key])
-
 		self.chip_info = {}
-		chip_defs = conf['mib12']['chip_definitions']
 		
-		for key in chips.iterkeys():
-			self.chip_info[key] = chip_defs[key]
+		for key in self.targets:
+			self.chip_names[key] = set([key])
+			self._load_chip_info(key)
+
+	def _load_chip_info(self, chip):
+		"""
+		Load chip info from chip_settings dictionary in build_settings.json
+		"""
+
+		settings = self.conf['mib12']['chip_settings'][chip]
+
+		if 'aliases' in settings:
+			self.chip_names[chip].update(settings['aliases'])
+
+		default = self.conf['mib12']['default_settings'].copy()
+
+		self.chip_info[chip] = merge_dicts(default, settings)
+
+	def chip_def(self, chip, val, default=None):
+		"""
+		Get the value of the given property for the specified chip
+		"""
+
+		if val in self.chip_info[chip]:
+			return self.chip_info[chip][val]	
+		
+		if default is not None:
+			return default
+
+		raise ValueError("property %s not found for chip %s" % (val, chip))
 
 	def add_common_incs(self, env):
 		"""
@@ -108,15 +126,19 @@ class MIB12Config:
 
 		env['INCLUDE'] += self.common_incs
 
-	def config_env_for_exec(self, env, chip):
+	def config_env_for_exec(self, env, name):
 		"""
 		Configure the SCons build environment for building the MIB12 Executive
 		"""
 
+		chip = self.get_chip_name(name)
+
 		self._ensure_flags(env)
 
-		env['ROMSTART'] = self.rom_range[0]
-		env['ROMEND'] = self.rom_range[1]
+		exec_range = self.chip_def(chip, 'executive_rom')
+
+		env['ROMSTART'] = exec_range[0]
+		env['ROMEND'] = exec_range[1]
 
 		env['XC8FLAGS'] += self.common_flags
 		env['XC8FLAGS'] += self.exec_flags
@@ -124,26 +146,31 @@ class MIB12Config:
 		self.config_env_for_chip(chip, env)
 		self.add_common_incs(env)
 
-		env['RAMEXCLUDE'] = [self.app_ram]
+		env['RAMEXCLUDE'] = [self.chip_def(chip, 'application_ram')]
 
-	def config_env_for_app(self, env, chip):
+	def config_env_for_app(self, env, name):
 		"""
 		Configure the SCons build environment for building a MIB12 application module
 		"""
 
-		self._ensure_flags(env)
+		chip = self.get_chip_name(name)
 
-		env['ROMSTART'] = self.rom_range[1]+1
-		env['ROMEND'] = self.app_maps[self.get_chip_name(chip)][0] - 1 #Make sure we don't let the code overlap with the MIB map in high memory
+		self._ensure_flags(env)
+		self.config_env_for_chip(chip, env)
+
+		exec_range = self.chip_def(chip, 'executive_rom')
+
+		env['ROMSTART'] = exec_range[1]+1
+		env['ROMEND'] = self.chip_def(chip, 'total_rom') - 16 - 1 #Make sure we don't let the code overlap with the MIB map in high memory
 
 		env['XC8FLAGS'] += self.common_flags
 		env['XC8FLAGS'] += self.app_flags
+		env['XC8FLAGS'] += ['-L-preset_vec=%xh' % (exec_range[1]+1)]
 
-		self.config_env_for_chip(chip, env)
 		self.add_common_incs(env)
 
 		#MIB12 Executive takes all ram in first 
-		env['RAMEXCLUDE'] = self.executive_ram
+		env['RAMEXCLUDE'] = self.chip_def(chip, 'executive_ram')
 		env['NO_STARTUP'] = True
 
 	def config_env_for_chip(self, chip, env):
@@ -151,18 +178,17 @@ class MIB12Config:
 		Configure SCons environment to build for a specific 8-bit chip
 		"""
 
-		try:
-			chip,define,sim = self.find_chip_info(chip)
+		info = self.get_chip(chip)
 
-			env['CHIP'] = chip
-			env['CHIPDEFINE'] = define
+		try:
+			env['CHIPINFO'] = info
+			env['CHIPNAME'] = info.name
+			env['CHIP'] = self.chip_def(chip, 'xc8_target')
+			env['CHIPDEFINE'] = self.chip_def(chip, 'xc8_define')
+			env['XC8FLAGS'] += ['-DkFirstApplicationRow=%d' % info.first_app_page]
+			env['MIB_API_BASE'] = str(info.api_range[0])
 		except KeyError:
 			raise ValueError("Chip %s not found in build_settings.json, cannot target that chip." % chip)
-
-	def find_chip_info(self, chip):
-		found = self.get_chip_name(chip)
-
-		return self.chip_info[found]
 
 	def get_chip_name(self, chip):
 		found = None
@@ -171,6 +197,15 @@ class MIB12Config:
 				return key
 
 		raise ValueError('Chip %s not found in build_settings, do not know about this chip target' % chip)
+
+	def get_chip(self, chip):
+		"""
+		Get a MIB12Processor instance containing all of the information about this
+		chip.
+		"""
+
+		name = self.get_chip_name(chip)
+		return mib12_config.MIB12Processor(name, self.chip_info[name])
 
 	def get_targets(self, module):
 		"""
@@ -205,3 +240,18 @@ class MIB12Config:
 	def _ensure_flags(self, env):
 		if "XC8FLAGS" not in env:
 			env['XC8FLAGS'] = []
+
+
+def merge_dicts(a, b):
+    "merges b into a"
+
+    for key in b:
+        if key in a:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                merge_dicts(a[key], b[key])
+            else:
+            	a[key] = b[key]
+        else:
+            a[key] = b[key]
+    
+    return a

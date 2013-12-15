@@ -51,34 +51,19 @@
 
 ScheduledTask task1;
 
-void blink_light1(void)
-{
-   scheduler_schedule_task(post_report, kEvery10Seconds, kScheduleForever, &task1);
-}
-
 ScheduledTask i2c;
 
 int main(void)
 {
     AD1PCFG = 0xFFFF;
 
-    _TRISA1 = 0;
-    _TRISA0 = 0;
-    _TRISB1 = 1;
-    _TRISB0 = 0;
-    //_TRISA6 = 0;
-
-    //_RA1 = 1;
-    //_RA0 = 1;
+    //Enable the Memory Module
+    _RB7 = 1;
+    _TRISB7 = 0;
 
     register_reset_handlers();
     handle_reset();
-
-    //taskloop_add(blink_light1);
     
-    //scheduler_schedule_task(post_report, kEvery10Seconds, kScheduleForever, &task1);
-    //scheduler_schedule_task(send_blink_message, kEverySecond, kScheduleForever, &i2c);
-
     taskloop_loop();
 
     return (EXIT_SUCCESS);

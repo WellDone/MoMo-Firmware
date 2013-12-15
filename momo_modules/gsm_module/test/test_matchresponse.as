@@ -42,5 +42,4 @@ BEGINFUNCTION _begin_tests
 
 	asm_call_match_okay_response()
 	return
-
 ENDFUNCTION _begin_tests

@@ -3,7 +3,7 @@
 import SCons.Builder
 
 _patch_mib12 = SCons.Builder.Builder(
-	action = 'patch_mib12_api.py $SOURCES $TARGET'
+	action = 'patch_mib12_api.py $MIB_API_BASE $SOURCES $TARGET'
 	)
 
 def generate(env):

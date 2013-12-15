@@ -27,7 +27,7 @@ void i2c_slave_interrupt()
 	if (i2c_address_received())
 	{
 		i2c_receive();
-		SSPOV = 0; //reset receive overflow flag
+		SSPCON1bits.SSPOV = 0; //reset receive overflow flag
 
 		bus_slave_callback();
 	}		
@@ -66,7 +66,7 @@ void i2c_slave_interrupt()
 			//by default do read bytes even if we don't know what to do with them so that the protocol doesn't
 			//lock up
 			i2c_receive();
-			SSPOV = 0; 
+			SSPCON1bits.SSPOV = 0; 
 			i2c_release_clock();
 			break;
 		}

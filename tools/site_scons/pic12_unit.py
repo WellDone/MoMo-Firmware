@@ -58,7 +58,7 @@ def build_unittest(test_files, name, chip, type):
 	symtab = env.merge_mib12_symbols([os.path.join(outdir, 'symbols.stb')], [testee_symtab, os.path.join(testdir, name + '_unit.sym')])
 
 	#Load in all of the xc8 configuration from build_settings
-	alias,define,sim = mib12conf.find_chip_info(chip)
+	sim = mib12conf.chip_def(chip, 'gpsim_proc')
 
 	env['TESTCHIP'] = sim
 	env['TESTNAME'] = name
@@ -71,7 +71,8 @@ def build_unittest(test_files, name, chip, type):
 	env.Depends(apphex[0], symfile)
 
 	if type == "executive":
-		lowhex = env.Command(os.path.join(testdir, 'mib12_executive_local.hex'), os.path.join(builddir, 'mib12_executive_patched.hex'), action='python ../../tools/scripts/patch_start.py $SOURCE $TARGET')
+		app_start = env['CHIPINFO'].app_rom[0] + 2
+		lowhex = env.Command(os.path.join(testdir, 'mib12_executive_local.hex'), os.path.join(builddir, 'mib12_executive_patched.hex'), action='python ../../tools/scripts/patch_start.py %d $SOURCE $TARGET' % app_start)
 		highhex = apphex[0]
 	else:
 		lowhex = apphex[0]

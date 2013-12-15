@@ -10,22 +10,22 @@
 #include "platform.h"
 #include "i2c_defines.h"
 
-#define i2c_release_clock()         CKP = 1
-#define i2c_send_start()            SEN = 1
-#define i2c_send_repeatedstart()    RSEN = 1
-#define i2c_send_stop()             PEN = 1
-#define i2c_begin_receive()         RCEN = 1
-#define i2c_send_ack()              {ACKDT = 0; ACKEN = 1;}
-#define i2c_send_nack()             {ACKDT = 1; ACKEN = 1;}
-#define i2c_received_data()         (BF == 1)
+#define i2c_release_clock()         SSP1CON1bits.CKP = 1
+#define i2c_send_start()            SSP1CON2bits.SEN = 1
+#define i2c_send_repeatedstart()    SSP1CON2bits.RSEN = 1
+#define i2c_send_stop()             SSP1CON2bits.PEN = 1
+#define i2c_begin_receive()         SSP1CON2bits.RCEN = 1
+#define i2c_send_ack()              {SSP1CON2bits.ACKDT = 0; SSP1CON2bits.ACKEN = 1;}
+#define i2c_send_nack()             {SSP1CON2bits.ACKDT = 1; SSP1CON2bits.ACKEN = 1;}
+#define i2c_received_data()         (SSPSTATbits.BF == 1)
 #define i2c_has_checksum()          (!(curr_msg->flags & kI2CMessageNoChecksum))
-#define i2c_transmit_full()         (BF == 1)
-#define i2c_slave_is_read()         (R_nW == 1)
-#define i2c_byte_nacked()           (ACKSTAT)
+#define i2c_transmit_full()         (SSPSTATbits.BF == 1)
+#define i2c_slave_is_read()         (SSPSTATbits.R_nW == 1)
+#define i2c_byte_nacked()           (SSP1CON2bits.ACKSTAT)
 
 //i2c slave conditions
-#define i2c_stop_received()         (P == 1)
-#define i2c_address_received()      (D_nA == 0)
+#define i2c_stop_received()         (SSPSTATbits.P == 1)
+#define i2c_address_received()      (SSPSTATbits.D_nA == 0)
 
 #define kInvalidImmediateAddress          0x03                //Guaranteed not to be in use by the i2c protocol
 #define kInvalidI2CAddress                0x01                //Also not in use by i2c protocol

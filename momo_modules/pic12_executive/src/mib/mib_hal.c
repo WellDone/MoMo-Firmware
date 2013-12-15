@@ -17,7 +17,7 @@ uint8 get_feature(uint8 feature);
 uint8 get_command(uint8 command);
 uint8 get_magic();
 
-uint8 find_handler(void)
+/*uint8 find_handler(void)
 {
 	uint8 found_feat;
 	uint8 cmd = mib_state.bus_command.command;
@@ -50,7 +50,7 @@ uint8 find_handler(void)
 		return kInvalidMIBIndex;
 
 	return cmd;
-}
+}*/
 
 void bus_init(uint8 address)
 {

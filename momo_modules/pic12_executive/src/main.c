@@ -50,7 +50,12 @@ void interrupt service_isr() {
 void main() 
 {    
     initialize();
+
+    TRISA2 = !TRISA2;
+
     restore_status();
+
+    TRISA2 = !TRISA2;
 
     if (status.bootload_mode)
     {
@@ -99,10 +104,10 @@ void initialize()
 
     #ifdef __PIC16LF1823__
     TRISC = 0xff;
-    TRISC2 = 0;
-    RC2 = 0;
     ANSELC = 0;
     #endif
+
+    RA2 = 0;
 
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
     ANSELA = 0;
@@ -125,7 +130,7 @@ void restore_status()
     if (!status.registered)
     {
         uint8 address = 0;
-
+        
         //Wait 1 second to make the controller had time to power on
         //in case this is a power on reset
         wdt_settimeout(k1SecondTimeout);

@@ -10,7 +10,9 @@ def merge_app(target, source, env):
 
 	conf = utilities.MIB12Config()
 
-	exec_end = conf.rom_range[1]*2
+	chip = conf.get_chip(env['CHIPNAME'])
+
+	exec_end = chip.exec_rom[1]*2
 
 	execfile = intelhex.IntelHex(str(source[0]))
 	appfile = intelhex.IntelHex(str(source[1]))

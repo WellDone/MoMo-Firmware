@@ -11,15 +11,18 @@
 #define SCLPIN		RC1
 #define SDATRIS		TRISC0
 #define SCLTRIS		TRISC1
-#else
-#ifdef __PIC12LF1822__
+#elif  __PIC12LF1822__
 #define SDAPIN		RA2	
 #define SCLPIN		RA1
 #define SDATRIS		TRISA2
 #define SCLTRIS		TRISA1
+#elif  __PIC16LF1847__
+#define SDAPIN		RB1
+#define SCLPIN		RB3
+#define SDATRIS 	TRISB1
+#define SCLTRIS		TRISB4
 #else
 #error Unsupported Platform, need to know i2c pin locations.
-#endif
 #endif
 
 #define kI2CIdleState 				0

@@ -26,8 +26,8 @@ BEGINFUNCTION _begin_tests
 	movf BANKMASK(_mib_packet+2),w
 	call _loghex
 
-	asm_call_find_handler()
-	call _loghex
+	;asm_call_find_handler()
+	;call _loghex
 	return
 ENDFUNCTION _begin_tests
 
