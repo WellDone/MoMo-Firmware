@@ -1,0 +1,27 @@
+import os
+
+incs = []
+incs.append('.')
+incs.append('src')
+incs.append('src/mib')
+
+Import('env')
+env['INCLUDE'] += incs
+
+asm_sources = ['flash_memory.as', 'i2c_utilities.as', 'watchdog_asm.as']
+
+srcfiles = asm_sources									\
+	+ Glob('./*.c') 									\
+	+ Glob('../../../shared/portable/core/*.c')			\
+	+ Glob('../../../shared/portable/mib/*.c')			\
+	+ Glob('../../../shared/portable/mib/master/*.c')	\
+	+ Glob('../../../shared/portable/mib/slave/*.c')	\
+	+ Glob('./mib/*.c')									\
+	+ Glob('./mib/*.as')								\
+	+ Glob('./mib/slave/commands/*.c')
+
+target = env.xc8('mib12_executive.hex', srcfiles)
+patched = env.patch_mib12('mib12_executive_patched.hex', ['mib12_executive.hex', 'mib12_executive.sym'])
+symtab = env.build_symbols(['mib12_executive_symbols.h', 'mib12_executive_symbols.stb'],['mib12_executive.sym'])
+
+Clean(target, ['#funclist', '#l.obj'])

@@ -1,0 +1,43 @@
+
+import os
+import pic12_unit
+import unit_test12
+import unit_test
+import utilities
+
+module_name = 'pic12_executive'
+
+def build_exec_for_chip(chip):
+	"""
+	Configure Scons to build the MIB12 Executive for the 8bit pic microchip indicated in the arguments.
+	"""
+
+	mib12conf = utilities.MIB12Config()
+	dirs = mib12conf.build_dirs(chip)
+	
+	VariantDir(dirs['build'], 'src', duplicate=0)
+
+	env = Environment(tools=['xc8_compiler', 'patch_mib12', 'xc8_symbols'], ENV = os.environ)
+	env.AppendENVPath('PATH','../../tools/scripts')
+
+	#Load in all of the xc8 configuration from build_settings
+	mib12conf.config_env_for_exec(env, chip)
+
+	Export('env')
+	SConscript(os.path.join(dirs['build'], 'SConscript'))
+
+	prods = [os.path.join(dirs['build'], 'mib12_executive_patched.hex'), os.path.join(dirs['build'], 'mib12_executive_symbols.h'), os.path.join(dirs['build'], 'mib12_executive_symbols.stb')]
+
+	hexfile = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_%s.hex' % chip), prods[0])
+	symheader = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_symbols_%s.h' % chip), prods[1])
+	symtable = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_symbols_%s.stb' % chip), prods[2])
+	
+	return [hexfile, symheader, symtable]
+
+#Build for all targets
+utilities.for_all_targets(module_name, build_exec_for_chip)
+
+#Build all unit tests
+unit_test.build_units('test', utilities.get_module_targets(module_name), subclass=unit_test12.Pic12UnitTest)
+
+Default(os.path.join('build', 'output'))

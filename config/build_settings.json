@@ -1,0 +1,82 @@
+{
+	"mib12" : 
+	{
+		"common_xc8_flags": ["-G", "--addrqual=require", "--summary=default,+psect,-class,+mem,-hex,-file", "--output=default,-inhx032", "--asmlist", "-P", "--mode=pro", "--opt=all,-asmfile" ],
+		"exec_xc8_flags": ["--runtime=default,+clear,+keep,+init,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib"],
+		"app_xc8_flags": ["--runtime=-init,+no_startup,-osccal,-clear,+clib,-plib,+download"],
+
+		"default_settings" :
+		{
+			"executive_rom": [0, 1263],
+			"application_ram": [32, 96],
+			"executive_ram": [ [97,120], [160, 191] ],
+			"total_rom": 2048
+		},
+
+		"chip_settings" :
+		{
+			"16lf1847":
+			{
+				"executive_rom": [0, 1391],
+				"aliases": ["16F1847", "16LF1847"],
+				"xc8_target": "16F1847",
+				"xc8_define": "__PIC16LF1847__",
+				"gpsim_proc": "p16f1823"
+			},
+
+			"16lf1823" :
+			{
+				"aliases": ["16F1823", "16LF1823"],
+				"xc8_target": "16F1823",
+				"xc8_define": "__PIC16LF1823__",
+				"gpsim_proc": "p16f1823"
+			},
+
+			"12lf1822" :
+			{
+				"aliases": ["12F1822", "12LF1822"],
+				"xc8_target": "12F1822",
+				"xc8_define": "__PIC12LF1822__",
+				"gpsim_proc": "p12f1822"
+			}
+		},
+
+		"includes" :
+		[
+			"../shared/pic12/src",
+			"../shared/portable/core",
+			"../shared/portable/mib",
+			"../shared/portable/mib/slave",
+			"../shared/portable/mib/master",
+			"../shared/portable/util"
+		],
+
+		"known_targets" :
+		[
+			"12lf1822",
+			"16lf1823",
+			"16lf1847"
+		],
+
+		"module_targets" :
+		{
+			"gsm_module": ["16lf1823"]
+		},
+
+		"test" :
+		{
+			"includes": 
+			[
+				"../test/pic12/gpsim_logging"
+			]
+		}
+	},
+
+	"reference" :
+	{
+		"portable_dirs": 
+		[
+			""
+		]
+	}
+}

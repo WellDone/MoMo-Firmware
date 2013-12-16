@@ -50,25 +50,12 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
-void alive(void)
-{
-	_RA4 = !_RA4;
-    //bus_master_compose_params(plist_define0());
-    //bus_master_rpc_async(NULL, kMIBControllerAddress,0x01,0x00);
-}
-
-ScheduledTask task;
 
 int main(void) {
     AD1PCFG = 0xFFFF;
-    _TRISA4 = 0;
-    _LATA4 = 0;
 
     register_reset_handlers();
     handle_reset();
-
-    //scheduler_schedule_task(alive, kEverySecond, kScheduleForever, &task);
-    //scheduler_schedule_task(send_blink_message, kEverySecond, kScheduleForever, &task);
 
     taskloop_loop();
 

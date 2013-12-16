@@ -1,7 +1,10 @@
 #include "bus_master.h"
 #include <string.h>
 #include "mib_state.h"
+
+#ifndef _PIC12
 #include "rpc_queue.h"
+#endif
 
 #ifdef _PIC12
 extern bank1 volatile I2CStatus i2c_status;
@@ -192,8 +195,11 @@ void bus_master_callback()
 		case kMIBFinalizeMessage:
 		//Set the flag that this RPC is done for whomever is waiting.
 		mib_state.rpc_done = 1;
+
+		#ifndef _PIC12
 		if ( !rpc_queue_empty() )
 				taskloop_add_critical( bus_master_rpc_async_do );
+		#endif
 
 		i2c_finish_transmission(); 
 		for(i=0; i<200; ++i)

@@ -10,9 +10,7 @@
 #include "gsm_defines.h"
 #include "gsm_strings.h"
 #include "gsm_serial.h"
-
- bit stream_open;
- uint8 bytes_remaining;
+#include "simcard.h"
 
 extern uint8 gsm_buffer[32];
 extern uint8 buffer_len;
@@ -39,7 +37,13 @@ extern ModuleState state;
 
  void gsm_openstream()
  {
- 	if (GSMSTATUSPIN == 0)
+ 	if (PIN(GSMSTATUSPIN) == 0)
+ 	{
+ 		bus_slave_setreturn(pack_return_status(6,0));
+ 		return;
+ 	}
+
+ 	if (simdet_detect() == 0)
  	{
  		bus_slave_setreturn(pack_return_status(6,0));
  		return;
@@ -75,8 +79,6 @@ extern ModuleState state;
  	gsm_buffer[0] = 0x1A;
  	buffer_len = 1;
  	send_buffer();
-
- 	state.wait_for_text = 0;
  	
  	bus_slave_setreturn(pack_return_status(0,0));
  }

@@ -3,6 +3,7 @@
 #include <xc.inc>
 #define __DEFINES_ONLY__
 #include "gsm_strings.h"
+#include "asm_macros.inc"
 
 GLOBAL _match_okay_response,_match_error_response,_gsm_buffer, _buffer_len
 GLOBAL _load_gsm_constant, _match_newmsg, _match_newmsg2digit
@@ -73,10 +74,11 @@ _load_gsm_constant:
 	movwi FSR0++
 	goto copyloop
 
-_match_okay_response:
+BEGINFUNCTION _match_okay_response
 	movlw kOkayString
 	call load_string
 	goto _match_response
+ENDFUNCTION _match_okay_response
 
 
 _match_error_response:
