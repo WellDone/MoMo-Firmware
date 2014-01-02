@@ -9,7 +9,8 @@ PSECT mibapi,abs,local,class=CODE,delta=2
 global _main
 
 ;Use the final high words of the mib_executive rom for api callbacks
-org (kFirstApplicationRow-1)*16 + 14
+;mib api lives in the last 16 bytes before the application
+org (kFirstApplicationRow)*kFlashRowSize - 16 + 14
 ;dw 2
 BEGINREGION mib12_api
 	goto _main

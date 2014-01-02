@@ -8,10 +8,10 @@ import sys
 ih = intelhex.IntelHex(sys.argv[1])
 ih.padding = 0xFF
 
-start_row = 79
-start_addr = 79*16
+start_row = 44
+start_addr = start_row*32
 
-end_addr = 128*16
+end_addr = 4096
 
 check = 0
 for i in xrange(start_addr, end_addr):
@@ -27,4 +27,5 @@ for i in xrange(start_addr, end_addr):
 check = check & 0xFF
 
 print "Checksum: 0x%X" % check
+print "Checksum: %d" % check
 print "Checksum: %s" % bin(check)

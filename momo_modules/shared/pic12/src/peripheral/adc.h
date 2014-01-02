@@ -4,6 +4,7 @@
 #define __adc_h__
 
 #include <xc.h>
+#include "platform.h"
 
 #define kADC_CHAN_MASK			0b11111
 #define BUILD_ADC_CHAN(x)		((x & kADC_CHAN_MASK) << 2)
@@ -24,6 +25,7 @@
 #define kADCChannelTemp			BUILD_ADC_CHAN(0b11101)
 #define kADCChannelDAC			BUILD_ADC_CHAN(0b11110)
 #define kADCChannelFVR			BUILD_ADC_CHAN(0b11111)
+#define kADCChannelMask			BUILD_ADC_CHAN(kADC_CHAN_MASK)
 
 //ADC Clock Constants
 #define kADC_CLOCK_MASK			0b111
@@ -34,7 +36,7 @@
 
 //ADC Justification Modes (right justified is shifted all to low order bits)
 #define kADCRightJustified 		(1 << 7)
-#define kADCLeftJustified		0
+#define kADCLeftJustified		0 				//NOT SUPPORTED
 
 //ADC Voltage References
 #define BUILD_ADC_POSREF(x)		((x & 0b11))
@@ -48,5 +50,18 @@
 //Negative References
 #define kADCVSSNegRef			BUILD_ADC_NEGREF(0)
 #define kADCExtNegRef			BUILD_ADC_NEGREF(1)
+
+#define ADCBuildConfig(just, clock, nref, pref)			(just | clock | nref | pref)
+
+//Module Functions
+void adc_setenabled(uint8 on);
+void adc_convertsync();
+void adc_setchannel(uint8 chan);
+void adc_configure(uint8 config);
+void adc_average(uint8 n);
+
+#ifndef __ADC_INTERNAL__
+extern unsigned int 	adc_result;
+#endif
 
 #endif

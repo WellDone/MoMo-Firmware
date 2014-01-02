@@ -23,24 +23,39 @@ BEGINFUNCTION unlock_and_write
     return
 ENDFUNCTION unlock_and_write
 
-BEGINFUNCTION prepare_row_address
-	movlb   3                       ;select bank3 where EEADR{L,H} live
-    swapf   WREG,w                  ;load in the row number*16 into the 16 bit addres
-    movwf   BANKMASK(EEADRL)		;4 low bits in upper nibble of low addr
-    movwf   BANKMASK(EEADRH)		;4 high bits in lower nibble of high addr
+;Given a flash row number in W, multiply it by the flash row size
+;to convert it to an address and store it in EEADRL and EEADRH
+;currently supports only 16 and 32 byte rows
+BEGINFUNCTION row_index_to_address
+	banksel(EEADRL)
+	swapf   WREG,w      	 			;load in the row number*kFlashRowSize into the 16 bit address
+    movwf   BANKMASK(EEADRL)			;4 low bits in upper nibble of low addr
+    movwf   BANKMASK(EEADRH) 			;4 high bits in lower nibble of high addr
     movlw   0xF0
     andwf   BANKMASK(EEADRL),f
     movlw   0x0F
     andwf   BANKMASK(EEADRH),f
+
+#if kFlashRowSize == 32
+	lslf 	BANKMASK(EEADRL),f
+	rlf 	BANKMASK(EEADRH),f
+#endif
+	return
+ENDFUNCTION row_index_to_address
+
+;Prepare the row address and set the bits to allow for flash access
+BEGINFUNCTION prepare_row_address
+	banksel(EEADRL) 				;need to access the right bank.
     bcf		CFGS					;access FLASH program, not config
     bsf		WREN 					;allow program/erase
     bsf		EEPGD 					;access program space FLASH memory
-    return
+    
+    goto 	row_index_to_address
 ENDFUNCTION prepare_row_address
 
 BEGINFUNCTION read_app_row
 	call 	prepare_row_address
-	movlw 	16
+	movlw 	kFlashRowSize
 	movwf 	FSR0L
 
 	read_row_loop
@@ -59,7 +74,7 @@ BEGINFUNCTION read_app_row
 ENDFUNCTION read_app_row
 
 ;Calculate an 8-bit checksum of all of application flash
-
+;Uses FSR1H and FSR1L for temporary storage
 BEGINFUNCTION _verify_application
 	clrf FSR1H						;store checksum here
 	movlw 	kFirstApplicationRow
@@ -86,42 +101,25 @@ BEGINFUNCTION _flash_erase_row
     return
 ENDFUNCTION _flash_erase_row
 
-;taking in no parameters, erase all of the rows corresponding to the application code
-;as defined in bootloader.h
-BEGINFUNCTION  _flash_erase_application
-	bcf		GIE
-	movlw 	kFirstApplicationRow
-	movwf 	FSR1L					;current row in FSR1L
-	erase_app_loop:
-	movf  	FSR1L,w
-	call  	_flash_erase_row
-	incf 	FSR1L,f 				;current row++
-	movlw	kNumFlashRows			;if row == memsize, we're done
-	subwf	FSR1L,w
-	btfss	ZERO
-	goto 	erase_app_loop
-	bcf		WREN 					;disallow program/erase
-	bsf		GIE
-	return
-ENDFUNCTION _flash_erase_application
-
-;take in a byte specifying a flash row number and load the 16 bit address
+;given a byte specifying a flash row number in _boot_count and load the 16 bit address
 ;of the first byte of that row into the mib_buffer in position 1
 ;the low order byte is assumed to contain the offset with the row so it is
 ;combined with a logical or.
 BEGINFUNCTION _load_boot_address
-	movlb 0
-	lslf _boot_count,w
-	movlb 1
+	banksel(_boot_count)
+	movf BANKMASK(_boot_count),w
+	call row_index_to_address
+	banksel(EEADRL)
+	movf BANKMASK(EEADRL),w
 	movwf FSR1L
-
-	andlw 0xF0
-	swapf WREG
+	movf BANKMASK(EEADRH),w
+	andlw (kFlashMemorySize-1) >> 8
+	movwf FSR1H
+	banksel(_mib_buffer)
+	lslf FSR1L,f
+	rlf  FSR1H,w
 	movwf BANKMASK(_mib_buffer+3)
-	
 	movf  FSR1L,w
-	andlw 0x0F
-	swapf WREG
 	iorwf BANKMASK(_mib_buffer+2),f
 	return
 ENDFUNCTION _load_boot_address
@@ -178,8 +176,8 @@ BEGINFUNCTION _flash_write_row
 	movlw	kBootloaderBufferLoc
 	movwf	FSR0L
 	clrf	FSR0H 					;FSR0 now points to row array
-	bsf 	LWLO					;write 15 latches only and then actually write the row on the 16th
-	movlw	16
+	bsf 	LWLO					;write N-1 latches only and then actually write the row on the Nth
+	movlw	kFlashRowSize
 	movwf	FSR1H					;FSR1H has count of latches
 	write_row_loop:
 	moviw 	FSR0++

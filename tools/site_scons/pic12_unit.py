@@ -82,10 +82,10 @@ def build_unittest(test_files, name, chip, type):
 
 	outscript = env.Command([os.path.join(outdir, 'test.stc')], [outhex], action=build_unittest_script)
 
-	raw_results = env.gpsim_run(build_logfile_name(env), outscript)
-	formatted_log = env.Command([build_formatted_log_name(env), build_status_name(env)], [raw_results, symtab], action=process_unittest_log)
+	raw_log_path = os.path.join(outdir, build_logfile_name(env))
 
-	env.Command(build_formatted_log_name(env) + 'nonexistant', [], Delete(raw_results))
+	raw_results = env.gpsim_run(raw_log_path, outscript)
+	formatted_log = env.Command([build_formatted_log_name(env), build_status_name(env)], [raw_results, symtab], action=process_unittest_log)
 
 	#Also remember to remove the test directory when cleaning
 	env.Clean(outscript, testdir)
@@ -107,7 +107,7 @@ def build_unittest_script(target, source, env):
 	Build a gpsim script to execute this unit test
 	"""
 
-	logfile = os.path.join('..', '..', 'output', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.raw')
+	logfile = env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.raw'
 
 	sim = env['TESTCHIP']
 	name = env['TESTNAME']
@@ -132,10 +132,10 @@ def process_unittest_log(target, source, env):
 
 
 def build_logfile_name(env):
-	return os.path.join('build', 'test', 'output', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.raw')
+	return env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.raw'
 
 def build_formatted_log_name(env):
-	return os.path.join('build', 'test', 'output', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.log')
+	return os.path.join('build', 'test', 'output', 'logs', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.log')
 
 def build_status_name(env):
 	return os.path.join('build', 'test', 'output', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.status')

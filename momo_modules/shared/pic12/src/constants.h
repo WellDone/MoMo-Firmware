@@ -8,15 +8,12 @@
 #define __constants_h__
 
 /*
- * The MIB12 executive takes up the lower portion of memory.  This constant defines the
- * first row of program memory that can be used by mib12 applications.  This value must be
- * kept in sync between the mib12 executive, and the build scripts for each application
- * module, i.e. it should not be changed very often.
+ * The MIB12 executive takes up the lower portion of memory.  Application modules
+ * live in the higher portion of memory.
  */
-//#define kFirstApplicationRow	79		Defined in the build system now, see /config/build_settings.json
-#define kAppInitAddress			kFirstApplicationRow*16
-#define kAppInterruptAddress	kFirstApplicationRow*16+1
-#define kAppTaskAddress			kFirstApplicationRow*16+2
+#define kAppInitAddress			kFirstApplicationRow*kFlashRowSize
+#define kAppInterruptAddress	kFirstApplicationRow*kFlashRowSize+1
+#define kAppTaskAddress			kFirstApplicationRow*kFlashRowSize+2
 
 /*
  * MIB12 Application Modules must define a special structure in the 8 high words of program

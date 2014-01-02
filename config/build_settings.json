@@ -8,16 +8,19 @@
 		"default_settings" :
 		{
 			"executive_rom": [0, 1263],
-			"application_ram": [32, 96],
-			"executive_ram": [ [97,120], [160, 191] ],
-			"total_rom": 2048
+			"application_ram": [32, 106],
+			"executive_ram": [ [107,120], [160, 191] ],
+			"total_rom": 2048,
+			"flash_row_words": 16
 		},
 
 		"chip_settings" :
 		{
 			"16lf1847":
 			{
-				"executive_rom": [0, 1391],
+				"executive_rom": [0, 1407],
+				"flash_row_words": 32,
+				"total_rom": 4096,
 				"aliases": ["16F1847", "16LF1847"],
 				"xc8_target": "16F1847",
 				"xc8_define": "__PIC16LF1847__",
@@ -44,6 +47,7 @@
 		"includes" :
 		[
 			"../shared/pic12/src",
+			"../shared/pic12/src/peripheral",
 			"../shared/portable/core",
 			"../shared/portable/mib",
 			"../shared/portable/mib/slave",
@@ -60,7 +64,8 @@
 
 		"module_targets" :
 		{
-			"gsm_module": ["16lf1823"]
+			"gsm_module": ["16lf1823"],
+			"pv_module": ["16lf1847"]
 		},
 
 		"test" :

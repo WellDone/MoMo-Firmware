@@ -1,9 +1,8 @@
 #ifndef __bootloader_h__
 #define __bootloader_h__
 
-#define kNumFlashRows			128
-#define kFlashRowSize			16		//words
-#define kBootloaderBufferLoc	0x20	//bootloader uses first 32 bytes of ram in bank0 to cache flash row
+#include "bootloader_defs.h"
+
 #define kHighWordAddress		0x7FF
 #define kAppSourceAddress		0x7FE
 #define kRetlwHighWord			0b110100
@@ -17,7 +16,7 @@
 void 	set_firmware_id(uint8 bucket);
 void 	prepare_reflash(uint8 source);
 void 	enter_bootloader();
-uint8 	get_half_row(uint8 offset);
+void 	get_half_row(uint8 offset);
 
 typedef union
 {

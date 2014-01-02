@@ -12,10 +12,10 @@ global _bus_master_rpc_sync, _bus_slave_setreturn
 global _mib_buffer,_mib_packet
 
 ;API Functions
-_bus_master_rpc_sync equ (kFirstApplicationRow-1)*16 + 14
-_bus_slave_setreturn equ (kFirstApplicationRow-1)*16 + 15
+_bus_master_rpc_sync equ (kFirstApplicationRow)*kFlashRowSize - 2
+_bus_slave_setreturn equ (kFirstApplicationRow)*kFlashRowSize - 1
 
 ;API Data Structure
 psect mibstate class=BANK1,abs
-_mib_buffer equ 0xA0
-_mib_packet equ 0xB4
+_mib_buffer equ 0xA2
+_mib_packet equ 0xB6

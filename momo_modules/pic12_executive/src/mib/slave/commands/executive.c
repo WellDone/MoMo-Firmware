@@ -4,8 +4,8 @@
 
 void exec_prepare_reflash()
 {
-	set_firmware_id(plist_get_int8(1, 0));
-	prepare_reflash(plist_get_int8(0, 0));
+	set_firmware_id(plist_get_int8(2));
+	prepare_reflash(plist_get_int8(0));
 	bus_slave_setreturn(pack_return_status(0,0));
 }
 

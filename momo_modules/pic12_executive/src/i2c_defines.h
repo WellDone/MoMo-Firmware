@@ -18,7 +18,7 @@
 #define SCLTRIS		TRISA1
 #elif  __PIC16LF1847__
 #define SDAPIN		RB1
-#define SCLPIN		RB3
+#define SCLPIN		RB4
 #define SDATRIS 	TRISB1
 #define SCLTRIS		TRISB4
 #else
