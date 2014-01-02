@@ -38,8 +38,8 @@ void prepare_reflash(uint8 source)
 
 	set_flash_word(kFlashRowSize-2, source, kRetlwHighWord);
 	set_flash_word(kFlashRowSize-1, kReflashMagicNumber, kRetlwHighWord);
-	flash_erase_row(kNumFlashRows-1);
-	flash_write_row(kNumFlashRows-1); //Write the source and magic number into the memory
+	flash_erase_row(kMIBStructRow);
+	flash_write_row(kMIBStructRow); //Write the source and magic number into the memory
 }
 
 void get_half_row(uint8 offset)

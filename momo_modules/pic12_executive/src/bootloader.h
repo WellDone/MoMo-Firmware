@@ -3,8 +3,6 @@
 
 #include "bootloader_defs.h"
 
-#define kHighWordAddress		0x7FF
-#define kAppSourceAddress		0x7FE
 #define kRetlwHighWord			0b110100
 
 #define set_flash_word(offset, low, high) 	{app_buffer[offset << 1] = low; app_buffer[(offset << 1) + 1] = high;}

@@ -96,15 +96,23 @@ BEGINFUNCTION _call_handler
 	GOTO _exec_call_cmd
 	call_app:
 	movf FSR1L,w
-	GOTO 0x7FE				;branch to the goto in high memory that redirects to the application code's mib callback table
+
+	call 0x7FE				;branch to the goto in high memory that redirects to the application code's mib callback table
+	pagesel($)
+	return 
+
 ENDFUNCTION _call_handler
 
 BEGINFUNCTION _get_feature
-	GOTO 0x7FB
+	call 0x7FB
+	pagesel($)
+	return
 ENDFUNCTION _get_feature
 
 BEGINFUNCTION _get_command
-	GOTO 0x7FC
+	call 0x7FC
+	pagesel($)
+	return 
 ENDFUNCTION _get_command
 
 BEGINFUNCTION _get_param_spec
@@ -116,9 +124,12 @@ BEGINFUNCTION _get_param_spec
 	GOTO call_spec
 	movf FSR1L,w
 	GOTO _exec_get_spec
+	
 	call_spec:
 	movf FSR1L,w
-	GOTO 0x7FD
+	call 0x7FD
+	pagesel($)
+	return
 ENDFUNCTION _get_param_spec
 
 ;Given a word offset in the mib module definition block

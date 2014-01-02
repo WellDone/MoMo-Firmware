@@ -18,12 +18,13 @@
 #define kNumMIBRequests				(kBootloaderBufferSize/kMIBRequestSize)
 
 #define kNumFlashRows				(kFlashMemorySize / kFlashRowSize)
+#define kMIBStructRow				((2048 / kFlashRowSize) - 1)
 
 #if (kFlashRowSize != 16) && (kFlashRowSize != 32)
 #error Currently only 16 byte and 32 byte flash memory rows are supported
 #endif
 
-//Sanity check
+//Sanity checks to make sure we can support this chip type
 #if (kFlashMemorySize % kFlashRowSize) != 0
 #error The flash memory size must be a multiple of the flash row size
 #endif
@@ -34,6 +35,10 @@
 
 #if (kBootloaderBufferSize > 64)
 #error Cannot handler bootloader buffer sizes greater than 64 bytes yet.
+#endif
+
+#if (kNumFlashRows > 256)
+#error Cannot handle a chip with more than 256 rows.
 #endif
 
 #endif
