@@ -152,7 +152,9 @@ BEGINFUNCTION _get_magic
 ENDFUNCTION _get_magic
 
 BEGINFUNCTION _get_num_features
-	GOTO 0x7FA
+	call 0x7FA
+	pagesel($)
+	return
 ENDFUNCTION _get_num_features
 
 BEGINFUNCTION _plist_int_count

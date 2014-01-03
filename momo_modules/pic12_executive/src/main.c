@@ -41,6 +41,7 @@ void interrupt service_isr() {
         wdt_settimeout(k1SecondTimeout);
         wdt_enable(); 
         call_app_interrupt();
+        reset_page();
         wdt_disable();
     }
 
@@ -66,6 +67,7 @@ void main()
         wdt_settimeout(k1SecondTimeout);
         wdt_enable();
         call_app_init();
+        reset_page();
         wdt_disable();
 
         while(1)
@@ -73,6 +75,7 @@ void main()
             wdt_settimeout(k1SecondTimeout);
             wdt_enable();
             call_app_task();
+            reset_page();
             wdt_disable();
 
             sleep();
