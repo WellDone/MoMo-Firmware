@@ -75,20 +75,58 @@ def make_rom(env):
 	if 'ROMEND' in env:
 		romend = env['ROMEND']
 
+	exclude = ","
+
+	if 'ROMEXCLUDE' in env:
+		exclude += ",".join(["-%x-%x" % (x[0],x[1]) for x in env['ROMEXCLUDE']])
+
+	if exclude == ",":
+		exclude = ""
+
+	ranges = make_pages([romstart, romend])
+
 	#No rom change specified
-	if romstart == 0 and romend == -1:
-		return [""]
+	#if romstart == 0 and romend == -1:
+	#	return [""]
 
-	if romstart == 0 and romend > 0:
-		return ["--ROM=%x-%x" % (romstart, romend)]
+	ranges_txt = ",".join(["%x-%x" % (x[0], x[1]) for x in ranges])
 
-	if romstart > 0 and romend > romstart:
-		return ["--ROM=%x-%x" % (romstart, romend)]
+	if romstart >= 0 and romend > 0:
+		return ["--ROM=%s" % ranges_txt + exclude]
 
-	if romstart > 0 and romend == -1:
-		return ["--ROM=default,-0-%x" % (romstart-1)]
+	raise ValueError("Unknown ROM Range Values: (%x, %x)" % (romstart, romend))	
 
-	raise ValueError("Unknown ROM Range Values: (%x, %x)" % (romstart, romend))
+def same_page(rom, pagesize=2048):
+	startp = rom[0] / pagesize
+	endp = rom[1] / pagesize
+
+	if startp == endp:
+		return True
+
+	return False
+
+def make_pages(rom, pagesize=2048):
+	"""
+	Take in a contiguous rom range (low, high) and return it divided on page boundaries.
+	"""
+
+	if same_page(rom, pagesize):
+		return [rom]
+
+	working = [rom[0], rom[1]]
+	ranges = []
+
+	while not same_page(working):
+		startp = working[0]/pagesize
+		enda = (startp + 1)*pagesize - 1
+
+		ranges.append((working[0], enda))
+		working[0] = enda+1
+
+	ranges.append(working)
+
+	return ranges
+
 
 def make_ram(env):
 	args = ['default']

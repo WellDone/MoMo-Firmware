@@ -4,20 +4,17 @@ incs = []
 incs.append('.')
 incs.append('src')
 incs.append('src/mib')
-incs.append('../shared/pic12/src')
-incs.append('../shared/portable/core')
-incs.append('../shared/portable/mib')
-incs.append('../shared/portable/mib/slave')
-incs.append('../shared/portable/mib/master')
-incs.append('../shared/portable/util')
+
 
 Import('env')
-env['INCLUDE'] = incs
+env['INCLUDE'].extend(incs)
 env['NO_STARTUP'] = True
 
 asm_sources = ['app_startup.as', 'mib/command_map.as', 'mib/mib12_api.as']
+peri = ['../../../shared/pic12/src/peripheral/adc.c', '../../../shared/pic12/src/peripheral/spi2.c']
 
-srcfiles = asm_sources + Glob('./*.c')									
+srcfiles = asm_sources + Glob('./*.c') + peri
+
 
 target = env.xc8('mib12_app_module.hex', srcfiles)
 symtab = env.build_symbols(['mib12_app_module_symbols.h', 'mib12_app_module_symbols.stb'],['mib12_app_module.sym'])

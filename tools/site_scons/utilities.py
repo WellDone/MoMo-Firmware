@@ -138,7 +138,7 @@ class MIB12Config:
 		exec_range = self.chip_def(chip, 'executive_rom')
 
 		env['ROMSTART'] = exec_range[0]
-		env['ROMEND'] = exec_range[1]
+		env['ROMEND'] = exec_range[1] - 16 - 1 #Make sure we don't overlap the MIB API in the high part of memory
 
 		env['XC8FLAGS'] += self.common_flags
 		env['XC8FLAGS'] += self.exec_flags
@@ -158,10 +158,16 @@ class MIB12Config:
 		self._ensure_flags(env)
 		self.config_env_for_chip(chip, env)
 
+		info = env['CHIPINFO']
+
 		exec_range = self.chip_def(chip, 'executive_rom')
 
 		env['ROMSTART'] = exec_range[1]+1
-		env['ROMEND'] = self.chip_def(chip, 'total_rom') - 16 - 1 #Make sure we don't let the code overlap with the MIB map in high memory
+		env['ROMEND'] = self.chip_def(chip, 'total_rom') - 1 
+
+		#Make sure we don't let the code overlap with the MIB map in high memory
+		env['ROMEXCLUDE'] = []
+		env['ROMEXCLUDE'].append(info.mib_range)
 
 		env['XC8FLAGS'] += self.common_flags
 		env['XC8FLAGS'] += self.app_flags
@@ -186,6 +192,8 @@ class MIB12Config:
 			env['CHIP'] = self.chip_def(chip, 'xc8_target')
 			env['CHIPDEFINE'] = self.chip_def(chip, 'xc8_define')
 			env['XC8FLAGS'] += ['-DkFirstApplicationRow=%d' % info.first_app_page]
+			env['XC8FLAGS'] += ['-DkFlashRowSize=%d' % info.row_size]
+			env['XC8FLAGS'] += ['-DkFlashMemorySize=%d' % info.total_prog_mem]
 			env['MIB_API_BASE'] = str(info.api_range[0])
 		except KeyError:
 			raise ValueError("Chip %s not found in build_settings.json, cannot target that chip." % chip)

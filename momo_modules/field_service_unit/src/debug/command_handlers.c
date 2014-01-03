@@ -270,8 +270,12 @@ static void rpc_callback(unsigned char status)
     }
     if ( bus_get_returnvalue_length() > 0 )
     {
-        if ( bus_get_returnvalue_length() == kIntSize ) { //TODO: MACRO
-            print_byte( plist_get_int16(0) ); // TODO: Typed return value
+        if ( bus_get_returnvalue_length() == kIntSize ) 
+        { 
+            char buff[10];
+            itoa_small(buff, 10, plist_get_int16(0));
+            print(buff); // TODO: Typed return value
+            print("\n");
         }
         else
         {

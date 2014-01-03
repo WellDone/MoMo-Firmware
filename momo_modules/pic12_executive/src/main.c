@@ -41,6 +41,7 @@ void interrupt service_isr() {
         wdt_settimeout(k1SecondTimeout);
         wdt_enable(); 
         call_app_interrupt();
+        reset_page();
         wdt_disable();
     }
 
@@ -48,14 +49,10 @@ void interrupt service_isr() {
 }
 
 void main() 
-{    
+{   
     initialize();
 
-    TRISA2 = !TRISA2;
-
     restore_status();
-
-    TRISA2 = !TRISA2;
 
     if (status.bootload_mode)
     {
@@ -70,6 +67,7 @@ void main()
         wdt_settimeout(k1SecondTimeout);
         wdt_enable();
         call_app_init();
+        reset_page();
         wdt_disable();
 
         while(1)
@@ -77,6 +75,7 @@ void main()
             wdt_settimeout(k1SecondTimeout);
             wdt_enable();
             call_app_task();
+            reset_page();
             wdt_disable();
 
             sleep();
@@ -107,7 +106,11 @@ void initialize()
     ANSELC = 0;
     #endif
 
-    RA2 = 0;
+    #ifdef __PIC16LF1847__
+    TRISB = 0xff;
+    ANSELB = 0;
+    LATA7 = 0;
+    #endif
 
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
     ANSELA = 0;
@@ -133,6 +136,7 @@ void restore_status()
         
         //Wait 1 second to make the controller had time to power on
         //in case this is a power on reset
+
         wdt_settimeout(k1SecondTimeout);
         wdt_enable();
         sleep();
@@ -141,6 +145,7 @@ void restore_status()
         bus_init(kMIBUnenumeratedAddress);
 
         address = register_module();
+
 
         if (address > 0)
         {
