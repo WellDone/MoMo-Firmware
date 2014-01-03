@@ -315,5 +315,12 @@ static SDErrorCode sd_bulktransfer(SDTransferOperation op)
 
 	spi2_transfer(0xFF);
 
-	return resp.data[0]; 
+	if (op == kSDReadOperation)
+		return kSDNoError;
+
+	//Check write status code to make sure write was successful
+	if ((resp.data[0] & 0b00011111) != 0b00101)
+		return kSDIOError; 
+
+	return kSDNoError;
 }

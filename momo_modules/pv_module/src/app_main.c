@@ -13,6 +13,8 @@
 
 extern uint8 filename[11];
 extern uint8 sector[512];
+extern FAT32VolumeInfo vol;
+extern uint8 log_interval;
 
 void task(void)
 {
@@ -20,12 +22,24 @@ void task(void)
 
 	while(1)
 	{
-		WDTCON = k1SecondTimeout;
-		wdt_enable();
-		asm("sleep");
-		wdt_disable();
+		//Try repeatedly to initialize the SD Card
+		while(log_init() == 0)
+		{
+			WDTCON = k4SecondTimeout;
+			wdt_enable();
+			asm("sleep");
+			wdt_disable();
+		}
 
-		log_logsamples();
+		//Log until there is an error and then try
+		//to reinitialize the SD card. 
+		while(log_logsamples() == 0)
+		{
+			log_setinterval();
+			wdt_enable();
+			asm("sleep");
+			wdt_disable();
+		}
 	}
 }
 
@@ -51,8 +65,6 @@ void initialize(void)
 	PIN_TYPE(CURR1, ANALOG);
 
 	sd_pins_idle();
-
-	log_init();
 }
 
 void main()
@@ -109,6 +121,14 @@ void power_sdcard()
 void check_sdcard()
 {
 	mib_buffer[0] = sd_check_inserted();
+	mib_buffer[1] = 0;
+
+	bus_slave_setreturn(pack_return_status(0, 2));
+}
+
+void open_size()
+{
+	mib_buffer[0] = log_interval;
 	mib_buffer[1] = 0;
 
 	bus_slave_setreturn(pack_return_status(0, 2));

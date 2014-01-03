@@ -56,6 +56,7 @@ typedef enum
 	kSDFileNotFoundError = 4,
 	kSDFileNotOpenError = 5,
 	kSDInvalidSector = 6,
+	kSDEOFError = 7,
 	kSDUnknownError = 1<<7,
 	kSDTimeoutError = 0xFF
 } SDErrorCode;

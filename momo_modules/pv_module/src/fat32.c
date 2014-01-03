@@ -98,6 +98,9 @@ SDErrorCode f32_seek(uint32_t sector)
 	if (vol.open_flags == kFileInvalid)
 		return kSDFileNotOpenError;
 
+	if (sector >= (vol.open_size >> 9))
+		return kSDEOFError;
+
 	vol.open_sector = sector;
 
 	cluster_idx = sector / vol.cluster_size;	//FIXME: can optimize this since vol.cluster_size is a power of 2 always
@@ -108,7 +111,6 @@ SDErrorCode f32_seek(uint32_t sector)
 	sector_offset = sector & (vol.cluster_size - 1);
 
 	sector = f32_clustertolba(curr_cluster) + sector_offset;
-
 
 	return f32_loadsector(sector);
 }
@@ -148,6 +150,10 @@ SDErrorCode f32_findfile()
 		if (entry->name[0] == 0x00)
 			return kSDFileNotFoundError;
 
+		//Long filename records have the low 4 bits set, ignore those
+		if ((entry->attrib & 0b1111) == 0b1111)
+			continue;
+
 		match = 1;
 
 		for (j=0; j<11; ++j)
@@ -164,7 +170,7 @@ SDErrorCode f32_findfile()
 			vol.open_root_cluster = entry->cluster_high;
 			vol.open_root_cluster <<= 16;
 			vol.open_root_cluster |= entry->cluster_low;
-
+			vol.open_size = entry->size;
 			vol.open_flags = kFileFound;
 
 			return kSDNoError;

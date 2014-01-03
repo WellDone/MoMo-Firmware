@@ -12,7 +12,7 @@ name:
 	
 ENDM
 
-global _sample_v1, _sample_i1,_log_getoffset,_log_getsector
+global _sample_v1, _sample_i1,_log_getoffset,_log_getsector,_open_size
 
 ;Define the number of supported features and where to store the callback table pointer
 ;in ROM
@@ -32,14 +32,14 @@ global _sample_v1, _sample_i1,_log_getoffset,_log_getsector
 
 PSECT mibstructs,local,class=CONST,delta=2
 jumptable:
-jumpm samplev,_sample_v1
+jumpm checksize,_open_size
 jumpm samplei,_sample_i1
 jumpm checkoff,_log_getoffset
 jumpm checksect,_log_getsector
 
 mibhandlers:
 BRW
-goto samplev
+goto checksize
 goto samplei
 goto checkoff
 goto checksect

@@ -36,6 +36,7 @@ typedef struct
 	uint8 	 open_flags;
 	uint32_t open_root_cluster;
 	uint32_t open_sector;
+	uint32_t open_size;
 } FAT32VolumeInfo;
 
 typedef struct
