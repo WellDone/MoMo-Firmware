@@ -4,7 +4,7 @@
 
 void exec_prepare_reflash()
 {
-	set_firmware_id(plist_get_int8(2));
+	set_firmware_id(plist_get_int8(1));	//get_int8 returns the low word of the second 16 bit integer param
 	prepare_reflash(plist_get_int8(0));
 	bus_slave_setreturn(pack_return_status(0,0));
 }

@@ -77,8 +77,8 @@ void get_battery_voltage()
 
     last_battery_voltage = adc_convert_one();
 
-    mib_buffer[0] = last_battery_voltage & 0xFF;
-    mib_buffer[1] = last_battery_voltage >> 8;
+    mib_unified.mib_buffer[0] = last_battery_voltage & 0xFF;
+    mib_unified.mib_buffer[1] = last_battery_voltage >> 8;
 
 	bus_slave_setreturn( pack_return_status( kNoMIBError, 2));
 }

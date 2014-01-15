@@ -14,11 +14,10 @@
 #pragma config LVP=OFF
 #pragma config MCLRE=OFF
 
-__persistent MIBExecutiveStatus status;
+extern __persistent bank1 MIBExecutiveStatus status;
 
 void initialize();
-void restore_status();
-void check_app_fault();
+extern void restore_status();
 
 void interrupt service_isr() {
     wdt_pushenabled();
@@ -28,12 +27,10 @@ void interrupt service_isr() {
         while (SSP1IF == 1)
         {
             SSP1IF = 0; //Do this because with our slow clock we might miss an interrupt
-            if (i2c_slave_active()) 
-            {
+            if (status.slave_active) 
                 i2c_slave_interrupt();
-            }
-            else
-                i2c_master_interrupt();
+            
+            //Master i2c is not interrupt driven
         }
     } 
     else if (status.valid_app)
@@ -59,8 +56,6 @@ void main()
         enter_bootloader();
         restore_status();   //Update our status on what mode we should be in now
     }
-
-    check_app_fault();
     
     if (status.valid_app)
     {  
@@ -86,7 +81,6 @@ void main()
     {
         sleep();
     }
-
 }
 
 void initialize()
@@ -119,49 +113,6 @@ void initialize()
     GIE = 1;
     /* Enable peripheral interrupts. */
     PEIE = 1;
+
     wdt_settimeout(k1SecondTimeout);
-}
-
-void restore_status()
-{
-    if (get_magic() == kMIBMagicNumber)
-        status.valid_app = 1;
-    else if (get_magic() == kReflashMagicNumber)
-        status.bootload_mode = 1;
-
-    //Request an address from controller pic
-    if (!status.registered)
-    {
-        uint8 address = 0;
-        
-        //Wait 1 second to make the controller had time to power on
-        //in case this is a power on reset
-
-        wdt_settimeout(k1SecondTimeout);
-        wdt_enable();
-        sleep();
-        wdt_disable();
-
-        bus_init(kMIBUnenumeratedAddress);
-
-        address = register_module();
-
-
-        if (address > 0)
-        {
-            bus_init(address);
-            status.registered = 1;
-        }
-    }
-}
-
-/*
- * If we reset because of a watchdog timeout, assume the application code failed and disable it.
- *
- * TODO: remap pins on GSM pic so that A5 is on alarm pin to make it consistent with out modules.
- */
-void check_app_fault()
-{
-    if (status.wdt_timedout)
-        flash_erase_row(kNumFlashRows-1);
 }

@@ -13,4 +13,9 @@ class Pic12UnitTest (UnitTest):
 		return self.conf.get_chip_name(target)
 
 	def build_target(self, target):
-		pic12_unit.build_unittest(self.files, self.name, target, self.type)
+		cmdfile = None
+
+		if hasattr(self, 'cmdfile'):
+			cmdfile = self.cmdfile 
+			
+		pic12_unit.build_unittest(self.files, self.name, target, self.type, cmds=cmdfile)

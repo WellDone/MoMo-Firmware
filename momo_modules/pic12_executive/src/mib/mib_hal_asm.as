@@ -8,14 +8,14 @@
 ;Assembly routines for dealing with MIB things in an efficient way
 ;very quickly and with minimal code overhead
 
-GLOBAL _mib_state, _mib_buffer,_bus_slave_seterror
 GLOBAL _exec_call_cmd, _exec_get_spec, _find_handler
+global _mib_data
 
 PSECT text100,local,class=CODE,delta=2
 
-mibfeature equ BANKMASK(_mib_state+0)
-mibcmd	   equ BANKMASK(_mib_state+1)
-mibspec	   equ BANKMASK(_mib_state+2)
+mibfeature equ BANKMASK(_mib_data+0)
+mibcmd	   equ BANKMASK(_mib_data+1)
+mibspec	   equ BANKMASK(_mib_data+2)
 
 #define kInvalidMIBIndex 255
 
@@ -89,7 +89,7 @@ BEGINFUNCTION _call_handler
 	movwf FSR1L
 	movlb 1
 	movlw kMIBExecutiveFeature
-	xorwf BANKMASK(_mib_state+0),w ;see if feature matches kMIBExecutiveFeature
+	xorwf mibfeature,w ;see if feature matches kMIBExecutiveFeature
 	btfss ZERO
 	GOTO call_app
 	movf FSR1L,w
@@ -119,7 +119,7 @@ BEGINFUNCTION _get_param_spec
 	movwf FSR1L
 	movlb 1
 	movlw kMIBExecutiveFeature
-	xorwf BANKMASK(_mib_state+0),w ;see if feature matches kMIBExecutiveFeature
+	xorwf mibfeature,w ;see if feature matches kMIBExecutiveFeature
 	btfss ZERO
 	GOTO call_spec
 	movf FSR1L,w
@@ -134,6 +134,8 @@ ENDFUNCTION _get_param_spec
 
 ;Given a word offset in the mib module definition block
 ;in w, return the value at that address
+;NOTES: 
+; - Must not change the bank 
 BEGINFUNCTION _get_mib_block
 	movwf FSR1L
 	movlw low kMIBEndpointAddress
@@ -143,7 +145,6 @@ BEGINFUNCTION _get_mib_block
 	movf  INDF1,w
 	return
 ENDFUNCTION _get_mib_block
-
 
 ;indirect read the highest byte from program memory
 BEGINFUNCTION _get_magic
@@ -161,11 +162,15 @@ BEGINFUNCTION _plist_int_count
 	andlw 0b01100000	; ((plist & 0b01100000) >> 5)
 	swapf WREG,w
 	lsrf  WREG,w
+	return
 ENDFUNCTION _plist_int_count
 
 ; compute ((plist_int_count(plist) << 1) + (plist & plist_buffer_mask))
-; efficiiently on the pic12
+; efficiently on the pic12
+; Uses: EEADRL and EEDATL
 BEGINFUNCTION _plist_param_length
+	banksel _mib_data
+	movf 	mibspec,w
 	movlb 3
 	movwf BANKMASK(EEADRL)  					
 	andlw 0b01100000
@@ -174,7 +179,6 @@ BEGINFUNCTION _plist_param_length
 	movlw 0b00011111
 	andwf BANKMASK(EEADRL),w
 	addwf BANKMASK(EEDATL),w
-	movlb 0
 	return
 ENDFUNCTION _plist_param_length
 
@@ -182,21 +186,9 @@ ENDFUNCTION _plist_param_length
 BEGINFUNCTION _validate_param_spec
 	call _get_param_spec		;handler spec in w
 	movlb 1
-	xorwf BANKMASK(_mib_state+2),w ;passed spec xor handler spec
+	xorwf mibspec,w ;passed spec xor handler spec
 	andlw 0b11100000 				;only look at spec, ignore length
 	btfsc ZERO						;if they match w should be zero
-	retlw 1 
+		retlw 1 
 	retlw 0
 ENDFUNCTION _validate_param_spec
-
-;bus_returnstatus is at mib_state+7
-BEGINFUNCTION _bus_slave_seterror
-	movlb 1
-	clrf BANKMASK(_mib_state+7)
-	swapf WREG,w  					;error << 4
-	lslf WREG,w 					; error << 1 
-	iorwf BANKMASK(_mib_state+7),f 	;return_status |= error << 5
-	bsf BANKMASK(_mib_state+9), 2 	;we want bits 2 and 3 set.  (set slave_state to 3)
-	bsf BANKMASK(_mib_state+9), 3
-	return
-ENDFUNCTION _bus_slave_seterror

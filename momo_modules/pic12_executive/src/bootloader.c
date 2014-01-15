@@ -24,36 +24,9 @@ uint8 boot_id @ 0x67;
 uint8 i @ 0x68;
 uint8 tmp @ 0x69;
 uint8 invalid_row @ 0x6A;
+uint8 offset @ 0x6B;
 
-extern __persistent MIBExecutiveStatus status;
-
-void set_firmware_id(uint8 bucket)
-{
-	set_flash_word(kFlashRowSize-3, bucket, kRetlwHighWord);
-}
-
-void prepare_reflash(uint8 source)
-{
-	status.valid_app = 0;
-
-	set_flash_word(kFlashRowSize-2, source, kRetlwHighWord);
-	set_flash_word(kFlashRowSize-1, kReflashMagicNumber, kRetlwHighWord);
-	flash_erase_row(kMIBStructRow);
-	flash_write_row(kMIBStructRow); //Write the source and magic number into the memory
-}
-
-void get_half_row(uint8 offset)
-{
-	plist_set_int8(0, 0, boot_id);
-	plist_set_int8(0, 1, 0);
-	plist_set_int8(1, 0, offset);
-	bus_master_prepare(0x07, 0x04, plist_no_buffer(2));
-
-	load_boot_address();
-
-	invalid_row |= bus_master_rpc_sync(boot_source);
-	copy_mib_to_boot(offset);
-}
+extern bank1 __persistent MIBExecutiveStatus status;
 
 void enter_bootloader()
 {
@@ -64,8 +37,8 @@ void enter_bootloader()
 	{
     	invalid_row = 0;
 
-    	for (tmp = 0; tmp < kBootloaderBufferSize; tmp += kMIBRequestSize)
-    		get_half_row(tmp);
+    	for (offset = 0; offset < kBootloaderBufferSize; offset += kMIBRequestSize)
+    		get_half_row(); //offset is passed through global
 
 		flash_erase_row(boot_count);
 		//If there was a problem receiving the row, don't program it.  This is usually b/c

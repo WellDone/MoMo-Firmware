@@ -1,9 +1,9 @@
 skipz MACRO
-	btfss ZERO
+	btfss STATUS && 0x7F, 2
 ENDM
 
 skipnz MACRO
-	btfsc ZERO
+	btfsc STATUS && 0x7F, 2
 ENDM
 
 skipltfl MACRO r,v

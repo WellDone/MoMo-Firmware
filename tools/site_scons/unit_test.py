@@ -133,9 +133,28 @@ class UnitTest:
 				elif name == 'description':
 					self.desc = val
 				elif name == 'additional':
-					self.files += (os.path.join(self.basedir, val), )
+					self._parse_additional(val)
 				elif name == 'type':
 					self.type = val
+
+	def _parse_additional(self, value):
+		"""
+		Parse an Additional:<file1>,<fileN>
+		header line, taking the appropriate action
+		"""
+
+		parsed = value.split(',')
+		files = map(lambda x: x.rstrip().lstrip(), parsed)
+
+		for f in files:
+			base, ext = os.path.splitext(f)
+
+			if ext == '.as':
+				self.files += (os.path.join(self.basedir, f), )
+			elif ext == '.cmd':
+				self.cmdfile = os.path.join(self.basedir, f)
+			else:
+				raise ValueError("Unknown file extension in Additional header for test %s: %s" % (self.name, f))
 
 def find_units(parent, subclass):
 	files = [f for f in os.listdir(parent) if os.path.isfile(os.path.join(parent, f))]

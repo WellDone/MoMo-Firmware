@@ -9,11 +9,13 @@ import os.path
 
 class LogFile:
 	intervals = {'1s': 0, '2s': 1, '4s': 2,'8s': 3,'16s': 4,'32s': 5,'64s': 6,'128s': 7,'256s': 8}
+	int_times = [1, 2 ,4 , 8, 16, 32, 64, 128, 256]
 	inv_map = ['1 second', '2 seconds', '4 seconds','8 seconds','16 seconds','32 seconds','64 seconds','128 seconds','256 seconds']
 
 	default_int = 6
 
 	def __init__(self, path):
+		self.size = os.path.getsize(path)
 		self.file = open(path, "r+b")
 		self._read_info()
 		self._calculate()
@@ -46,6 +48,8 @@ class LogFile:
 
 	def _calculate(self):
 		self.num_entries = self.valid_sectors * 512 / 16
+		self.remaining = (self.size - 512) / 16 - self.num_entries
+		self.time_remaining = self.remaining * self.int_times[self.intnum] / 60 / 60 / 24
 
 	def process(self, v1, v2, v3, i1):
 		v1_o = v1/1024. * 20*2.8/2.78
@@ -124,7 +128,9 @@ class PVCommands(cmdln.Cmdln):
 		print "File Valid: %s" % log.valid_file
 		print "Number of Sectors Used: %d" % log.valid_sectors
 		print "Number of Datapoints Logged: %d" % log.num_entries 
-		print "Logging Interval: %s" % log.interval
+		print "Logging Interval: %s (numerical value %d) " % (log.interval, log.intnum)
+		print "Space Remaining: %d entries" % log.remaining
+		print "Time Remaining: %d days" % log.time_remaining
 		return 0
 
 	@cmdln.option('-s', '--skip', action='store', type=int, default=0, help='skip the first SKIP entries')
