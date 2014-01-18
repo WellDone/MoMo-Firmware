@@ -10,7 +10,7 @@ from octopart.octopart import Octopart
 from reference import PCBReferenceLibrary
 
 class Board:
-	def __init__(self, name, file, variants, partname, width, height, revision):
+	def __init__(self, name, file, variants, partname, width, height, revision, unknown):
 		"""
 		Create a Board Object with 1 or more assembly variants from the variant dictionary passed in.
 		"""
@@ -22,6 +22,7 @@ class Board:
 		self.width = width
 		self.height = height
 		self.revision = revision
+		self.unknown = unknown
 
 	def list_variants(self):
 		print "Assembly Variants"
@@ -161,8 +162,6 @@ class Board:
 		constant = []
 		variable = []
 		variants = find_variants(elems)
-		print "Variants Found"
-		print variants
 
 		#Create a part object for each part that has a valid digikey-pn
 		#If there are multiple digikey part numbers, create a part for each one
@@ -187,24 +186,19 @@ class Board:
 
 			#Make sure this part has information for at least one assembly variant
 			if not valid_part:
-				print "Part %s found with no part number" % part.get('name',"Unknown Name")
 				unknown.append(part.get('name',"Unknown Name"))
 
-		#If only one assembly variant, give it the name Main
-		if len(variants) == 0:
-			return Board("test", 'test', {'MAIN': constant})
-		else:
-			vars = {}
-			#Create multiple variants
-			for var in variants:
-				print "Processing Variant %s" % var
-				vars[var] = constant + filter_sublists(variable, var)
+		vars = {}
+		#Create multiple variants
+		for var in variants:
+			vars[var] = constant + filter_sublists(variable, var)
 
-			return Board("test", 'test', vars,
-							partname=find_attribute(root, 'PARTNAME'),
-							width=find_attribute(root, 'WIDTH'),
-							height=find_attribute(root, 'HEIGHT'),
-							revision=find_attribute(root, 'REVISION'))
+		return Board("test", 'test', vars,
+						partname=find_attribute(root, 'PARTNAME'),
+						width=find_attribute(root, 'WIDTH'),
+						height=find_attribute(root, 'HEIGHT'),
+						revision=find_attribute(root, 'REVISION'),
+						unknown=unknown)
 
 	def _process_variant(self, parts):
 		"""
