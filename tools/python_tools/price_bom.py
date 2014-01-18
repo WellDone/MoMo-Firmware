@@ -5,6 +5,9 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
 import pybom.octopart.octopart
 from pybom.octopart.identifier import PartIdentifier
+from momo_utilities.paths import MomoPaths
+
+paths = MomoPaths()
 
 if len(sys.argv) < 4:
 	print "Usage: price_bom.py <csv file> <out file> <units>"

@@ -82,6 +82,8 @@ class PCBTool(cmdln.Cmdln):
 			print "Distinct BOM Lines: %d" % lines
 			print "Total Part Count: %d" % items
 
+			print ""
+
 	def build_outstream(self, opts):
 		"""
 		If -o was passed, open that file for writing, otherwise return stdout.  Return a bool indicating if the 
