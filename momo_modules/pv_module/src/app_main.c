@@ -33,13 +33,15 @@ void task(void)
 
 		//Log until there is an error and then try
 		//to reinitialize the SD card. 
-		while(log_logsamples() == 0)
+		do
 		{
+			TRISA7 = !TRISA7;
 			log_setinterval();
 			wdt_enable();
 			asm("sleep");
 			wdt_disable();
-		}
+			TRISA7 = !TRISA7;
+		} while(log_logsamples() == 0);
 	}
 }
 
