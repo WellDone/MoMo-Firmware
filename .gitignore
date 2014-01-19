@@ -16,3 +16,4 @@ config/*.local.json
 *.pyc
 funclist
 *.sconsign.dblite
+config/*.cache*

@@ -13,3 +13,8 @@ Before contributing, study the enforced Git branching model on the [Wiki](http:/
 
 ## Build System ##
 MoMo firmware is moving toward the SCons build system for build management and unit testing
+
+## Required Python Modules ##
+* cmdln
+* ZODB3
+* colorama

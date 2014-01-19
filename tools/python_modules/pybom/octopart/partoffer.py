@@ -23,20 +23,8 @@ class PartOffer:
 		self.in_stock_quant = response['in_stock_quantity']
 
 
-	def best_price(self, quantity, in_stock=False, seller=None, seller_uid=None, exclude_pkg=None):
+	def best_price(self, quantity):
 		if self.invalid:
-			return None
-
-		if exclude_pkg is not None and self.packaging in exclude_pkg:
-			return None
-
-		if in_stock and quantity > self.in_stock_quant:
-			return None
-
-		if seller is not None and self.seller_name != seller:
-			return None
-
-		if seller_uid is not None and self.seller_uid != seller_uid:
 			return None
 
 		return self.breaks.unit_price(quantity)

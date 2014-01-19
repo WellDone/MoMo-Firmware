@@ -5,10 +5,11 @@
 import json
 import os.path
 import re
+import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from momo_modules.config import ConfigFile
+from momo_utilities.config import ConfigFile
 
 data_file = ConfigFile('pcb_library')
 
