@@ -24,7 +24,7 @@ retlw 	ModuleType
 retlw 	ModuleVersion
 retlw 	ModuleFlags
 
-;Module Name (must be exactly 8 characters long)
+;Module Name (must be exactly 7 characters long)
 db 		ModuleName
 
 ;MIB endpoint information
@@ -66,7 +66,6 @@ BRW
 RETLW 0
 RETLW 0
 RETLW plist_buffer()
-RETLW 0
 RETLW 0
 RETLW 0
 

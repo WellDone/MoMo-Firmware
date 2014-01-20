@@ -20,7 +20,6 @@ void initialize();
 extern void restore_status();
 
 void interrupt service_isr() {
-    wdt_pushenabled();
     // Handle i2c interrupts (MSSP) in the bootloader.
     if (SSP1IF == 1) 
     {
@@ -35,14 +34,9 @@ void interrupt service_isr() {
     } 
     else if (status.valid_app)
     {
-        wdt_settimeout(k1SecondTimeout);
-        wdt_enable(); 
         call_app_interrupt();
         reset_page();
-        wdt_disable();
     }
-
-    wdt_popenabled();
 }
 
 void main() 
@@ -59,19 +53,13 @@ void main()
     
     if (status.valid_app)
     {  
-        wdt_settimeout(k1SecondTimeout);
-        wdt_enable();
         call_app_init();
         reset_page();
-        wdt_disable();
 
         while(1)
         {
-            wdt_settimeout(k1SecondTimeout);
-            wdt_enable();
             call_app_task();
             reset_page();
-            wdt_disable();
 
             sleep();
         }
@@ -103,7 +91,6 @@ void initialize()
     #ifdef __PIC16LF1847__
     TRISB = 0xff;
     ANSELB = 0;
-    LATA7 = 0;
     #endif
 
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
@@ -113,6 +100,4 @@ void initialize()
     GIE = 1;
     /* Enable peripheral interrupts. */
     PEIE = 1;
-
-    wdt_settimeout(k1SecondTimeout);
 }

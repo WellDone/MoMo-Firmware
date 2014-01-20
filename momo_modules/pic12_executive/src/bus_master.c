@@ -68,7 +68,7 @@ uint8 bus_master_tryrpc()
 	mib_data.bus_command.param_spec = mib_state.save_spec;
 
 	i2c_init_buffer(kCommandOffset);
-	if (bus_master_send(sizeof(MIBCommandPacket) + plist_param_length()) == 1)	//No not include 1 byte of room for checksum since that will be appended
+	if (bus_master_send(sizeof(MIBCommandPacket) + plist_param_length()) == 1)	//Do not include 1 byte of room for checksum since that will be appended
 		goto restart_command;
 
 	while (true)

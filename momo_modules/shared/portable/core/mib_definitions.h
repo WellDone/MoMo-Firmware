@@ -27,6 +27,7 @@
 #define kMIBPic24f16ka101			1
 #define kMIBPic12lf1822				2
 #define kMIBPic16lf1823				3
+#define kMIBPic16lf1847				4
 
 //Defined MIB Protocol revisions
 #define kMIBVersion1				1
@@ -45,13 +46,16 @@
  */
 
 #ifndef __DEFINES_ONLY__
+
+//Module descriptor size: 15 bytes
 typedef struct 
 {
 	uint8	hardware_type;
 	uint8 	module_type;
-	uint8	mib_revision;
-	uint8	flags;
-	uint8 	name[8];
+	uint8	mib_revision : 4;
+	uint8	flags : 4;
+
+	uint8 	name[7];
 	uint8	feature_count;
 } momo_module_descriptor;
 #endif

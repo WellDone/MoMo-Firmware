@@ -7,10 +7,12 @@
 #define __i2c_defines_h__
 
 #ifdef __PIC16LF1823__
-#define SDAPIN		RC0	
-#define SCLPIN		RC1
-#define SDATRIS		TRISC0
-#define SCLTRIS		TRISC1
+#define SDAPIN		RC1	
+#define SCLPIN		RC0
+#define ALARMPIN	RA2
+#define SDATRIS		TRISC1
+#define SCLTRIS		TRISC0
+#define ALARMTRIS	TRISA2
 #elif  __PIC12LF1822__
 #define SDAPIN		RA2	
 #define SCLPIN		RA1
@@ -44,8 +46,6 @@
 #define kSMBusLevelCompliantFlag 	(1 << 6)
 
 #define kI2CFlagMask (kDisableI2CSlewControlFlag | kSMBusLevelCompliantFlag)
-
-#define pack_i2c_states(master, send, next, done) (((master&1)<<7) | ((send&1)<<3) | (next&0b111) | ((done&0b111)<<4))
 
 //both set CKP and SSPEN
 #define kI2CMasterMode 				0b00111000            //set to master mode (0b1000)

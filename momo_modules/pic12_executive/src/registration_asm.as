@@ -4,19 +4,20 @@
 #include "asm_macros.inc"
 #include "constants.h"
 #include "asm_branches.inc"
+#include "asm_locations.h"
+#include "constants.h"
 
 #define __DEFINES_ONLY__
 #include "mib_definitions.h"
 
+ASM_INCLUDE_GLOBALS()
+
 global _mib_to_fsr0, _get_magic, _get_mib_block
 global _copy_fsr1_to_fsr0
-global _mib_data
-
-#define _mib_buffer (_mib_data+3)
 
 PSECT text_asm_register,local,class=CODE,delta=2
 
-/*BEGINFUNCTION _register_module
+BEGINFUNCTION _register_module
 	;check if there's a valid application module loaded
 	call _get_magic
 	xorlw kMIBMagicNumber
@@ -53,4 +54,3 @@ retlw 0
 db	  'N','O',' ','A','P','P',' ',' '
 retlw 1
 ENDREGION module_info
-*/
