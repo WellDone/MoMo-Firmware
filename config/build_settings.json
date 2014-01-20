@@ -74,6 +74,12 @@
 			[
 				"../test/pic12/gpsim_logging"
 			]
+		},
+
+		"mib" :
+		{
+			"current_version": 1,
+			"base_address": 2032
 		}
 	},
 
