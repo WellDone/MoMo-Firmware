@@ -5,7 +5,7 @@ from handler import MIBHandler
 import sys
 import os.path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from momo_utilities import build
+from momo_utilities import build, template
 from hex8.decode import *
 import intelhex
 
@@ -29,6 +29,8 @@ class MIBBlock:
 	of a jump table containing all of the feature, command combinations that the 
 	module knows how to respond to.
 	"""
+
+	TemplateName = 'command_map.asm'
 
 	def __init__(self, ih=None):
 		"""
@@ -55,6 +57,11 @@ class MIBBlock:
 			except ValueError as e:
 				self.error_msg = e
 				self.valid = False
+
+	def set_variables(self, name, type, flags):
+		self.name = name
+		self.flags = flags
+		self.module_type = type
 
 	def add_command(self, feature, cmd, handler):
 		"""
@@ -137,30 +144,32 @@ class MIBBlock:
 		#self.info = decode_retlw(ih, self.base_addr + info_offset)
 		#self.module_type = decode_retlw(ih, self.base_addr + type_offset)
 
+
+	def create_asm(self):
+		temp = template.RecursiveTemplate(MIBBlock.TemplateName)
+		temp.add(self)
+		temp.render('./')
+
 	def __str__(self):
 		rep = "\n"
 
 		rep += "MIB Block\n"
 		rep += "---------\n"
 
-		if not block.valid:
-			rep += "Block invalid: %s\n" % block.error_msg
+		if not self.valid:
+			rep += "Block invalid: %s\n" % self.error_msg
 			return rep
 
 		rep += "Block Valid\n"
-		rep += "Number of Features: %d\n" % block.num_features
-		rep += "Feature List\n"
+		rep += "Number of Features: %d\n" % self.num_features
+		rep += "Name: '%s'\n" % self.name
+		rep += "Type: %d\n" % self.module_type
+		rep += "Flags: %d\n" % self.flags
+		rep += "\nFeature List\n"
 
-		for f in block.features.keys():
+		for f in self.features.keys():
 			rep += "%d:\n" % f
-			for i,h in enumerate(block.features[f]):
-				rep += "\t%d: %s\n" % (i, str(h))
+			for i,h in enumerate(self.features[f]):
+				rep += "    %d: %s\n" % (i, str(h))
 
 		return rep
-
-block = MIBBlock()
-block.add_command(3, 0, MIBHandler.Create('_test', 2, 0))
-block.add_command(3, 1, MIBHandler.Create('asdf', 1, True))
-block.add_command(4, 0, MIBHandler.Create('_hello', 3, True))
-
-print str(block)
