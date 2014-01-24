@@ -4,6 +4,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from momo_utilities import build
 
 class MIBHandler:
+	"""
+	A class representing a MIB callback routine suitable for processing those found in mib blocks
+	pulled from hex files or for creating those blocks based on descriptions of the handlers.
+	"""
 	BufferSizeMask = 0b11111
 	BufferFlag = 1<<7
 

@@ -1,0 +1,5 @@
+feature 0
+hello(1, yes);
+1: goodbye(2, no);
+ #hello
+Feature 1
