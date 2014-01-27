@@ -1,7 +1,50 @@
 #!/usr/bin/env python
 
+import sys
+import os.path
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
+
+from proteus.project import Project
 import cmdln
+from colorama import Fore, Style
 
 class MIBTool(cmdln.Cmdln):
-	
-	
+	name = 'mibtool'
+
+	@cmdln.option('-o', '--output', action='store',  help='Output .pdsprj file to create (without extension)')
+	@cmdln.option('-t', '--template', action='store', help='Template project with a Pic24F16KA101 firmware project defined')
+	@cmdln.option('-p', '--proc', action='store', default='pic24', choices=['pic24', 'pic12'], help="Processor type choose from pic24 or pic12")
+	def do_proteus(self, subcmd, opts, project):
+		"""${cmd_name}: Generate a proteus vsm project for this board file.
+
+		Create a Proteus VSM 8 project file, copying all of the source files in to the project file and setting the parameters appropriately for the project to compile out of the box in VSM.  A template project file is required so that we can copy the appropriate settings into the created project file.  It should be an empty project created by Proteus VSM with the correct processor type and a firmware project created with no files added.  If any files are present they will be overwritten.
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		self.assert_args(opts, ['template', 'output'])
+
+		if not os.path.exists(opts.template):
+			self.error("template project %s does not exist" % opts.template)
+
+		if not os.path.isdir(project):
+			self.eror("You must pass a directory to mibtool proteus <project directory>")
+
+		proj = Project([project], opts.proc, opts.template)
+		proj.create(opts.output)
+
+	def assert_args(self, opts, args):
+		for arg in args:
+			if not hasattr(opts, arg) or getattr(opts, arg) is None:
+				self.error("You must specify an argument for %s" % arg)
+
+	def error(self, text):
+		print Fore.RED + "Error Occurred" + Style.RESET_ALL
+		print text
+		sys.exit(1)
+
+if __name__ == "__main__":
+	mibtool = MIBTool()
+	sys.exit(mibtool.main())

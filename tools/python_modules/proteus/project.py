@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from momo_utilities import build, paths
 
-Extensions = ['c', 'asm', 'h', 'inc']
+Extensions = ['c', 'asm', 'h', 'inc', 's']
 
 class Project:
 	"""
@@ -140,6 +140,9 @@ class Project:
 	def _zip_project(self, zipname):
 		shutil.make_archive(base_name=zipname, root_dir=self.basedir, base_dir='.', format='zip')
 
+		dirs, filename = os.path.split(zipname)
+		shutil.move(zipname + '.zip', os.path.join(dirs, zipname + ".pdsprj"))
+
 	def _load_shared_dirs(self, type):
 		"""
 		Given the type of project that we're creating (either pic12 or pic24),
@@ -167,6 +170,3 @@ class Project:
 				matches.extend([os.path.join(root, f) for f in files])
 
 		return matches
-
-p = Project([sys.argv[1]], 'pic24', template='/home/timburke/scratch/New Project.pdsprj')
-p.create(sys.argv[2])
