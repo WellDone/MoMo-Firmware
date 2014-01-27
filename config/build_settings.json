@@ -87,7 +87,12 @@
 	{
 		"portable_dirs": 
 		[
-			""
+			"momo_modules/shared/portable"
+		],
+		
+		"pic24_dirs":
+		[
+			"momo_modules/shared/pic24/src"
 		]
 	}
 }
