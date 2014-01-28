@@ -15,6 +15,12 @@ from momo_utilities import build, paths
 
 Extensions = ['c', 'asm', 'h', 'inc', 's']
 
+asm_options = []
+asm_options.append(['-g'])
+asm_options.append(['--debug'])
+asm_options.append(['-omf=', 'coff'])
+asm_options.append(['-mcpu=', '24F16KA101'])
+
 class Project:
 	"""
 	Given a directory full of PIC files, create a proteus vsm project. 
@@ -49,12 +55,25 @@ class Project:
 
 		return "/".join([self.name, name])
 
-	def _add_to_ld(self, ldtag, file):
+	def _add_to_ld(self, ldtag, file, tool):
 		new_f = ET.SubElement(ldtag, 'FILE')
-		new_f.set('TOOL', 'CC')
+		new_f.set('TOOL', tool)
 
 		fname = ET.SubElement(new_f, 'FILE')
 		fname.set('NAME', file)
+
+	def _add_option(self, conf_tag, tool, name, value):
+		new_o = ET.SubElement(conf_tag, 'OPTION')
+		new_o.set('TOOL', tool)
+		new_o.set('NAME', name)
+		new_o.set('VALUE', value)
+
+	def _configure_asm(self, conf_tag):
+		for conf in asm_options:
+			if len(conf) == 1:
+				conf.append('')
+
+			self._add_option(conf_tag, 'ASM', *conf)
 
 	def _build_firmware_xml(self):
 		z = zipfile.ZipFile(self.template, "r")
@@ -66,6 +85,13 @@ class Project:
 			files = root.find('FILES')
 
 			ld_tags = root.findall(".//FILE[@TOOL='LD']")
+			conf_tags = root.findall("./CONFIGURATION")
+
+			#Make sure we add the optimize -O1 flag so that mainboard code
+			#compiles (it's too big otherwise)
+			for tag in conf_tags:
+				self._add_option(tag, 'CC', '', '-O1')
+				self._configure_asm(tag)
 
 			#Remove all of the old files from this list
 			for elem in files:
@@ -73,18 +99,31 @@ class Project:
 
 			new_files = [self._file_name(x) for x in self.files]
 
-
+			#The new version 8.1 of proteus requires the files be listed in the compilation
+			#step explicitly, rather than rebuilding it itself if we don't tell it anything.
 			for tag in ld_tags:
 				for filetag in filter(lambda x: x.tag == 'FILE', tag):
 					tag.remove(filetag)
 
 				for f in fnmatch.filter(new_files, '*.c'):
-					self._add_to_ld(tag, f)
+					self._add_to_ld(tag, f, tool='CC')
 
+				for f in fnmatch.filter(new_files, "*.s"):
+					self._add_to_ld(tag, f, tool='ASM')
+
+			#Attach Files to the Project for Browsing
 			for f in new_files:
 				new_f = ET.SubElement(files, 'FILE')
 				new_f.set('ATTACH', '1')
-				new_f.set('GROUP', 'Source Files')
+
+				name, ext = os.path.splitext(f)
+
+				if ext == ".h":
+					group = 'Header Files'
+				else:
+					group = "Source Files"
+
+				new_f.set('GROUP', group)
 				new_f.set('NAME', f)
 
 			tree.write(os.path.join(self.firm, '%s.XML' % self.name))
