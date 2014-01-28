@@ -49,6 +49,13 @@ class Project:
 
 		return "/".join([self.name, name])
 
+	def _add_to_ld(self, ldtag, file):
+		new_f = ET.SubElement(ldtag, 'FILE')
+		new_f.set('TOOL', 'CC')
+
+		fname = ET.SubElement(new_f, 'FILE')
+		fname.set('NAME', file)
+
 	def _build_firmware_xml(self):
 		z = zipfile.ZipFile(self.template, "r")
 
@@ -58,11 +65,21 @@ class Project:
 
 			files = root.find('FILES')
 
+			ld_tags = root.findall(".//FILE[@TOOL='LD']")
+
 			#Remove all of the old files from this list
 			for elem in files:
 				files.remove(elem)
 
 			new_files = [self._file_name(x) for x in self.files]
+
+
+			for tag in ld_tags:
+				for filetag in filter(lambda x: x.tag == 'FILE', tag):
+					tag.remove(filetag)
+
+				for f in fnmatch.filter(new_files, '*.c'):
+					self._add_to_ld(tag, f)
 
 			for f in new_files:
 				new_f = ET.SubElement(files, 'FILE')
