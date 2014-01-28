@@ -139,6 +139,7 @@ def build_production(board, output_dir):
 	"""
 
 	board_obj = Board.FromEagle(board)
+		
 	basename = board_obj.partname
 
 	fab_dir = os.path.join(output_dir, 'fabrication')
@@ -174,7 +175,3 @@ def zipfab(path, output):
 			zip.write(os.path.join(root, file), os.path.join(os.path.basename(output), file))
 
 	zip.close()
-
-build_production('/home/timburke/src/welldone/MoMo-Firmware/pcb/momo_modular/sensor_elec_sd/sensor_elec_sd.brd','/home/timburke/Dropbox/Shared - Other People/MoMo Core Hardware/sensor_elec_sd')
-build_production('/home/timburke/src/welldone/MoMo-Firmware/pcb/momo_modular/gsm_communication/gsm_module.brd','/home/timburke/Dropbox/Shared - Other People/MoMo Core Hardware/gsm_module')
-build_production('/home/timburke/src/welldone/MoMo-Firmware/pcb/momo_modular/combined_controller/battery_controller.brd','/home/timburke/Dropbox/Shared - Other People/MoMo Core Hardware/controller')

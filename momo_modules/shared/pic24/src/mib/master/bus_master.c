@@ -25,7 +25,7 @@ unsigned char bus_master_lastaddress()
 
 void bus_master_finish(uint8 next)
 {
-	bus_send(bus_master_lastaddress(), (unsigned char *)mib_buffer, 1);
+	bus_send(bus_master_lastaddress(), (unsigned char *)mib_unified.mib_buffer, 1);
 	set_master_state(next);
 }
 
@@ -39,9 +39,9 @@ void bus_master_init()
 void bus_master_rpc_async_do()
 {
 	const rpc_info* info = rpc_queue_peek();
-	mib_state.bus_command.feature = info->feature;
-	mib_state.bus_command.command = info->cmd;
-	mib_state.bus_command.param_spec = info->param_spec;
+	mib_unified.bus_command.feature = info->feature;
+	mib_unified.bus_command.command = info->cmd;
+	mib_unified.bus_command.param_spec = info->param_spec;
 	
 	mib_state.master_callback = info->callback;
 
@@ -99,16 +99,9 @@ void bus_master_sendrpc(unsigned char address)
 
 	mib_state.rpc_done = 0;
 
-	if (plist_param_length(mib_state.bus_command.param_spec) > 0)
-	{	
-		set_master_state(kMIBSendParameters);
-	}
-	else
-	{
-		set_master_state(kMIBReadReturnStatus);
-	}
+	set_master_state(kMIBReadReturnStatus);
 
-	bus_send(address, (unsigned char *)&mib_state.bus_command, sizeof(MIBCommandPacket));
+	bus_send(address, (unsigned char *)&mib_unified.bus_command, sizeof(MIBCommandPacket)+plist_param_length(mib_unified.bus_command.param_spec));
 }
 
 void bus_master_readstatus()
@@ -137,11 +130,6 @@ void bus_master_callback()
 	int i;
 	switch(mib_state.master_state)
 	{
-		case kMIBSendParameters:
-		bus_send(bus_master_lastaddress(), (unsigned char*)mib_buffer, plist_param_length(mib_state.bus_command.param_spec));
-		set_master_state(kMIBReadReturnStatus);
-		break;
-
 		case kMIBReadReturnStatus:
 		bus_master_readstatus();
 		break;
@@ -170,7 +158,7 @@ void bus_master_callback()
 		{
 			if (mib_state.bus_returnstatus.len > 0)
 			{
-				bus_receive(bus_master_lastaddress(), (unsigned char *)mib_buffer, mib_state.bus_returnstatus.len);
+				bus_receive(bus_master_lastaddress(), (unsigned char *)mib_unified.mib_buffer, mib_state.bus_returnstatus.len);
 				set_master_state(kMIBExecuteCallback);
 			}
 			else
@@ -196,21 +184,16 @@ void bus_master_callback()
 		//Set the flag that this RPC is done for whomever is waiting.
 		mib_state.rpc_done = 1;
 
-		#ifndef _PIC12
 		if ( !rpc_queue_empty() )
 				taskloop_add_critical( bus_master_rpc_async_do );
-		#endif
 
 		i2c_finish_transmission(); 
 		for(i=0; i<200; ++i)
 			;			
 		
-		#ifndef _PIC12
 		if (mib_state.master_callback != NULL)
 			mib_state.master_callback(mib_state.bus_returnstatus.result);
-		#else
 
-		#endif
 		break;
 	}
 }

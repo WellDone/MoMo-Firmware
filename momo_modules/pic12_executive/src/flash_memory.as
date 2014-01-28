@@ -2,11 +2,13 @@
 #define _DEFINES_ONLY
 #include "bootloader.h"
 #include "constants.h"
-#include "asm_macros.inc"
 #undef _DEFINES_ONLY
 
-global  _get_magic,_mib_buffer, _boot_count
+#include "asm_locations.h"
 
+ASM_INCLUDE_GLOBALS()
+
+global  _get_magic, _boot_count, _get_mib_block
 
 PSECT text_flash,local,class=CODE,delta=2
 
@@ -97,8 +99,7 @@ ENDFUNCTION _verify_application
 BEGINFUNCTION _flash_erase_row
     call 	prepare_row_address
     bsf		FREE 					;perform an erase on next WR command, cleared by hardware
-    call	unlock_and_write
-    return
+    goto	unlock_and_write
 ENDFUNCTION _flash_erase_row
 
 ;given a byte specifying a flash row number in _boot_count and load the 16 bit address
@@ -115,36 +116,31 @@ BEGINFUNCTION _load_boot_address
 	movf BANKMASK(EEADRH),w
 	andlw (kFlashMemorySize-1) >> 8
 	movwf FSR1H
-	banksel(_mib_buffer)
+	banksel(mib_buffer)
 	lslf FSR1L,f
 	rlf  FSR1H,w
-	movwf BANKMASK(_mib_buffer+3)
+	movwf BANKMASK(mib_buffer+3)
 	movf  FSR1L,w
-	iorwf BANKMASK(_mib_buffer+2),f
+	iorwf BANKMASK(mib_buffer+2),f
 	return
 ENDFUNCTION _load_boot_address
 
 
 ;If the device is in bootloader mode returns the address of 
-;the device to get the application code from
+;the device to get the application code from.  The boot source
+;is stored in the second to last word of the last flash row of the
+;first page of flash memory.
 BEGINFUNCTION _get_boot_source
-	movlw 0x87
-	movwf FSR1H
-	movlw 0xFE
-	movwf FSR1L
-	movf INDF1,W
-	return
+	movlw kMIBStructRow + kFlashRowSize - 2 - kMIBEndpointAddress
+	goto _get_mib_block
 ENDFUNCTION _get_boot_source
 
 ;Given that a proper bootloader preparation structure is written
 ;in high memory, return the firmware id that we should program
+;this is stored in the 3rd word before the end of the first flash page
 BEGINFUNCTION _get_firmware_id
-	movlw 0x87
-	movwf FSR1H
-	movlw 0xFD
-	movwf FSR1L
-	movf INDF1,W
-	return
+	movlw kMIBStructRow + kFlashRowSize - 3 - kMIBEndpointAddress
+	goto _get_mib_block
 ENDFUNCTION _get_firmware_id
 
 ;Given an offset in W, copy 16 bytes from the mib_buffer
@@ -155,7 +151,7 @@ BEGINFUNCTION _copy_mib_to_boot
 	addlw kBootloaderBufferLoc
 	movwf FSR0L
 	clrf   FSR1H
-	movlw _mib_buffer
+	movlw mib_buffer
 	movwf FSR1L
 	movlw 16		;copy in byte at a time
 	movwf BANKMASK(EEDATL)

@@ -10,7 +10,7 @@ from octopart.octopart import Octopart
 from reference import PCBReferenceLibrary
 
 class Board:
-	def __init__(self, name, file, variants, partname, width, height, revision):
+	def __init__(self, name, file, variants, partname, width, height, revision, unknown):
 		"""
 		Create a Board Object with 1 or more assembly variants from the variant dictionary passed in.
 		"""
@@ -22,12 +22,33 @@ class Board:
 		self.width = width
 		self.height = height
 		self.revision = revision
+		self.unknown = unknown
 
 	def list_variants(self):
 		print "Assembly Variants"
 
 		for k in self.variants.iterkeys():
 			print k
+
+	def get_ids(self, variant=None):
+		"""
+		Return a set containing all of the reference identifiers (C1, R7, etc.) in
+		the variant passed, or in all variants if no variant is passed
+		"""
+
+		if variant is None:
+			vars = self.variants.keys()
+		else:
+			vars = [variant]
+
+		ids = set()
+
+		for var in vars:
+			for line in self.variants[var]:
+				refs = map(lambda x: x.name, line)
+				ids.update(refs)
+
+		return ids
 
 	def print_variant(self, key):
 		var = self.variants[key]
@@ -53,6 +74,33 @@ class Board:
 
 		self.oracle = op.match_identifiers(parts.values())
 
+	def price_variant(self, variant, multiplier, requirements=None):
+		if variant not in self.variants:
+			raise ValueError("Invalid variant passed to price_variant")
+
+		self.lookup_parts()
+		unmatched = []
+
+		prices = []
+
+		for line in self.variants[variant]:
+			id = PartIdentifier(line[0]).build_reference()
+
+			if id not in self.oracle:
+				unmatched.append(line)
+				continue
+
+			quant = int(len(line)*multiplier + 0.5) #round up
+			unit_price = self.oracle[id].best_price(quant, requirements)
+
+			if unit_price is None:
+				unmatched.append(line)
+				continue
+
+			prices.append((line, unit_price))
+
+		return (prices, unmatched)
+
 	def export_list(self, variant):
 		"""
 		Return an array with all of the digikey part numbers in this variant so that
@@ -75,7 +123,7 @@ class Board:
 
 		return export
 
-	def export_bom(self, variant, file, include_costs=False, cost_quantity=1):
+	def export_bom(self, variant, stream, include_costs=False, cost_quantity=1, requirements=None):
 		var = self.variants[variant]
 
 		lib = PCBReferenceLibrary()
@@ -87,55 +135,73 @@ class Board:
 		if include_costs:
 			self.lookup_parts()
 
-		with open(file, "wb") as bom:
-			writ = csv.writer(bom)
+		if isinstance(stream, str):
+			bom = open(stream, "wb")
+			close = True
+		else:
+			bom = stream
+			close = False
+		
+		writ = csv.writer(bom)
 
-			writ.writerow(["WellDone"])
-			writ.writerow(["BOM: %s (%s)" % (self.partname, variant)])
-			writ.writerow(["Revision: %s" % self.revision])
-			writ.writerow(['Date Created: %s' % (today.strftime('%x'))])
+		writ.writerow(["WellDone"])
+		writ.writerow(["BOM: %s (%s)" % (self.partname, variant)])
+		writ.writerow(["Revision: %s" % self.revision])
+		writ.writerow(['Date Created: %s' % (today.strftime('%x'))])
+
+		if include_costs:
+			writ.writerow(['Costs calculated for %d units' % cost_quantity])
+
+		writ.writerow([])
+		writ.writerow([])
+
+		headers = ["Item", "Qty", "Reference Design", "Value", "Footprint", "Description", "Manufacturer", "Manu. Part", "Distributor", "Dist. Part"]
+		if include_costs:
+			headers += ['Unit Price', 'Line Price']
+
+		writ.writerow(headers)
+
+		for line in var:
+			num = len(line)
+			refs = ", ".join(map(lambda x: x.name, line))
+			foot = lib.find_package(line[0].package)[0]
+			value = line[0].value
+			manu = line[0].manu
+			mpn = line[0].mpn
+			distpn = line[0].digipn
+			dist = ""
+			descr = line[0].desc
+			if distpn:
+				dist = "Digikey"
+
+			row = [lineno, num, refs, value, foot, descr, manu, mpn, dist, distpn]
 
 			if include_costs:
-				writ.writerow(['Costs calculated for %d units' % cost_quantity])
+				quantity = num*cost_quantity
+				id = PartIdentifier(line[0])
+				if id.build_reference() in self.oracle:
+					price = self.oracle[id.build_reference()].best_price(quantity, requirements)
+					if price is not None:
+						unitprice = price[0]
+						lineprice = num*unitprice
 
+						row += [str(unitprice), str(lineprice)]
+
+			writ.writerow(row)
+
+			lineno += 1
+
+		#If there are unpopulated parts, list them here
+		unpopulated = self.get_ids() - self.get_ids(variant)
+
+		if len(unpopulated) > 0:
 			writ.writerow([])
-			writ.writerow([])
 
-			headers = ["Item", "Qty", "Reference Design", "Value", "Footprint", "Description", "Manufacturer", "Manu. Part", "Distributor", "Dist. Part"]
-			if include_costs:
-				headers += ['Unit Price', 'Line Price']
+			s = ", ".join(unpopulated)
+			writ.writerow(["Unpopulated Parts", s])
 
-			writ.writerow(headers)
-
-			for line in var:
-				num = len(line)
-				refs = ", ".join(map(lambda x: x.name, line))
-				foot = lib.find_package(line[0].package)[0]
-				value = line[0].value
-				manu = line[0].manu
-				mpn = line[0].mpn
-				distpn = line[0].digipn
-				dist = ""
-				descr = line[0].desc
-				if distpn:
-					dist = "Digikey"
-
-				row = [lineno, num, refs, value, foot, descr, manu, mpn, dist, distpn]
-
-				if include_costs:
-					quantity = num*cost_quantity
-					id = PartIdentifier(line[0])
-					if id.build_reference() in self.oracle:
-						price = self.oracle[id.build_reference()].best_price(quantity, in_stock=True, seller='Digi-Key', exclude_pkg=['Custom Reel'])
-						if price is not None:
-							unitprice = price[0]
-							lineprice = num*unitprice
-
-							row += [str(unitprice), str(lineprice)]
-
-				writ.writerow(row)
-
-				lineno += 1
+		if close:
+			bom.close()
 
 	@staticmethod
 	def FromEagle(brd_file):
@@ -161,8 +227,6 @@ class Board:
 		constant = []
 		variable = []
 		variants = find_variants(elems)
-		print "Variants Found"
-		print variants
 
 		#Create a part object for each part that has a valid digikey-pn
 		#If there are multiple digikey part numbers, create a part for each one
@@ -187,24 +251,19 @@ class Board:
 
 			#Make sure this part has information for at least one assembly variant
 			if not valid_part:
-				print "Part %s found with no part number" % part.get('name',"Unknown Name")
 				unknown.append(part.get('name',"Unknown Name"))
 
-		#If only one assembly variant, give it the name Main
-		if len(variants) == 0:
-			return Board("test", 'test', {'MAIN': constant})
-		else:
-			vars = {}
-			#Create multiple variants
-			for var in variants:
-				print "Processing Variant %s" % var
-				vars[var] = constant + filter_sublists(variable, var)
+		vars = {}
+		#Create multiple variants
+		for var in variants:
+			vars[var] = constant + filter_sublists(variable, var)
 
-			return Board("test", 'test', vars,
-							partname=find_attribute(root, 'PARTNAME'),
-							width=find_attribute(root, 'WIDTH'),
-							height=find_attribute(root, 'HEIGHT'),
-							revision=find_attribute(root, 'REVISION'))
+		return Board("test", 'test', vars,
+						partname=find_attribute(root, 'PARTNAME'),
+						width=find_attribute(root, 'WIDTH'),
+						height=find_attribute(root, 'HEIGHT'),
+						revision=find_attribute(root, 'REVISION'),
+						unknown=unknown)
 
 	def _process_variant(self, parts):
 		"""

@@ -50,3 +50,6 @@ _copy:
 	goto copyloop
 
 	return
+
+;Test that the first N bytes of the mib_buffer are equal to the
+;first N bytes specified by FSR1

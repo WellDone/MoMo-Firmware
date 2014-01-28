@@ -31,6 +31,20 @@ BEGINFUNCTION _wdt_popenabled
 	return
 ENDFUNCTION _wdt_popenabled
 
+BEGINFUNCTION _wdt_settimeout
+	banksel WDTCON
+	movwf BANKMASK(WDTCON)
+	return
+ENDFUNCTION _wdt_settimeout
+
+BEGINFUNCTION _wdt_delay
+	call _wdt_settimeout
+	bsf SWDTEN
+	sleep
+	bcf SWDTEN
+	return
+ENDFUNCTION _wdt_delay
+
 ;We need to save off the status of the reset just after powerup
 ;so that we know if it was due to a watchdog reset
 psect powerup,class=CODE,delta=2

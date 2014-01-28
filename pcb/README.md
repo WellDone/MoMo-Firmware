@@ -17,7 +17,7 @@ should be populated.
  * _MANU_ - The manufacturer's name.  If MPN is used to specify the part, MANU should be specified as well.
  * _FOOTPRINT_ - If the part does not have a standard SMD footprint link 0402, 0603, etc, they FOOTPRINT should be explicitly defined so
  that it can be used to create a BOM automatically.  If this is a through hole part, the footprint should be given as "Through Hole"
- * _DESCRIPTION_ - If the part cannot have a generic description made for it (currently only works for Resistors, Capacitors and Inductors)
+ * _DESC_ - If the part cannot have a generic description made for it (currently only works for Resistors, Capacitors and Inductors)
  then the explicit description should be given in this attribute.
 
 ###Assembly Variants
@@ -28,6 +28,15 @@ If a board has several assembly variants, this should be indicated by specifying
 either populate a certain part, not populate a certain part or replace a part with a different one.  To do this, change the DIGIKEY-PN or MPN attribute for the part to contain -VARIANT where variant is the name of the assembly variant.  A part with only DIGIKEY-PN (or MPN) set will be assumed to be populated
 in every assembly variant. A part with DIGIKEY-PN-VAR1 and DIGIKEY-PN-VAR2 will be populated only in Assembly Variants VAR1 and VAR2.  
 
+####Changing Part Values in Different Assembly Variants
+Often a different assembly variant will not just populate or depopulate a part, but will change a part's value in order to achieve the desired effect.  
+For example, a buck regulator design that can be configured to output either 3.6 or 5V depending on the assembly variant may require just changing the feedback resistor value.
+In order to do this, the value should be specified as a VALUE attribute with the appropriate -VARIANT name.  So, if there are 2 assembly variants, 5V and 3V and a resistor is 10K in the 
+5V version and 15K in the 3V version, the resistor should have the following two attributes:
+VALUE-5V = 10K
+VALUE-3V = 15K
+The actual value of the part may be set to anything since it will be overriden by these attributes.  It is recommended that the actual part value be set to 'varies' so that the 
+schematic's intent is not confusing.
 ###Global Attributes
 Every board must define the following global attributes.  These should be defined on the Board, not the Schematic, under Edit->Global Attributes:
 

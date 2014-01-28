@@ -6,6 +6,12 @@ import os
 import fnmatch
 import json as json
 import mib12_config
+import sys
+import os.path
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
+
+from momo_utilities import build
 
 def find_files(dirname, pattern):
 	"""
@@ -19,15 +25,6 @@ def find_files(dirname, pattern):
 			matches.append(os.path.join(root,filename))
 
 	return matches
-
-def load_settings():
-	directory = os.path.dirname(__file__)
-	filename = os.path.join(directory,'..','..','config','build_settings.json')
-
-	with open(filename,'r') as f:
-		return json.load(f)
-
-	ValueError('Could not load global build settings file (config/build_settings.json)')
 
 def build_app_for_chip(name, chip):
 	"""
@@ -69,7 +66,7 @@ def get_module_targets(module):
 
 class MIB12Config:
 	def __init__(self):
-		conf = load_settings()
+		conf = build.load_settings()
 
 		self.common_flags = conf['mib12']['common_xc8_flags']
 		self.exec_flags = conf['mib12']['exec_xc8_flags']

@@ -20,3 +20,8 @@ ENDREGION MACRO func
 GLOBAL __end_of&func
 __end_of&func:
 ENDM
+
+movlf MACRO lit, reg
+movlw lit
+movwf reg && 0x7F
+ENDM

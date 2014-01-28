@@ -10,8 +10,9 @@ class PhysicalPart:
 
 		self.offers = map(lambda x: PartOffer(x), response['offers'])
 
-	def best_price(self, quantity, **kw):
-		prices = map(lambda x: (x.best_price(quantity, **kw), x.seller_name, x.packaging), self.offers)		
+	def best_price(self, quantity, requirements):
+		valid_offers = filter(lambda x: requirements.validate(x, quantity), self.offers)
+		prices = map(lambda x: (x.best_price(quantity), x.seller_name, x.packaging), valid_offers)		
 		valid_prices = filter(lambda x: x[0] is not None, prices)
 
 		sorted_prices = sorted(valid_prices, key=lambda x:x[0])

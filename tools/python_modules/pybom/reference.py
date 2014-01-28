@@ -5,14 +5,17 @@
 import json
 import os.path
 import re
+import sys
 
-data_filename = 'library.json'
-data_file = os.path.join(os.path.dirname(__file__), 'resources', data_filename)
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from momo_utilities.config import ConfigFile
+
+data_file = ConfigFile('pcb_library')
 
 class PCBReferenceLibrary:
 	def __init__(self):
-		with open(data_file, "r") as f:
-			self.lib = json.load(f)
+		self.lib = data_file
 
 		self._import_packages()
 		self._import_descriptions()

@@ -1,5 +1,5 @@
 #include "adc.h"
-#include <pic24.h>
+#include "pic24.h"
 
 task_callback adc_callback = 0;
 volatile unsigned int oneshot = 0;

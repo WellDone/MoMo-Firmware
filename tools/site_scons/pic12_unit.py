@@ -10,9 +10,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
 from gpysim import log
 import hex8.symbols
 
-def build_unittest(test_files, name, chip, type):
+def build_unittest(test_files, name, chip, type, cmds=None):
 	"""
 	Build a hex file from the source files test_files for the indicated chip
+	If cmds is passed, replace the generic run command to gpsim with the commands
+	listed in the passed file
 	"""
 
 	env = Environment(tools=['xc8_compiler', 'patch_mib12', 'merge_mib12_app', 'merge_mib12_sym', 'gpsim_runner'], ENV = os.environ)
@@ -63,6 +65,7 @@ def build_unittest(test_files, name, chip, type):
 	env['TESTCHIP'] = sim
 	env['TESTNAME'] = name
 	env['TESTAPPEND'] = mib12conf.get_chip_name(chip)
+	env['EXTRACMDS'] = cmds
 
 	#Must do this in 1 statement so we don't modify test_files
 	srcfiles = test_files + test_harness
@@ -112,6 +115,12 @@ def build_unittest_script(target, source, env):
 	sim = env['TESTCHIP']
 	name = env['TESTNAME']
 
+	extracmds = None
+
+	if 'EXTRACMDS' in env and env['EXTRACMDS'] is not None:
+		with open(env['EXTRACMDS'], "r") as f:
+			extracmds = f.readlines()
+
 	with open(str(target[0]), "w") as f:
 		f.write('processor %s\n' % sim)
 		f.write('load s %s\n' % os.path.basename(str(source[0])))
@@ -119,7 +128,11 @@ def build_unittest_script(target, source, env):
 		f.write('log w %s.ccpr1l\n' % sim)
 		f.write('log w %s.ccpr1h\n' % sim)
 		f.write("log on '%s'\n" % logfile)
-		f.write('run\n')
+		if extracmds is not None:
+			for cmd in extracmds:
+				f.write(cmd)
+		else:
+			f.write('run\n')
 
 def process_unittest_log(target, source, env):
 	"""

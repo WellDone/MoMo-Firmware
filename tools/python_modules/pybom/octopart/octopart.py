@@ -6,9 +6,15 @@ import json
 import urllib
 import pprint
 from physicalpart import PhysicalPart
+import sys
+from partcache import PartCache
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from momo_utilities.paths import MomoPaths
 
 class Octopart:
 	URL = 'http://octopart.com/api/v3/'
+
 	def __init__(self, key=None):
 		if key is not None:
 			self.api_key = key
@@ -16,6 +22,8 @@ class Octopart:
 			self.api_key = os.environ['OCTOPART_KEY']
 		else:
 			raise ValueError('You need to either specify an Octopart API Key or have OCTOPART_KEY set in the shell')
+
+		self.cache = PartCache()
 
 	def _build_call(self, method, args):
 		"""
@@ -47,8 +55,21 @@ class Octopart:
 	def match_identifiers(self, skus):
 		matched = {}
 		unmatched = []
-		for i in xrange(0, len(skus), 20):
-			req = skus[i:i+20]
+		uncached_skus = []
+
+		#Check if we have these parts in our cache
+		for sku in skus:
+			id = sku.build_reference()
+			part = self.cache.get(id)
+
+			if part is None:
+				uncached_skus.append(sku)
+			else:
+				matched[id] = part
+
+		#Otherwise fetch from Octopart and cache the results
+		for i in xrange(0, len(uncached_skus), 20):
+			req = uncached_skus[i:i+20]
 			queries = map(lambda x: x.build_query(), req)
 
 			query = json.dumps(queries)
@@ -67,6 +88,7 @@ class Octopart:
 					print "Found %d parts for %s" % (len(result['items']), ref)
 				
 				part = PhysicalPart(result['items'][0])
+				self.cache.set(ref, part)
 
 				matched[ref] = part 
 

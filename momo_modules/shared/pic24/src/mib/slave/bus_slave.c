@@ -46,7 +46,7 @@ static void bus_slave_startcommand()
 
 	bus_slave_setreturn(kUnknownError); //Make sure that if nothing else happens we return an error status.
 
-	bus_slave_receive((unsigned char *)&mib_state.bus_command, sizeof(MIBCommandPacket), 0);
+	bus_slave_receive((unsigned char *)&mib_unified.bus_command, sizeof(MIBCommandPacket) + 24, 0);
 }
 
 static void bus_slave_searchcommand()
@@ -65,21 +65,17 @@ static void bus_slave_searchcommand()
 		return;
 	}
 
-	if (plist_param_length(mib_state.bus_command.param_spec) > kBusMaxMessageSize)
+	if (plist_param_length(mib_unified.bus_command.param_spec) > kBusMaxMessageSize)
 	{
 		bus_slave_seterror(kParameterTooLong);
 		return;
 	}
 
-	//initialize i2c to receive parameters if there are any
-	if (plist_param_length(mib_state.bus_command.param_spec) > 0)
-		bus_slave_receive(mib_buffer, plist_param_length(mib_state.bus_command.param_spec), 0);
-	
 	set_slave_state(kMIBFinishCommand);
 }
 
 /*
- * @preconditions: mib_buffer is full of a packet of parameters or nothing
+ * @preconditions: mib_unified.mib_buffer is full of a packet of parameters or nothing
  * @return: 1 if the parameters are valid types and 0 otherwise
  * @side effects: sets mib slave error state appropriately
  */
@@ -137,9 +133,10 @@ void bus_slave_callback()
 				 * subsequent reads until the master is satisfied that it has received one with a valid checksum.
 				 */
 
+				bus_slave_searchcommand();
 				bus_slave_callcommand();
 
-				//slave callback should set the return status via bus_slave_setreturn and set mib_buffer to point to the return value if any
+				//slave callback should set the return status via bus_slave_setreturn and set mib_unified.mib_buffer to point to the return value if any
 				bus_slave_send(&mib_state.bus_returnstatus.return_status, sizeof(MIBReturnValueHeader), kSendImmediately);
 
 				//If we don't expect to send a return value, finish the command after this transmission
@@ -150,17 +147,17 @@ void bus_slave_callback()
 			}
 			else
 			{
-				//even reads are for the return value, which if there is one should be in the mib_buffer
+				//even reads are for the return value, which if there is one should be in the mib_unified.mib_buffer
 				//if there wasn't one, then this is a protocol error (or a failed return status checksum) 
 				//since there shouldn't have been a second read so we can send garbage since it will be 
 				//ignored
 				if (bus_has_returnvalue())
 				{
-					bus_slave_send((unsigned char *)mib_buffer, mib_state.bus_returnstatus.len, kSendImmediately);
+					bus_slave_send((unsigned char *)mib_unified.mib_buffer, mib_state.bus_returnstatus.len, kSendImmediately);
 				}
 				else
 				{
-					bus_slave_send((unsigned char *)mib_buffer, 1, kSendImmediately); //protocol error so just send 1 byte, doesn't matter
+					bus_slave_send((unsigned char *)mib_unified.mib_buffer, 1, kSendImmediately); //protocol error so just send 1 byte, doesn't matter
 				}
 				
 				set_slave_state(kMIBFinishCommand);
@@ -179,30 +176,12 @@ void bus_slave_callback()
 		else
 		{
 			//We received a write
-			//If this is not a special situation (protocol reset or start of command) ignore the address byte
-			//and wait for the data to be clocked in.
-			
-			if (bus_numreads_nonzero())
-				bus_slave_reset();
-			else if (mib_state.slave_state == kMIBIdleState)
-			{
-				bus_slave_startcommand(); //A write when we're idle indicates a new command
-			}
+			bus_slave_startcommand(); //A write always indicates a new command
 		}
 
 		//Always release the clock.  The slave should never hold the clock forever.
 		i2c_release_clock();
 		return;
-	}
-
-	switch (mib_state.slave_state)
-	{
-		case kMIBSearchCommand:
-		bus_slave_searchcommand();
-		break;
-
-		default:
-		break;
 	}
 
 	i2c_release_clock();

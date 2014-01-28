@@ -52,7 +52,7 @@ def read_mbr(dev):
 def get_clusterval(dev, cluster, part):
 	fat_begin = part['part_start'] + part['num_reserved']
 
-	sect_idx = cluster / (128)
+	sect_idx = cluster / (128) + fat_begin
 	offset = cluster % (128)
 
 	clusters = read_fat(dev, sect_idx)
@@ -107,6 +107,15 @@ def read_dir(dev, cluster, part):
 
 	return ents
 
+def list_cluster_chain(dev, part, start, num=20):
+	cluster = start
+
+	for i in xrange(0, num):
+		n = get_clusterval(dev, cluster, part)
+		print "%d: Cluster 0x%X: 0x%X" % (i+1, cluster, n)
+
+		cluster = n
+
 if len(sys.argv) != 2:
 	print "Usage: dump_fat <device>"
 	sys.exit(1)
@@ -124,4 +133,5 @@ with open(sys.argv[1], "rb", buffering=-1) as dev:
 	ents = read_dir(dev, f32info['root_cluster'], f32info)
 	log = ents[0]
 
-	print "Size: 0x%X" % log['size']
+	print "Listing chain for file: %s" % log["name"]
+	list_cluster_chain(dev, f32info, log["cluster"], num=13)

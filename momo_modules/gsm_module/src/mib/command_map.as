@@ -19,13 +19,13 @@ PSECT mibmap,abs,local,class=CODE,delta=2
 ;High memory command structure for processing mib slave endpoints
 org 	kMIBEndpointAddress
 
-;Module Name (must be exactly 8 characters long)
-db 		ModuleName
-
 ;Module information
 retlw 	ModuleType
 retlw 	ModuleVersion
 retlw 	ModuleFlags
+
+;Module Name (must be exactly 7 characters long)
+db 		ModuleName
 
 ;MIB endpoint information
 retlw 	kNumFeatures
@@ -66,7 +66,6 @@ BRW
 RETLW 0
 RETLW 0
 RETLW plist_buffer()
-RETLW 0
 RETLW 0
 RETLW 0
 

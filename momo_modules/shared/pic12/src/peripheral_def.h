@@ -8,7 +8,8 @@
  * with multiple peripherals of the same type.  The PIC12 has family
  * standard peripherals so it makes sense to write just 1 version of the
  * code for each peripheral and use macros to choose the right registers
- * to control, e.g. mssp1 vs mssp2 since the two are identical, just 
+ * to control, e.g. mssp1 vs mssp2 since the two are identical, just in 
+ * different bank locations.
  */
 
 #define pdefine_f(periph, num, fun)	periph##num##_##fun
