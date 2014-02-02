@@ -4,9 +4,9 @@ import sys
 import os.path
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from proteus.project import Project
+from pymomo.proteus.project import Project
 import cmdln
 from colorama import Fore, Style
 

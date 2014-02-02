@@ -4,8 +4,7 @@
 from handler import MIBHandler
 import sys
 import os.path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from momo_utilities import build, template
+from pymomo.utilities import build, template
 from hex8.decode import *
 import intelhex
 

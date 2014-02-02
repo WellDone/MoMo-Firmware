@@ -6,13 +6,13 @@ import sys
 import os.path
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import cmdln
 from colorama import init, Fore, Style
-from momo_utilities.paths import MomoPaths
-from pybom import board,pricing
-import pyeagle
+from pymomo.utilities.paths import MomoPaths
+from pymomo.pybom import board,pricing
+from pymomo import pyeagle
 
 init()
 

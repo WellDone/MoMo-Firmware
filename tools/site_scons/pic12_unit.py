@@ -6,9 +6,9 @@ import os
 import os.path
 import utilities
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
-from gpysim import log
-import hex8.symbols
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from pymomo.gpysim import log
+from pymomo.hex8 import symbols
 
 def build_unittest(test_files, name, chip, type, cmds=None):
 	"""
@@ -138,7 +138,7 @@ def process_unittest_log(target, source, env):
 	"""
 	Source should be the unprocessed log file and the symbol file (stb) for assigning addresses to functions.
 	"""
-	symtab = hex8.symbols.XC8SymbolTable(str(source[1]))
+	symtab = symbols.XC8SymbolTable(str(source[1]))
 	lf = log.LogFile(str(source[0]), symtab=symtab)
 	lf.save(str(target[0]))
 	lf.save_status(str(target[1]))

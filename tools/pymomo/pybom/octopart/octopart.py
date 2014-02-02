@@ -9,8 +9,7 @@ from physicalpart import PhysicalPart
 import sys
 from partcache import PartCache
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from momo_utilities.paths import MomoPaths
+from pymomo.utilities.paths import MomoPaths
 
 class Octopart:
 	URL = 'http://octopart.com/api/v3/'

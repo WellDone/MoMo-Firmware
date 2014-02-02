@@ -9,9 +9,7 @@ import tempfile
 import zipfile
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from momo_utilities import build, paths
+from pymomo.utilities import build, paths
 
 Extensions = ['c', 'asm', 'h', 'inc', 's']
 

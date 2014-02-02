@@ -1,14 +1,10 @@
 #log.py
 #Parse the log file from a gpsim test run and convert it to a series of events
 
-import sys
 import re
 import statements
 from statements.unknown import UnknownStatement
-import os
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from hex8 import symbols
+from pymomo.hex8 import symbols
 
 class LogFile:	
 

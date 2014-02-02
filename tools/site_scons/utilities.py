@@ -9,9 +9,9 @@ import mib12_config
 import sys
 import os.path
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from momo_utilities import build
+from pymomo.utilities import build
 
 def find_files(dirname, pattern):
 	"""

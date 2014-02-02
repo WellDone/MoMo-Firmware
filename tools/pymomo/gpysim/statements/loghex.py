@@ -1,4 +1,3 @@
-
 from logstatement import LogStatement
 
 class LogHex (LogStatement):

@@ -4,8 +4,7 @@
 import sys
 import os.path
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from momo_utilities.paths import MomoPaths
+from pymomo.utilities.paths import MomoPaths
 from ZODB.FileStorage import FileStorage
 from ZODB.DB import DB
 from time import time

@@ -1,8 +1,8 @@
 import SCons.Builder
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'python_modules'))
-from hex8 import symbols
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+from pymomo.hex8 import symbols
 
 def build_symbols(target, source, env):
 	symtab = symbols.XC8SymbolTable(str(source[0]))

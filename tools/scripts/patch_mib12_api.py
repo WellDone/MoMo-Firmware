@@ -9,9 +9,9 @@ import intelhex
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-import hex8.patch
+from pymomo import hex8.patch
 
 if len(sys.argv) < 5:
 	print "usage: patch_mib12_api.py <api address> <source hex> <source symtab> <dest hex>"

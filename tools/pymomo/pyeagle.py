@@ -9,13 +9,9 @@ import os.path
 import os
 from pybom.board import Board
 import zipfile
-import importlib
-import sys
+import utilities.config
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'tools', 'python'))
-import momo_utilities.config
-
-settings = momo_utilities.config.ConfigFile('settings')
+settings = utilities.config.ConfigFile('settings')
 
 def execute_eagle(args):
 	eagle = settings['external_tools/eagle']

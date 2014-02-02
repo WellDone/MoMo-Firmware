@@ -22,3 +22,4 @@ These may all be downloaded and installed automatically using easy_install.
 * colorama
 * pyparsing
 * intelhex
+* BeautifulSoup4

@@ -5,8 +5,7 @@ from pyparsing import Word, Regex, nums, Literal, Optional, Group
 from handler import MIBHandler
 import sys
 import os.path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-import momo_utilities.paths
+from pymomo.utilities.paths import MomoPaths
 import block
 
 #DSL for mib definitions
@@ -91,7 +90,7 @@ class MIBDescriptor:
 	def _parse_include(self, match):
 		filename = match['filename']
 
-		folder = momo_utilities.paths.MomoPaths().config
+		folder = MomoPaths().config
 
 		path = os.path.join(folder, filename)
 		self._parse_file(path)
