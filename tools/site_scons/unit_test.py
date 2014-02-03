@@ -2,6 +2,8 @@
 
 import os.path
 import os
+from SCons.Environment import Environment
+import test_summary
 
 class UnitTest:
 	def __init__(self, files):
@@ -28,10 +30,10 @@ class UnitTest:
 		print "Status:", self.status
 		print self.desc
 
-	def build_target(self, target):
+	def build_target(self, target, summary_env):
 		raise ValueError('The build_target method must be overriden by a UnitTest subclass')
 
-	def build(self, module_targets):
+	def build(self, module_targets, summary_env):
 		"""
 		Build this unit test for the intersection of the targets that it is designed for
 		and the targets that the module it is targeted at is designed for.
@@ -48,7 +50,7 @@ class UnitTest:
 					targets.add(target)
 
 		for target in targets:
-			self.build_target(target)
+			self.build_target(target, summary_env)
 
 	def _check_files(self):
 		"""
@@ -178,5 +180,16 @@ def find_units(parent, subclass):
 def build_units(parent, targets, subclass):
 	tests = find_units(parent, subclass)
 
+	summary_env = Environment()
+	summary_env['TESTS'] = []
+
 	for test in tests:
-		test.build(targets)
+		test.build(targets, summary_env)
+
+	build_summary(summary_env)
+
+def build_summary_name():
+	return os.path.join('build', 'test', 'output', 'results.txt')
+
+def build_summary(env):
+	env.Command([build_summary_name()], env['TESTS'], action=test_summary.build_summary_cmd)

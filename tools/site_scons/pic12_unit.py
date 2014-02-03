@@ -10,7 +10,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pymomo.gpysim import log
 from pymomo.hex8 import symbols
 
-def build_unittest(test_files, name, chip, type, cmds=None):
+def build_unittest(test_files, name, chip, type, summary_env, cmds=None):
 	"""
 	Build a hex file from the source files test_files for the indicated chip
 	If cmds is passed, replace the generic run command to gpsim with the commands
@@ -90,6 +90,9 @@ def build_unittest(test_files, name, chip, type, cmds=None):
 	raw_results = env.gpsim_run(raw_log_path, outscript)
 	formatted_log = env.Command([build_formatted_log_name(env), build_status_name(env)], [raw_results, symtab], action=process_unittest_log)
 
+	#Add this unit test to the unit test summary command
+	summary_env['TESTS'].append(build_status_name(env))
+
 	#Also remember to remove the test directory when cleaning
 	env.Clean(outscript, testdir)
 	env.Clean(outscript, outdir)
@@ -143,6 +146,8 @@ def process_unittest_log(target, source, env):
 	lf.save(str(target[0]))
 	lf.save_status(str(target[1]))
 
+def build_summary_name():
+	return os.path.join('build', 'test', 'output', 'results.txt')
 
 def build_logfile_name(env):
 	return env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.raw'
@@ -151,5 +156,5 @@ def build_formatted_log_name(env):
 	return os.path.join('build', 'test', 'output', 'logs', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.log')
 
 def build_status_name(env):
-	return os.path.join('build', 'test', 'output', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.status')
+	return os.path.join('build', 'test', 'output', 'logs', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.status')
 
