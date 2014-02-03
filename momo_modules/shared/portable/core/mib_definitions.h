@@ -27,6 +27,7 @@
 #define kMIBPic24f16ka101			1
 #define kMIBPic12lf1822				2
 #define kMIBPic16lf1823				3
+#define kMIBPic16lf1847				4
 
 //Defined MIB Protocol revisions
 #define kMIBVersion1				1
@@ -45,16 +46,21 @@
  */
 
 #ifndef __DEFINES_ONLY__
+
+//Module descriptor size: 15 bytes
 typedef struct 
 {
-	uint8 	module_type;
 	uint8	hardware_type;
-	uint8	mib_revision;
+	uint8 	module_type;
+	uint8	mib_revision : 4;
+	uint8	flags : 4;
+
+	uint8 	name[7];
 	uint8	feature_count;
-	uint8	flags;
-	uint8 	name[8];
 } momo_module_descriptor;
 #endif
+
+#define kModuleDescriptorSize 13
 
 //Macros for defining parameter lists
 #define plist_ints(count)		((count&0b11) << 5)
@@ -71,12 +77,14 @@ typedef struct
 
 #define plist_matches(plist,spec)     ((plist & plist_spec_mask) == spec)
 
-#define plist_set_int16(n, val)			((int*)mib_buffer)[n] = val
-#define plist_set_int8(n, hi, val)		mib_buffer[(n<<1) + hi] = val
-#define plist_get_int16(n)				((int*)mib_buffer)[n]
-#define plist_get_int8(n)				mib_buffer[n<<1]
-#define plist_get_buffer(n)				(mib_buffer + (n << 1))
-#define plist_get_buffer_length()		(mib_state.bus_command.param_spec & 0b00011111)
+#ifndef _PIC12
+#define plist_set_int16(n, val)			((int*)(mib_unified.mib_buffer))[n] = val
+#define plist_set_int8(n, hi, val)		mib_unified.mib_buffer[(n<<1) + hi] = val
+#define plist_get_int16(n)				(*(int*)((mib_unified.mib_buffer + (2*n))))
+#define plist_get_int8(n)				mib_unified.mib_buffer[n<<1]
+#define plist_get_buffer(n)				(mib_unified.mib_buffer + (n << 1))
+#define plist_get_buffer_length()		(mib_unified.bus_command.param_spec & 0b00011111)
+#endif
 
 #define pack_return_status(status, return_length)	(((status & 0b111) << 5) | (return_length & 0b00011111))
 

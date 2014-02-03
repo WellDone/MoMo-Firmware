@@ -1,6 +1,7 @@
 //mib_state.c
 
+#define __NO_EXTERN_MIB_STATE__
 #include "bus.h"
 
 MIBState 		mib_state;
-unsigned char 	mib_buffer[kBusMaxMessageSize];
+MIBUnified		mib_unified;

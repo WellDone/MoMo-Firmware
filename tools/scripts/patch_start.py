@@ -7,8 +7,8 @@ import intelhex
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
-import hex8.patch
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from pymomo.hex8 import patch
 
 if len(sys.argv) < 4:
 	print "usage: patch_start <new address> <file in> <file out>"
@@ -18,7 +18,7 @@ addr = int(sys.argv[1])
 
 ih = intelhex.IntelHex(sys.argv[2])
 
-res1 = hex8.patch.patch_goto(ih, 0, None, addr)
+res1 = patch.patch_goto(ih, 0, None, addr)
 
 if res1 is False:
 	sys.exit(1)

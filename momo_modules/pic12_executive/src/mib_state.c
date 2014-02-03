@@ -6,10 +6,12 @@
 
 #define __NO_EXTERN_MIB_STATE__
 #include "bus.h"
+#include "mib_state.h"
 #include "i2c.h"
+#include "bootloader.h"
 
-bank1 unsigned char 	mib_buffer[kBusMaxMessageSize];		//Put mib state in first byte of GPR in bank1 (20 bytes)
-bank1 MIBState 			mib_state;							//Put mib state right after mib_buffer (10 bytes)
-bank1 volatile 			I2CStatus i2c_status;				//Put i2c_status next, (2 bytes)
+bank1 MIBData					      mib_data;						//Put mib data in first byte of GPR in bank1 (24 bytes)
+bank1 MIBState 						  mib_state;					//Put mib state right after mib_buffer (5 bytes)
+bank1 __persistent MIBExecutiveStatus status;						//MIBExecutiveStatus (1 byte)
 
-//0 bytes left in bank 1
+//bank1 is completely full

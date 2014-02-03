@@ -14,38 +14,29 @@
 #pragma config LVP=OFF
 #pragma config MCLRE=OFF
 
-__persistent MIBExecutiveStatus status;
+extern __persistent bank1 MIBExecutiveStatus status;
 
 void initialize();
-void restore_status();
-void check_app_fault();
+extern void restore_status();
 
 void interrupt service_isr() {
-    wdt_pushenabled();
     // Handle i2c interrupts (MSSP) in the bootloader.
     if (SSP1IF == 1) 
     {
         while (SSP1IF == 1)
         {
             SSP1IF = 0; //Do this because with our slow clock we might miss an interrupt
-            if (i2c_slave_active()) 
-            {
+            if (status.slave_active) 
                 i2c_slave_interrupt();
-            }
-            else
-                i2c_master_interrupt();
+            
+            //Master i2c is not interrupt driven
         }
     } 
     else if (status.valid_app)
     {
-        wdt_settimeout(k1SecondTimeout);
-        wdt_enable(); 
         call_app_interrupt();
         reset_page();
-        wdt_disable();
     }
-
-    wdt_popenabled();
 }
 
 void main() 
@@ -59,24 +50,16 @@ void main()
         enter_bootloader();
         restore_status();   //Update our status on what mode we should be in now
     }
-
-    check_app_fault();
     
     if (status.valid_app)
     {  
-        wdt_settimeout(k1SecondTimeout);
-        wdt_enable();
         call_app_init();
         reset_page();
-        wdt_disable();
 
         while(1)
         {
-            wdt_settimeout(k1SecondTimeout);
-            wdt_enable();
             call_app_task();
             reset_page();
-            wdt_disable();
 
             sleep();
         }
@@ -86,7 +69,6 @@ void main()
     {
         sleep();
     }
-
 }
 
 void initialize()
@@ -109,7 +91,6 @@ void initialize()
     #ifdef __PIC16LF1847__
     TRISB = 0xff;
     ANSELB = 0;
-    LATA7 = 0;
     #endif
 
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
@@ -119,49 +100,4 @@ void initialize()
     GIE = 1;
     /* Enable peripheral interrupts. */
     PEIE = 1;
-    wdt_settimeout(k1SecondTimeout);
-}
-
-void restore_status()
-{
-    if (get_magic() == kMIBMagicNumber)
-        status.valid_app = 1;
-    else if (get_magic() == kReflashMagicNumber)
-        status.bootload_mode = 1;
-
-    //Request an address from controller pic
-    if (!status.registered)
-    {
-        uint8 address = 0;
-        
-        //Wait 1 second to make the controller had time to power on
-        //in case this is a power on reset
-
-        wdt_settimeout(k1SecondTimeout);
-        wdt_enable();
-        sleep();
-        wdt_disable();
-
-        bus_init(kMIBUnenumeratedAddress);
-
-        address = register_module();
-
-
-        if (address > 0)
-        {
-            bus_init(address);
-            status.registered = 1;
-        }
-    }
-}
-
-/*
- * If we reset because of a watchdog timeout, assume the application code failed and disable it.
- *
- * TODO: remap pins on GSM pic so that A5 is on alarm pin to make it consistent with out modules.
- */
-void check_app_fault()
-{
-    if (status.wdt_timedout)
-        flash_erase_row(kNumFlashRows-1);
 }

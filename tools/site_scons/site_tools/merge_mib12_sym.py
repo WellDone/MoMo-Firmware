@@ -2,8 +2,8 @@ import SCons.Builder
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'python_modules'))
-from hex8 import symbols
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+from pymomo.hex8 import symbols
 
 def merge_sym(target, source, env):
 	"""

@@ -14,8 +14,9 @@
 void 	set_firmware_id(uint8 bucket);
 void 	prepare_reflash(uint8 source);
 void 	enter_bootloader();
-void 	get_half_row(uint8 offset);
+void 	get_half_row();
 
+//1 Byte
 typedef union
 {
 	struct
@@ -25,7 +26,9 @@ typedef union
 		uint8 bootload_mode : 1;
 		uint8 registered	: 1;
 		uint8 wdt_timedout	: 1; //cannot change, referenced in watchdog.as
-		uint8 reserved 		: 3; 
+		uint8 slave_active 	: 1; //cannot change, referenced in i2c_utilities.as
+		uint8 first_read	: 1;
+		uint8 send_value	: 1; 
 	};
 
 	uint8 status;

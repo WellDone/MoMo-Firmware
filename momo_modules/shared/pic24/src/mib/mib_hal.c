@@ -20,7 +20,7 @@ uint8 find_handler(void)
 
 	for (i=0; i<the_feature_count; ++i)
 	{
-		if (the_features[i]->id == mib_state.bus_command.feature)
+		if (the_features[i]->id == mib_unified.bus_command.feature)
 		{
 			break;
 		}
@@ -33,7 +33,7 @@ uint8 find_handler(void)
 	num_cmds = the_features[i]->command_count;
 
 	for (j=0; j<num_cmds; ++j) {
-		if ( the_features[i]->commands[j].id == mib_state.bus_command.command) {
+		if ( the_features[i]->commands[j].id == mib_unified.bus_command.command) {
 			return j;
 		}
 	}
@@ -77,7 +77,7 @@ uint8 validate_param_spec(uint8 handler_index)
 {
 	uint8 spec = get_param_spec(handler_index);
 
-	return (mib_state.bus_command.param_spec & plist_spec_mask) == spec;
+	return (mib_unified.bus_command.param_spec & plist_spec_mask) == spec;
 }
 
 uint8 plist_int_count(uint8 plist)

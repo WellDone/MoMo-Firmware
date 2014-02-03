@@ -29,7 +29,7 @@ enum
 	kWatchdog16s  = 0b011100,
 	kWatchdog32s  = 0b011110,
 	kWatchdog64s  = 0b100000,
-	kWatchdog128s = 0b100001,
+	kWatchdog128s = 0b100010,
 	kWatchdog256s = 0b100100
 };
 

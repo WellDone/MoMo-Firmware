@@ -6,13 +6,15 @@ import os
 import os.path
 import utilities
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'python_modules'))
-from gpysim import log
-import hex8.symbols
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from pymomo.gpysim import log
+from pymomo.hex8 import symbols
 
-def build_unittest(test_files, name, chip, type):
+def build_unittest(test_files, name, chip, type, summary_env, cmds=None):
 	"""
 	Build a hex file from the source files test_files for the indicated chip
+	If cmds is passed, replace the generic run command to gpsim with the commands
+	listed in the passed file
 	"""
 
 	env = Environment(tools=['xc8_compiler', 'patch_mib12', 'merge_mib12_app', 'merge_mib12_sym', 'gpsim_runner'], ENV = os.environ)
@@ -63,6 +65,7 @@ def build_unittest(test_files, name, chip, type):
 	env['TESTCHIP'] = sim
 	env['TESTNAME'] = name
 	env['TESTAPPEND'] = mib12conf.get_chip_name(chip)
+	env['EXTRACMDS'] = cmds
 
 	#Must do this in 1 statement so we don't modify test_files
 	srcfiles = test_files + test_harness
@@ -86,6 +89,9 @@ def build_unittest(test_files, name, chip, type):
 
 	raw_results = env.gpsim_run(raw_log_path, outscript)
 	formatted_log = env.Command([build_formatted_log_name(env), build_status_name(env)], [raw_results, symtab], action=process_unittest_log)
+
+	#Add this unit test to the unit test summary command
+	summary_env['TESTS'].append(build_status_name(env))
 
 	#Also remember to remove the test directory when cleaning
 	env.Clean(outscript, testdir)
@@ -112,6 +118,12 @@ def build_unittest_script(target, source, env):
 	sim = env['TESTCHIP']
 	name = env['TESTNAME']
 
+	extracmds = None
+
+	if 'EXTRACMDS' in env and env['EXTRACMDS'] is not None:
+		with open(env['EXTRACMDS'], "r") as f:
+			extracmds = f.readlines()
+
 	with open(str(target[0]), "w") as f:
 		f.write('processor %s\n' % sim)
 		f.write('load s %s\n' % os.path.basename(str(source[0])))
@@ -119,17 +131,23 @@ def build_unittest_script(target, source, env):
 		f.write('log w %s.ccpr1l\n' % sim)
 		f.write('log w %s.ccpr1h\n' % sim)
 		f.write("log on '%s'\n" % logfile)
-		f.write('run\n')
+		if extracmds is not None:
+			for cmd in extracmds:
+				f.write(cmd)
+		else:
+			f.write('run\n')
 
 def process_unittest_log(target, source, env):
 	"""
 	Source should be the unprocessed log file and the symbol file (stb) for assigning addresses to functions.
 	"""
-	symtab = hex8.symbols.XC8SymbolTable(str(source[1]))
+	symtab = symbols.XC8SymbolTable(str(source[1]))
 	lf = log.LogFile(str(source[0]), symtab=symtab)
 	lf.save(str(target[0]))
 	lf.save_status(str(target[1]))
 
+def build_summary_name():
+	return os.path.join('build', 'test', 'output', 'results.txt')
 
 def build_logfile_name(env):
 	return env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.raw'
@@ -138,5 +156,5 @@ def build_formatted_log_name(env):
 	return os.path.join('build', 'test', 'output', 'logs', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.log')
 
 def build_status_name(env):
-	return os.path.join('build', 'test', 'output', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.status')
+	return os.path.join('build', 'test', 'output', 'logs', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.status')
 

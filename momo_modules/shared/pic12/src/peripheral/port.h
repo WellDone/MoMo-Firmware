@@ -3,19 +3,25 @@
 #ifndef __port_h__
 #define __port_h__
 
-//Internal macros, not for use
+//Internal macros, not for use (needed to properly expand macros in arguments)
 #define LATCHR(pin)		LAT##pin
 #define TRISR(pin)		TRIS##pin
 #define TYPER(pin)		ANS##pin
 #define PORTR(pin)		R##pin
 
-//Macros for end-user use
+/*
+ * Macros for end-user use
+ */
+
+//Valid Pin Directions
 #define OUTPUT			0
 #define INPUT			1
 
+//Valid Pin Types
 #define DIGITAL 		0
 #define ANALOG 			1
 
+//Defined pin actions
 #define LATCH(pin)		LATCHR(pin)
 #define TRIS(pin)		TRISR(pin)
 #define TYPE(pin)		TYPER(pin)
