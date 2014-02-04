@@ -10,7 +10,7 @@
 
 uint8 register_module()
 {
-	//If no application is loaded, fill in default values
+	/*//If no application is loaded, fill in default values
 	if (get_magic() != kMIBMagicNumber)
 	{
 		plist_set_int8(0,0, kMIBExecutiveOnlyType);
@@ -49,7 +49,7 @@ uint8 register_module()
 
 	if (bus_master_rpc_sync(kMIBControllerAddress) == 0)
 		return plist_get_int8(0);
-	
+	*/
 	//If we failed, return an invalid mib address to indicate that
 	return 0;
 }
