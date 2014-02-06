@@ -68,6 +68,7 @@ class PCBTool(cmdln.Cmdln):
 	@cmdln.option('-p', '--packaging', action='append', default=[], help="Only allow the specified packaging (e.g. cut tape).")
 	@cmdln.option('--no-package', dest='nopackage', action='append', help="Disallow the specified packaging type (e.g. Custom Reel)")
 	@cmdln.option('--no-stock', dest='nostock', action='store_false', default=True, help="Allow out of stock offers.")
+	@cmdln.option('-f', '--format', action='store', choices=['csv', 'pdf'], default='csv')
 	def do_bom(self, subcmd, opts, id):
 		"""${cmd_name}: Create a BOM for the specified assembly variant.
 
@@ -76,15 +77,16 @@ class PCBTool(cmdln.Cmdln):
 		"""
 
 		reqs = self.build_pricemodel(opts)
-
-
 		brd = self.get_board(id)
-		out,close = self.build_outstream(opts)
 
-		brd.export_bom(opts.variant, out, include_costs=opts.prices, cost_quantity=opts.units, requirements=reqs)
-
-		if close:
-			out.close()
+		if opts.format == 'csv':
+			out,close = self.build_outstream(opts)
+			brd.export_bom(opts.variant, out, include_costs=opts.prices, cost_quantity=opts.units, requirements=reqs)
+			if close:
+				out.close()
+		elif opts.format == 'pdf':
+			data = brd.variant_data(opts.variant, include_costs=opts.prices, cost_quantity=opts.units, requirements=reqs)
+			print data
 
 	@cmdln.option('-v', '--variant', action='append', default=None, help="Print detailed information about the listed assembly variants.")
 	def do_info(self, subcmd, opts, id):
