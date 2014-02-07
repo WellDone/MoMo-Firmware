@@ -9,7 +9,7 @@ Import('env')
 env['INCLUDE'] += incs
 
 asm_sources = [	'flash_memory.as', 'i2c_utilities.as', 'asm_utils.as', 'watchdog_asm.as', 'bus_slave_asm.as',  #'registration_asm.as',
-				'i2c_slave_asm.as', 'i2c_asm.as', 'main_asm.as', 'bootloader_asm.as']
+				'i2c_slave_asm.as', 'i2c_asm.as', 'main_asm.as', 'registration_asm.as', 'bootloader_asm.as']
 
 srcfiles = asm_sources									\
 	+ Glob('./*.c') 									\

@@ -53,6 +53,9 @@ BEGINFUNCTION _get_half_row
 	banksel _invalid_row
 	iorwf BANKMASK(_invalid_row),f
 
+	;Load the offset that we should copy to here
+	banksel _offset
+	movf BANKMASK(_offset),w
 	goto _copy_mib_to_boot
 ENDFUNCTION _get_half_row
 
