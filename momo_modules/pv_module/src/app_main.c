@@ -16,6 +16,8 @@ extern uint8 sector[512];
 extern FAT32VolumeInfo vol;
 extern uint8 log_interval;
 
+extern unsigned int adc_result;
+
 void task(void)
 {
 	wdt_disable();
@@ -35,12 +37,10 @@ void task(void)
 		//to reinitialize the SD card. 
 		do
 		{
-			TRISA7 = !TRISA7;
 			log_setinterval();
 			wdt_enable();
 			asm("sleep");
 			wdt_disable();
-			TRISA7 = !TRISA7;
 		} while(log_logsamples() == 0);
 	}
 }
@@ -132,6 +132,46 @@ void open_size()
 {
 	mib_buffer[0] = log_interval;
 	mib_buffer[1] = 0;
+
+	bus_slave_setreturn(pack_return_status(0, 2));
+}
+
+void check_v1()
+{
+	sample_v1();
+
+	mib_buffer[0] = (adc_result & 0xFF);
+	mib_buffer[1] = (adc_result >> 8) & 0xFF;
+
+	bus_slave_setreturn(pack_return_status(0, 2));
+}
+
+void check_v2()
+{
+	sample_v2();
+
+	mib_buffer[0] = (adc_result & 0xFF);
+	mib_buffer[1] = (adc_result >> 8) & 0xFF;
+
+	bus_slave_setreturn(pack_return_status(0, 2));
+}
+
+void check_v3()
+{
+	sample_v3();
+
+	mib_buffer[0] = (adc_result & 0xFF);
+	mib_buffer[1] = (adc_result >> 8) & 0xFF;
+
+	bus_slave_setreturn(pack_return_status(0, 2));
+}
+
+void check_i1()
+{
+	sample_i1();
+
+	mib_buffer[0] = (adc_result & 0xFF);
+	mib_buffer[1] = (adc_result >> 8) & 0xFF;
 
 	bus_slave_setreturn(pack_return_status(0, 2));
 }

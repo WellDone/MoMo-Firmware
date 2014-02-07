@@ -3,7 +3,7 @@ ModuleType = 0;
 ModuleFlags = 0;
 
 feature 20
-0: _open_size(0, no);
-1: _sample_i1(1, no);
-2: _log_getoffset(0, no);
-3: _log_getsector(0, no);
+0: _check_v1(0, no);
+1: _check_v2(0, no);
+2: _check_v3(0, no);
+3: _check_i1(0, no);
