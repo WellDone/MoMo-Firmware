@@ -1,4 +1,3 @@
-
 import os.path
 
 def build_summary_cmd(target, source, env):
