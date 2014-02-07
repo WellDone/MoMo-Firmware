@@ -3,6 +3,7 @@
 import sys
 import os.path
 import os
+import intelhex
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -10,6 +11,7 @@ from pymomo.proteus.project import Project
 from pymomo.mib.descriptor import MIBDescriptor
 from pymomo.mib.block import MIBBlock
 from pymomo.mib.api import MIBAPI
+from pymomo.utilities import build
 import cmdln
 from colorama import Fore, Style
 import pyparsing
@@ -59,7 +61,43 @@ class MIBTool(cmdln.Cmdln):
 			self.error("Invalid output directory specified")
 
 		d.get_block().create_asm(opts.output)
-		
+
+	def do_checksum(self, subcmd, opts, hexfile):
+		"""${cmd_name}: Compute an 8-bit checksum for the mib12 application module
+
+		The application module must have a valid mib block so that we can extract
+		the hw type in order to properly calculate where to start computing the
+		checksum.
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		#Load the chip type from the mib block and use that to extract the application
+		#rom range.
+		try:
+			b = MIBBlock(hexfile)
+			info = build.get_proc(b.chip_name)
+			start,end = info.app_rom
+		except:
+			self.error(str(sys.exc_info()[1]))
+
+		ih = intelhex.IntelHex(hexfile)
+		ih.padding = 0xFF
+
+		check = 0
+		for i in xrange(start, end+1):
+			low = ih[i*2]
+			high = ih[i*2+1]
+			high = high & 0b00111111
+			check += low + high
+			check &= 0xFF
+
+		check = check & 0xFF
+
+		print "\nChecksum:"
+		print "hex: 0x%X" % check
+		print "dec: %d" % check
+		print "bin: %s" % bin(check)
 
 	def do_dump(self, subcmd, opts, hexfile):
 		"""${cmd_name}: Dump the MIB Block from a hex file and verify it.
