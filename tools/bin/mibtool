@@ -25,7 +25,14 @@ class MIBTool(cmdln.Cmdln):
 	def do_proteus(self, subcmd, opts, project):
 		"""${cmd_name}: Generate a proteus vsm project for this board file.
 
-		Create a Proteus VSM 8 project file, copying all of the source files in to the project file and setting the parameters appropriately for the project to compile out of the box in VSM.  A template project file is required so that we can copy the appropriate settings into the created project file.  It should be an empty project created by Proteus VSM with the correct processor type and a firmware project created with no files added.  If any files are present they will be overwritten.
+		Create a Proteus VSM 8 project file, copying all of the source files in 
+		to the project file and setting the parameters appropriately for the 
+		project to compile out of the box in VSM.  A template project file is 
+		required so that we can copy the appropriate settings into the created 
+		project file.  It should be an empty project created by Proteus VSM 
+		with the correct processor type and a firmware project created with 
+		no files added.  If any files are present they will be overwritten.
+		
 		${cmd_usage}
 		${cmd_option_list}
 		"""
@@ -45,7 +52,9 @@ class MIBTool(cmdln.Cmdln):
 	def do_gen(self, subcmd, opts, mibfile):
 		"""${cmd_name}: Compile a .mib file into command_map.asm
 
-		Create a command_map.asm file specifying information about this mib application module by compiling the *.mib file passed in.
+		Create a command_map.asm file specifying information about this mib 
+		application module by compiling the *.mib file passed in.
+		
 		${cmd_usage}
 		${cmd_option_list}
 		"""
@@ -63,11 +72,12 @@ class MIBTool(cmdln.Cmdln):
 		d.get_block().create_asm(opts.output)
 
 	def do_checksum(self, subcmd, opts, hexfile):
-		"""${cmd_name}: Compute an 8-bit checksum for the mib12 application module
+		"""${cmd_name}: Compute an 8-bit checksum for the mib12 app module
 
-		The application module must have a valid mib block so that we can extract
-		the hw type in order to properly calculate where to start computing the
-		checksum.
+		The application module must have a valid mib block so that we can 
+		extract the hw type in order to properly calculate where to start 
+		computing the checksum.
+		
 		${cmd_usage}
 		${cmd_option_list}
 		"""
@@ -102,7 +112,10 @@ class MIBTool(cmdln.Cmdln):
 	def do_dump(self, subcmd, opts, hexfile):
 		"""${cmd_name}: Dump the MIB Block from a hex file and verify it.
 
-		Given a hex file that should be a valid MIB12 application module, dump the MIB Block, validate the information stored in it and dump it to stdout.
+		Given a hex file that should be a valid MIB12 application module, dump 
+		the MIB Block, validate the information stored in it and dump it to 
+		stdout.
+		
 		${cmd_usage}
 		${cmd_option_list}
 		"""
@@ -115,9 +128,11 @@ class MIBTool(cmdln.Cmdln):
 
 	@cmdln.option('-c', '--chip', help="Chip type that this hex file corresponds to")
 	def do_api(self, subcmd, opts, hexfile):
-		"""${cmd_name}: Dump the MIB API region from the hex file and verify it. 
+		"""${cmd_name}: Dump the MIB API region from the hex file and verify it 
 
-		Given a hex file that should be a valid MIB12 executive module, validate the information stored in it and dump it to stdout.
+		Given a hex file that should be a valid MIB12 executive module, 
+		validate the information stored in it and dump it to stdout.
+		
 		${cmd_usage}
 		${cmd_option_list}
 		"""
