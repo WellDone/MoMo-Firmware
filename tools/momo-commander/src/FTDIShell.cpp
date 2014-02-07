@@ -1,4 +1,5 @@
 #include "FTDIShell.h"
+#include <unistd.h>
 
 #define BUF_SIZE 10
 MoMoResponseStatus searchChars[3] = { kMoMoPending, kMoMoSuccess, kMoMoFailure };
@@ -44,7 +45,8 @@ FTDIShell::FTDIShell( FTDIConnection& connection, FILE* input )
 {
 	SetPrompt( "FSU" );
 	if (m_connection.Active()) {
-		if ( !Activate() );
+		if ( !Activate() )
+			;
 	}
 }
 

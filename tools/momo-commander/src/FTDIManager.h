@@ -26,4 +26,4 @@ private:
 	FTDIConnectionList m_connections;
 };
 
-#endif;
+#endif

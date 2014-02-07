@@ -30,7 +30,7 @@ CMDRES::CODE connect( const Shell& shell, const ArgList& args ) {
 	std::string deviceID = "";
 	for ( int i=0; i<args.size(); ++i )
 	{
-		if ( args[i] == "-D" )
+		if ( strcmp(args[i], "-D") == 0 )
 		{
 			if ( i+1 < args.size() ) {
 				deviceID = args[++i];
