@@ -2,6 +2,9 @@
 ;3 structures defining the features, commands and handlers that we support
 
 \#include "constants.h"
+#define __DEFINES_ONLY__
+\#include "mib_definitions.h"
+#undef __DEFINES_ONLY__
 
 jumpm MACRO name,dest
 name:
