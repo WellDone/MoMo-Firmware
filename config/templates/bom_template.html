@@ -1,19 +1,121 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<link rel="stylesheet" type="text/css" href="../resources/bom_formatting/excel-2007.css"/>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <title>WellDone BOM</title>
+<style type="text/css">
+.ExcelTable2007 {
+	border: 1px solid #B0CBEF;
+	border-width: 1px 0px 0px 1px;
+	font-size: 11pt;
+	font-family: Calibri;
+	font-weight: 100;
+	border-spacing: 0px;
+	border-collapse: collapse;
+}
+
+.ExcelTable2007 TH {
+	background-image: url(excel-2007-header-bg.gif);
+	background-repeat: repeat-x; 
+	font-weight: normal;
+	font-size: 14px;
+	border: 1px solid #9EB6CE;
+	border-width: 0px 1px 1px 0px;
+	padding-left: 5px;
+	padding-right: 5px;
+	height: 17px;
+}
+
+.ExcelTable2007 TD {
+	border: 0px;
+	background-color: white;
+	padding: 0px 4px 0px 2px;
+	border: 1px solid #D0D7E5;
+	border-width: 0px 1px 1px 0px;
+}
+
+.ExcelTable2007 TD B {
+	border: 0px;
+	background-color: white;
+	font-weight: bold;
+}
+
+.ExcelTable2007 TD.heading {
+	background-color: #E4ECF7;
+	text-align: center;
+	border: 1px solid #9EB6CE;
+	border-width: 0px 1px 1px 0px;
+	padding-right: 5px;
+}
+
+.ExcelTable2007 TH.heading {
+	background-image: url(excel-2007-header-left.gif);
+	background-repeat: no-repeat;
+}
+
+</style>
 </head>
 <body>
+<h1>Bill of Materials</h1>
+<div><strong>Part Name: </strong>$part</div>
+<div><strong>Assembly Variant: </strong>$variant</div>
+<div><strong>Revision: </strong>$revision</div>
+<div><strong>Date Created: </strong>$date</div>
+<div><strong>Company: </strong>$company</div>
+<p></p>
 	<table class="ExcelTable2007">
 	<tr>
 	<th class="heading">&nbsp;</th><th>Qty</th><th>Reference Design</th><th>Value</th><th>Footprint</th>
-	<th>Description</th><th>Manu.</th><th>Manu. Part</th><th>Distributor</th><th>Distributor Part</th>
+	<th>Description</th><th>Manu.</th><th>MPN</th><th>Distributor</th><th>Distributor Part</th>
+#if $include_costs
+<th>Unit Price</th><th>Line Price</th>
+#end if
 	</tr>
-	<tr>
-	<td class="heading">11</td><td>Test</td>
-	</tr>
+	
+#for $i, $line in $enumerate($sorted($lines,key=lambda x:x['refs']))
+<tr><td class="heading">
+#echo $i+1
+</td>
+
+<td>
+$line.qty
+</td>
+
+<td>
+#echo ", ".join($line.refs)
+</td>
+
+<td>
+$line.value
+</td>
+
+<td>
+$line.footprint
+</td>
+
+<td>
+$line.description
+</td>
+
+<td>
+$line.manu
+</td>
+
+<td>
+$line.mpn
+</td>
+
+<td>
+$line.dist
+</td>
+
+<td>
+$line.distpn
+</td>
+
+</tr>
+#end for
+
 	</table>
 </body>
 </html>

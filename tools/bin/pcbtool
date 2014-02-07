@@ -13,6 +13,8 @@ from colorama import init, Fore, Style
 from pymomo.utilities.paths import MomoPaths
 from pymomo.pybom import board,pricing
 from pymomo import pyeagle
+from pymomo.utilities.template import RecursiveTemplate
+from weasyprint import HTML,CSS
 
 init()
 
@@ -84,9 +86,18 @@ class PCBTool(cmdln.Cmdln):
 			brd.export_bom(opts.variant, out, include_costs=opts.prices, cost_quantity=opts.units, requirements=reqs)
 			if close:
 				out.close()
-		elif opts.format == 'pdf':
+		elif opts.format == 'pdf' or opts.format == 'html':
 			data = brd.variant_data(opts.variant, include_costs=opts.prices, cost_quantity=opts.units, requirements=reqs)
-			print data
+			templ = RecursiveTemplate('bom_template.html')
+			templ.add(data)
+			formatted = templ.format_temp()
+			paths = MomoPaths()
+
+			css_path = os.path.join(paths.resources, 'bom_formatting', 'excel-2007.css')
+			css_obj = CSS(filename=css_path)
+			html_obj = HTML(filename=formatted, stylesheets=[css_obj])
+			html_obj.write_pdf('/Users/timburke/Desktop/test.pdf')
+
 
 	@cmdln.option('-v', '--variant', action='append', default=None, help="Print detailed information about the listed assembly variants.")
 	def do_info(self, subcmd, opts, id):
