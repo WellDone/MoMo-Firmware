@@ -14,13 +14,9 @@
 #define kNumFeatures 			1
 #define kNumDebugCommands		2
 
-PSECT mibmap,abs,local,class=CODE,delta=2
-
-;High memory command structure for processing mib slave endpoints
-org 	kMIBEndpointAddress
-
-;Module Name (must be exactly 8 characters long)
-db 		0,0,0,0,0,0,0,0
+PSECT mibblock,global,class=CODE,delta=2
+;Module Name (must be exactly 7 characters long)
+db 		0,0,0,0,0,0,0
 
 ;Module information
 retlw 	0

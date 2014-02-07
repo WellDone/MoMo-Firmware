@@ -1,6 +1,7 @@
 ;Name: test_basic
 ;Targets: all
 ;Type: executive
+;Additional: support_no_appmodule.as
 ;Description: Test to ensure that the basic unit testing framework is working
 ;and that this test can be compile, run and interpreted.  
 
