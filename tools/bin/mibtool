@@ -9,6 +9,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pymomo.proteus.project import Project
 from pymomo.mib.descriptor import MIBDescriptor
 from pymomo.mib.block import MIBBlock
+from pymomo.mib.api import MIBAPI
 import cmdln
 from colorama import Fore, Style
 import pyparsing
@@ -71,6 +72,24 @@ class MIBTool(cmdln.Cmdln):
 		try:
 			b = MIBBlock(hexfile)
 			print str(b)
+		except:
+			self.error(str(sys.exc_info()[1]))
+
+	@cmdln.option('-c', '--chip', help="Chip type that this hex file corresponds to")
+	def do_api(self, subcmd, opts, hexfile):
+		"""${cmd_name}: Dump the MIB API region from the hex file and verify it. 
+
+		Given a hex file that should be a valid MIB12 executive module, validate the information stored in it and dump it to stdout.
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		self.assert_args(opts, ['chip'])
+
+		try:
+			print "\nDumping file: %s" % hexfile
+			api = MIBAPI(hexfile, opts.chip)
+			api.print_api()
 		except:
 			self.error(str(sys.exc_info()[1]))
 
