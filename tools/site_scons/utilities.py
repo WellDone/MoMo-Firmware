@@ -136,6 +136,7 @@ class MIB12Config:
 		"""
 
 		self.config_env_for_chip(self.get_chip_name(name), env)
+		chip = self.get_chip_name(name)
 
 		info = env['CHIPINFO']
 		self._ensure_flags(env)
@@ -145,11 +146,11 @@ class MIB12Config:
 
 		env['XC8FLAGS'] += self.common_flags
 		env['XC8FLAGS'] += self.exec_flags
-		env['XC8FLAGS'] += ['-L-Pmibapi=%xh' % env['MIB_API_BASE']] #Place the MIB api in the right place
+		env['XC8FLAGS'] += ['-L-Pmibapi=%xh' % env['MIB_API_BASE'], '-L-Papp_vectors=%xh' % info.app_rom[0]] #Place the MIB api in the right place
 
 		self.add_common_incs(env)
 
-		env['RAMEXCLUDE'] = [info.app_rom]
+		env['RAMEXCLUDE'] =  self.chip_def(chip, 'application_ram')
 
 	def config_env_for_app(self, env, name):
 		"""
@@ -170,7 +171,6 @@ class MIB12Config:
 
 		#Make sure we don't let the code overlap with the MIB map in high memory
 		env['ROMEXCLUDE'] = []
-		#env['ROMEXCLUDE'].append(info.mib_range)
 
 		env['XC8FLAGS'] += self.common_flags
 		env['XC8FLAGS'] += self.app_flags
