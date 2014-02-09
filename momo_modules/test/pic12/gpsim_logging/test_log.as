@@ -23,7 +23,6 @@ banksave: ds 1
 regsave: ds 1
 fsrlsave: ds 1
 fsrhsave: ds 1
-intsave: ds 1
 
 PSECT text_unittest,local,class=CODE,delta=2
 
@@ -36,11 +35,6 @@ _savestate:
 	movwf	fsrlsave
 	movf 	FSR0H,w
 	movwf	fsrhsave
-
-	movf 	INTCON,w
-	movwf	intsave
-	bcf 	GIE		;disable interrupts during logging
-
 	return
 
 ;Restore all registers to the state they were in
@@ -52,8 +46,6 @@ _restorestate:
 	movwf 	FSR0L
 	movf 	fsrhsave,w
 	movwf 	FSR0H
-	movf 	intsave,w
-	movwf 	INTCON
 	return
 
 ;helper function for logging the address of the instruction that
