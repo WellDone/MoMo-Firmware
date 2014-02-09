@@ -5,6 +5,7 @@
 #include <xc.inc>
 #include "i2c_defines.h"
 #include "asm_locations.h"
+#include "asm_branches.inc"
 
 ASM_INCLUDE_GLOBALS()
 
