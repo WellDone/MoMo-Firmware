@@ -11,8 +11,8 @@ goto _reflash_executive
 
 ;Special config flags telling us what size executive to copy
 ;and where it starts
-retlw 0x00		;return the first row of the pic12_executive
-retlw 0x00 		;return the number of rows that the pic2_executive fills
+retlw 0xAB		;return the first row of the pic12_executive, magic values so we can validate the hex file
+retlw 0xCD 		;return the number of rows that the pic12_executive fills
 
 intlevel1:
 

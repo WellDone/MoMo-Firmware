@@ -104,8 +104,9 @@ BEGINFUNCTION _reflash_executive
 	movf FSR1L,w
 	call _flash_write_row
 
+	banksel (_write_row)
 	call start+2
-	xorwf FSR1L,w
+	xorwf BANKMASK(_write_row),w
 	skipz
 		goto reflash_loop
 
