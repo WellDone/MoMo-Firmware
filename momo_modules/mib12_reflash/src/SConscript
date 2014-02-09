@@ -12,9 +12,14 @@ incs.append('../shared/portable/mib/master')
 incs.append('../shared/portable/util')
 
 Import('env')
+info = env['CHIPINFO']
 env['INCLUDE'] = incs
 env['NO_STARTUP'] = True
-env['ROMEND'] = env['ROMSTART'] + 127
+
+if info.row_size == 32:
+	env['ROMEND'] = env['ROMSTART'] + 127
+else:
+	env['ROMEND'] = env['ROMSTART'] + 95
 asm_sources = ['app_startup.as', 'mib/mib12_api.as', 'flash_memory.as']
 
 srcfiles = asm_sources + Glob('./*.c') + [env['MIBFILE']]									
