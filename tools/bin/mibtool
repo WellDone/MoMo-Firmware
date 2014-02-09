@@ -11,6 +11,7 @@ from pymomo.proteus.project import Project
 from pymomo.mib.descriptor import MIBDescriptor
 from pymomo.mib.block import MIBBlock
 from pymomo.mib.api import MIBAPI
+from pymomo.mib.reflash import *
 from pymomo.utilities import build
 import cmdln
 from colorama import Fore, Style
@@ -47,6 +48,49 @@ class MIBTool(cmdln.Cmdln):
 
 		proj = Project([project], opts.proc, opts.template)
 		proj.create(opts.output)
+
+	@cmdln.option('-c', '--chip', help="Chip type that this reflasher corresponds to")
+	@cmdln.option('-o', '--output', help="output hex file to create")
+	def do_build_reflash(self, subcmd, opts, stub_file, payload_file):
+		"""${cmd_name}: build an application module for reflashing the mib12_executive
+
+		Given a mib12_reflash stub hex file and a new version of the mib12_executive,
+		combine them into an application module that will reflash the executive onto
+		the chip type passed.
+		
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		self.assert_args(opts, ['chip', 'output'])
+
+		stub = self.load_ih(stub_file)
+		payload = self.load_ih(payload_file)
+		chip = opts.chip
+
+		build_reflasher(stub, payload, chip)
+
+		stub.write_hex_file(opts.output)
+
+	@cmdln.option('-c', '--chip', help="Chip type that this reflasher corresponds to")
+	@cmdln.option('-o', '--output', help="output hex file to create")
+	def do_extract_exec(self, subcmd, opts, stub_file):
+		"""${cmd_name}: extract the mib12_executive from a reflash module
+
+		Given a mib12_reflash hex file with a payload, extract that payload and
+		save it into output.
+		
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		self.assert_args(opts, ['chip', 'output'])
+
+		stub = self.load_ih(stub_file)
+		chip = opts.chip
+
+		load = extract_reflasher(stub, chip)
+		load.write_hex_file(opts.output)
 
 	@cmdln.option('-o', '--output', action='store', default=None, help="Output direcory to place the command_map.asm file in")
 	def do_gen(self, subcmd, opts, mibfile):
@@ -145,6 +189,16 @@ class MIBTool(cmdln.Cmdln):
 			api.print_api()
 		except:
 			self.error(str(sys.exc_info()[1]))
+
+	def load_ih(self, hexfile):
+		try:
+			ih = intelhex.IntelHex16bit(hexfile)
+		except IOError as e:
+			self.error(str(e))
+
+		ih.padding = 0x3FFF
+
+		return ih
 
 	def assert_args(self, opts, args):
 		for arg in args:
