@@ -15,8 +15,7 @@
 }
 
 .ExcelTable2007 TH {
-	background-image: url(excel-2007-header-bg.gif);
-	background-repeat: repeat-x; 
+	background-color: #E4ECF7;
 	font-weight: normal;
 	font-size: 14px;
 	border: 1px solid #9EB6CE;
@@ -49,12 +48,15 @@
 }
 
 .ExcelTable2007 TH.heading {
-	background-image: url(excel-2007-header-left.gif);
-	background-repeat: no-repeat;
+	background-color: #E4ECF7;
 }
 
+.ExcelTable2007 TD.alright {
+	text-align: right;
+}
 </style>
 </head>
+#from decimal import *
 <body>
 <h1>Bill of Materials</h1>
 <div><strong>Part Name: </strong>$part</div>
@@ -69,6 +71,7 @@
 	<th>Description</th><th>Manu.</th><th>MPN</th><th>Distributor</th><th>Distributor Part</th>
 #if $include_costs
 <th>Unit Price</th><th>Line Price</th>
+#set $total = Decimal(0)
 #end if
 	</tr>
 	
@@ -113,9 +116,34 @@ $line.dist
 $line.distpn
 </td>
 
+#if $include_costs
+<td>$line.unitprice</td><td>$line.lineprice</td>
+#set $total += $line.lineprice
+#end if
+
 </tr>
 #end for
 
-	</table>
+#if $include_costs
+<tr>
+<td class="heading"></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td class="alright">
+<strong>Total:</strong>
+</td>
+<td>
+\$${total.quantize(Decimal(0.01))}
+</td>
+</tr>
+#end if
+</table>
 </body>
 </html>
