@@ -56,7 +56,7 @@ ENDFUNCTION prepare_row_address
 ;Read the given row into the row buffer.  Row index is given in W
 BEGINFUNCTION _flash_read_row
 	call 	prepare_row_address
-	call 	_load_row_buffer
+	call 	_load_row_buffer		; does not modify bank
 	movlw 	kFlashRowSize
 	movwf 	FSR1H
 
@@ -152,6 +152,7 @@ ENDFUNCTION _load_row_buffer
 ;
 BEGINFUNCTION _flash_write_row
 	call 	prepare_row_address		;load in the row we want to write and get ready for writing flash
+	call 	_load_row_buffer 		;make sure we're pointing to the right spot
 	bsf 	LWLO					;write N-1 latches only and then actually write the row on the Nth
 	movlw	kFlashRowSize
 	movwf	FSR1H					;FSR1H has count of latches
