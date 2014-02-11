@@ -42,7 +42,7 @@
  * mib_revision - the version of the mib protocol that this module speaks
  * feature_count - the number of features supported by the module
  * flags - a bit array of special interest flags about the module
- * name - an 8 byte string with a user readable name for the module
+ * name - a 7 byte string with a user readable name for the module
  */
 
 #ifndef __DEFINES_ONLY__

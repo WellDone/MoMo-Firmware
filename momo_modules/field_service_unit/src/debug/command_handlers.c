@@ -262,30 +262,21 @@ CommandStatus handle_rtcc(command_params *params)
 
 static void rpc_callback(unsigned char status) 
 {
+    int i;
+    put(DEBUG_UART, status);
+
     if ( status != kNoMIBError )
     {
-        sendf( DEBUG_UART, "An error occurred, code %d.\n", status );
         set_command_result( false );
         return;
     }
-    if ( bus_get_returnvalue_length() > 0 )
-    {
-        if ( bus_get_returnvalue_length() == kIntSize ) 
-        { 
-            char buff[10];
-            itoa_small(buff, 10, plist_get_int16(0));
-            print(buff); // TODO: Typed return value
-            print("\n");
-        }
-        else
-        {
-            plist_get_buffer(0)[bus_get_returnvalue_length()] = '\0';
-            print((const char*)plist_get_buffer(0));
-            print("\n");
-        }
-    } else {
-        print( "(success, nothing returned)\n" );
-    }
+
+    //Command was successful
+    put(DEBUG_UART, bus_get_returnvalue_length());
+
+    for (i=0; i<bus_get_returnvalue_length(); ++i)
+        put(DEBUG_UART, plist_get_buffer(0)[i]);
+
     set_command_result( true );
 }
 
@@ -295,17 +286,20 @@ CommandStatus handle_rpc(command_params *params)
     int  address, feature, command;
 
     if (params->num_params < RPC_META_ARGC) {
-        print( "You must pass a device address, feature and a command to execute a RPC.\r\n");
+        put(DEBUG_UART, 254);
+        print( "You must pass a device address, feature and a command to execute a RPC.\n");
         return kFailure;
     }
 
     if (!atoi_small( get_param_string(params, 0), &address)) {
+        put(DEBUG_UART, 254);
         print("Invalid MIB Address");
         return kFailure;
     }
 
     if ( !atoi_small( get_param_string( params, 1 ), &feature )
       || !atoi_small( get_param_string( params, 2 ), &command ) ) {
+        put(DEBUG_UART, 254);
         print( "Bad feature or command argument." );
         return kFailure;
     }
@@ -322,13 +316,10 @@ CommandStatus handle_rpc(command_params *params)
             char* str = get_param_string( params, i );
             if ( !atoi_small( str, &intParams[i-RPC_META_ARGC] ) ) {
                 if ( i == params->num_params-1 ) {
-                    print("Buffer passed: ");
-                    print(str);
-                    print("\n");
-
                     bufferParam = str;
                     intCount--;
                 } else {
+                    put(DEBUG_UART, 254);
                     print( "Only one param can be a buffer, and it must be the last param.\n" );
                     return kFailure;
                 }
@@ -337,7 +328,8 @@ CommandStatus handle_rpc(command_params *params)
 
         if ( intCount > 3 )
         {
-            print( "A maximum of 3 int params is allowed." );
+            put(DEBUG_UART, 254);
+            print( "A maximum of 3 int params is allowed.\n" );
             return kFailure;
         }
 
@@ -353,6 +345,5 @@ CommandStatus handle_rpc(command_params *params)
     }
     
     bus_master_rpc_async(rpc_callback, address, feature&0xFF, command&0xFF, param_spec );
-    print( "Sending RPC...\n" );
     return kPending;
 }

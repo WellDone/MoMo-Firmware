@@ -14,6 +14,8 @@ UART_STATUS __attribute__((space(data))) uart_stats[2];
 #define U1STAT uart_stats[0]
 #define U2STAT uart_stats[1]
 
+static inline void wait_for_transmission( UARTPort port );
+
 #define STAT(port) ((port==U1)?&U1STAT:&U2STAT)
 void configure_uart1(uart_parameters *params)
 {
@@ -260,6 +262,7 @@ void put( UARTPort port, const char c )
 {
     ringbuffer_push( &STAT(port)->send_buffer, (void*)&c );
     transmit_one( port );
+    wait_for_transmission(port);
 }
 
 void send(UARTPort port, const char *msg)
