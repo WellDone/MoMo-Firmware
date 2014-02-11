@@ -29,6 +29,7 @@ def find_files(dirname, pattern):
 def build_app_for_chip(name, chip):
 	"""
 	Configure Scons to build an application module for the 8bit pic microchip indicated in the argument chip.
+	mibfile must be passed and contain a path to a *.mib file that describes this application module
 	"""
 
 	mib12conf = MIB12Config()
@@ -39,11 +40,16 @@ def build_app_for_chip(name, chip):
 
 	env = Environment(tools=['xc8_compiler', 'patch_mib12', 'xc8_symbols'], ENV = os.environ)
 	env.AppendENVPath('PATH','../../tools/scripts')
+	env.AppendENVPath('PATH','../../tools/bin')
 	
 	#Load in all of the xc8 configuration from build_settings
 	mib12conf.config_env_for_app(env, chip)
+	compile_mib(chip, name, env)
+
 	Export('env')
 	SConscript(os.path.join(builddir, 'SConscript'))
+
+	#Compile the *.mib file specified in env['MIBFILE'] in SConscript into a command_map.asm file
 
 	prods = [os.path.join(dirs['build'], 'mib12_app_module.hex'), os.path.join(dirs['build'], 'mib12_app_module_symbols.h'), os.path.join(dirs['build'], 'mib12_app_module_symbols.stb')]
 
@@ -51,6 +57,20 @@ def build_app_for_chip(name, chip):
 	symheader = env.InstallAs(os.path.join(dirs['output'], '%s_symbols_%s.h' % (name, chip)), prods[1])
 	symtable = env.InstallAs(os.path.join(dirs['output'], '%s_symbols_%s.stb' % (name, chip)), prods[2])
 
+def compile_mib(chip, name, env):
+	"""
+	Given a path to a *.mib file, use mibtool to process it and return a command_map.asm file
+	return the path to that file.
+	"""
+
+	dirs = MIB12Config().build_dirs(chip)
+	mibname = os.path.join('src', 'mib', name + ".mib")
+	cmdmap_path = os.path.join(dirs['build'], 'command_map.asm')
+
+	env['MIBFILE'] = '#' + cmdmap_path
+
+	return env.Command(cmdmap_path, mibname, 'mibtool gen -o %s $SOURCE' % dirs['build'])
+	
 
 def for_all_targets(module, func):
 	targets = get_module_targets(module)
@@ -164,17 +184,35 @@ class MIB12Config:
 
 		#Make sure we don't let the code overlap with the MIB map in high memory
 		env['ROMEXCLUDE'] = []
-		env['ROMEXCLUDE'].append(info.mib_range)
+		#env['ROMEXCLUDE'].append(info.mib_range)
 
 		env['XC8FLAGS'] += self.common_flags
 		env['XC8FLAGS'] += self.app_flags
 		env['XC8FLAGS'] += ['-L-preset_vec=%xh' % (exec_range[1]+1)]
 
+		self.add_mib_linkflags(info, env)
 		self.add_common_incs(env)
 
 		#MIB12 Executive takes all ram in first 
 		env['RAMEXCLUDE'] = self.chip_def(chip, 'executive_ram')
 		env['NO_STARTUP'] = True
+
+	def add_mib_linkflags(self, chipinfo, env):
+		"""
+		Application MIB Information is stored in the mibblock and mibstructs psects.
+		This function generates an xc8 linker flag that makes sure that mibblock starts
+		at the correct offset to be recognized by the mib12 executive and that mibstructs
+		preceeds it immediately in memory.
+		"""
+
+		mibstart = chipinfo.mib_range[0]
+		lnk_cmd = '-L-Pmibblock=%xh' % mibstart
+
+		env['XC8FLAGS'] += [lnk_cmd]
+
+	def add_chip_defines(self, chip, env):
+		for key,val in self.chip_def(chip, 'defines', {}).iteritems():
+			env['XC8FLAGS'] += ['-D%s=%s' % (key, str(val))]
 
 	def config_env_for_chip(self, chip, env):
 		"""
@@ -194,6 +232,9 @@ class MIB12Config:
 			env['MIB_API_BASE'] = str(info.api_range[0])
 		except KeyError:
 			raise ValueError("Chip %s not found in build_settings.json, cannot target that chip." % chip)
+
+		#Add all other per chip definitions
+		self.add_chip_defines(chip, env)
 
 	def get_chip_name(self, chip):
 		found = None

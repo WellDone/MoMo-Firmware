@@ -18,7 +18,7 @@ class MIB12Processor:
 		self.app_rom = [self.exec_rom[1] +1, self.settings['total_rom']-1]
 
 		self.api_range = [self.app_rom[0] - 16, self.app_rom[0] - 1]
-		self.mib_range = [2048 - 17-16, 2047] #mib map is currently 17 bytes long (not 16)
+		self.mib_range = [2048 - 16, 2047] #mib map is 16 bytes long
 
 		self.row_size = self.settings['flash_row_words']
 		self.total_prog_mem = self.settings['total_rom']

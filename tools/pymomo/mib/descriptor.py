@@ -27,7 +27,7 @@ comma = Literal(',').suppress()
 left = Literal('(').suppress()
 right = Literal(')').suppress()
 colon = Literal(':').suppress()
-comment = Literal('//')
+comment = Literal('#')
 
 assignment_def = symbol("variable") + "=" + (number('value') | strval('value')) + ';'
 cmd_def = number("cmd_number") + colon + symbol("symbol") + left + ints + comma + has_buffer('has_buffer') + right + ";"
@@ -72,6 +72,7 @@ class MIBDescriptor:
 
 	def _add_cmd(self, num, symbol, num_ints, has_buffer):
 		handler = MIBHandler.Create(symbol=symbol, ints=num_ints, has_buffer=has_buffer)
+		
 		self.features[self.curr_feature][num] = handler
 
 	def _parse_cmd(self, match):
@@ -85,7 +86,7 @@ class MIBDescriptor:
 		has_buffer = match['has_buffer']
 		num_ints = match['num_ints']
 
-		self._add_cmd(num, symbol, has_buffer, num_ints)
+		self._add_cmd(num, symbol, num_ints=num_ints, has_buffer=has_buffer)
 
 	def _parse_include(self, match):
 		filename = match['filename']
@@ -173,9 +174,3 @@ class MIBDescriptor:
 							type=self.variables["ModuleType"])
 
 		return mib
-
-import sys
-
-d = MIBDescriptor(sys.argv[1])
-
-d.get_block().create_asm()

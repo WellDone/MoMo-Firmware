@@ -1,0 +1,22 @@
+#gsm_module
+#Momo Core Module v1.0
+#By Tim Burke (2/3/2014)
+
+#Module Information
+ModuleName = "gsm_com";
+ModuleType = 0;
+ModuleFlags = 0;
+
+#Supported Feature Information
+feature 10
+0: _gsm_module_on(0, no);
+1: _gsm_power_on(0, no);
+2: _gsm_sendcommand(0, yes);
+3: _gsm_testsim(0, no);
+4: _gsm_dumpbuffer(0, no);
+
+#Communication Channel Feature
+feature 11
+0: _gsm_openstream(0, yes);
+1: _gsm_putstream(0, yes);
+2: _gsm_closestream(0, no);
