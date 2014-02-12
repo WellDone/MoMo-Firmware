@@ -667,18 +667,6 @@ package type OT</description>
 <wire x1="10.16" y1="17.78" x2="-5.08" y2="17.78" width="0.254" layer="94"/>
 <text x="-3.81" y="-1.27" size="0.8128" layer="97">Momo Edge</text>
 </symbol>
-<symbol name="MAX9938">
-<pin name="RS+" x="-7.62" y="17.78" visible="pin" length="short" rot="R270"/>
-<pin name="RS-" x="2.54" y="17.78" visible="pin" length="short" rot="R270"/>
-<pin name="GND" x="-5.08" y="-5.08" visible="pin" length="short" rot="R90"/>
-<pin name="OUT" x="7.62" y="2.54" visible="pin" length="short" rot="R180"/>
-<wire x1="5.08" y1="15.24" x2="5.08" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="5.08" y1="-2.54" x2="-10.16" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="-10.16" y1="-2.54" x2="-10.16" y2="15.24" width="0.254" layer="94"/>
-<wire x1="-10.16" y1="15.24" x2="5.08" y2="15.24" width="0.254" layer="94"/>
-<text x="-2.54" y="-5.08" size="1.778" layer="95">&gt;NAME</text>
-<text x="-3.81" y="-1.905" size="1.4224" layer="97">MAX9938</text>
-</symbol>
 <symbol name="MCP73811">
 <pin name="VBAT" x="20.32" y="7.62" visible="pin" length="short" rot="R180"/>
 <pin name="GND" x="10.16" y="-10.16" visible="pin" length="short" rot="R90"/>
@@ -944,26 +932,6 @@ package type OT</description>
 </connects>
 <technologies>
 <technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
-<deviceset name="MAX9938" prefix="U">
-<gates>
-<gate name="G$1" symbol="MAX9938" x="-2.54" y="-10.16"/>
-</gates>
-<devices>
-<device name="" package="SOT23-5L">
-<connects>
-<connect gate="G$1" pin="GND" pad="1 2"/>
-<connect gate="G$1" pin="OUT" pad="3"/>
-<connect gate="G$1" pin="RS+" pad="5"/>
-<connect gate="G$1" pin="RS-" pad="4"/>
-</connects>
-<technologies>
-<technology name="">
-<attribute name="DIGIKEY-PN" value="MAX9938FEUK+TCT-ND" constant="no"/>
-</technology>
 </technologies>
 </device>
 </devices>
@@ -9038,10 +9006,6 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <part name="JP4" library="components" deviceset="MOMO-EDGE-POWER-M" device="">
 <attribute name="DIGIKEY-PN" value="A19450-ND"/>
 </part>
-<part name="Q1" library="components" deviceset="P-MOSFET" device=""/>
-<part name="R12" library="rcl" deviceset="R-US_" device="R0603" value="100K">
-<attribute name="DIGIKEY-PN" value="P100KHCT-ND"/>
-</part>
 <part name="VCC2" library="supply1" deviceset="VCCIO" device=""/>
 <part name="VCC11" library="supply1" deviceset="VCCIO" device=""/>
 <part name="Q2" library="components" deviceset="P-MOSFET" device=""/>
@@ -9052,37 +9016,21 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <part name="VCC1" library="supply1" deviceset="VCCIO" device=""/>
 <part name="VCC10" library="supply1" deviceset="VCCINT" device=""/>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
-<part name="P+3" library="supply1" deviceset="V+" device="">
-<attribute name="DIGIKEY-PN" value="PIC24F16KA101-I/SS-ND"/>
-</part>
 <part name="R5" library="rcl" deviceset="R-US_" device="R0603" value="10K">
 <attribute name="DIGIKEY-PN" value="P10.0KHCT-ND"/>
 </part>
 <part name="JP2" library="components" deviceset="MOMO-EDGE-6F" device=""/>
 <part name="JP1" library="components" deviceset="MOMO-VERT-6M" device="">
-<attribute name="DIGIKEY-PN" value="609-3263-ND"/>
+<attribute name="DIGIKEY-PN" value="S1011EC-06-ND"/>
 </part>
 <part name="JP3" library="pinhead" deviceset="PINHD-1X1" device=""/>
 <part name="D2" library="diode" deviceset="DIODE-" device="DO214AC">
 <attribute name="DIGIKEY-PN" value="SL13HE3/61TGICT-ND"/>
 </part>
-<part name="U2" library="components" deviceset="MAX9938" device="">
-<attribute name="DIGIKEY-PN" value=""/>
-<attribute name="DIGIKEY-PN-BATT" value="MAX9938FEUK+TCT-ND"/>
-<attribute name="DIGIKEY-PN-SOLAR" value="MAX9938FEUK+TCT-ND"/>
-</part>
 <part name="U6" library="components" deviceset="MCP73811" device="">
 <attribute name="DIGIKEY-PN" value=""/>
 <attribute name="DIGIKEY-PN-BATT" value="MCP73811T-420I/OTCT-ND"/>
 <attribute name="DIGIKEY-PN-SOLAR" value="MCP73811T-420I/OTCT-ND"/>
-</part>
-<part name="R14" library="rcl" deviceset="R-US_" device="R0603">
-<attribute name="DIGIKEY-PN-BATT" value="P.12AJCT-ND"/>
-<attribute name="DIGIKEY-PN-SOLAR" value="P.12AJCT-ND"/>
-</part>
-<part name="C10" library="rcl" deviceset="C-US" device="C0402" value="100 nF">
-<attribute name="DIGIKEY-PN-BATT" value="587-2985-1-ND"/>
-<attribute name="DIGIKEY-PN-SOLAR" value="587-2985-1-ND"/>
 </part>
 </parts>
 <sheets>
@@ -9217,7 +9165,7 @@ and external power.</text>
 <instance part="VCC8" gate="G$1" x="0" y="104.14"/>
 <instance part="GND7" gate="1" x="-33.02" y="-104.14"/>
 <instance part="GND12" gate="1" x="-208.28" y="91.44"/>
-<instance part="P+10" gate="1" x="-116.84" y="-58.42"/>
+<instance part="P+10" gate="1" x="-116.84" y="-68.58"/>
 <instance part="C6" gate="G$1" x="-127" y="91.44">
 <attribute name="DIGIKEY-PN-BATT" x="-127" y="91.44" size="1.778" layer="96" display="off"/>
 <attribute name="DIGIKEY-PN-EXTPOWER" x="-127" y="91.44" size="1.778" layer="96" display="off"/>
@@ -9254,10 +9202,6 @@ and external power.</text>
 <instance part="JP4" gate="G$1" x="-30.48" y="-76.2">
 <attribute name="DIGIKEY-PN" x="-30.48" y="-76.2" size="1.778" layer="96" display="off"/>
 </instance>
-<instance part="Q1" gate="G$1" x="-116.84" y="-66.04"/>
-<instance part="R12" gate="G$1" x="-129.54" y="-58.42" rot="R270">
-<attribute name="DIGIKEY-PN" x="-129.54" y="-58.42" size="1.778" layer="96" rot="R270" display="off"/>
-</instance>
 <instance part="VCC2" gate="G$1" x="-30.48" y="15.24"/>
 <instance part="VCC11" gate="G$1" x="-30.48" y="63.5"/>
 <instance part="Q2" gate="G$1" x="-78.74" y="-86.36" rot="R90"/>
@@ -9268,9 +9212,6 @@ and external power.</text>
 <instance part="VCC1" gate="G$1" x="-63.5" y="-83.82"/>
 <instance part="VCC10" gate="G$1" x="-88.9" y="-83.82"/>
 <instance part="GND5" gate="1" x="-78.74" y="2.54"/>
-<instance part="P+3" gate="1" x="-129.54" y="-50.8">
-<attribute name="DIGIKEY-PN" x="-129.54" y="-50.8" size="1.778" layer="96" display="off"/>
-</instance>
 <instance part="R5" gate="G$1" x="-215.9" y="22.86" rot="R90">
 <attribute name="DIGIKEY-PN" x="-215.9" y="22.86" size="1.778" layer="96" rot="R90" display="off"/>
 </instance>
@@ -9282,22 +9223,10 @@ and external power.</text>
 <instance part="D2" gate="G$1" x="-215.9" y="104.14">
 <attribute name="DIGIKEY-PN" x="-215.9" y="104.14" size="1.778" layer="96" display="off"/>
 </instance>
-<instance part="U2" gate="G$1" x="-55.88" y="81.28">
-<attribute name="DIGIKEY-PN-BATT" x="-55.88" y="81.28" size="1.778" layer="96" display="off"/>
-<attribute name="DIGIKEY-PN-SOLAR" x="-55.88" y="81.28" size="1.778" layer="96" display="off"/>
-</instance>
 <instance part="U6" gate="G$1" x="-106.68" y="93.98" smashed="yes">
 <attribute name="NAME" x="-104.14" y="83.82" size="1.778" layer="95"/>
 <attribute name="DIGIKEY-PN-BATT" x="-106.68" y="93.98" size="1.778" layer="96" display="off"/>
 <attribute name="DIGIKEY-PN-SOLAR" x="-106.68" y="93.98" size="1.778" layer="96" display="off"/>
-</instance>
-<instance part="R14" gate="G$1" x="-58.42" y="101.6">
-<attribute name="DIGIKEY-PN-BATT" x="-58.42" y="101.6" size="1.778" layer="96" display="off"/>
-<attribute name="DIGIKEY-PN-SOLAR" x="-58.42" y="101.6" size="1.778" layer="96" display="off"/>
-</instance>
-<instance part="C10" gate="G$1" x="-45.72" y="81.28">
-<attribute name="DIGIKEY-PN-BATT" x="-45.72" y="81.28" size="1.778" layer="96" display="off"/>
-<attribute name="DIGIKEY-PN-SOLAR" x="-45.72" y="81.28" size="1.778" layer="96" display="off"/>
 </instance>
 </instances>
 <busses>
@@ -9378,10 +9307,8 @@ and external power.</text>
 <pinref part="U3" gate="G$1" pin="GND"/>
 <wire x1="-96.52" y1="76.2" x2="-116.84" y2="76.2" width="0.1524" layer="91"/>
 <wire x1="-116.84" y1="76.2" x2="-127" y2="76.2" width="0.1524" layer="91"/>
-<wire x1="-17.78" y1="76.2" x2="-45.72" y2="76.2" width="0.1524" layer="91"/>
 <pinref part="C9" gate="G$1" pin="2"/>
-<wire x1="-45.72" y1="76.2" x2="-60.96" y2="76.2" width="0.1524" layer="91"/>
-<wire x1="-60.96" y1="76.2" x2="-78.74" y2="76.2" width="0.1524" layer="91"/>
+<wire x1="-17.78" y1="76.2" x2="-78.74" y2="76.2" width="0.1524" layer="91"/>
 <wire x1="0" y1="86.36" x2="0" y2="76.2" width="0.1524" layer="91"/>
 <wire x1="0" y1="76.2" x2="-17.78" y2="76.2" width="0.1524" layer="91"/>
 <pinref part="C6" gate="G$1" pin="2"/>
@@ -9395,13 +9322,9 @@ and external power.</text>
 <junction x="-17.78" y="76.2"/>
 <wire x1="-78.74" y1="91.44" x2="-78.74" y2="76.2" width="0.1524" layer="91"/>
 <junction x="-78.74" y="76.2"/>
-<pinref part="U2" gate="G$1" pin="GND"/>
-<junction x="-60.96" y="76.2"/>
 <pinref part="U6" gate="G$1" pin="GND"/>
 <wire x1="-96.52" y1="83.82" x2="-96.52" y2="76.2" width="0.1524" layer="91"/>
 <junction x="-96.52" y="76.2"/>
-<pinref part="C10" gate="G$1" pin="2"/>
-<junction x="-45.72" y="76.2"/>
 </segment>
 <segment>
 <pinref part="C3" gate="G$1" pin="2"/>
@@ -9448,21 +9371,18 @@ and external power.</text>
 <pinref part="P+9" gate="1" pin="V+"/>
 <pinref part="U3" gate="G$1" pin="VIN"/>
 <wire x1="-30.48" y1="101.6" x2="-35.56" y2="101.6" width="0.1524" layer="91"/>
-<pinref part="R14" gate="G$1" pin="2"/>
-<pinref part="U2" gate="G$1" pin="RS-"/>
-<wire x1="-53.34" y1="101.6" x2="-53.34" y2="99.06" width="0.1524" layer="91"/>
 <wire x1="-35.56" y1="101.6" x2="-43.18" y2="101.6" width="0.1524" layer="91"/>
 <junction x="-35.56" y="101.6"/>
-<junction x="-53.34" y="101.6"/>
 <pinref part="R4" gate="G$1" pin="2"/>
-<wire x1="-43.18" y1="101.6" x2="-53.34" y2="101.6" width="0.1524" layer="91"/>
 <wire x1="-73.66" y1="114.3" x2="-43.18" y2="114.3" width="0.1524" layer="91"/>
 <wire x1="-43.18" y1="114.3" x2="-43.18" y2="101.6" width="0.1524" layer="91"/>
 <junction x="-43.18" y="101.6"/>
-</segment>
-<segment>
-<pinref part="Q1" gate="G$1" pin="SOURCE"/>
-<pinref part="P+10" gate="1" pin="V+"/>
+<pinref part="C8" gate="G$1" pin="1"/>
+<wire x1="-78.74" y1="99.06" x2="-78.74" y2="101.6" width="0.1524" layer="91"/>
+<wire x1="-78.74" y1="101.6" x2="-43.18" y2="101.6" width="0.1524" layer="91"/>
+<pinref part="U6" gate="G$1" pin="VBAT"/>
+<wire x1="-86.36" y1="101.6" x2="-78.74" y2="101.6" width="0.1524" layer="91"/>
+<junction x="-78.74" y="101.6"/>
 </segment>
 <segment>
 <pinref part="JP4" gate="G$1" pin="GND"/>
@@ -9471,16 +9391,16 @@ and external power.</text>
 <wire x1="-43.18" y1="-76.2" x2="-43.18" y2="-71.12" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="R12" gate="G$1" pin="1"/>
-<pinref part="P+3" gate="1" pin="V+"/>
-</segment>
-<segment>
 <pinref part="P+2" gate="1" pin="V+"/>
 <pinref part="JP2" gate="G$1" pin="4V"/>
 </segment>
 <segment>
 <pinref part="P+1" gate="1" pin="V+"/>
 <pinref part="JP1" gate="G$1" pin="4V"/>
+</segment>
+<segment>
+<pinref part="R7" gate="G$1" pin="2"/>
+<pinref part="P+10" gate="1" pin="V+"/>
 </segment>
 </net>
 <net name="VCCINT" class="0">
@@ -9780,27 +9700,6 @@ and external power.</text>
 <label x="-78.74" y="7.62" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="N$3" class="0">
-<segment>
-<pinref part="R7" gate="G$1" pin="2"/>
-<pinref part="Q1" gate="G$1" pin="DRAIN"/>
-</segment>
-</net>
-<net name="SAMP_EN" class="0">
-<segment>
-<pinref part="R12" gate="G$1" pin="2"/>
-<pinref part="Q1" gate="G$1" pin="GATE"/>
-<wire x1="-129.54" y1="-63.5" x2="-121.92" y2="-63.5" width="0.1524" layer="91"/>
-<wire x1="-129.54" y1="-63.5" x2="-139.7" y2="-63.5" width="0.1524" layer="91"/>
-<junction x="-129.54" y="-63.5"/>
-<label x="-139.7" y="-63.5" size="1.778" layer="95"/>
-</segment>
-<segment>
-<pinref part="U4" gate="A" pin="U1RX/U1BCLK/CN6/RB2"/>
-<wire x1="-193.04" y1="-2.54" x2="-198.12" y2="-2.54" width="0.1524" layer="91"/>
-<label x="-200.66" y="-2.54" size="1.778" layer="95"/>
-</segment>
-</net>
 <net name="VCCIO" class="0">
 <segment>
 <pinref part="VCC1" gate="G$1" pin="VCCIO"/>
@@ -9870,35 +9769,6 @@ and external power.</text>
 <pinref part="D2" gate="G$1" pin="C"/>
 <wire x1="-208.28" y1="104.14" x2="-213.36" y2="104.14" width="0.1524" layer="91"/>
 <junction x="-208.28" y="104.14"/>
-</segment>
-</net>
-<net name="N$4" class="0">
-<segment>
-<pinref part="R14" gate="G$1" pin="1"/>
-<pinref part="U2" gate="G$1" pin="RS+"/>
-<wire x1="-63.5" y1="101.6" x2="-63.5" y2="99.06" width="0.1524" layer="91"/>
-<pinref part="C8" gate="G$1" pin="1"/>
-<wire x1="-78.74" y1="99.06" x2="-78.74" y2="101.6" width="0.1524" layer="91"/>
-<wire x1="-78.74" y1="101.6" x2="-63.5" y2="101.6" width="0.1524" layer="91"/>
-<junction x="-63.5" y="101.6"/>
-<pinref part="U6" gate="G$1" pin="VBAT"/>
-<wire x1="-86.36" y1="101.6" x2="-78.74" y2="101.6" width="0.1524" layer="91"/>
-<junction x="-78.74" y="101.6"/>
-</segment>
-</net>
-<net name="CHG_CURR" class="0">
-<segment>
-<pinref part="U4" gate="A" pin="PGD2/AN1/VREF-/CN3/RA1"/>
-<wire x1="-78.74" y1="-12.7" x2="-63.5" y2="-12.7" width="0.1524" layer="91"/>
-<label x="-78.74" y="-12.7" size="1.778" layer="95"/>
-</segment>
-<segment>
-<pinref part="U2" gate="G$1" pin="OUT"/>
-<pinref part="C10" gate="G$1" pin="1"/>
-<wire x1="-48.26" y1="83.82" x2="-45.72" y2="83.82" width="0.1524" layer="91"/>
-<wire x1="-45.72" y1="83.82" x2="-35.56" y2="83.82" width="0.1524" layer="91"/>
-<junction x="-45.72" y="83.82"/>
-<label x="-43.18" y="83.82" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="CHG_EN" class="0">
