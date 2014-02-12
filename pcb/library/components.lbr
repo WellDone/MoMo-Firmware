@@ -4920,13 +4920,14 @@ body 3.9 mm/JEDEC MS-012AC</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="Hinged SIM Card Holder" constant="no"/>
 <attribute name="DIGIKEY-PN" value="401-1722-1-ND" constant="no"/>
 </technology>
 </technologies>
 </device>
 </devices>
 </deviceset>
-<deviceset name="ESD-SMF05C">
+<deviceset name="ESD-SMF05C" prefix="U">
 <gates>
 <gate name="G$1" symbol="ESD-DIODE" x="0" y="2.54" swaplevel="1"/>
 <gate name="G$2" symbol="ESD-DIODE" x="7.62" y="2.54" swaplevel="1"/>
@@ -4946,7 +4947,10 @@ body 3.9 mm/JEDEC MS-012AC</description>
 <connect gate="G$6" pin="GND" pad="2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DESCRIPTION" value="Fast ESD Diode (Quadpack)" constant="no"/>
+<attribute name="DIGIKEY-PN" value="SMF05CCT-ND" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -5854,7 +5858,7 @@ body 3.9 mm/JEDEC MS-012AC</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="DIGIKEY-PN" value="732-3817-1-ND"/>
+<attribute name="DIGIKEY-PN" value="732-3817-1-ND" constant="no"/>
 </technology>
 </technologies>
 </device>
