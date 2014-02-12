@@ -15,6 +15,8 @@ from pymomo.utilities.paths import MomoPaths
 from pymomo.pybom import board,pricing
 from pymomo import pyeagle
 from pymomo.utilities.template import RecursiveTemplate
+import math 
+import itertools
 
 init()
 
@@ -139,6 +141,47 @@ class PCBTool(cmdln.Cmdln):
 			print "Total Part Count: %d" % items
 
 			print ""
+
+	@cmdln.option('-e', '--excess', action='store', type=float, default=0.0, help="Excess percentage to purchase of each component, in %. (rounded up)")
+	@cmdln.option('-o', '--output', action='store', help='Output directory to hold created files.')
+	def do_order(self, subcmd, opts, *boards):
+		"""${cmd_name}: Create an order list that can be pasted into a distributor website for ordering.  Board variants added to the
+		order should be specified by giving 3 items:
+		<board id> <variant> <number>
+
+		All baords will have the same excess applied.
+
+		${cmd_usage}
+        ${cmd_option_list}
+		"""
+
+		excess = opts.excess/100.0 + 1
+
+		if len(boards) % 3 != 0:
+			self.error("You must specify 3 items per board <id> <variant> <number of units>")
+
+		parts = []
+
+		for i in xrange(0, len(boards), 3):
+			id = boards[i]
+			var = boards[i+1]
+			num = int(boards[i+2])
+			brd = self.get_board(id)
+
+			quant = int(math.ceil(num*excess))
+
+			print "Processing %s (%s): %d units with %.0f%% excess" % (id, var, num, opts.excess)
+			parts.extend(brd.export_list(var)*quant)
+
+		out,close = self.build_outstream(opts)
+
+		distinct = [(k, len(list(g))) for k,g in itertools.groupby(sorted(parts))]
+
+		for k,g in distinct:
+			print "%d, %s" % (g,k) 
+
+		if close:
+			out.close()
 
 	@cmdln.option('-v', '--variant', action='store', default='MAIN', help="Assembly variant to quote.")
 	@cmdln.option('-n', '--units', action='store', default=1, type=int, help="Number of units to quote")
