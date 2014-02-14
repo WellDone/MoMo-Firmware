@@ -9349,21 +9349,19 @@ and external power.</text>
 <pinref part="GND4" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="GND8" gate="1" pin="GND"/>
-<wire x1="-40.64" y1="-78.74" x2="-40.64" y2="-73.66" width="0.1524" layer="91"/>
-<pinref part="JP4" gate="G$1" pin="3.8V"/>
-<wire x1="-40.64" y1="-73.66" x2="-33.02" y2="-73.66" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="U4" gate="A" pin="OSCO/CLKO/AN5/C1INA/C2INC/CN29/RA3"/>
 <pinref part="GND5" gate="1" pin="GND"/>
 </segment>
 <segment>
 <pinref part="GND7" gate="1" pin="GND"/>
-<wire x1="-33.02" y1="-101.6" x2="-40.64" y2="-101.6" width="0.1524" layer="91"/>
-<wire x1="-40.64" y1="-101.6" x2="-40.64" y2="-93.98" width="0.1524" layer="91"/>
-<pinref part="JP5" gate="G$1" pin="3.8V"/>
-<wire x1="-40.64" y1="-93.98" x2="-33.02" y2="-93.98" width="0.1524" layer="91"/>
+<pinref part="JP5" gate="G$1" pin="GND"/>
+<wire x1="-33.02" y1="-101.6" x2="-33.02" y2="-96.52" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="JP4" gate="G$1" pin="GND"/>
+<pinref part="GND8" gate="1" pin="GND"/>
+<wire x1="-33.02" y1="-76.2" x2="-40.64" y2="-76.2" width="0.1524" layer="91"/>
+<wire x1="-40.64" y1="-76.2" x2="-40.64" y2="-78.74" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="V+" class="0">
@@ -9385,12 +9383,6 @@ and external power.</text>
 <junction x="-78.74" y="101.6"/>
 </segment>
 <segment>
-<pinref part="JP4" gate="G$1" pin="GND"/>
-<pinref part="P+8" gate="1" pin="V+"/>
-<wire x1="-33.02" y1="-76.2" x2="-43.18" y2="-76.2" width="0.1524" layer="91"/>
-<wire x1="-43.18" y1="-76.2" x2="-43.18" y2="-71.12" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="P+2" gate="1" pin="V+"/>
 <pinref part="JP2" gate="G$1" pin="4V"/>
 </segment>
@@ -9401,6 +9393,12 @@ and external power.</text>
 <segment>
 <pinref part="R7" gate="G$1" pin="2"/>
 <pinref part="P+10" gate="1" pin="V+"/>
+</segment>
+<segment>
+<pinref part="P+8" gate="1" pin="V+"/>
+<wire x1="-33.02" y1="-73.66" x2="-43.18" y2="-73.66" width="0.1524" layer="91"/>
+<wire x1="-43.18" y1="-73.66" x2="-43.18" y2="-71.12" width="0.1524" layer="91"/>
+<pinref part="JP4" gate="G$1" pin="3.8V"/>
 </segment>
 </net>
 <net name="VCCINT" class="0">
@@ -9602,17 +9600,15 @@ and external power.</text>
 </net>
 <net name="+18V" class="0">
 <segment>
-<pinref part="P+5" gate="1" pin="+18V"/>
-<wire x1="-33.02" y1="-91.44" x2="-35.56" y2="-91.44" width="0.1524" layer="91"/>
-<wire x1="-35.56" y1="-91.44" x2="-35.56" y2="-96.52" width="0.1524" layer="91"/>
-<pinref part="JP5" gate="G$1" pin="GND"/>
-<wire x1="-35.56" y1="-96.52" x2="-33.02" y2="-96.52" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="D2" gate="G$1" pin="A"/>
 <pinref part="P+6" gate="1" pin="+18V"/>
 <wire x1="-218.44" y1="104.14" x2="-220.98" y2="104.14" width="0.1524" layer="91"/>
 <wire x1="-220.98" y1="104.14" x2="-220.98" y2="109.22" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="JP5" gate="G$1" pin="3.8V"/>
+<pinref part="P+5" gate="1" pin="+18V"/>
+<wire x1="-33.02" y1="-93.98" x2="-33.02" y2="-91.44" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="BUCK_EN" class="0">
