@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.4">
+<eagle version="6.5.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.002" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.025" altunitdist="inch" altunit="inch"/>
+<grid distance="0.01" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.025" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -2049,8 +2049,8 @@ design rules under a new name.</description>
 <polygon width="0.1524" layer="16" thermals="no" rank="4">
 <vertex x="5.2832" y="37.8968"/>
 <vertex x="5.2578" y="5.2578"/>
-<vertex x="73.4568" y="5.2832"/>
-<vertex x="73.4822" y="37.9222"/>
+<vertex x="55.9308" y="5.0292"/>
+<vertex x="55.9562" y="38.1762"/>
 </polygon>
 <polygon width="0.1524" layer="1" isolate="0.4064" thermals="no" rank="3">
 <vertex x="5.2578" y="5.2578"/>
