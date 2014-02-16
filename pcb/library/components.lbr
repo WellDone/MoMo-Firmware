@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -4121,13 +4121,15 @@ package type TQ</description>
 <text x="-22.225" y="-6.985" size="1.778" layer="95">16LF1847</text>
 </symbol>
 <symbol name="BATTERY">
-<wire x1="-2.54" y1="5.08" x2="2.54" y2="5.08" width="0.254" layer="94"/>
-<wire x1="-1.27" y1="3.81" x2="1.27" y2="3.81" width="0.254" layer="94"/>
-<wire x1="-2.54" y1="2.54" x2="2.54" y2="2.54" width="0.254" layer="94"/>
-<wire x1="-1.27" y1="1.27" x2="1.27" y2="1.27" width="0.254" layer="94"/>
-<text x="2.54" y="6.35" size="1.27" layer="94">+</text>
+<wire x1="-2.54" y1="3.81" x2="0" y2="3.81" width="0.254" layer="94"/>
+<wire x1="0" y1="3.81" x2="2.54" y2="3.81" width="0.254" layer="94"/>
+<wire x1="-1.27" y1="2.54" x2="1.27" y2="2.54" width="0.254" layer="94"/>
+<wire x1="-2.54" y1="1.27" x2="2.54" y2="1.27" width="0.254" layer="94"/>
+<wire x1="-1.27" y1="0" x2="1.27" y2="0" width="0.254" layer="94"/>
+<text x="1.27" y="5.08" size="1.27" layer="94">+</text>
 <pin name="+" x="0" y="7.62" visible="off" length="short" direction="pwr" rot="R270"/>
-<pin name="-" x="0" y="-1.27" visible="off" length="short" direction="pwr" rot="R90"/>
+<pin name="-" x="0" y="-2.54" visible="off" length="short" direction="pwr" rot="R90"/>
+<wire x1="0" y1="3.81" x2="0" y2="5.08" width="0.254" layer="94"/>
 </symbol>
 <symbol name="PIC24FJ64GA306">
 <description>PIC24FJ64GA306 16-bit microcontroller with 8kb ram and 64kb flash.</description>
@@ -4141,20 +4143,14 @@ package type TQ</description>
 <pin name="VBAT" x="-7.62" y="38.1" visible="pin" length="middle" rot="R270"/>
 <pin name="VCAP" x="-10.16" y="38.1" visible="pin" length="middle" rot="R270"/>
 <pin name="VSS" x="-5.08" y="-35.56" visible="pin" length="middle" rot="R90"/>
-<pin name="RP0" x="-50.8" y="12.7" visible="pin" length="middle"/>
-<pin name="RP1" x="-50.8" y="10.16" visible="pin" length="middle"/>
-<pin name="RP2" x="-50.8" y="7.62" visible="pin" length="middle"/>
-<pin name="RP3" x="-50.8" y="5.08" visible="pin" length="middle"/>
-<pin name="RP4" x="-50.8" y="2.54" visible="pin" length="middle"/>
-<pin name="RP6" x="-50.8" y="0" visible="pin" length="middle"/>
-<pin name="RP7" x="-50.8" y="-2.54" visible="pin" length="middle"/>
+<pin name="RP1" x="-50.8" y="5.08" visible="pin" length="middle"/>
+<pin name="RP2" x="-50.8" y="2.54" visible="pin" length="middle"/>
+<pin name="RP3" x="-50.8" y="0" visible="pin" length="middle"/>
+<pin name="RP4" x="-50.8" y="-2.54" visible="pin" length="middle"/>
 <pin name="RP8" x="-50.8" y="-5.08" visible="pin" length="middle"/>
 <pin name="RP9" x="-50.8" y="-7.62" visible="pin" length="middle"/>
-<pin name="RP10" x="-50.8" y="-10.16" visible="pin" length="middle"/>
-<pin name="RP11" x="-50.8" y="-12.7" visible="pin" length="middle"/>
-<pin name="RP12" x="-50.8" y="-15.24" visible="pin" length="middle"/>
-<pin name="RP13" x="-50.8" y="-17.78" visible="pin" length="middle"/>
-<pin name="RP14" x="-50.8" y="-20.32" visible="pin" length="middle"/>
+<pin name="RP12" x="-50.8" y="-10.16" visible="pin" length="middle"/>
+<pin name="RP14" x="-50.8" y="-12.7" visible="pin" length="middle"/>
 <pin name="MCLR" x="-17.78" y="38.1" visible="pin" length="middle" rot="R270"/>
 <pin name="AN2" x="-25.4" y="-35.56" visible="pin" length="middle" rot="R90"/>
 <pin name="AN3" x="-22.86" y="-35.56" visible="pin" length="middle" rot="R90"/>
@@ -4162,8 +4158,8 @@ package type TQ</description>
 <pin name="AN5" x="-17.78" y="-35.56" visible="pin" length="middle" rot="R90"/>
 <pin name="AVSS" x="-7.62" y="-35.56" visible="pin" length="middle" rot="R90"/>
 <pin name="AVDD" x="-2.54" y="38.1" visible="pin" length="middle" rot="R270"/>
-<pin name="PGEC2" x="-50.8" y="30.48" visible="pin" length="middle"/>
-<pin name="PGED2" x="-50.8" y="27.94" visible="pin" length="middle"/>
+<pin name="PGEC2" x="-50.8" y="22.86" visible="pin" length="middle"/>
+<pin name="PGED2" x="-50.8" y="20.32" visible="pin" length="middle"/>
 <pin name="RD0" x="17.78" y="5.08" visible="pin" length="middle" rot="R180"/>
 <pin name="RD1" x="17.78" y="2.54" visible="pin" length="middle" rot="R180"/>
 <pin name="RD2" x="17.78" y="0" visible="pin" length="middle" rot="R180"/>
@@ -4178,6 +4174,13 @@ package type TQ</description>
 <wire x1="12.7" y1="33.02" x2="-45.72" y2="33.02" width="0.254" layer="94"/>
 <text x="2.54" y="-33.02" size="1.778" layer="95">&gt;NAME</text>
 <text x="-27.94" y="0" size="1.778" layer="97">PIC24FG64GA306</text>
+<pin name="RP19" x="-50.8" y="-17.78" length="middle"/>
+<pin name="RP21" x="-50.8" y="-20.32" length="middle"/>
+<pin name="RP26" x="-50.8" y="-22.86" length="middle"/>
+<pin name="RP27" x="-50.8" y="-25.4" length="middle"/>
+<pin name="RE5" x="17.78" y="-17.78" length="middle" rot="R180"/>
+<pin name="RB0" x="17.78" y="-22.86" length="middle" rot="R180"/>
+<pin name="RF3" x="17.78" y="-25.4" length="middle" rot="R180"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -6308,7 +6311,68 @@ package type TQ</description>
 <technologies>
 <technology name="">
 <attribute name="DESCRIPTION" value="CR1025 Battery Holder" constant="no"/>
+<attribute name="DIGIKEY-PN" value="BHX1-1025-SM-ND" constant="no"/>
 <attribute name="FOOTPRINT" value="Custom SMD" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="PIC24FJ64GA306" prefix="U">
+<gates>
+<gate name="G$1" symbol="PIC24FJ64GA306" x="15.24" y="0"/>
+</gates>
+<devices>
+<device name="" package="TQFP64-10X10">
+<connects>
+<connect gate="G$1" pin="AN2" pad="14"/>
+<connect gate="G$1" pin="AN3" pad="13"/>
+<connect gate="G$1" pin="AN4" pad="12"/>
+<connect gate="G$1" pin="AN5" pad="11"/>
+<connect gate="G$1" pin="AVDD" pad="19"/>
+<connect gate="G$1" pin="AVSS" pad="20"/>
+<connect gate="G$1" pin="MCLR" pad="7"/>
+<connect gate="G$1" pin="PGEC2" pad="17"/>
+<connect gate="G$1" pin="PGED2" pad="18"/>
+<connect gate="G$1" pin="RB0" pad="16"/>
+<connect gate="G$1" pin="RD0" pad="46"/>
+<connect gate="G$1" pin="RD1" pad="49"/>
+<connect gate="G$1" pin="RD2" pad="50"/>
+<connect gate="G$1" pin="RD3" pad="51"/>
+<connect gate="G$1" pin="RD4" pad="52"/>
+<connect gate="G$1" pin="RD5" pad="53"/>
+<connect gate="G$1" pin="RD6" pad="54"/>
+<connect gate="G$1" pin="RD7" pad="55"/>
+<connect gate="G$1" pin="RE5" pad="1"/>
+<connect gate="G$1" pin="RF3" pad="33"/>
+<connect gate="G$1" pin="RP1" pad="15"/>
+<connect gate="G$1" pin="RP12" pad="45"/>
+<connect gate="G$1" pin="RP14" pad="29"/>
+<connect gate="G$1" pin="RP19" pad="6"/>
+<connect gate="G$1" pin="RP2" pad="42"/>
+<connect gate="G$1" pin="RP21" pad="4"/>
+<connect gate="G$1" pin="RP26" pad="5"/>
+<connect gate="G$1" pin="RP27" pad="8"/>
+<connect gate="G$1" pin="RP3" pad="44"/>
+<connect gate="G$1" pin="RP4" pad="43"/>
+<connect gate="G$1" pin="RP8" pad="21"/>
+<connect gate="G$1" pin="RP9" pad="22"/>
+<connect gate="G$1" pin="SCL1" pad="37"/>
+<connect gate="G$1" pin="SCL2" pad="32"/>
+<connect gate="G$1" pin="SDA1" pad="36"/>
+<connect gate="G$1" pin="SDA2" pad="31"/>
+<connect gate="G$1" pin="SOSCI" pad="47"/>
+<connect gate="G$1" pin="SOSCO" pad="48"/>
+<connect gate="G$1" pin="VBAT" pad="57"/>
+<connect gate="G$1" pin="VCAP" pad="56"/>
+<connect gate="G$1" pin="VDD" pad="10 26 38"/>
+<connect gate="G$1" pin="VSS" pad="9 25 41"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DESCRIPTION" value="PIC24FJ64GA306 Microcontroller" constant="no"/>
+<attribute name="DIGIKEY-PN" value="PIC24FJ64GA306-I/PT-ND" constant="no"/>
+<attribute name="FOOTPRINT" value="TQFN64-10mm" constant="no"/>
 </technology>
 </technologies>
 </device>
