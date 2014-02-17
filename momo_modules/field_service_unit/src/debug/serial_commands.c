@@ -11,7 +11,6 @@
 #include "debug_utilities.h"
 #include "debug.h"
 #include <string.h>
- #include "firmware_commands.h"
 
 char __attribute__((space(data))) *known_commands[MAX_COMMANDS+1];
 CommandHandler __attribute__((space(data))) command_handlers[MAX_COMMANDS+1];
@@ -28,8 +27,6 @@ void register_command_handlers()
 
     register_command("rpc", handle_rpc);
     register_command("binrpc", handle_binrpc);
-    //register_command("push-firmware", handle_push_firmware);
-    //register_command("pull-firmware", handle_pull_firmware);
 
     getln( process_commands_task );
 }
