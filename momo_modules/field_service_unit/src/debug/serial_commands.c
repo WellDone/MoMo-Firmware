@@ -25,7 +25,6 @@ void register_command_handlers()
     register_command("rtcc", handle_rtcc);
     register_command("adc", handle_adc);
 
-    register_command("rpc", handle_rpc);
     register_command("binrpc", handle_binrpc);
 
     getln( process_commands_task );
