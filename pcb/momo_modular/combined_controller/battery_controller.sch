@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.5.0">
+<eagle version="6.4">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -764,7 +764,10 @@ package type TQ</description>
 <connect gate="G$1" pin="GND" pad="1"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DESCRIPTION" value="2 pin R/A keyed male header" constant="no"/>
+<attribute name="DIGIKEY-PN" value="A19450-ND" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -864,6 +867,7 @@ package type TQ</description>
 <technologies>
 <technology name="">
 <attribute name="DESCRIPTION" value="CR1025 Battery Holder" constant="no"/>
+<attribute name="DIGIKEY-PN" value="BHX1-1025-SM-ND" constant="no"/>
 <attribute name="FOOTPRINT" value="Custom SMD" constant="no"/>
 </technology>
 </technologies>
@@ -10115,6 +10119,7 @@ Source: 008-0260-0_E.pdf</description>
 </part>
 <part name="JP3" library="pinhead" deviceset="PINHD-1X1" device=""/>
 <part name="D2" library="diode" deviceset="DIODE-" device="DO214AC">
+<attribute name="DESCRIPTION" value="Schottky Diode "/>
 <attribute name="DIGIKEY-PN" value="SL13HE3/61TGICT-ND"/>
 </part>
 <part name="U6" library="components" deviceset="MCP73811" device="">
@@ -10122,25 +10127,39 @@ Source: 008-0260-0_E.pdf</description>
 <attribute name="DIGIKEY-PN-BATT" value="MCP73811T-420I/OTCT-ND"/>
 <attribute name="DIGIKEY-PN-SOLAR" value="MCP73811T-420I/OTCT-ND"/>
 </part>
-<part name="Q1" library="crystal" deviceset="CRYSTAL" device="TC26H"/>
-<part name="R5" library="rcl" deviceset="R-US_" device="R0603" value="10K"/>
+<part name="Q1" library="crystal" deviceset="CRYSTAL" device="TC26H">
+<attribute name="DIGIKEY-PN" value="535-9034-ND"/>
+</part>
+<part name="R5" library="rcl" deviceset="R-US_" device="R0603" value="10K">
+<attribute name="DIGIKEY-PN" value="P10.0KHCT-ND"/>
+</part>
 <part name="VCC5" library="supply1" deviceset="VCCINT" device=""/>
 <part name="VCC6" library="supply1" deviceset="VCCINT" device=""/>
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="BATT1" library="components" deviceset="CR1025-HOLDER" device=""/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
 <part name="U2" library="components" deviceset="PIC24FJ64GA306" device=""/>
-<part name="C1" library="rcl" deviceset="C-US" device="C0402" value="100nF"/>
-<part name="C10" library="rcl" deviceset="C-US" device="C0402" value="100nF"/>
-<part name="C11" library="rcl" deviceset="C-US" device="C0402" value="100nF"/>
-<part name="C12" library="rcl" deviceset="C-US" device="C0402" value="100 nF"/>
+<part name="C1" library="rcl" deviceset="C-US" device="C0402" value="100nF">
+<attribute name="DIGIKEY-PN" value="445-1265-1-ND"/>
+</part>
+<part name="C10" library="rcl" deviceset="C-US" device="C0402" value="100nF">
+<attribute name="DIGIKEY-PN" value="445-1265-1-ND"/>
+</part>
+<part name="C11" library="rcl" deviceset="C-US" device="C0402" value="100nF">
+<attribute name="DIGIKEY-PN" value="445-1265-1-ND"/>
+</part>
+<part name="C12" library="rcl" deviceset="C-US" device="C0402" value="100 nF">
+<attribute name="DIGIKEY-PN" value="445-1265-1-ND"/>
+</part>
 <part name="VCC7" library="supply1" deviceset="VCCINT" device=""/>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
 <part name="C15" library="rcl" deviceset="C-US" device="C0805" value="10 uF">
 <attribute name="DIGIKEY-PN" value="1276-1119-1-ND"/>
 </part>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
-<part name="C16" library="rcl" deviceset="C-US" device="C0402" value="100nF"/>
+<part name="C16" library="rcl" deviceset="C-US" device="C0402" value="100nF">
+<attribute name="DIGIKEY-PN" value="445-1265-1-ND"/>
+</part>
 </parts>
 <sheets>
 <sheet>
@@ -10311,31 +10330,46 @@ and external power.</text>
 <instance part="JP3" gate="G$1" x="-160.02" y="50.8"/>
 <instance part="D2" gate="G$1" x="-215.9" y="104.14">
 <attribute name="DIGIKEY-PN" x="-215.9" y="104.14" size="1.778" layer="96" display="off"/>
+<attribute name="DESCRIPTION" x="-215.9" y="104.14" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="U6" gate="G$1" x="-106.68" y="93.98" smashed="yes">
 <attribute name="NAME" x="-104.14" y="83.82" size="1.778" layer="95"/>
 <attribute name="DIGIKEY-PN-BATT" x="-106.68" y="93.98" size="1.778" layer="96" display="off"/>
 <attribute name="DIGIKEY-PN-SOLAR" x="-106.68" y="93.98" size="1.778" layer="96" display="off"/>
 </instance>
-<instance part="Q1" gate="G$1" x="-76.2" y="25.4" rot="R90"/>
-<instance part="R5" gate="G$1" x="-137.16" y="48.26" rot="R90"/>
+<instance part="Q1" gate="G$1" x="-76.2" y="25.4" rot="R90">
+<attribute name="DIGIKEY-PN" x="-76.2" y="25.4" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
+<instance part="R5" gate="G$1" x="-137.16" y="48.26" rot="R90">
+<attribute name="DIGIKEY-PN" x="-137.16" y="48.26" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
 <instance part="VCC5" gate="G$1" x="-137.16" y="55.88"/>
 <instance part="VCC6" gate="G$1" x="-106.68" y="33.02"/>
 <instance part="GND2" gate="1" x="-109.22" y="-45.72"/>
 <instance part="BATT1" gate="G$1" x="-220.98" y="63.5"/>
 <instance part="GND3" gate="1" x="-220.98" y="58.42"/>
 <instance part="U2" gate="G$1" x="-104.14" y="-7.62"/>
-<instance part="C1" gate="G$1" x="-213.36" y="66.04"/>
-<instance part="C10" gate="G$1" x="-198.12" y="68.58"/>
-<instance part="C11" gate="G$1" x="-190.5" y="68.58"/>
-<instance part="C12" gate="G$1" x="-182.88" y="68.58"/>
+<instance part="C1" gate="G$1" x="-213.36" y="66.04">
+<attribute name="DIGIKEY-PN" x="-213.36" y="66.04" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="C10" gate="G$1" x="-198.12" y="68.58">
+<attribute name="DIGIKEY-PN" x="-198.12" y="68.58" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="C11" gate="G$1" x="-190.5" y="68.58">
+<attribute name="DIGIKEY-PN" x="-190.5" y="68.58" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="C12" gate="G$1" x="-182.88" y="68.58">
+<attribute name="DIGIKEY-PN" x="-182.88" y="68.58" size="1.778" layer="96" display="off"/>
+</instance>
 <instance part="VCC7" gate="G$1" x="-185.42" y="78.74"/>
 <instance part="GND5" gate="1" x="-185.42" y="58.42"/>
 <instance part="C15" gate="G$1" x="-172.72" y="68.58">
 <attribute name="DIGIKEY-PN" x="-172.72" y="68.58" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="GND6" gate="1" x="-172.72" y="60.96"/>
-<instance part="C16" gate="G$1" x="-205.74" y="68.58"/>
+<instance part="C16" gate="G$1" x="-205.74" y="68.58">
+<attribute name="DIGIKEY-PN" x="-205.74" y="68.58" size="1.778" layer="96" display="off"/>
+</instance>
 </instances>
 <busses>
 <bus name="SPI:CS,SDI,SDO,SCLK">
