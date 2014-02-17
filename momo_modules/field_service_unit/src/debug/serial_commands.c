@@ -27,8 +27,9 @@ void register_command_handlers()
     register_command("adc", handle_adc);
 
     register_command("rpc", handle_rpc);
-    register_command("push-firmware", handle_push_firmware);
-    register_command("pull-firmware", handle_pull_firmware);
+    register_command("binrpc", handle_binrpc);
+    //register_command("push-firmware", handle_push_firmware);
+    //register_command("pull-firmware", handle_pull_firmware);
 
     getln( process_commands_task );
 }
@@ -60,6 +61,7 @@ static void send_command_acknowledgement()
   command_status = kNone;
   getln( process_commands_task );
 }
+
 void set_command_result( bool success )
 {
   command_status = (success)?kSuccess:kFailure;

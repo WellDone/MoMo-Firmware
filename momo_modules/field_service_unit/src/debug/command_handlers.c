@@ -12,6 +12,7 @@
 #include "scheduler.h"
 #include "reset_manager.h"
 #include "pic24asm.h"
+#include "base64.h"
 #include "debug_utilities.h"
 #include "bus_master.h"
 
@@ -345,5 +346,47 @@ CommandStatus handle_rpc(command_params *params)
     }
     
     bus_master_rpc_async(rpc_callback, address, feature&0xFF, command&0xFF, param_spec );
+    return kPending;
+}
+
+CommandStatus handle_binrpc(command_params *params)
+{
+    unsigned char  address, feature, command, spec;
+    unsigned char buffer[24];
+    int length;
+    char* str;
+
+    if (params->num_params != 1) {
+        put(DEBUG_UART, 254);
+        print( "You must pass a single base64 encoded buffer with all parameters to binrpc.\n");
+        return kFailure;
+    }
+
+    str = get_param_string( params, 0);
+
+    if (strlen(str) != 32)
+    {
+        put(DEBUG_UART, 254);
+        print( "You must pass a base64 encoded buffer with length 32.\n");
+        return kFailure;
+    }
+
+    length = base64_decode(str, strlen(str), buffer, 24);
+
+    if (length != 24)
+    {
+        put(DEBUG_UART, 254);
+        print( "Could not decode base64 buffer\n");
+        return kFailure;
+    }
+
+    address = buffer[0];
+    feature = buffer[1];
+    command = buffer[2];
+    spec = buffer[3];
+
+    memcpy( plist_get_buffer(0), buffer+4, 20);
+
+    bus_master_rpc_async(rpc_callback, address, feature, command, spec );
     return kPending;
 }
