@@ -7,38 +7,63 @@ import intelhex
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from pymomo.utilities.template import RecursiveTemplate
-from pymomo.utilities.paths import MomoPaths
+from pymomo.cmdr.meta import *
+from pymomo.cmdr.exceptions import *
 import cmdln
 from colorama import Fore, Style
 
 class ModTool(cmdln.Cmdln):
 	name = 'modtool'
 
-	def do_mib12(self, subcmd, opts, name):
-		"""${cmd_name}: Create an empty mib12 application module project
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_list(self, subcmd, opts):
+		self.assert_args(opts, ['port'])
 
-		Create a mib12 application module with the given name.  It will
-		apeaar in the momo_modules directory with starter files and a
-		default empty endpoint file
+		con = self._get_controller(opts)
+		mods = con.enumerate_modules()
 
-		name should have no spaces in it.
+		print "Listing attached modules"
+		for mod in mods:
+			print "%s at address %d" % (mod.name, mod.address)
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_info(self, subcmd, opts, index):
+		self.assert_args(opts, ['port'])
 		
-		${cmd_usage}
-		${cmd_option_list}
-		"""
+		con = self._get_controller(opts)
+		mod = con.describe_module(int(index))
 
-		fillvars = {
-		'module' : {
-			'name': name
-		}}
+		print "Module at index %d" % int(index)
+		print "Name: %s" % mod.name
+		print "Address: %d" % mod.address
+		print "Features: %d" % mod.num_features
 
-		template = RecursiveTemplate('mib12_module', rename=name)
-		template.add(fillvars)
-		template.render(output_dir=MomoPaths().modules)
 
-		path = os.path.join(MomoPaths().modules, name)
-		print "Created mib12 module named %s at:\n%s" % (name, path)
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-a', '--address', default=None, help='Select device by address')
+	@cmdln.option('-n', '--name', default=None, help='Select device by name')
+	def do_reflash(self, subcmd, opts, hexfile):
+		self.assert_args(opts, ['port'])
+		con = self._get_controller(opts)
+		reflash_module(con, hexfile, name=opts.name, address=opts.address)
+
+	def _get_controller(self, opts):
+		try:
+			c = get_controller(opts.port)
+		except ValueError as e:
+			self.error(str(e))
+
+		return c
+
+	def assert_args(self, opts, args):
+		for arg in args:
+			if not hasattr(opts, arg) or getattr(opts, arg) is None:
+				self.error("You must specify an argument for %s" % arg)
+
+	def error(self, text):
+		print Fore.RED + "Error Occurred: " + Style.RESET_ALL + text
+		sys.exit(1)
+
 
 if __name__ == "__main__":
 	modtool = ModTool()
