@@ -17,17 +17,28 @@ class ModTool(cmdln.Cmdln):
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_list(self, subcmd, opts):
+		"""${cmd_name}: List all attached MIB modules on the bus
+		
+		${cmd_usage}
+		${cmd_option_list}
+		"""
 		self.assert_args(opts, ['port'])
 
 		con = self._get_controller(opts)
 		mods = con.enumerate_modules()
 
 		print "Listing attached modules"
-		for mod in mods:
-			print "%s at address %d" % (mod.name, mod.address)
+		for i, mod in enumerate(mods):
+			print "%d: %s at address %d" % (i, mod.name, mod.address)
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_info(self, subcmd, opts, index):
+		"""${cmd_name}: Describe the mib module given its index
+
+		Index is returned by mobtool list
+		${cmd_usage}
+		${cmd_option_list}
+		"""
 		self.assert_args(opts, ['port'])
 		
 		con = self._get_controller(opts)
@@ -43,6 +54,21 @@ class ModTool(cmdln.Cmdln):
 	@cmdln.option('-a', '--address', default=None, help='Select device by address')
 	@cmdln.option('-n', '--name', default=None, help='Select device by name')
 	def do_reflash(self, subcmd, opts, hexfile):
+		"""${cmd_name}: Reflash the mib12 module given either its name or address 
+
+		If name is passed, the first mib module with that name is reflashed.  If
+		address is passed, the address must match a currently attached module and
+		that module will be reflashed.  You must pass either an address or a name,
+		but not both.
+
+		HEXFILE should be a valid mib12 application module.  The controller firmware
+		cache will be cleared during the reflashing process and the module in question
+		will be reset. 
+		
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
 		self.assert_args(opts, ['port'])
 		con = self._get_controller(opts)
 		reflash_module(con, hexfile, name=opts.name, address=opts.address)
