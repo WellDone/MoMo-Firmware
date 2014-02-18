@@ -5,13 +5,13 @@ from SCons.Environment import Environment
 import os
 import fnmatch
 import json as json
-import mib12_config
 import sys
 import os.path
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from pymomo.utilities import build
+from pymomo.mib.config12 import MIB12Processor
 
 def find_files(dirname, pattern):
 	"""
@@ -104,22 +104,9 @@ class MIB12Config:
 		self.chip_info = {}
 		
 		for key in self.targets:
-			self.chip_names[key] = set([key])
-			self._load_chip_info(key)
-
-	def _load_chip_info(self, chip):
-		"""
-		Load chip info from chip_settings dictionary in build_settings.json
-		"""
-
-		settings = self.conf['mib12']['chip_settings'][chip]
-
-		if 'aliases' in settings:
-			self.chip_names[chip].update(settings['aliases'])
-
-		default = self.conf['mib12']['default_settings'].copy()
-
-		self.chip_info[chip] = merge_dicts(default, settings)
+			aliases, info = build.load_chip_info(key)
+			self.chip_names[key] = set([key] + aliases)
+			self.chip_info[key] = info
 
 	def chip_def(self, chip, val, default=None):
 		"""
@@ -148,22 +135,22 @@ class MIB12Config:
 		Configure the SCons build environment for building the MIB12 Executive
 		"""
 
+		self.config_env_for_chip(self.get_chip_name(name), env)
 		chip = self.get_chip_name(name)
 
+		info = env['CHIPINFO']
 		self._ensure_flags(env)
 
-		exec_range = self.chip_def(chip, 'executive_rom')
-
-		env['ROMSTART'] = exec_range[0]
-		env['ROMEND'] = exec_range[1] - 16 - 1 #Make sure we don't overlap the MIB API in the high part of memory
+		env['ROMSTART'] = info.exec_rom[0]
+		env['ROMEND'] = info.exec_rom[1]
 
 		env['XC8FLAGS'] += self.common_flags
 		env['XC8FLAGS'] += self.exec_flags
+		env['XC8FLAGS'] += ['-L-Pmibapi=%xh' % env['MIB_API_BASE'], '-L-Papp_vectors=%xh' % info.app_rom[0]] #Place the MIB api in the right place
 
-		self.config_env_for_chip(chip, env)
 		self.add_common_incs(env)
 
-		env['RAMEXCLUDE'] = [self.chip_def(chip, 'application_ram')]
+		env['RAMEXCLUDE'] =  self.chip_def(chip, 'application_ram')
 
 	def config_env_for_app(self, env, name):
 		"""
@@ -184,7 +171,6 @@ class MIB12Config:
 
 		#Make sure we don't let the code overlap with the MIB map in high memory
 		env['ROMEXCLUDE'] = []
-		#env['ROMEXCLUDE'].append(info.mib_range)
 
 		env['XC8FLAGS'] += self.common_flags
 		env['XC8FLAGS'] += self.app_flags
@@ -220,6 +206,7 @@ class MIB12Config:
 		"""
 
 		info = self.get_chip(chip)
+		self._ensure_flags(env)
 
 		try:
 			env['CHIPINFO'] = info
@@ -229,7 +216,7 @@ class MIB12Config:
 			env['XC8FLAGS'] += ['-DkFirstApplicationRow=%d' % info.first_app_page]
 			env['XC8FLAGS'] += ['-DkFlashRowSize=%d' % info.row_size]
 			env['XC8FLAGS'] += ['-DkFlashMemorySize=%d' % info.total_prog_mem]
-			env['MIB_API_BASE'] = str(info.api_range[0])
+			env['MIB_API_BASE'] = info.api_range[0]
 		except KeyError:
 			raise ValueError("Chip %s not found in build_settings.json, cannot target that chip." % chip)
 
@@ -251,7 +238,7 @@ class MIB12Config:
 		"""
 
 		name = self.get_chip_name(chip)
-		return mib12_config.MIB12Processor(name, self.chip_info[name])
+		return MIB12Processor(name, self.chip_info[name])
 
 	def get_targets(self, module):
 		"""
@@ -286,18 +273,3 @@ class MIB12Config:
 	def _ensure_flags(self, env):
 		if "XC8FLAGS" not in env:
 			env['XC8FLAGS'] = []
-
-
-def merge_dicts(a, b):
-    "merges b into a"
-
-    for key in b:
-        if key in a:
-            if isinstance(a[key], dict) and isinstance(b[key], dict):
-                merge_dicts(a[key], b[key])
-            else:
-            	a[key] = b[key]
-        else:
-            a[key] = b[key]
-    
-    return a

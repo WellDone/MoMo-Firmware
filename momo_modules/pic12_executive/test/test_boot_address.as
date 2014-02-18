@@ -1,5 +1,6 @@
 ;Name: test_boot_address
 ;Type: executive
+;Additional: support_no_appmodule.as
 ;Description: Test to ensure that the row address of flash memory is calculated
 correctly
 

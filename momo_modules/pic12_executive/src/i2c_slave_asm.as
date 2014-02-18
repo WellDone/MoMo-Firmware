@@ -5,15 +5,16 @@
 #include <xc.inc>
 #include "i2c_defines.h"
 #include "asm_locations.h"
+#include "asm_branches.inc"
 
 ASM_INCLUDE_GLOBALS()
 
-global _bus_slave_callback
+global _bus_slave_read_callback, _bus_slave_startcommand
 global _i2c_loadbuffer, _i2c_incptr, _i2c_read, _i2c_write
 
 PSECT text_i2c_slave,local,class=CODE,delta=2
 
-;If we just received an address, call bus_slave_callback to handle
+;If we just received an address, call callback to handle either read of write
 ;Otherwise send or receive the next byte in the i2c_buffer
 BEGINFUNCTION _i2c_slave_interrupt
 	banksel SSP1STAT
@@ -22,7 +23,10 @@ BEGINFUNCTION _i2c_slave_interrupt
 	;We just received our address (mask out to get just the read or write status)
 	movf 	BANKMASK(SSP1BUF),w
 	andlw 	0b1
-	goto 	_bus_slave_callback
+	skipz
+		goto _bus_slave_read_callback
+		goto _bus_slave_startcommand
+
 
 	;We did not receive an address, so send or receive the next byte of the i2c buffer
 	transferdata:

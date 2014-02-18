@@ -5,7 +5,7 @@
 extern bank1 __persistent MIBExecutiveStatus status;
 
 //static prototypes that are only to be used in this file
-static void bus_slave_startcommand();
+
 static void bus_slave_searchcommand();
 static void bus_slave_callcommand();
 
@@ -13,7 +13,7 @@ static void bus_slave_callcommand();
  * MIB Slave Logic 
  */
 
-static void bus_slave_startcommand()
+void bus_slave_startcommand()
 {
 	//Initialize all the state
 	mib_state.slave_handler = kInvalidMIBIndex;
@@ -21,6 +21,7 @@ static void bus_slave_startcommand()
 	status.send_value = 0;
 
 	i2c_init_buffer(kCommandOffset);	//Initialize
+	i2c_release_clock();
 }
 
 static void bus_slave_searchcommand()
@@ -72,47 +73,40 @@ static void bus_slave_callcommand()
 	}
 }
 
-void bus_slave_callback(unsigned char was_read)
+void bus_slave_read_callback()
 {
-	if (was_read)
+	if (status.first_read)
 	{
-		if (status.first_read)
-		{
-			bus_slave_searchcommand();
-			bus_slave_callcommand();
-			status.first_read = 0;
+		bus_slave_searchcommand();
+		bus_slave_callcommand();
+		status.first_read = 0;
 
-			//Prepare the return value response
-			i2c_init_buffer(kReturnStatusOffset);
-			i2c_setoffset(1);
-			i2c_append_checksum();
-			
-			i2c_init_buffer(kReturnValueOffset);
-			i2c_setoffset(bus_retval_size());
-			i2c_append_checksum();
-		}
-
-		/*
-		 * To allow for bus error recovery, we keep resending the return status and return value (if any) on all
-		 * subsequent reads until the master is satisfied that it has received one with a valid checksum.
-		 *
-		 * Odd reads are for the return status
-		 * Even reads are for the return value
-		 */
-
-		if (status.send_value == 0)
-			i2c_init_buffer(kReturnStatusOffset); //Set up buffer pointer to point to return status + return value
-		else
-			i2c_init_buffer(kReturnValueOffset);
-
-		status.send_value = !status.send_value;
-
-		i2c_loadbuffer();
-		i2c_write(); //Initialize first byte for immediate reading
+		//Prepare the return value response
+		i2c_init_buffer(kReturnStatusOffset);
+		i2c_setoffset(1);
+		i2c_append_checksum();
+		
+		i2c_init_buffer(kReturnValueOffset);
+		i2c_setoffset(bus_retval_size());
+		i2c_append_checksum();
 	}
-	else
-		bus_slave_startcommand(); //A write always indicates a new command
 
-	//Always release the clock.  The slave should never hold the clock forever.
+	/*
+	 * To allow for bus error recovery, we keep resending the return status and return value (if any) on all
+	 * subsequent reads until the master is satisfied that it has received one with a valid checksum.
+	 *
+	 * Odd reads are for the return status
+	 * Even reads are for the return value
+	 */
+
+	if (status.send_value == 0)
+		i2c_init_buffer(kReturnStatusOffset); //Set up buffer pointer to point to return status + return value
+	else
+		i2c_init_buffer(kReturnValueOffset);
+
+	status.send_value = ~status.send_value;
+
+	i2c_loadbuffer();
+	i2c_write(); //Initialize first byte for immediate reading
 	i2c_release_clock();
 }

@@ -131,7 +131,7 @@ ENDFUNCTION _load_boot_address
 ;is stored in the second to last word of the last flash row of the
 ;first page of flash memory.
 BEGINFUNCTION _get_boot_source
-	movlw kMIBStructRow + kFlashRowSize - 2 - kMIBEndpointAddress
+	movlw 14
 	goto _get_mib_block
 ENDFUNCTION _get_boot_source
 
@@ -139,7 +139,7 @@ ENDFUNCTION _get_boot_source
 ;in high memory, return the firmware id that we should program
 ;this is stored in the 3rd word before the end of the first flash page
 BEGINFUNCTION _get_firmware_id
-	movlw kMIBStructRow + kFlashRowSize - 3 - kMIBEndpointAddress
+	movlw 13
 	goto _get_mib_block
 ENDFUNCTION _get_firmware_id
 

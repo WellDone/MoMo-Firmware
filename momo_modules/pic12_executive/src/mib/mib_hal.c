@@ -19,14 +19,6 @@ uint8 get_feature(uint8 feature);
 uint8 get_command(uint8 command);
 uint8 get_magic();
 
-void bus_init(uint8 address)
-{
-	i2c_enable(address);
-
-	mib_state.slave_handler = kInvalidMIBIndex;
-	status.first_read = 1;
-}
-
 uint8 bus_is_idle()
 {
 	//bus is idle if no start and no stop conditions have been detected and SCL and SDA are both high

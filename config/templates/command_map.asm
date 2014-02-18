@@ -2,6 +2,9 @@
 ;3 structures defining the features, commands and handlers that we support
 
 \#include "constants.h"
+#define __DEFINES_ONLY__
+\#include "mib_definitions.h"
+#undef __DEFINES_ONLY__
 
 jumpm MACRO name,dest
 name:
@@ -69,7 +72,10 @@ $next_placeholder($cmd.symbol) ; Feature $feat, Command $cmd_cnt #slurp
 
 
 mibhandlers:
+#if $len($features.keys())>0
 brw
+#end if
+
 #for $j in $intermeds
 	goto $j
 #end for
@@ -78,7 +84,10 @@ brw
 ;On nonpaged memory devices we can safely just jump to the symbols directly and save memory
 ;and time
 mibhandlers:
+#if $len($features.keys())>0
 brw
+#end if
+
 #for $feat in $features.keys()
 	#set $cmd_cnt = 0
 	#for $cmd in $features[$feat]
@@ -90,22 +99,32 @@ brw
 
 
 mibfeatures:
+#if $len($features.keys())>0
 brw
+#end if
+
 #for $feat in $features.keys()
 	retlw $feat
 #end for
 
 #set $cmd_cnt = 0
 mibcommands:
+#if $len($features.keys())>0
 brw
+#end if
 #for $feat in $features.keys()
 	retlw $cmd_cnt
 	#set $cmd_cnt = $cmd_cnt + $len($features[$feat])
 #end for
+
+#if $len($features.keys())>0
 	retlw $cmd_cnt
+#end if
 
 mibspecs:
+#if $len($features.keys())>0
 brw
+#end if
 #for $feat in $features.keys()
 	#for $cmd in $features[$feat]
 	retlw $cmd.spec

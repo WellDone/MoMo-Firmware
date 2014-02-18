@@ -45,3 +45,15 @@ retf MACRO reg
 	movf reg,w
 	return
 ENDM
+
+;skip if W != literal
+skipnel MACRO lit
+	xorlw lit
+	skipnz
+ENDM
+
+;skip if W == literal
+skipel MACRO lit
+	xorlw lit
+	skipz
+ENDM

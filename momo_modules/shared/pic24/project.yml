@@ -57,6 +57,7 @@
     :arguments:
       - -mcpu=24F16KA101
       - -x c
+      #- -S
       - -c
       - ${1}
       - -o ${2}
@@ -99,7 +100,7 @@
       - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
       - -Wall
       #- -Werror  # We can't keep this on during test becuase of a CMock pointer issue
-      - -O1
+      - -O0
 
   :test_linker:
     :executable: xc16-gcc
