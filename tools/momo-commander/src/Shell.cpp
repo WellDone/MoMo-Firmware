@@ -108,6 +108,8 @@ CMDRES::CODE Shell::Do( const ArgList& in_args ) {
 		};
 		Prompt();
 	}
+
+	return CMDRES::kError;
 }
 
 void Shell::RegisterCommand( const std::string& name, command_handler handler ) {

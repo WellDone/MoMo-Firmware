@@ -1,4 +1,5 @@
 #include "FTDIConnection.h"
+#include <stdlib.h>
 
 bool FTDIConnection::Open() {
 	FT_STATUS ftStatus;
