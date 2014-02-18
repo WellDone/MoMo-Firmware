@@ -49,7 +49,6 @@ class ModTool(cmdln.Cmdln):
 		print "Address: %d" % mod.address
 		print "Features: %d" % mod.num_features
 
-
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-a', '--address', default=None, help='Select device by address')
 	@cmdln.option('-n', '--name', default=None, help='Select device by name')
@@ -71,7 +70,7 @@ class ModTool(cmdln.Cmdln):
 
 		self.assert_args(opts, ['port'])
 		con = self._get_controller(opts)
-		reflash_module(con, hexfile, name=opts.name, address=opts.address)
+		reflash_module(con, hexfile, name=opts.name, address=int(opts.address))
 
 	def _get_controller(self, opts):
 		try:
