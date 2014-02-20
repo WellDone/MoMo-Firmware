@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.4">
+<eagle version="6.5.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -3215,6 +3215,18 @@ package type TQ</description>
 <wire x1="8" y1="-4" x2="6" y2="-4" width="0.127" layer="21"/>
 <wire x1="6" y1="-4" x2="6" y2="-6" width="0.127" layer="21"/>
 </package>
+<package name="MOMO-PWR-HOUSED">
+<pad name="1" x="-1" y="0" drill="0.8" shape="long" rot="R90"/>
+<pad name="2" x="1" y="0" drill="0.8" shape="long" rot="R90"/>
+<wire x1="3" y1="6.25" x2="-3" y2="6.25" width="0.254" layer="21"/>
+<wire x1="3" y1="-1.35" x2="-3" y2="-1.35" width="0.254" layer="21"/>
+<wire x1="-3" y1="6.25" x2="-3" y2="-1.35" width="0.254" layer="21"/>
+<wire x1="3" y1="6.25" x2="3" y2="-1.35" width="0.254" layer="21"/>
+<wire x1="3" y1="8.25" x2="3" y2="6.25" width="0.254" layer="21"/>
+<wire x1="-3" y1="8.25" x2="-3" y2="6.25" width="0.254" layer="21"/>
+<wire x1="-3" y1="8.25" x2="3" y2="8.25" width="0.254" layer="21"/>
+<text x="3" y="-2" size="1.27" layer="21" rot="R180">&gt;NAME</text>
+</package>
 </packages>
 <symbols>
 <symbol name="PIC24F16KA101-X_P">
@@ -4181,6 +4193,8 @@ package type TQ</description>
 <pin name="RE5" x="17.78" y="-17.78" length="middle" rot="R180"/>
 <pin name="RB0" x="17.78" y="-22.86" length="middle" rot="R180"/>
 <pin name="RF3" x="17.78" y="-25.4" length="middle" rot="R180"/>
+</symbol>
+<symbol name="MOMO-PWR-HOUSED">
 </symbol>
 </symbols>
 <devicesets>
@@ -6376,6 +6390,26 @@ package type TQ</description>
 <attribute name="DESCRIPTION" value="PIC24FJ64GA306 Microcontroller" constant="no"/>
 <attribute name="DIGIKEY-PN" value="PIC24FJ64GA306-I/PT-ND" constant="no"/>
 <attribute name="FOOTPRINT" value="TQFN64-10mm" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="MOMO-PWR-HOUSED" prefix="JP">
+<gates>
+<gate name="G$1" symbol="MOMO-POWER" x="-2.54" y="-2.54"/>
+</gates>
+<devices>
+<device name="" package="MOMO-PWR-HOUSED">
+<connects>
+<connect gate="G$1" pin="3.8V" pad="1"/>
+<connect gate="G$1" pin="GND" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DESCRIPTION" value="R/A Shrouded 2 pin connector" constant="no"/>
+<attribute name="DIGIKEY-PN" value="455-1719-ND" constant="no"/>
+<attribute name="FOOTPRINT" value="Through HOle" constant="no"/>
 </technology>
 </technologies>
 </device>

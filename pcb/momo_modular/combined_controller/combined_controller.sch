@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.4">
+<eagle version="6.5.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -177,17 +177,6 @@ reflow soldering</description>
 <wire x1="-1.016" y1="-1.27" x2="2.413" y2="-1.27" width="0.127" layer="51"/>
 <wire x1="2.413" y1="-1.27" x2="2.413" y2="1.27" width="0.127" layer="51"/>
 <wire x1="1.651" y1="0" x2="2.159" y2="0" width="0.127" layer="51"/>
-</package>
-<package name="MOMO-EDGE-SMALL-2M">
-<pad name="2" x="-1.27" y="0" drill="1.1"/>
-<pad name="1" x="1.27" y="0" drill="1.1"/>
-<wire x1="2.54" y1="-1.2446" x2="2.54" y2="1.2446" width="0.254" layer="21"/>
-<wire x1="-2.54" y1="1.2446" x2="2.54" y2="1.2446" width="0.254" layer="21"/>
-<wire x1="2.54" y1="-1.2446" x2="-2.54" y2="-1.2446" width="0.254" layer="21"/>
-<wire x1="-2.54" y1="1.2446" x2="-2.54" y2="-1.2446" width="0.254" layer="21"/>
-<wire x1="-1.27" y1="0" x2="-1.27" y2="3.81" width="0.254" layer="51"/>
-<wire x1="1.27" y1="0" x2="1.27" y2="3.81" width="0.254" layer="51"/>
-<text x="-2.54" y="-2.54" size="0.8128" layer="25">&gt;NAME</text>
 </package>
 <package name="MOMO-EDGE-8F">
 <pad name="V28" x="0" y="10.16" drill="1.016"/>
@@ -453,6 +442,18 @@ package type TQ</description>
 <rectangle x1="-3.35" y1="4.8" x2="-3.15" y2="6" layer="21"/>
 <rectangle x1="-3.85" y1="4.8" x2="-3.65" y2="6" layer="21"/>
 </package>
+<package name="MOMO-PWR-HOUSED">
+<pad name="1" x="-1" y="0" drill="0.8" shape="long" rot="R90"/>
+<pad name="2" x="1" y="0" drill="0.8" shape="long" rot="R90"/>
+<wire x1="3" y1="6.25" x2="-3" y2="6.25" width="0.254" layer="21"/>
+<wire x1="3" y1="-1.35" x2="-3" y2="-1.35" width="0.254" layer="21"/>
+<wire x1="-3" y1="6.25" x2="-3" y2="-1.35" width="0.254" layer="21"/>
+<wire x1="3" y1="6.25" x2="3" y2="-1.35" width="0.254" layer="21"/>
+<wire x1="3" y1="8.25" x2="3" y2="6.25" width="0.254" layer="21"/>
+<wire x1="-3" y1="8.25" x2="-3" y2="6.25" width="0.254" layer="21"/>
+<wire x1="-3" y1="8.25" x2="3" y2="8.25" width="0.254" layer="21"/>
+<text x="3" y="-2" size="1.27" layer="21" rot="R180">&gt;NAME</text>
+</package>
 </packages>
 <symbols>
 <symbol name="FLASH8M">
@@ -522,16 +523,6 @@ package type TQ</description>
 <wire x1="2.54" y1="2.54" x2="5.08" y2="2.54" width="0.254" layer="94"/>
 <pin name="CATH" x="5.08" y="2.54" visible="off" length="point"/>
 <pin name="AN" x="-2.54" y="2.54" visible="off" length="point"/>
-</symbol>
-<symbol name="MOMO-POWER">
-<description>MoMo 2-pin high power passthrough connector</description>
-<pin name="3.8V" x="-2.54" y="2.54" visible="pin" length="short" direction="pwr"/>
-<pin name="GND" x="-2.54" y="0" visible="pin" length="short" direction="pwr"/>
-<wire x1="0" y1="5.08" x2="0" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="0" y1="-2.54" x2="7.62" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="7.62" y1="-2.54" x2="7.62" y2="5.08" width="0.254" layer="94"/>
-<wire x1="7.62" y1="5.08" x2="0" y2="5.08" width="0.254" layer="94"/>
-<text x="10.16" y="-2.54" size="1.016" layer="97" rot="R90">Momo Power</text>
 </symbol>
 <symbol name="P-MOSFET">
 <wire x1="-2.54" y1="2.54" x2="-2.54" y2="1.27" width="0.254" layer="94"/>
@@ -651,6 +642,16 @@ package type TQ</description>
 <pin name="RB0" x="17.78" y="-22.86" length="middle" rot="R180"/>
 <pin name="RF3" x="17.78" y="-25.4" length="middle" rot="R180"/>
 </symbol>
+<symbol name="MOMO-POWER">
+<description>MoMo 2-pin high power passthrough connector</description>
+<pin name="3.8V" x="-2.54" y="2.54" visible="pin" length="short" direction="pwr"/>
+<pin name="GND" x="-2.54" y="0" visible="pin" length="short" direction="pwr"/>
+<wire x1="0" y1="5.08" x2="0" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="0" y1="-2.54" x2="7.62" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="7.62" y1="-2.54" x2="7.62" y2="5.08" width="0.254" layer="94"/>
+<wire x1="7.62" y1="5.08" x2="0" y2="5.08" width="0.254" layer="94"/>
+<text x="10.16" y="-2.54" size="1.016" layer="97" rot="R90">Momo Power</text>
+</symbol>
 </symbols>
 <devicesets>
 <deviceset name="FLASH8M">
@@ -749,25 +750,6 @@ package type TQ</description>
 </connects>
 <technologies>
 <technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
-<deviceset name="MOMO-EDGE-POWER-M" prefix="JP">
-<gates>
-<gate name="G$1" symbol="MOMO-POWER" x="-2.54" y="-2.54"/>
-</gates>
-<devices>
-<device name="" package="MOMO-EDGE-SMALL-2M">
-<connects>
-<connect gate="G$1" pin="3.8V" pad="2"/>
-<connect gate="G$1" pin="GND" pad="1"/>
-</connects>
-<technologies>
-<technology name="">
-<attribute name="DESCRIPTION" value="2 pin R/A keyed male header" constant="no"/>
-<attribute name="DIGIKEY-PN" value="A19450-ND" constant="no"/>
-</technology>
 </technologies>
 </device>
 </devices>
@@ -929,6 +911,26 @@ package type TQ</description>
 <attribute name="DESCRIPTION" value="PIC24FJ64GA306 Microcontroller" constant="no"/>
 <attribute name="DIGIKEY-PN" value="PIC24FJ64GA306-I/PT-ND" constant="no"/>
 <attribute name="FOOTPRINT" value="TQFN64-10mm" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="MOMO-PWR-HOUSED" prefix="JP">
+<gates>
+<gate name="G$1" symbol="MOMO-POWER" x="-2.54" y="-2.54"/>
+</gates>
+<devices>
+<device name="" package="MOMO-PWR-HOUSED">
+<connects>
+<connect gate="G$1" pin="3.8V" pad="1"/>
+<connect gate="G$1" pin="GND" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DESCRIPTION" value="R/A Shrouded 2 pin connector" constant="no"/>
+<attribute name="DIGIKEY-PN" value="455-1719-ND" constant="no"/>
+<attribute name="FOOTPRINT" value="Through HOle" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -10098,12 +10100,6 @@ Source: 008-0260-0_E.pdf</description>
 <part name="R11" library="rcl" deviceset="R-US_" device="R0603" value="0R">
 <attribute name="DIGIKEY-PN-SOLAR" value="P0.0GCT-ND"/>
 </part>
-<part name="JP5" library="components" deviceset="MOMO-EDGE-POWER-M" device="">
-<attribute name="DIGIKEY-PN" value="A19450-ND"/>
-</part>
-<part name="JP4" library="components" deviceset="MOMO-EDGE-POWER-M" device="">
-<attribute name="DIGIKEY-PN" value="A19450-ND"/>
-</part>
 <part name="VCC2" library="supply1" deviceset="VCCIO" device=""/>
 <part name="VCC11" library="supply1" deviceset="VCCIO" device=""/>
 <part name="Q2" library="components" deviceset="P-MOSFET" device=""/>
@@ -10160,6 +10156,8 @@ Source: 008-0260-0_E.pdf</description>
 <part name="C16" library="rcl" deviceset="C-US" device="C0402" value="100nF">
 <attribute name="DIGIKEY-PN" value="445-1265-1-ND"/>
 </part>
+<part name="JP4" library="components" deviceset="MOMO-PWR-HOUSED" device=""/>
+<part name="JP5" library="components" deviceset="MOMO-PWR-HOUSED" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -10308,12 +10306,6 @@ and external power.</text>
 <instance part="R11" gate="G$1" x="-180.34" y="116.84">
 <attribute name="DIGIKEY-PN-SOLAR" x="-180.34" y="116.84" size="1.778" layer="96" display="off"/>
 </instance>
-<instance part="JP5" gate="G$1" x="-30.48" y="-96.52">
-<attribute name="DIGIKEY-PN" x="-30.48" y="-96.52" size="1.778" layer="96" display="off"/>
-</instance>
-<instance part="JP4" gate="G$1" x="-30.48" y="-76.2">
-<attribute name="DIGIKEY-PN" x="-30.48" y="-76.2" size="1.778" layer="96" display="off"/>
-</instance>
 <instance part="VCC2" gate="G$1" x="-30.48" y="15.24"/>
 <instance part="VCC11" gate="G$1" x="-30.48" y="63.5"/>
 <instance part="Q2" gate="G$1" x="-78.74" y="-86.36" rot="R90"/>
@@ -10370,6 +10362,8 @@ and external power.</text>
 <instance part="C16" gate="G$1" x="-205.74" y="68.58">
 <attribute name="DIGIKEY-PN" x="-205.74" y="68.58" size="1.778" layer="96" display="off"/>
 </instance>
+<instance part="JP4" gate="G$1" x="-30.48" y="-99.06"/>
+<instance part="JP5" gate="G$1" x="-30.48" y="-76.2"/>
 </instances>
 <busses>
 <bus name="SPI:CS,SDI,SDO,SCLK">
@@ -10476,15 +10470,10 @@ and external power.</text>
 <pinref part="GND4" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="GND7" gate="1" pin="GND"/>
-<pinref part="JP5" gate="G$1" pin="GND"/>
-<wire x1="-33.02" y1="-101.6" x2="-33.02" y2="-96.52" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="JP4" gate="G$1" pin="GND"/>
 <pinref part="GND8" gate="1" pin="GND"/>
 <wire x1="-33.02" y1="-76.2" x2="-40.64" y2="-76.2" width="0.1524" layer="91"/>
 <wire x1="-40.64" y1="-76.2" x2="-40.64" y2="-78.74" width="0.1524" layer="91"/>
+<pinref part="JP5" gate="G$1" pin="GND"/>
 </segment>
 <segment>
 <pinref part="GND2" gate="1" pin="GND"/>
@@ -10522,6 +10511,11 @@ and external power.</text>
 <pinref part="C15" gate="G$1" pin="2"/>
 <pinref part="GND6" gate="1" pin="GND"/>
 </segment>
+<segment>
+<pinref part="GND7" gate="1" pin="GND"/>
+<wire x1="-33.02" y1="-99.06" x2="-33.02" y2="-101.6" width="0.1524" layer="91"/>
+<pinref part="JP4" gate="G$1" pin="GND"/>
+</segment>
 </net>
 <net name="V+" class="0">
 <segment>
@@ -10557,7 +10551,7 @@ and external power.</text>
 <pinref part="P+8" gate="1" pin="V+"/>
 <wire x1="-33.02" y1="-73.66" x2="-43.18" y2="-73.66" width="0.1524" layer="91"/>
 <wire x1="-43.18" y1="-73.66" x2="-43.18" y2="-71.12" width="0.1524" layer="91"/>
-<pinref part="JP4" gate="G$1" pin="3.8V"/>
+<pinref part="JP5" gate="G$1" pin="3.8V"/>
 </segment>
 </net>
 <net name="VCCINT" class="0">
@@ -10743,9 +10737,9 @@ and external power.</text>
 <wire x1="-220.98" y1="104.14" x2="-220.98" y2="109.22" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="JP5" gate="G$1" pin="3.8V"/>
 <pinref part="P+5" gate="1" pin="+18V"/>
-<wire x1="-33.02" y1="-93.98" x2="-33.02" y2="-91.44" width="0.1524" layer="91"/>
+<wire x1="-33.02" y1="-96.52" x2="-33.02" y2="-91.44" width="0.1524" layer="91"/>
+<pinref part="JP4" gate="G$1" pin="3.8V"/>
 </segment>
 </net>
 <net name="BUCK_EN" class="0">
@@ -10966,11 +10960,10 @@ and external power.</text>
 <pinref part="Q1" gate="G$1" pin="2"/>
 <wire x1="-76.2" y1="27.94" x2="-76.2" y2="30.48" width="0.1524" layer="91"/>
 <wire x1="-76.2" y1="30.48" x2="-73.66" y2="30.48" width="0.1524" layer="91"/>
-<pinref part="U2" gate="G$1" pin="SOSCO"/>
-<wire x1="-86.36" y1="20.32" x2="-81.28" y2="20.32" width="0.1524" layer="91"/>
-<wire x1="-81.28" y1="20.32" x2="-81.28" y2="27.94" width="0.1524" layer="91"/>
-<wire x1="-81.28" y1="27.94" x2="-76.2" y2="27.94" width="0.1524" layer="91"/>
 <junction x="-76.2" y="27.94"/>
+<pinref part="U2" gate="G$1" pin="SOSCI"/>
+<wire x1="-86.36" y1="22.86" x2="-86.36" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="-86.36" y1="27.94" x2="-76.2" y2="27.94" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$7" class="0">
@@ -10978,9 +10971,10 @@ and external power.</text>
 <pinref part="Q1" gate="G$1" pin="1"/>
 <pinref part="C13" gate="G$1" pin="1"/>
 <wire x1="-73.66" y1="22.86" x2="-76.2" y2="22.86" width="0.1524" layer="91"/>
-<pinref part="U2" gate="G$1" pin="SOSCI"/>
-<wire x1="-86.36" y1="22.86" x2="-76.2" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="-76.2" y1="22.86" x2="-76.2" y2="20.32" width="0.1524" layer="91"/>
 <junction x="-76.2" y="22.86"/>
+<pinref part="U2" gate="G$1" pin="SOSCO"/>
+<wire x1="-76.2" y1="20.32" x2="-86.36" y2="20.32" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
