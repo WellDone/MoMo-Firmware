@@ -29,6 +29,7 @@ class PCBTool(cmdln.Cmdln):
 		cmdln.Cmdln.__init__(self)
 
 	@cmdln.option('-o', '--output', action='store', help='Output directory to hold created files.')
+	@cmdln.option('-p', '--paste', action='store_true', default=False, help='Store the solder paste layer (default: no).')
 	def do_fab(self, subcmd, opts, id):
 		"""${cmd_name}: Generate fabrication and assembly files for this board.
 
@@ -45,7 +46,7 @@ class PCBTool(cmdln.Cmdln):
 			os.makedirs(path)
 
 		brd = self.find_identifier(id)
-		pyeagle.build_production(brd, opts.output)
+		pyeagle.build_production(brd, opts.output, opts.paste)
 
 	def do_list(self, subcmd, opts):
 		"""${cmd_name}: List all known PCB board ids.
