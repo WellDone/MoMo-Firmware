@@ -19,11 +19,10 @@ void handle_all_resets_before(unsigned int type)
     disable_unneeded_peripherals();
     configure_interrupts();
     oscillator_init();
-    //configure_sensor();
+
     taskloop_init();
     scheduler_init();
-    bus_init( kMIBControllerAddress );
-    configure_SPI();
+    bus_init(kMIBControllerAddress);
     //battery_init();
 
     init_mainboard_mib();
