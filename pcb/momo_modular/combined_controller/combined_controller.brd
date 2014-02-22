@@ -69,10 +69,12 @@
 <text x="38.1" y="25.146" size="0.8128" layer="21">+ in center</text>
 <text x="66.548" y="43.434" size="1.016" layer="21" rot="R180">BATT
 3.6V</text>
-<text x="67.818" y="13.716" size="1.016" layer="21">5-17V
+<text x="71.374" y="15.494" size="1.016" layer="21" rot="R180">
 Power</text>
 <text x="60.198" y="39.624" size="1.778" layer="21">+</text>
 <text x="72.39" y="16.256" size="1.778" layer="21">+</text>
+<dimension x1="84.836" y1="44.958" x2="74.676" y2="28.194" x3="88.138" y3="36.576" textsize="0.8128" layer="49" dtype="vertical" unit="inch" precision="3" visible="yes"/>
+<dimension x1="72.136" y1="29.464" x2="82.55" y2="44.958" x3="92.202" y3="37.211" textsize="0.8128" layer="49" dtype="vertical" unit="inch" precision="3" visible="yes"/>
 </plain>
 <libraries>
 <library name="components">
@@ -2103,13 +2105,13 @@ design rules under a new name.</description>
 <attribute name="DESCRIPTION" value="R/A Shrouded 2 pin connector" x="65.9892" y="14.9352" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="FOOTPRINT" value="Through HOle" x="65.9892" y="14.9352" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="DIGIKEY-PN" value="455-1719-ND" x="65.9892" y="14.9352" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="NAME" x="74.6948" y="16.5128" size="1.27" layer="21" rot="R270"/>
+<attribute name="NAME" x="74.6948" y="16.5128" size="0.8128" layer="21" rot="R270"/>
 </element>
 <element name="JP5" library="components" package="MOMO-PWR-HOUSED" value="MOMO-PWR-HOUSED" x="68.326" y="41.91" smashed="yes" rot="R90">
 <attribute name="DESCRIPTION" value="R/A Shrouded 2 pin connector" x="68.326" y="41.91" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="FOOTPRINT" value="Through HOle" x="68.326" y="41.91" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="DIGIKEY-PN" value="455-1719-ND" x="68.326" y="41.91" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="59.468" y="40.688" size="1.27" layer="21" rot="R90"/>
+<attribute name="NAME" x="59.468" y="40.688" size="0.8128" layer="21" rot="R90"/>
 </element>
 </elements>
 <signals>
