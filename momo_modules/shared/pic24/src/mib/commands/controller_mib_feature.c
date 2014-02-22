@@ -83,10 +83,17 @@ void get_battery_voltage()
 	bus_slave_setreturn( pack_return_status( kNoMIBError, 2));
 }
 
+void test_memory()
+{
+	mem_clear_subsection(16);
+	bus_slave_return_int16( 0 );
+}
+
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x00, register_module, plist_spec(0,true) },
 	{0x01, get_module_count, plist_spec_empty() },
 	{0x02, describe_module, plist_spec(1,false) },
-	{0x03, get_battery_voltage, plist_spec_empty()}
+	{0x03, get_battery_voltage, plist_spec_empty()},
+	{0x04, test_memory, plist_spec_empty()}
 };
 DEFINE_MIB_FEATURE(controller);
