@@ -28,6 +28,10 @@ If a board has several assembly variants, this should be indicated by specifying
 either populate a certain part, not populate a certain part or replace a part with a different one.  To do this, change the DIGIKEY-PN or MPN attribute for the part to contain -VARIANT where variant is the name of the assembly variant.  A part with only DIGIKEY-PN (or MPN) set will be assumed to be populated
 in every assembly variant. A part with DIGIKEY-PN-VAR1 and DIGIKEY-PN-VAR2 will be populated only in Assembly Variants VAR1 and VAR2.  
 
+A part with DIGIKEY-PN will be populated in every assembly variant except those that have a DIGIKEY-PN-VAR1 with an empty value.  This
+means that the way to not populate a certain part in an assembly variant is to define its part number to be blank.  For library parts
+that contain a default DIGIKEY-PN value that is not deletable, this is the only way to not populate a part in an assembly variant.
+
 ####Changing Part Values in Different Assembly Variants
 Often a different assembly variant will not just populate or depopulate a part, but will change a part's value in order to achieve the desired effect.  
 For example, a buck regulator design that can be configured to output either 3.6 or 5V depending on the assembly variant may require just changing the feedback resistor value.
