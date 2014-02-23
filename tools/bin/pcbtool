@@ -5,6 +5,7 @@
 import sys
 import os.path
 import os
+import shutil
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -13,6 +14,9 @@ from colorama import init, Fore, Style
 from pymomo.utilities.paths import MomoPaths
 from pymomo.pybom import board,pricing
 from pymomo import pyeagle
+from pymomo.utilities.template import RecursiveTemplate
+import math 
+import itertools
 
 init()
 
@@ -25,6 +29,7 @@ class PCBTool(cmdln.Cmdln):
 		cmdln.Cmdln.__init__(self)
 
 	@cmdln.option('-o', '--output', action='store', help='Output directory to hold created files.')
+	@cmdln.option('-p', '--paste', action='store_true', default=False, help='Store the solder paste layer (default: no).')
 	def do_fab(self, subcmd, opts, id):
 		"""${cmd_name}: Generate fabrication and assembly files for this board.
 
@@ -41,7 +46,7 @@ class PCBTool(cmdln.Cmdln):
 			os.makedirs(path)
 
 		brd = self.find_identifier(id)
-		pyeagle.build_production(brd, opts.output)
+		pyeagle.build_production(brd, opts.output, opts.paste)
 
 	def do_list(self, subcmd, opts):
 		"""${cmd_name}: List all known PCB board ids.
@@ -68,6 +73,7 @@ class PCBTool(cmdln.Cmdln):
 	@cmdln.option('-p', '--packaging', action='append', default=[], help="Only allow the specified packaging (e.g. cut tape).")
 	@cmdln.option('--no-package', dest='nopackage', action='append', help="Disallow the specified packaging type (e.g. Custom Reel)")
 	@cmdln.option('--no-stock', dest='nostock', action='store_false', default=True, help="Allow out of stock offers.")
+	@cmdln.option('-f', '--format', action='store', choices=['csv', 'pdf'], default='csv')
 	def do_bom(self, subcmd, opts, id):
 		"""${cmd_name}: Create a BOM for the specified assembly variant.
 
@@ -76,15 +82,20 @@ class PCBTool(cmdln.Cmdln):
 		"""
 
 		reqs = self.build_pricemodel(opts)
-
-
 		brd = self.get_board(id)
-		out,close = self.build_outstream(opts)
 
-		brd.export_bom(opts.variant, out, include_costs=opts.prices, cost_quantity=opts.units, requirements=reqs)
+		if opts.format == 'csv':
+			out,close = self.build_outstream(opts)
+			brd.export_bom(opts.variant, out, include_costs=opts.prices, cost_quantity=opts.units, requirements=reqs)
+			if close:
+				out.close()
+		elif opts.format == 'pdf' or opts.format == 'html':
+			data = brd.variant_data(opts.variant, include_costs=opts.prices, cost_quantity=opts.units, requirements=reqs)
+			templ = RecursiveTemplate('bom_template.html')
+			templ.add(data)
+			formatted = templ.format_temp()
 
-		if close:
-			out.close()
+			shutil.move(formatted, opts.output)
 
 	@cmdln.option('-v', '--variant', action='append', default=None, help="Print detailed information about the listed assembly variants.")
 	def do_info(self, subcmd, opts, id):
@@ -131,6 +142,47 @@ class PCBTool(cmdln.Cmdln):
 			print "Total Part Count: %d" % items
 
 			print ""
+
+	@cmdln.option('-e', '--excess', action='store', type=float, default=0.0, help="Excess percentage to purchase of each component, in %. (rounded up)")
+	@cmdln.option('-o', '--output', action='store', help='Output directory to hold created files.')
+	def do_order(self, subcmd, opts, *boards):
+		"""${cmd_name}: Create an order list that can be pasted into a distributor website for ordering.  Board variants added to the
+		order should be specified by giving 3 items:
+		<board id> <variant> <number>
+
+		All baords will have the same excess applied.
+
+		${cmd_usage}
+        ${cmd_option_list}
+		"""
+
+		excess = opts.excess/100.0 + 1
+
+		if len(boards) % 3 != 0:
+			self.error("You must specify 3 items per board <id> <variant> <number of units>")
+
+		parts = []
+
+		for i in xrange(0, len(boards), 3):
+			id = boards[i]
+			var = boards[i+1]
+			num = int(boards[i+2])
+			brd = self.get_board(id)
+
+			quant = int(math.ceil(num*excess))
+
+			print "Processing %s (%s): %d units with %.0f%% excess" % (id, var, num, opts.excess)
+			parts.extend(brd.export_list(var)*quant)
+
+		out,close = self.build_outstream(opts)
+
+		distinct = [(k, len(list(g))) for k,g in itertools.groupby(sorted(parts))]
+
+		for k,g in distinct:
+			print "%d, %s" % (g,k) 
+
+		if close:
+			out.close()
 
 	@cmdln.option('-v', '--variant', action='store', default='MAIN', help="Assembly variant to quote.")
 	@cmdln.option('-n', '--units', action='store', default=1, type=int, help="Number of units to quote")

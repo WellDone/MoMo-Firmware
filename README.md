@@ -4,8 +4,6 @@ A product of [WellDone.org](http://www.welldone.org).
 
 Before contributing, study the enforced Git branching model on the [Wiki](http://github.com/WellDone/MoMo-Firmware/wiki).
 
-For the most cutting-edge content, head on over to the [Dev Branch](http://github.com/WellDone/MoMo-Firmware/tree/dev).
-
 ## Directory structure breakdown ##
 
 * **doc** - Documentation on the status
@@ -25,4 +23,5 @@ These may all be downloaded and installed automatically using easy_install.
 * pyparsing
 * intelhex
 * BeautifulSoup4
-* pyserial
+* Cheetah
+* weasyprint
