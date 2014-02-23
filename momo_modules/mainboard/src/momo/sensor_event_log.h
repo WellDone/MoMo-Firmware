@@ -11,6 +11,7 @@ typedef struct {
   rtcc_date date; //3
   unsigned char hour;
   unsigned char minute;
+  unsigned char second;
 } sensor_event_timestamp;
 
 typedef struct {

@@ -1,21 +1,24 @@
-#include "firmware_cache_mib_feature.h"
 #include "common_types.h"
+#include "memory_manager.h"
 #include "memory.h"
 #include "mib_feature_definition.h"
 #include "intel_hex.h"
 
 static uint8 __attribute__((space(data))) firmware_bucket_count;
 static bool __attribute__((space(data))) firmware_push_started;
-typedef struct {
+typedef struct 
+{
 	uint8  module_type;
 	uint32 base_address;
 	uint32 firmware_length;
 	uint8  addr_high;
 } firmware_bucket;
-#define kFirmwareBucketBaseAddress  ((uint32)MEMORY_SUBSECTION_SIZE * 10) // probably an ok spot.
-// 16kb memory - the maximum for pic24.  pic12 is 2000 words (3kb?) so we could have a bunch o smaller buckets
-#define MAX_FIRMWARE_SIZE           ((uint32)MEMORY_SUBSECTION_SIZE * 16)
-#define kNumFirmwareBuckets         8
+
+#define kFirmwareBucketBaseAddress  (MEMORY_SECTION_ADDR(kMIBFirmwareSector))
+#define kControllerBucketAddress  	(MEMORY_SECTION_ADDR(kControllerFirmwareSector))
+#define MAX_FIRMWARE_SIZE           ((uint32)MEMORY_SUBSECTION_SIZE * 4)
+#define kNumFirmwareBuckets         4
+
 static firmware_bucket __attribute__((space(data))) the_firmware_buckets[kNumFirmwareBuckets];
 
 void push_firmware_start(void)
@@ -40,7 +43,7 @@ void push_firmware_start(void)
 
 	firmware_push_started = true;
 
-	bus_slave_return_int16( index ); // We expect the caller to use this new offset to call us again with the next chunk
+	bus_slave_return_int16( index );
 }
 
 void push_firmware_chunk(void)
@@ -58,25 +61,18 @@ void push_firmware_chunk(void)
 		uint32 addr = make32(the_firmware_buckets[firmware_bucket_count].addr_high, hex->address);
 		uint8 length = plist_get_buffer_length()-3; /*address and record_type*/
 
-		if ( addr+length > MAX_FIRMWARE_SIZE ) {
-			// Drop this chunk on the floor, we don't support flashing configuration bits (yet)
-			/*
-			bus_slave_seterror(kCallbackError);
-			_RA0 = 0;
-			firmware_push_started = false;
-			*/
+		if ( addr+length > MAX_FIRMWARE_SIZE ) 
+		{
+			// Drop this chunk on the floor, we can't flash configuration bits
 			return;
 		}
-		if ( addr+length > the_firmware_buckets[firmware_bucket_count].firmware_length )
+
+		if ( addr+length > the_firmware_buckets[firmware_bucket_count].firmware_length)
 			the_firmware_buckets[firmware_bucket_count].firmware_length = addr+length;
+
 		addr += the_firmware_buckets[firmware_bucket_count].base_address;
 
-		if ( !mem_write( addr, hex->data, length ) )
-		{
-			bus_slave_seterror(kCallbackError);
-			firmware_push_started = false;
-			return;
-		}
+		mem_write( addr, hex->data, length );
 	}
 	else if ( hex->record_type == HEX_EXTADDR_REC )
 	{
@@ -104,11 +100,13 @@ void get_firmware_info(void)
 		bus_slave_seterror(kCallbackError);
 		return;
 	}
-	plist_set_int16( 0, the_firmware_buckets[index].module_type );
-	plist_set_int16( 1, the_firmware_buckets[index].firmware_length >> 16 );
-	plist_set_int16( 2, the_firmware_buckets[index].firmware_length & 0xFFFF );
+	plist_set_int16(0, the_firmware_buckets[index].module_type );
+	plist_set_int16(1, the_firmware_buckets[index].firmware_length >> 16 );
+	plist_set_int16(2, the_firmware_buckets[index].firmware_length & 0xFFFF );
+	plist_set_int16(3, (the_firmware_buckets[index].base_address>>16)&0xFFFF);
+	plist_set_int16(4, (the_firmware_buckets[index].base_address)&0xFFFF);
 
-	bus_slave_set_returnbuffer_length( 3*kIntSize ); // TODO: Is there a better way to return multiple ints?
+	bus_slave_set_returnbuffer_length( 5*kIntSize ); // TODO: Is there a better way to return multiple ints?
 }
 void pull_firmware_chunk(void)
 {
@@ -122,19 +120,14 @@ void pull_firmware_chunk(void)
 
 	//TODO: Check to make sure firmware type matches device type.  No pic12 code on a pic24 please
 
-	uint16 address = the_firmware_buckets[index].base_address + offset;
+	uint32 address = the_firmware_buckets[index].base_address + offset;
 	uint32 chunk_size = the_firmware_buckets[index].firmware_length - offset;
 	if ( chunk_size > kBusMaxMessageSize )
 		chunk_size = kBusMaxMessageSize;
 
 	uint8 ret_size = chunk_size & 0xFF;
 
-	if ( !mem_read( address, plist_get_buffer(0), ret_size ) )
-	{
-		bus_slave_seterror( kUnknownError );
-		return;
-	}
-
+	mem_read( address, plist_get_buffer(0), ret_size );
 	bus_slave_set_returnbuffer_length( ret_size );
 }
 
@@ -148,7 +141,9 @@ void clear_firmware_cache(void)
 	firmware_bucket_count = 0;
 	firmware_push_started = false;
 }
-DEFINE_MIB_FEATURE_COMMANDS(firmware_cache) {
+
+DEFINE_MIB_FEATURE_COMMANDS(firmware_cache) 
+{
 	{0x00, push_firmware_start, plist_spec( 1, false ) },
 	{0x01, push_firmware_chunk, plist_spec( 0, true ) },
 	{0x02, push_firmware_cancel, plist_spec_empty() },
@@ -157,4 +152,5 @@ DEFINE_MIB_FEATURE_COMMANDS(firmware_cache) {
 	{0x05, get_firmware_count, plist_spec_empty() },
 	{0x0A, clear_firmware_cache, plist_spec_empty() }
 };
+
 DEFINE_MIB_FEATURE(firmware_cache);
