@@ -24,7 +24,7 @@
 
 
 //Clock configuration and delays
-#define FCY   16000000L  //define your instruction frequency, FCY = FOSC/2
+#define FCY   4000000L  //define your instruction frequency, FCY = FOSC/2
   
 #define CYCLES_PER_MS ((unsigned long long)(FCY * 0.001))        //instruction cycles per millisecond
 #define CYCLES_PER_US ((unsigned long long)(FCY * 0.000001))   //instruction cycles per microsecond

@@ -16,12 +16,12 @@
 #pragma config GCP = OFF                // General Segment Code Flash Code Protection bit (No protection)
 
 // FOSCSEL
-#pragma config FNOSC = FRCPLL           // Oscillator Select (8 MHz FRC oscillator (FRC)) with PLL
+#pragma config FNOSC = FRC           	// Oscillator Select (8 MHz FRC oscillator (FRC)) with PLL
 #pragma config IESO  = OFF              // Internal External Switch Over bit (Internal External Switchover mode disabled (Two-Speed Start-up disabled))
 
 // FOSC
 #pragma config POSCMOD = NONE           // Primary Oscillator Configuration bits (Primary oscillator disabled)
-#pragma config OSCIOFNC = ON           // CLKO Enable Configuration bit (CLKO output signal is active on the OSCO pin)
+#pragma config OSCIOFNC = OFF            // CLKO Enable Configuration bit (CLKO output signal is active on the OSCO pin)
 #pragma config POSCFREQ = HS            // Primary Oscillator Frequency Range Configuration bits (Primary oscillator/external clock input frequency greater than 8 MHz)
 #pragma config SOSCSEL = SOSCHP         // SOSC Power Selection Configuration bits (Secondary oscillator configured for high-power operation)
 #pragma config FCKSM = CSECMD           // Clock Switching and Monitor Selection (Clock switching is enabled, Fail-Safe Clock Monitor is disabled)
