@@ -12,6 +12,7 @@
 #include "scheduler.h"
 #include "reset_manager.h"
 #include "pic24asm.h"
+#include "base64.h"
 #include "debug_utilities.h"
 #include "bus_master.h"
 
@@ -262,97 +263,62 @@ CommandStatus handle_rtcc(command_params *params)
 
 static void rpc_callback(unsigned char status) 
 {
+    int i;
+    put(DEBUG_UART, status);
+
     if ( status != kNoMIBError )
     {
-        sendf( DEBUG_UART, "An error occurred, code %d.\n", status );
         set_command_result( false );
         return;
     }
-    if ( bus_get_returnvalue_length() > 0 )
-    {
-        if ( bus_get_returnvalue_length() == kIntSize ) 
-        { 
-            char buff[10];
-            itoa_small(buff, 10, plist_get_int16(0));
-            print(buff); // TODO: Typed return value
-            print("\n");
-        }
-        else
-        {
-            plist_get_buffer(0)[bus_get_returnvalue_length()] = '\0';
-            print((const char*)plist_get_buffer(0));
-            print("\n");
-        }
-    } else {
-        print( "(success, nothing returned)\n" );
-    }
+
+    //Command was successful
+    put(DEBUG_UART, bus_get_returnvalue_length());
+
+    for (i=0; i<bus_get_returnvalue_length(); ++i)
+        put(DEBUG_UART, plist_get_buffer(0)[i]);
+
     set_command_result( true );
 }
 
-#define RPC_META_ARGC 3
-CommandStatus handle_rpc(command_params *params)
+CommandStatus handle_binrpc(command_params *params)
 {
-    int  address, feature, command;
+    unsigned char  address, feature, command, spec;
+    unsigned char buffer[24];
+    int length;
+    char* str;
 
-    if (params->num_params < RPC_META_ARGC) {
-        print( "You must pass a device address, feature and a command to execute a RPC.\r\n");
+    if (params->num_params != 1) {
+        put(DEBUG_UART, 254);
+        print( "You must pass a single base64 encoded buffer with all parameters to binrpc.\n");
         return kFailure;
     }
 
-    if (!atoi_small( get_param_string(params, 0), &address)) {
-        print("Invalid MIB Address");
-        return kFailure;
-    }
+    str = get_param_string( params, 0);
 
-    if ( !atoi_small( get_param_string( params, 1 ), &feature )
-      || !atoi_small( get_param_string( params, 2 ), &command ) ) {
-        print( "Bad feature or command argument." );
-        return kFailure;
-    }
-
-    unsigned char param_spec = plist_spec_empty();
-    if ( params->num_params > RPC_META_ARGC )
+    if (strlen(str) != 32)
     {
-        int i;
-        int intParams[3];
-        char* bufferParam = NULL;
-        uint8 intCount = params->num_params - RPC_META_ARGC;
-
-        for ( i=RPC_META_ARGC; i<params->num_params; ++i) {
-            char* str = get_param_string( params, i );
-            if ( !atoi_small( str, &intParams[i-RPC_META_ARGC] ) ) {
-                if ( i == params->num_params-1 ) {
-                    print("Buffer passed: ");
-                    print(str);
-                    print("\n");
-
-                    bufferParam = str;
-                    intCount--;
-                } else {
-                    print( "Only one param can be a buffer, and it must be the last param.\n" );
-                    return kFailure;
-                }
-            }
-        }
-
-        if ( intCount > 3 )
-        {
-            print( "A maximum of 3 int params is allowed." );
-            return kFailure;
-        }
-
-        if ( bufferParam ) {
-            param_spec = plist_with_buffer( intCount, strlen(bufferParam) );
-            memcpy( plist_get_buffer(intCount), bufferParam, strlen(bufferParam) );
-        } else {
-            param_spec = plist_ints( intCount );
-        }
-
-        for ( i=0; i<intCount; ++i )
-            plist_set_int16(i, intParams[i]);
+        put(DEBUG_UART, 254);
+        print( "You must pass a base64 encoded buffer with length 32.\n");
+        return kFailure;
     }
-    
-    bus_master_rpc_async(rpc_callback, address, feature&0xFF, command&0xFF, param_spec );
-    print( "Sending RPC...\n" );
+
+    length = base64_decode(str, strlen(str), buffer, 24);
+
+    if (length != 24)
+    {
+        put(DEBUG_UART, 254);
+        print( "Could not decode base64 buffer\n");
+        return kFailure;
+    }
+
+    address = buffer[0];
+    feature = buffer[1];
+    command = buffer[2];
+    spec = buffer[3];
+
+    memcpy( plist_get_buffer(0), buffer+4, 20);
+
+    bus_master_rpc_async(rpc_callback, address, feature, command, spec );
     return kPending;
 }

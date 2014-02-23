@@ -49,6 +49,31 @@ class MIBTool(cmdln.Cmdln):
 		proj = Project([project], opts.proc, opts.template)
 		proj.create(opts.output)
 
+	def do_mib12(self, subcmd, opts, name):
+		"""${cmd_name}: Create an empty mib12 application module project
+
+		Create a mib12 application module with the given name.  It will
+		apeaar in the momo_modules directory with starter files and a
+		default empty endpoint file
+
+		name should have no spaces in it.
+		
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		fillvars = {
+		'module' : {
+			'name': name
+		}}
+
+		template = RecursiveTemplate('mib12_module', rename=name)
+		template.add(fillvars)
+		template.render(output_dir=MomoPaths().modules)
+
+		path = os.path.join(MomoPaths().modules, name)
+		print "Created mib12 module named %s at:\n%s" % (name, path)
+
 	@cmdln.option('-c', '--chip', help="Chip type that this reflasher corresponds to")
 	@cmdln.option('-o', '--output', help="output hex file to create")
 	def do_build_reflash(self, subcmd, opts, stub_file, payload_file):

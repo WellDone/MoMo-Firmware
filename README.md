@@ -25,3 +25,4 @@ These may all be downloaded and installed automatically using easy_install.
 * pyparsing
 * intelhex
 * BeautifulSoup4
+* pyserial
