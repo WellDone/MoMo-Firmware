@@ -4637,7 +4637,10 @@ package type TQ</description>
 <connect gate="G$1" pin="WPROT" pad="3"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DESCRIPTION" value="M25PX80 1MB Serial Flash" constant="no"/>
+<attribute name="DIGIKEY-PN" value="M25PX80-VMN6TPCT-ND" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -4775,7 +4778,7 @@ package type TQ</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="MCP1702">
+<deviceset name="MCP1702" prefix="U">
 <gates>
 <gate name="G$1" symbol="MCP1702" x="-7.62" y="-5.08"/>
 </gates>
@@ -4787,7 +4790,10 @@ package type TQ</description>
 <connect gate="G$1" pin="VOUT" pad="2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DESCRIPTION" value="MCP1702 2.8V Linear Regulator" constant="no"/>
+<attribute name="DIGIKEY-PN" value="MCP1702T-2802E/CBCT-ND" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -5146,7 +5152,9 @@ package type TQ</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="6 pin r/a male header" constant="no"/>
 <attribute name="DIGIKEY-PN" value="609-3327-ND"/>
+<attribute name="FOOTPRINT" value="Through Hole" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -5197,7 +5205,10 @@ package type TQ</description>
 <connect gate="G$1" pin="VCC" pad="1"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DESCRIPTION" value="PIC 16lf1823 microcontroller" constant="no"/>
+<attribute name="DIGIKEY-PN" value="PIC16LF1823-I/SL-ND" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -5233,7 +5244,12 @@ package type TQ</description>
 <connect gate="G$1" pin="VRTC" pad="26"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DESCRIPTION" value="SIM900 GSM/GPRS Quadband GSM Modem" constant="no"/>
+<attribute name="FOOTPRINT" value="Custom SMD" constant="no"/>
+<attribute name="MANU" value="SIMCOM" constant="no"/>
+<attribute name="MPN" value="SIM900" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -5352,6 +5368,7 @@ package type TQ</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="TPS27081 Highside Load Controller" constant="no"/>
 <attribute name="DIGIKEY-PN" value="296-34970-1-ND" constant="no"/>
 </technology>
 </technologies>
@@ -6175,6 +6192,7 @@ package type TQ</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="MCP73811 Lithium Ion Battery Charge Controller" constant="no"/>
 <attribute name="DIGIKEY-PN" value="MCP73811T-420I/OTCT-ND" constant="no"/>
 </technology>
 </technologies>
