@@ -113,7 +113,7 @@ static inline void mem_wait_while_writing()
 }
 
 // Length is capped at 256, 1 page of flash memory.
-void mem_write(unsigned long addr, const BYTE *data, unsigned int length) 
+void mem_write(uint32 addr, const BYTE *data, unsigned int length) 
 {
   unsigned int i;
 
@@ -133,7 +133,7 @@ void mem_write(unsigned long addr, const BYTE *data, unsigned int length)
   DISABLE_MEMORY();
 }
 
-void mem_read(unsigned long addr, BYTE* buf, unsigned int numBytes) 
+void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes) 
 {
   BYTE* bufEnd = buf+numBytes;
 
@@ -172,8 +172,7 @@ void mem_clear_all()
   mem_wait_while_writing();
 }
 
-//FIXME: This routine will take a long time (for the erase cycle), should it be a synchronous call?
-void mem_clear_subsection(unsigned long addr) 
+void mem_clear_subsection(uint32 addr) 
 {
   mem_wait_while_writing();
   mem_enable_write();
