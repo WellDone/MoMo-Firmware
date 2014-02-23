@@ -671,7 +671,10 @@ package type TQ</description>
 <connect gate="G$1" pin="WPROT" pad="3"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DESCRIPTION" value="M25PX80 1MB Serial Flash" constant="no"/>
+<attribute name="DIGIKEY-PN" value="M25PX80-VMN6TPCT-ND" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -696,7 +699,7 @@ package type TQ</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="MCP1702">
+<deviceset name="MCP1702" prefix="U">
 <gates>
 <gate name="G$1" symbol="MCP1702" x="-7.62" y="-5.08"/>
 </gates>
@@ -708,7 +711,10 @@ package type TQ</description>
 <connect gate="G$1" pin="VOUT" pad="2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DESCRIPTION" value="MCP1702 2.8V Linear Regulator" constant="no"/>
+<attribute name="DIGIKEY-PN" value="MCP1702T-2802E/CBCT-ND" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -830,6 +836,7 @@ package type TQ</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="MCP73811 Lithium Ion Battery Charge Controller" constant="no"/>
 <attribute name="DIGIKEY-PN" value="MCP73811T-420I/OTCT-ND" constant="no"/>
 </technology>
 </technologies>
@@ -10102,7 +10109,9 @@ Source: 008-0260-0_E.pdf</description>
 </part>
 <part name="VCC2" library="supply1" deviceset="VCCIO" device=""/>
 <part name="VCC11" library="supply1" deviceset="VCCIO" device=""/>
-<part name="Q2" library="components" deviceset="P-MOSFET" device=""/>
+<part name="Q2" library="components" deviceset="P-MOSFET" device="">
+<attribute name="DESCRIPTION" value="P Channel MOSFET"/>
+</part>
 <part name="R13" library="rcl" deviceset="R-US_" device="R0603" value="100K">
 <attribute name="DIGIKEY-PN" value="P100KHCT-ND"/>
 </part>
@@ -10113,7 +10122,10 @@ Source: 008-0260-0_E.pdf</description>
 <part name="JP1" library="components" deviceset="MOMO-VERT-6M" device="">
 <attribute name="DIGIKEY-PN" value="S1011EC-06-ND"/>
 </part>
-<part name="JP3" library="pinhead" deviceset="PINHD-1X1" device=""/>
+<part name="JP3" library="pinhead" deviceset="PINHD-1X1" device="">
+<attribute name="DIGIKEY-PN" value=""/>
+<attribute name="POPULATE" value="no"/>
+</part>
 <part name="D2" library="diode" deviceset="DIODE-" device="DO214AC">
 <attribute name="DESCRIPTION" value="Schottky Diode "/>
 <attribute name="DIGIKEY-PN" value="SL13HE3/61TGICT-ND"/>
@@ -10123,7 +10135,7 @@ Source: 008-0260-0_E.pdf</description>
 <attribute name="DIGIKEY-PN-BATT" value="MCP73811T-420I/OTCT-ND"/>
 <attribute name="DIGIKEY-PN-SOLAR" value="MCP73811T-420I/OTCT-ND"/>
 </part>
-<part name="Q1" library="crystal" deviceset="CRYSTAL" device="TC26H">
+<part name="Q1" library="crystal" deviceset="CRYSTAL" device="TC26H" value="32.768khz">
 <attribute name="DIGIKEY-PN" value="535-9034-ND"/>
 </part>
 <part name="R5" library="rcl" deviceset="R-US_" device="R0603" value="10K">
@@ -10150,7 +10162,7 @@ Source: 008-0260-0_E.pdf</description>
 <part name="VCC7" library="supply1" deviceset="VCCINT" device=""/>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
 <part name="C15" library="rcl" deviceset="C-US" device="C0805" value="10 uF">
-<attribute name="DIGIKEY-PN" value="1276-1119-1-ND"/>
+<attribute name="DIGIKEY-PN" value="1276-2893-1-ND"/>
 </part>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
 <part name="C16" library="rcl" deviceset="C-US" device="C0402" value="100nF">
@@ -10158,14 +10170,19 @@ Source: 008-0260-0_E.pdf</description>
 </part>
 <part name="JP4" library="components" deviceset="MOMO-PWR-HOUSED" device=""/>
 <part name="JP5" library="components" deviceset="MOMO-PWR-HOUSED" device=""/>
+<part name="R12" library="rcl" deviceset="R-US_" device="R0603" value="0R">
+<attribute name="DIGIKEY-PN" value="P0.0GCT-ND"/>
+<attribute name="POPULATE" value="no"/>
+</part>
+<part name="VCC12" library="supply1" deviceset="VCCINT" device=""/>
 </parts>
 <sheets>
 <sheet>
 <plain>
-<wire x1="-226.06" y1="127" x2="-226.06" y2="-111.76" width="0.1524" layer="97" style="longdash"/>
-<wire x1="-226.06" y1="-111.76" x2="10.16" y2="-111.76" width="0.1524" layer="97" style="longdash"/>
+<wire x1="-238.76" y1="127" x2="-238.76" y2="-111.76" width="0.1524" layer="97" style="longdash"/>
+<wire x1="-238.76" y1="-111.76" x2="10.16" y2="-111.76" width="0.1524" layer="97" style="longdash"/>
 <wire x1="10.16" y1="-111.76" x2="10.16" y2="127" width="0.1524" layer="97" style="longdash"/>
-<wire x1="10.16" y1="127" x2="-226.06" y2="127" width="0.1524" layer="97" style="longdash"/>
+<wire x1="10.16" y1="127" x2="-238.76" y2="127" width="0.1524" layer="97" style="longdash"/>
 <wire x1="-223.52" y1="-109.22" x2="-223.52" y2="-96.52" width="0.3048" layer="97"/>
 <wire x1="-223.52" y1="-96.52" x2="-223.52" y2="-91.44" width="0.3048" layer="97"/>
 <wire x1="-223.52" y1="-91.44" x2="-223.52" y2="-86.36" width="0.3048" layer="97"/>
@@ -10308,7 +10325,9 @@ and external power.</text>
 </instance>
 <instance part="VCC2" gate="G$1" x="-30.48" y="15.24"/>
 <instance part="VCC11" gate="G$1" x="-30.48" y="63.5"/>
-<instance part="Q2" gate="G$1" x="-78.74" y="-86.36" rot="R90"/>
+<instance part="Q2" gate="G$1" x="-78.74" y="-86.36" rot="R90">
+<attribute name="DESCRIPTION" x="-78.74" y="-86.36" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
 <instance part="R13" gate="G$1" x="-81.28" y="-96.52" rot="R90">
 <attribute name="DIGIKEY-PN" x="-81.28" y="-96.52" size="1.778" layer="96" rot="R90" display="off"/>
 </instance>
@@ -10319,7 +10338,10 @@ and external power.</text>
 <instance part="JP1" gate="G$1" x="-35.56" y="-7.62">
 <attribute name="DIGIKEY-PN" x="-35.56" y="-7.62" size="1.778" layer="96" display="off"/>
 </instance>
-<instance part="JP3" gate="G$1" x="-160.02" y="50.8"/>
+<instance part="JP3" gate="G$1" x="-160.02" y="50.8">
+<attribute name="DIGIKEY-PN" x="-160.02" y="50.8" size="1.778" layer="96" display="off"/>
+<attribute name="POPULATE" x="-160.02" y="50.8" size="1.778" layer="96" display="off"/>
+</instance>
 <instance part="D2" gate="G$1" x="-215.9" y="104.14">
 <attribute name="DIGIKEY-PN" x="-215.9" y="104.14" size="1.778" layer="96" display="off"/>
 <attribute name="DESCRIPTION" x="-215.9" y="104.14" size="1.778" layer="96" display="off"/>
@@ -10364,11 +10386,16 @@ and external power.</text>
 </instance>
 <instance part="JP4" gate="G$1" x="-30.48" y="-99.06"/>
 <instance part="JP5" gate="G$1" x="-30.48" y="-76.2"/>
+<instance part="R12" gate="G$1" x="-231.14" y="76.2" rot="R270">
+<attribute name="POPULATE" x="-231.14" y="76.2" size="1.778" layer="96" rot="R270" display="off"/>
+<attribute name="DIGIKEY-PN" x="-231.14" y="76.2" size="1.778" layer="96" rot="R270" display="off"/>
+</instance>
+<instance part="VCC12" gate="G$1" x="-231.14" y="83.82"/>
 </instances>
 <busses>
 <bus name="SPI:CS,SDI,SDO,SCLK">
 <segment>
-<wire x1="-200.66" y1="2.54" x2="-200.66" y2="-63.5" width="0.762" layer="92"/>
+<wire x1="-200.66" y1="-22.86" x2="-200.66" y2="-63.5" width="0.762" layer="92"/>
 </segment>
 </bus>
 <bus name="SENSOR:ICLK,IDAT,IRQ">
@@ -10605,6 +10632,10 @@ and external power.</text>
 <pinref part="C16" gate="G$1" pin="1"/>
 <wire x1="-205.74" y1="71.12" x2="-198.12" y2="71.12" width="0.1524" layer="91"/>
 <junction x="-198.12" y="71.12"/>
+</segment>
+<segment>
+<pinref part="R12" gate="G$1" pin="1"/>
+<pinref part="VCC12" gate="G$1" pin="VCCINT"/>
 </segment>
 </net>
 <net name="CS" class="0">
@@ -10938,6 +10969,8 @@ and external power.</text>
 <wire x1="-213.36" y1="68.58" x2="-213.36" y2="71.12" width="0.1524" layer="91"/>
 <wire x1="-213.36" y1="71.12" x2="-220.98" y2="71.12" width="0.1524" layer="91"/>
 <junction x="-220.98" y="71.12"/>
+<pinref part="R12" gate="G$1" pin="2"/>
+<wire x1="-220.98" y1="71.12" x2="-231.14" y2="71.12" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$4" class="0">
@@ -10981,8 +11014,21 @@ and external power.</text>
 </sheet>
 </sheets>
 <errors>
-<approved hash="104,1,-193.04,-20.32,U4,VDD,VCCINT,,,"/>
-<approved hash="104,1,-78.74,-20.32,U4,VSS,GND,,,"/>
+<approved hash="104,1,-180.34,-43.18,U5,VCC,MEM_POW,,,"/>
+<approved hash="104,1,-30.48,60.96,JP2,2.8V,VCCIO,,,"/>
+<approved hash="104,1,-27.94,60.96,JP2,4V,V+,,,"/>
+<approved hash="104,1,-30.48,12.7,JP1,2.8V,VCCIO,,,"/>
+<approved hash="104,1,-27.94,12.7,JP1,4V,V+,,,"/>
+<approved hash="104,1,-220.98,71.12,BATT1,+,VBAT,,,"/>
+<approved hash="104,1,-220.98,60.96,BATT1,-,GND,,,"/>
+<approved hash="104,1,-33.02,-96.52,JP4,3.8V,+18V,,,"/>
+<approved hash="104,1,-33.02,-73.66,JP5,3.8V,V+,,,"/>
+<approved hash="110,1,-180.34,-33.02,SDI,MEM_POW,,,,"/>
+<approved hash="110,1,-109.22,96.52,CHG_EN,N$5,,,,"/>
+<approved hash="111,1,-180.34,-45.72,CS,,,,,"/>
+<approved hash="111,1,-109.22,96.52,CHG_EN,,,,,"/>
+<approved hash="113,1,-162.323,52.2012,JP3,,,,,"/>
+<approved hash="113,1,-215.9,104.627,D2,,,,,"/>
 </errors>
 </schematic>
 </drawing>
