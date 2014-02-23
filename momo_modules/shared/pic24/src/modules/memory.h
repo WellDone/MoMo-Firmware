@@ -19,9 +19,12 @@
 
 void configure_SPI();
 
-void mem_write( unsigned long addr, const BYTE* data, unsigned int length );
-void mem_read( unsigned long addr, BYTE* buf, unsigned int numBytes );
-void mem_clear_subsection( unsigned long addr );
+void mem_write(uint32 addr, const BYTE* data, unsigned int length );
+void mem_write_aligned(const uint32 addr, const BYTE* data, unsigned int length);
+void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes );
+
+void mem_clear_subsection(uint32 addr);
 void mem_clear_all();
+
 BYTE mem_status();
 bool mem_test();

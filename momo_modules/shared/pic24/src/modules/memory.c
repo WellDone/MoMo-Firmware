@@ -112,13 +112,31 @@ static inline void mem_wait_while_writing()
   DISABLE_MEMORY();
 }
 
+void mem_write(uint32 addr, const BYTE* data, unsigned int length)
+{
+  uint32 end_addr = addr+length;
+  
+  while (addr < end_addr)
+  {
+    uint32 page_rem = 256 - (addr & 0xFF);
+    uint32 rem = end_addr - addr;
+    unsigned int write_len;
+
+    if (page_rem >= rem)
+      write_len = rem;
+    else
+      write_len = page_rem;
+
+    mem_write_aligned(addr, data, write_len);
+    addr += write_len;
+    data += write_len;
+  }
+}
+
 // Length is capped at 256, 1 page of flash memory.
-void mem_write(uint32 addr, const BYTE *data, unsigned int length) 
+void mem_write_aligned(const uint32 addr, const BYTE *data, unsigned int length) 
 {
   unsigned int i;
-
-  if ( length > 256)
-    length = 256;
 
   mem_wait_while_writing();
   mem_enable_write();
