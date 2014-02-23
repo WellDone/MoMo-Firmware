@@ -1592,7 +1592,7 @@ Source: http://www.osram.convergy.de/ ... LG_LY Q971.pdf</description>
 <attribute name="HEIGHT" value="1.3"/>
 <attribute name="PARTNAME" value="gsm_module"/>
 <attribute name="REVISION" value="3.0"/>
-<attribute name="WIDTH" value="2.7"/>
+<attribute name="WIDTH" value="2.0"/>
 </attributes>
 <variantdefs>
 </variantdefs>
@@ -1797,10 +1797,14 @@ design rules under a new name.</description>
 <element name="FB-1" library="rcl" package="R0805" value="FERRITE" x="14.8844" y="25.9588" smashed="yes" rot="R180">
 <attribute name="NAME" x="11.684" y="27.6352" size="0.8128" layer="25" rot="R270"/>
 <attribute name="DIGIKEY-PN" value="445-1567-1-ND" x="14.8844" y="25.9588" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="DESCRIPTION" value="Ferrite Bead" x="14.8844" y="25.9588" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="FOOTPRINT" value="SMD 0805" x="14.8844" y="25.9588" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
-<element name="CONN" library="components" package="RFJACK" value="RFANTENNA" x="17.3228" y="23.1394" smashed="yes">
+<element name="ANT1" library="components" package="RFJACK" value="RFANTENNA" x="17.3228" y="23.1394" smashed="yes">
 <attribute name="NAME" x="20.4798" y="22.2688" size="0.8128" layer="25" rot="R180"/>
 <attribute name="DIGIKEY-PN" value="J983CT-ND" x="17.3228" y="23.1394" size="1.778" layer="27" display="off"/>
+<attribute name="DESCRIPTION" value="RF antenna connector u.fl " x="17.3228" y="23.1394" size="1.778" layer="27" display="off"/>
+<attribute name="FOOTPRINT" value="Custom SMD" x="17.3228" y="23.1394" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C3" library="rcl" package="C0402" value="100 nF" x="6.858" y="7.3406" smashed="yes" rot="R270">
 <attribute name="NAME" x="6.1976" y="8.8138" size="0.8128" layer="25"/>
@@ -1817,7 +1821,7 @@ design rules under a new name.</description>
 <element name="JP2" library="pinhead" package="1X03" value="" x="43.8658" y="8.255" smashed="yes" rot="R180">
 <attribute name="NAME" x="44.8056" y="6.2484" size="0.8128" layer="25" ratio="10" rot="R180"/>
 <attribute name="VALUE" x="47.6758" y="11.43" size="1.27" layer="27" rot="R180"/>
-<attribute name="DIGIKEY-PN" value="A19430-ND" x="43.8658" y="8.255" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="POPULATE" value="no" x="43.8658" y="8.255" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
 <element name="R5" library="rcl" package="R0603" value="100K" x="14.4526" y="16.3068" smashed="yes" rot="R180">
 <attribute name="NAME" x="15.0876" y="15.367" size="0.8128" layer="25" rot="R180"/>
@@ -1825,18 +1829,24 @@ design rules under a new name.</description>
 </element>
 <element name="JP1" library="components" package="MOMO-EDGE-6M" value="MOMO-EDGE-6M" x="8.89" y="21.336">
 <attribute name="DIGIKEY-PN" value="609-3327-ND" x="8.89" y="21.336" size="1.778" layer="27" display="off"/>
+<attribute name="DESCRIPTION" value="6 pin r/a male header" x="8.89" y="21.336" size="1.778" layer="27" display="off"/>
+<attribute name="FOOTPRINT" value="Through Hole" x="8.89" y="21.336" size="1.778" layer="27" display="off"/>
 </element>
 <element name="U1" library="components" package="SO14" value="PIC16LF1823" x="12.954" y="10.4902" smashed="yes">
 <attribute name="NAME" x="13.97" y="11.1252" size="0.8128" layer="25" rot="R180"/>
 <attribute name="DIGIKEY-PN" value="PIC16LF1823-I/SL-ND" x="12.954" y="10.4902" size="1.778" layer="27" display="off"/>
+<attribute name="DESCRIPTION" value="PIC 16lf1823 microcontroller" x="12.954" y="10.4902" size="1.778" layer="27" display="off"/>
 </element>
 <element name="U2" library="components" package="SOT23-6L" value="TI-HIGHSIDE-PFET" x="14.5542" y="23.3172" smashed="yes" rot="R90">
 <attribute name="DIGIKEY-PN" value="296-34970-1-ND" x="14.5542" y="23.3172" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="NAME" x="14.9606" y="22.8346" size="0.8128" layer="25" rot="R90"/>
+<attribute name="DESCRIPTION" value="TPS27081 Highside Load Controller" x="14.5542" y="23.3172" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
 <element name="U3" library="components" package="SIM900" value="SIM900" x="33.9852" y="24.5872" rot="R90">
 <attribute name="MANU" value="SIMCOM" x="33.9852" y="24.5872" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="SIM900" x="33.9852" y="24.5872" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DESCRIPTION" value="SIM900 GSM/GPRS Quadband GSM Modem" x="33.9852" y="24.5872" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="FOOTPRINT" value="Custom SMD" x="33.9852" y="24.5872" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
 <element name="C5" library="components" package="2917" value="330 uF" x="14.1732" y="31.623" smashed="yes" rot="R270">
 <attribute name="DIGIKEY-PN" value="399-4053-1-ND" x="14.1732" y="31.623" size="1.778" layer="27" rot="R270" display="off"/>
@@ -1846,6 +1856,8 @@ design rules under a new name.</description>
 <attribute name="NAME" x="7.112" y="34.6964" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="6.985" y="34.3408" size="1.27" layer="27"/>
 <attribute name="DIGIKEY-PN" value="475-2709-1-ND" x="8.255" y="36.2458" size="0.8128" layer="27" rot="R270" display="off"/>
+<attribute name="DESCRIPTION" value="Green Chip LED" x="8.255" y="36.2458" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="FOOTPRINT" value="SMD 0603" x="8.255" y="36.2458" size="1.778" layer="27" rot="R270" display="off"/>
 </element>
 <element name="R6" library="rcl" package="R0603" value="470R" x="18.7706" y="36.2712" smashed="yes" rot="R180">
 <attribute name="NAME" x="19.2532" y="35.3314" size="0.8128" layer="25" rot="R180"/>
@@ -1860,6 +1872,9 @@ design rules under a new name.</description>
 <element name="JP3" library="pinhead" package="1X07" value="" x="52.1208" y="22.86" smashed="yes" rot="R270">
 <attribute name="NAME" x="49.6824" y="28.5242" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="VALUE" x="48.9458" y="31.75" size="1.27" layer="27" rot="R270"/>
+<attribute name="DIGIKEY-PN" value="S1012EC-07-ND" x="52.1208" y="22.86" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="DESCRIPTION" value="7 pin vertical male header" x="52.1208" y="22.86" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="FOOTPRINT" value="Through Hole" x="52.1208" y="22.86" size="1.778" layer="27" rot="R270" display="off"/>
 </element>
 </elements>
 <signals>
@@ -1944,8 +1959,8 @@ design rules under a new name.</description>
 </signal>
 <signal name="GND">
 <contactref element="R3" pad="1"/>
-<contactref element="CONN" pad="UNUSED1"/>
-<contactref element="CONN" pad="UNUSED2"/>
+<contactref element="ANT1" pad="UNUSED1"/>
+<contactref element="ANT1" pad="UNUSED2"/>
 <contactref element="C3" pad="2"/>
 <contactref element="JP2" pad="3"/>
 <contactref element="R5" pad="1"/>
@@ -2281,7 +2296,7 @@ design rules under a new name.</description>
 <wire x1="45.9852" y1="31.496" x2="45.9852" y2="31.5872" width="0.254" layer="1"/>
 </signal>
 <signal name="N$7">
-<contactref element="CONN" pad="ANTENNA"/>
+<contactref element="ANT1" pad="ANTENNA"/>
 <contactref element="U3" pad="60"/>
 <wire x1="20.1178" y1="24.6269" x2="20.1178" y2="24.5872" width="0.1524" layer="1"/>
 <wire x1="20.1178" y1="24.5872" x2="21.9852" y2="24.5872" width="0.1524" layer="1"/>

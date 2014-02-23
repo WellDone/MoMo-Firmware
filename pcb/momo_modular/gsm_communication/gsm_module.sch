@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.4">
+<eagle version="6.5.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -411,7 +411,9 @@ body 3.9 mm/JEDEC MS-012AC</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="6 pin r/a male header" constant="no"/>
 <attribute name="DIGIKEY-PN" value="609-3327-ND"/>
+<attribute name="FOOTPRINT" value="Through Hole" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -440,7 +442,10 @@ body 3.9 mm/JEDEC MS-012AC</description>
 <connect gate="G$1" pin="VCC" pad="1"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DESCRIPTION" value="PIC 16lf1823 microcontroller" constant="no"/>
+<attribute name="DIGIKEY-PN" value="PIC16LF1823-I/SL-ND" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -460,6 +465,7 @@ body 3.9 mm/JEDEC MS-012AC</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="TPS27081 Highside Load Controller" constant="no"/>
 <attribute name="DIGIKEY-PN" value="296-34970-1-ND" constant="no"/>
 </technology>
 </technologies>
@@ -497,7 +503,12 @@ body 3.9 mm/JEDEC MS-012AC</description>
 <connect gate="G$1" pin="VRTC" pad="26"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DESCRIPTION" value="SIM900 GSM/GPRS Quadband GSM Modem" constant="no"/>
+<attribute name="FOOTPRINT" value="Custom SMD" constant="no"/>
+<attribute name="MANU" value="SIMCOM" constant="no"/>
+<attribute name="MPN" value="SIM900" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -8119,13 +8130,17 @@ Source: www.kingbright.com</description>
 </part>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
 <part name="FB-1" library="rcl" deviceset="R-US_" device="R0805" value="FERRITE">
+<attribute name="DESCRIPTION" value="Ferrite Bead"/>
 <attribute name="DIGIKEY-PN" value="445-1567-1-ND"/>
+<attribute name="FOOTPRINT" value="SMD 0805"/>
 </part>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
 <part name="VDD2" library="supply1" deviceset="VDD" device=""/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
-<part name="CONN" library="components" deviceset="RFANTENNA" device="">
+<part name="ANT1" library="components" deviceset="RFANTENNA" device="">
+<attribute name="DESCRIPTION" value="RF antenna connector u.fl "/>
 <attribute name="DIGIKEY-PN" value="J983CT-ND"/>
+<attribute name="FOOTPRINT" value="Custom SMD"/>
 </part>
 <part name="GND13" library="supply1" deviceset="GND" device=""/>
 <part name="C3" library="rcl" deviceset="C-US" device="C0402" value="100 nF">
@@ -8156,14 +8171,19 @@ Source: www.kingbright.com</description>
 <part name="C5" library="components" deviceset="TANTALUM_CAP" device="" value="330 uF"/>
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
 <part name="LED1" library="led" deviceset="LED" device="CHIPLED_0603">
+<attribute name="DESCRIPTION" value="Green Chip LED"/>
 <attribute name="DIGIKEY-PN" value="475-2709-1-ND"/>
+<attribute name="FOOTPRINT" value="SMD 0603"/>
 </part>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
 <part name="R6" library="rcl" deviceset="R-US_" device="R0603" value="470R"/>
 <part name="C6" library="rcl" deviceset="C-US" device="C0805" value="4.7 uF">
 <attribute name="DIGIKEY-PN" value="1276-1259-1-ND"/>
 </part>
-<part name="JP3" library="pinhead" deviceset="PINHD-1X7" device=""/>
+<part name="JP3" library="pinhead" deviceset="PINHD-1X7" device="">
+<attribute name="DESCRIPTION" value="7 pin vertical male header"/>
+<attribute name="FOOTPRINT" value="Through Hole"/>
+</part>
 <part name="GND8" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
@@ -8226,12 +8246,16 @@ Source: www.kingbright.com</description>
 <instance part="GND3" gate="1" x="106.68" y="66.04"/>
 <instance part="FB-1" gate="G$1" x="116.84" y="91.44">
 <attribute name="DIGIKEY-PN" x="116.84" y="91.44" size="1.778" layer="96" display="off"/>
+<attribute name="DESCRIPTION" x="116.84" y="91.44" size="1.778" layer="96" display="off"/>
+<attribute name="FOOTPRINT" x="116.84" y="91.44" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="GND5" gate="1" x="132.08" y="76.2"/>
 <instance part="VDD2" gate="G$1" x="152.4" y="40.64"/>
 <instance part="GND7" gate="1" x="172.72" y="40.64"/>
-<instance part="CONN" gate="G$1" x="185.42" y="-10.16">
+<instance part="ANT1" gate="G$1" x="185.42" y="-10.16">
 <attribute name="DIGIKEY-PN" x="185.42" y="-10.16" size="1.778" layer="96" display="off"/>
+<attribute name="DESCRIPTION" x="185.42" y="-10.16" size="1.778" layer="96" display="off"/>
+<attribute name="FOOTPRINT" x="185.42" y="-10.16" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="GND13" gate="1" x="185.42" y="-12.7"/>
 <instance part="C3" gate="G$1" x="48.26" y="86.36">
@@ -8263,13 +8287,18 @@ Source: www.kingbright.com</description>
 <instance part="GND9" gate="1" x="144.78" y="76.2"/>
 <instance part="LED1" gate="G$1" x="162.56" y="88.9">
 <attribute name="DIGIKEY-PN" x="162.56" y="88.9" size="1.778" layer="96" display="off"/>
+<attribute name="DESCRIPTION" x="162.56" y="88.9" size="1.778" layer="96" display="off"/>
+<attribute name="FOOTPRINT" x="162.56" y="88.9" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="GND10" gate="1" x="162.56" y="71.12"/>
 <instance part="R6" gate="G$1" x="162.56" y="78.74" rot="R90"/>
 <instance part="C6" gate="G$1" x="162.56" y="50.8" rot="R90">
 <attribute name="DIGIKEY-PN" x="162.56" y="50.8" size="1.778" layer="96" rot="R90" display="off"/>
 </instance>
-<instance part="JP3" gate="A" x="241.3" y="10.16"/>
+<instance part="JP3" gate="A" x="241.3" y="10.16">
+<attribute name="DESCRIPTION" x="241.3" y="10.16" size="1.778" layer="96" display="off"/>
+<attribute name="FOOTPRINT" x="241.3" y="10.16" size="1.778" layer="96" display="off"/>
+</instance>
 <instance part="GND8" gate="1" x="233.68" y="-2.54"/>
 </instances>
 <busses>
@@ -8355,7 +8384,7 @@ Source: www.kingbright.com</description>
 <junction x="172.72" y="45.72"/>
 </segment>
 <segment>
-<pinref part="CONN" gate="G$1" pin="SHIELD"/>
+<pinref part="ANT1" gate="G$1" pin="SHIELD"/>
 <pinref part="GND13" gate="1" pin="GND"/>
 </segment>
 <segment>
@@ -8535,7 +8564,7 @@ Source: www.kingbright.com</description>
 <net name="N$7" class="0">
 <segment>
 <wire x1="180.34" y1="0" x2="180.34" y2="-7.62" width="0.1524" layer="91"/>
-<pinref part="CONN" gate="G$1" pin="PIN"/>
+<pinref part="ANT1" gate="G$1" pin="PIN"/>
 <wire x1="180.34" y1="-7.62" x2="185.42" y2="-7.62" width="0.1524" layer="91"/>
 <pinref part="U3" gate="G$1" pin="ANT"/>
 </segment>
