@@ -28,7 +28,7 @@ def build_unittest(test_files, name, chip, type, summary_env, cmds=None):
 	elif type == "application":
 		orig_name = "mib12_app_module_symbols"
 		mib12conf.config_env_for_exec(env, chip)
-		test_harness = ['../test/pic12/app_harness/mib12_app_unittest.c', '../test/pic12/gpsim_logging/test_log.as']
+		test_harness = ['../test/pic12/app_harness/mib12_app_unittest.c', '../test/pic12/app_harness/mib12_test_api.as', '../test/pic12/gpsim_logging/test_log.as']
 	else:
 		raise ValueError("Invalid unit test type specified: %s.  Should be executive or application" % type)
 
@@ -87,7 +87,7 @@ def build_unittest(test_files, name, chip, type, summary_env, cmds=None):
 
 	raw_log_path = os.path.join(outdir, build_logfile_name(env))
 
-	raw_results = env.gpsim_run(raw_log_path, outscript)
+	raw_results = env.gpsim_run(raw_log_path, [outscript, outhex]) #include outhex so that scons knows to rerun this command when the hex changes
 	formatted_log = env.Command([build_formatted_log_name(env), build_status_name(env)], [raw_results, symtab], action=process_unittest_log)
 
 	#Add this unit test to the unit test summary command

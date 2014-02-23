@@ -175,7 +175,7 @@ class PVCommands(cmdln.Cmdln):
 
 		try:
 			out = open(opts.out, "w")
-			writer = csv.writer(out)
+			writer = csv.writer(out, lineterminator='\n')
 		except IOError:
 			log.close()
 			print "Error: could not create output file: %s" % opts.out

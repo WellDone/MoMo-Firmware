@@ -22,6 +22,7 @@
 #define kNumFlashRows				(kFlashMemorySize / kFlashRowSize)
 #define kMIBStructRow				((2048 / kFlashRowSize) - 1)
 
+//Check and make sure that we are running on a platform that we support
 #if (kFlashRowSize != 16) && (kFlashRowSize != 32)
 #error Currently only 16 byte and 32 byte flash memory rows are supported
 #endif

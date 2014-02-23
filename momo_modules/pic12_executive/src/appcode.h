@@ -5,15 +5,17 @@
 
 #include "constants.h"
 
-const char app_init_vector @ kAppInitAddress;
-const char app_interrupt_vector @ kAppInterruptAddress;
-const char app_task_vector @ kAppTaskAddress;
+extern void call_app_init();	
+extern void call_app_interrupt();
+extern void call_app_task();
 
-#define call_app_init()			asm("call _app_init_vector")
-#define call_app_interrupt() 	asm("call _app_interrupt_vector")
-#define call_app_task()			asm("call _app_task_vector")
+//Only call pagesel when there are multiple rom pages
+#ifdef kMultipageDevice
 #define reset_page()			asm("pagesel($)")
+#else
+#define reset_page()
+#endif
 
-#define sleep()  asm("sleep")
+#define sleep()  				asm("sleep")
 
 #endif

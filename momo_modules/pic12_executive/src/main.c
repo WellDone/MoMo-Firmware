@@ -3,7 +3,6 @@
 #include "bootloader.h"
 #include "appcode.h"
 #include "watchdog.h"
-#include "registration.h"
 #include "mib_definitions.h"
 
 //Configuration Words

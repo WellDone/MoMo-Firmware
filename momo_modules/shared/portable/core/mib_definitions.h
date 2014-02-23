@@ -42,12 +42,12 @@
  * mib_revision - the version of the mib protocol that this module speaks
  * feature_count - the number of features supported by the module
  * flags - a bit array of special interest flags about the module
- * name - an 8 byte string with a user readable name for the module
+ * name - a 7 byte string with a user readable name for the module
  */
 
 #ifndef __DEFINES_ONLY__
 
-//Module descriptor size: 15 bytes
+//Module descriptor size: 11 bytes
 typedef struct 
 {
 	uint8	hardware_type;
@@ -60,14 +60,14 @@ typedef struct
 } momo_module_descriptor;
 #endif
 
-#define kModuleDescriptorSize 13
+#define kModuleDescriptorSize 11
 
 //Macros for defining parameter lists
 #define plist_ints(count)		((count&0b11) << 5)
 #define plist_buffer()          0b10000000
 
 #define plist_spec_empty()      0
-#define plist_spec(ints,buffer) (((buffer)? plist_buffer() : 0) | plist_ints(ints) )
+#define plist_spec(ints,buffer) (((buffer&0b1)<<7) | plist_ints(ints))
 #define plist_spec_mask         0b11100000
 #define plist_buffer_mask		0b00011111
 

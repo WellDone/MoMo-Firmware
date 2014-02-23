@@ -94,7 +94,7 @@ uint8 log_logsamples()
 	sector[sector_off++] = 0x99;
 
 	sample_v1();
-	sector[sector_off++] = (1 << 7) | (adc_result & 0xFF);
+	sector[sector_off++] = (adc_result & 0xFF);
 	sector[sector_off++] = (adc_result >> 8) & 0xFF;
 
 	sample_v2();

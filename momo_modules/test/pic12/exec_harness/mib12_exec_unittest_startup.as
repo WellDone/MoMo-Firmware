@@ -10,6 +10,8 @@ goto _initialize
 goto _interrupt_handler
 goto _task
 
+PSECT mibblock,global,class=CODE,delta=2
+
 intlevel1:
 
 PSECT powerup,global,class=CODE,delta=2

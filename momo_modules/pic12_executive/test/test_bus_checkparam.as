@@ -1,6 +1,7 @@
 ;Name: test_bus_checkparam
 ;Targets: all
 ;Type: executive
+;Additional: support_no_appmodule.as
 ;Description:Test to ensure tha mib bus slave handler is working correctly.  Make
 ;sure that when we receive a mib command with arguments that we correctly calculate
 ;their length.
