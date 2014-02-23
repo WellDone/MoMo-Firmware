@@ -16,7 +16,7 @@ static unsigned int module_count = 0;
 void con_init()
 {
 	BUS_ENABLE_TRIS = 1;
-	BUS_ENABLE_DIG = 0;
+	BUS_ENABLE_DIG = 1;
 	BUS_ENABLE_LAT = 1;
 }
 
