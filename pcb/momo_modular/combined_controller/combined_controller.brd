@@ -1696,7 +1696,7 @@ Based on the following sources:
 <attributes>
 <attribute name="BATT" value="ASSY-VARIANT"/>
 <attribute name="EXTPOWER" value="ASSY-VARIANT"/>
-<attribute name="HEIGHT" value="1.25"/>
+<attribute name="HEIGHT" value="2"/>
 <attribute name="PARTNAME" value="Combined Controller"/>
 <attribute name="REVISION" value="3.0"/>
 <attribute name="SOLAR" value="ASSY-VARIANT"/>
