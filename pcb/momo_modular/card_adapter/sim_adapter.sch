@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.4">
+<eagle version="6.5.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -6232,8 +6232,12 @@ Source: AVX .. aphvc.pdf</description>
 <part name="JP1" library="components" deviceset="SIMHOLDER-8PIN" device="HING">
 <attribute name="DIGIKEY-PN-SD" value=""/>
 </part>
-<part name="R1" library="rcl" deviceset="R-US_" device="R0603" value="10K"/>
-<part name="C1" library="rcl" deviceset="C-US" device="C0402" value="100 nF"/>
+<part name="R1" library="rcl" deviceset="R-US_" device="R0603" value="10K">
+<attribute name="DIGIKEY-PN" value="P10.0KHCT-ND"/>
+</part>
+<part name="C1" library="rcl" deviceset="C-US" device="C0402" value="100 nF">
+<attribute name="DIGIKEY-PN" value="445-1265-1-ND"/>
+</part>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
@@ -6243,7 +6247,7 @@ Source: AVX .. aphvc.pdf</description>
 <part name="GND4" library="supply1" deviceset="GND" device=""/>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
 <part name="JP3" library="components" deviceset="SDCARD-HOLDER" device="">
-<attribute name="DIGIKEY-PN-SIM" value=""/>
+<attribute name="POPULATE-SIM" value="no"/>
 </part>
 <part name="JP2" library="pinhead" deviceset="PINHD-1X7" device=""/>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
@@ -6262,8 +6266,12 @@ Source: AVX .. aphvc.pdf</description>
 <instance part="JP1" gate="G$1" x="93.98" y="106.68">
 <attribute name="DIGIKEY-PN-SD" x="93.98" y="106.68" size="1.778" layer="96" display="off"/>
 </instance>
-<instance part="R1" gate="G$1" x="109.22" y="83.82" rot="R270"/>
-<instance part="C1" gate="G$1" x="53.34" y="83.82"/>
+<instance part="R1" gate="G$1" x="109.22" y="83.82" rot="R270">
+<attribute name="DIGIKEY-PN" x="109.22" y="83.82" size="1.778" layer="96" rot="R270" display="off"/>
+</instance>
+<instance part="C1" gate="G$1" x="53.34" y="83.82">
+<attribute name="DIGIKEY-PN" x="53.34" y="83.82" size="1.778" layer="96" display="off"/>
+</instance>
 <instance part="GND1" gate="1" x="91.44" y="96.52"/>
 <instance part="GND2" gate="1" x="109.22" y="76.2"/>
 <instance part="GND3" gate="1" x="22.86" y="93.98"/>
@@ -6273,7 +6281,7 @@ Source: AVX .. aphvc.pdf</description>
 <instance part="GND4" gate="1" x="53.34" y="76.2"/>
 <instance part="GND5" gate="1" x="86.36" y="55.88"/>
 <instance part="JP3" gate="G$1" x="96.52" y="149.86">
-<attribute name="DIGIKEY-PN-SIM" x="96.52" y="149.86" size="1.778" layer="96" display="off"/>
+<attribute name="POPULATE-SIM" x="96.52" y="149.86" size="1.778" layer="96" display="off"/>
 </instance>
 <instance part="JP2" gate="A" x="12.7" y="111.76" rot="R180"/>
 <instance part="GND6" gate="1" x="104.14" y="127"/>
@@ -6349,13 +6357,6 @@ Source: AVX .. aphvc.pdf</description>
 <wire x1="22.86" y1="104.14" x2="15.24" y2="104.14" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$1" class="0">
-<segment>
-<pinref part="JP1" gate="G$1" pin="SW2"/>
-<pinref part="R1" gate="G$1" pin="1"/>
-<wire x1="109.22" y1="96.52" x2="109.22" y2="88.9" width="0.1524" layer="91"/>
-</segment>
-</net>
 <net name="IO1" class="0">
 <segment>
 <pinref part="JP3" gate="G$1" pin="CS"/>
@@ -6366,6 +6367,16 @@ Source: AVX .. aphvc.pdf</description>
 <pinref part="JP2" gate="A" pin="2"/>
 <wire x1="33.02" y1="106.68" x2="15.24" y2="106.68" width="0.1524" layer="91"/>
 <label x="20.32" y="106.68" size="1.778" layer="95"/>
+</segment>
+<segment>
+<wire x1="83.82" y1="101.6" x2="81.28" y2="101.6" width="0.1524" layer="91"/>
+<wire x1="81.28" y1="101.6" x2="81.28" y2="88.9" width="0.1524" layer="91"/>
+<pinref part="JP1" gate="G$1" pin="SW2"/>
+<pinref part="R1" gate="G$1" pin="1"/>
+<wire x1="109.22" y1="96.52" x2="109.22" y2="88.9" width="0.1524" layer="91"/>
+<wire x1="81.28" y1="88.9" x2="109.22" y2="88.9" width="0.1524" layer="91"/>
+<junction x="109.22" y="88.9"/>
+<label x="96.52" y="88.9" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="IO2" class="0">
@@ -6438,6 +6449,7 @@ Source: AVX .. aphvc.pdf</description>
 <pinref part="JP1" gate="G$1" pin="SW1"/>
 <wire x1="106.68" y1="96.52" x2="106.68" y2="91.44" width="0.1524" layer="91"/>
 <wire x1="86.36" y1="91.44" x2="106.68" y2="91.44" width="0.1524" layer="91"/>
+<label x="96.52" y="91.44" size="1.778" layer="95"/>
 </segment>
 <segment>
 <pinref part="JP3" gate="G$1" pin="CDET"/>
