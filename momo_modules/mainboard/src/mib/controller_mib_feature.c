@@ -5,11 +5,31 @@
 #include "mib_definitions.h"
 #include "mib_feature_definition.h"
 #include "adc.h"
+#include "common.h"
 
 #define MAX_MODULES 8
 #define MODULE_BASE_ADDRESS 11
+
 static momo_module_descriptor the_modules[MAX_MODULES];
 static unsigned int module_count = 0;
+
+void con_init()
+{
+	BUS_ENABLE_TRIS = 1;
+	BUS_ENABLE_DIG = 0;
+	BUS_ENABLE_LAT = 1;
+}
+
+void con_reset_bus()
+{
+	BUS_ENABLE_LAT = 1;
+	BUS_ENABLE_TRIS = 0;
+
+	module_count = 0;
+	DELAY_MS(1);
+
+	BUS_ENABLE_TRIS = 1;
+}
 
 void get_module_count(void)
 {	
@@ -83,6 +103,11 @@ void get_battery_voltage()
 	bus_slave_setreturn( pack_return_status( kNoMIBError, 2));
 }
 
+void reset_bus()
+{
+
+}
+
 void test_memory()
 {
 	mem_clear_subsection(16);
@@ -94,6 +119,7 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x01, get_module_count, plist_spec_empty() },
 	{0x02, describe_module, plist_spec(1,false) },
 	{0x03, get_battery_voltage, plist_spec_empty()},
-	{0x04, test_memory, plist_spec_empty()}
+	{0x04, test_memory, plist_spec_empty()},
+	{0x05, con_reset_bus, plist_spec_empty()}
 };
 DEFINE_MIB_FEATURE(controller);

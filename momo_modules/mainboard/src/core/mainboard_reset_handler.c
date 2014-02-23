@@ -11,6 +11,7 @@
 #include "mainboard_mib_commands.h"
 #include "report_manager.h"
 #include "memory_manager.h"
+#include "controller_mib_feature.h"
 
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
@@ -22,8 +23,9 @@ void handle_all_resets_before(unsigned int type)
 
     taskloop_init();
     scheduler_init();
+    
     bus_init(kMIBControllerAddress);
-    //battery_init();
+    con_init();
 
     init_mainboard_mib();
     flash_memory_init();
