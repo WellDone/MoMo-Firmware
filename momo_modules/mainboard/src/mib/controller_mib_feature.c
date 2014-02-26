@@ -5,6 +5,7 @@
 #include "mib_definitions.h"
 #include "mib_feature_definition.h"
 #include "adc.h"
+#include "flashblock.h"
 #include "common.h"
 
 #define MAX_MODULES 8
@@ -12,6 +13,7 @@
 
 static momo_module_descriptor the_modules[MAX_MODULES];
 static unsigned int module_count = 0;
+static flash_block_info fb_info;
 
 void con_init()
 {
@@ -137,6 +139,34 @@ void erase_subsection_rpc()
 	bus_slave_setreturn(pack_return_status(kNoMIBError, 0));
 }
 
+void test_fb_init()
+{
+	uint16 sub = plist_get_int16(0);
+	uint16 val;
+	
+	val = fb_init(&fb_info, sub, 20);
+
+	plist_set_int16(0, val);
+	plist_set_int16(1, fb_info.magic);
+	plist_set_int16(2, fb_info.subsector);
+	plist_set_int16(3, fb_info.current);
+	plist_set_int16(4, fb_info.item_size);
+	plist_set_int16(5, fb_info.bin_shift);
+	bus_slave_setreturn(pack_return_status(kNoMIBError, 12));
+}
+
+void test_fb_write()
+{
+	fb_write(&fb_info, plist_get_buffer(0));
+	bus_slave_return_int16(fb_info.current);
+}
+
+void test_fb_read()
+{
+	fb_read(&fb_info, plist_get_buffer(0));
+	bus_slave_setreturn(pack_return_status(kNoMIBError, 20));
+}
+
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x00, register_module, plist_spec(0,true) },
@@ -145,6 +175,9 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x03, read_flash_rpc, plist_spec(2, false)},
 	{0x04, write_flash_rpc, plist_spec(2, true)},
 	{0x05, con_reset_bus, plist_spec_empty()},
-	{0x06, erase_subsection_rpc, plist_spec(2, false)}
+	{0x06, erase_subsection_rpc, plist_spec(2, false)},
+	{0x07, test_fb_init, plist_spec(1, false)},
+	{0x08, test_fb_write, plist_spec(0, true)},
+	{0x09, test_fb_read, plist_spec(0, false)}
 };
 DEFINE_MIB_FEATURE(controller);
