@@ -64,8 +64,8 @@ typedef enum
 } FBStatus;
 
 FBStatus 		fb_init(flash_block_info *info, unsigned int subsector, unsigned char size);
-void 			fb_write(flash_block_info *info, const unsigned char *data);
-void 			fb_read(flash_block_info *info, unsigned char *data);
+void 			fb_write(flash_block_info *info, const void *data);
+void 			fb_read(flash_block_info *info, void *data);
 int 			fb_count(flash_block_info *info);
 
 //Utility functions for internal use

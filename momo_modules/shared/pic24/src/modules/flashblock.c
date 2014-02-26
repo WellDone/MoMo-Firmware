@@ -135,7 +135,7 @@ void fb_updatebitmap(flash_block_info *info)
 	mem_write_aligned(addr, (BYTE*)&bm_value, 1);
 }
 
-void fb_write(flash_block_info *info, const unsigned char *data)
+void fb_write(flash_block_info *info, const void *data)
 {
 	//Compute address of current 
 	uint32 addr = info->current;
@@ -160,7 +160,7 @@ void fb_write(flash_block_info *info, const unsigned char *data)
 	fb_updatebitmap(info);
 }
 
-void fb_read(flash_block_info *info, unsigned char *data)
+void fb_read(flash_block_info *info, void *data)
 {
 	//Compute address of current - 1 (the last written data)
 	//N.B. data read if the flash_block is empty will be nonsense.
