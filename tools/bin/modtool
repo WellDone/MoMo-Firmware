@@ -11,6 +11,7 @@ from pymomo.commander.meta import *
 from pymomo.commander.exceptions import *
 import cmdln
 from colorama import Fore, Style
+import pytest
 
 class ModTool(cmdln.Cmdln):
 	name = 'modtool'
@@ -29,6 +30,24 @@ class ModTool(cmdln.Cmdln):
 		print "Listing attached modules"
 		for i, mod in enumerate(mods):
 			print "%d: %s at address %d" % (i, mod.name, mod.address)
+
+	def do_test(self, subcmd, opts, *tests):
+		"""${cmd_name}: Run hardware tests on attached MoMo device
+
+		Call with list as the only argument to see all of the different
+		tests that are available.  Call with no arguments to run all tests.
+		Call with test class names to run only those tests.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		if len(tests) == 1 and tests[0] == 'list':
+			test_string = '--collect-only'
+		else:
+			test_string = " ".join(map(lambda x: "-k " + x, tests))
+
+		pytest.main('--pyargs pymomo %s' % test_string)
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_info(self, subcmd, opts, index):
