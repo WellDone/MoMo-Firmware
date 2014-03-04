@@ -13,14 +13,6 @@ static uint8 	current_bucket;
 static firmware_cache_state fc_state;
 static flash_block_info		fc_flashlog;
 
-//Controller bucket must be placed directly after other buckets for the math 
-//in push_firmware_start to work.
-#define kFirmwareBucketBaseAddress  (MEMORY_SECTION_ADDR(kMIBFirmwareSector))
-#define MAX_FIRMWARE_SUBSECTIONS	4
-#define MAX_FIRMWARE_SIZE           ((uint32)MEMORY_SUBSECTION_SIZE * MAX_FIRMWARE_SUBSECTIONS)
-#define MAX_CONTROLLER_SUBSECTIONS	16
-#define kControllerBucketAddress  	(MEMORY_SECTION_ADDR(kControllerFirmwareSector))
-
 static const uint8 				bucket_subsectors[kNumFirmwareBuckets] = { \
 	MEMORY_SECTION_TO_SUB(kMIBFirmwareSector) + 0, \
 	MEMORY_SECTION_TO_SUB(kMIBFirmwareSector) + 1, \
@@ -191,7 +183,7 @@ void fc_pull(void)
 	bus_slave_set_returnbuffer_length( ret_size );
 }
 
-void fc_get_count(void)
+void fc_getcount(void)
 {
 	unsigned int con = 0;
 
@@ -228,7 +220,7 @@ DEFINE_MIB_FEATURE_COMMANDS(firmware_cache)
 	{0x02, fc_cancelpush, plist_spec_empty() },
 	{0x03, fc_getinfo, plist_spec( 1, false ) },
 	{0x04, fc_pull, plist_spec( 2, false ) },
-	{0x05, fc_get_count, plist_spec_empty() },
+	{0x05, fc_getcount, plist_spec_empty() },
 	{0x0A, fc_clear, plist_spec_empty() }
 };
 

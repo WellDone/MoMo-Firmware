@@ -10,6 +10,14 @@
 #define kControllerBackupBucket			(kControllerFirmwareBucket+1)
 #define kNumFirmwareBuckets         	(kNumModuleFirmwareBuckets + kNumControllerFirmwareBuckets)
 
+//Controller bucket must be placed directly after other buckets for the math 
+//in push_firmware_start to work.
+#define kFirmwareBucketBaseAddress  (MEMORY_SECTION_ADDR(kMIBFirmwareSector))
+#define MAX_FIRMWARE_SUBSECTIONS	4
+#define MAX_FIRMWARE_SIZE           ((uint32)MEMORY_SUBSECTION_SIZE * MAX_FIRMWARE_SUBSECTIONS)
+#define MAX_CONTROLLER_SUBSECTIONS	16
+#define kControllerBucketAddress  	(MEMORY_SECTION_ADDR(kControllerFirmwareSector))
+
 //6 bytes
 typedef struct 
 {
