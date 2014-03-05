@@ -43,6 +43,8 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
     _TRISB7 = 0;
 	configure_SPI();
 
+	DELAY_MS(200);
+
 	//Read in all of the rows from flash and program ourselves
 	for (i=0; i<kNumFirmwareRows; ++i)
 	{
@@ -101,7 +103,7 @@ void _BOOTLOADER_CODE patch_reset_vector(unsigned char *row_buffer, uint32 low, 
 	row_buffer[5] = (high >> 16) & 0xFF;
 }
 
-void goto_address(unsigned int addr)
+void _BOOTLOADER_CODE goto_address(unsigned int addr)
 {
 	asm volatile ("goto w0");
 }
