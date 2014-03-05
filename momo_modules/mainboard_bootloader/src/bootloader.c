@@ -43,7 +43,8 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
     _TRISB7 = 0;
 	configure_SPI();
 
-	DELAY_MS(200);
+	//Give the flash memory time to warm up. (it needs at least 30 us after VCC reaches min value)
+	DELAY_MS(1);
 
 	//Read in all of the rows from flash and program ourselves
 	for (i=0; i<kNumFirmwareRows; ++i)
