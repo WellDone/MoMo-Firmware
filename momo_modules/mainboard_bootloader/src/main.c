@@ -7,7 +7,7 @@
 #pragma config GCP = OFF                // General Segment Code Flash Code Protection bit (No protection)
 
 // FOSCSEL
-#pragma config FNOSC = FRCPLL           // Oscillator Select (8 MHz FRC oscillator (FRC)) with PLL
+#pragma config FNOSC = FRC           // Oscillator Select (8 MHz FRC oscillator (FRC)) with PLL
 #pragma config IESO  = OFF              // Internal External Switch Over bit (Internal External Switchover mode disabled (Two-Speed Start-up disabled))
 
 // FOSC
@@ -47,14 +47,7 @@
 
 int _BOOTLOADER_CODE main(void)
 {
-  configure_SPI();
-
-  if ( BootloadPending() )
-  {
-  	if ( !BootloadApplicationFirmware() )
-      return -1; //TODO: Log the error, then reset anyway
-    asm_reset();
-  	return -1;
-  }
-  return RunBootloadedApplication();
+	configure_SPI();
+	zero_application();
+	return 0;
 }
