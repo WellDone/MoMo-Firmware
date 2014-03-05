@@ -1,20 +1,27 @@
-/*bootloader.h
- *
- * An I2C command processor with integrated reflashing capabilities.  The command processing is integrated here
- * so that the i2c bootloader is self-contained and can safely reflash the rest of memory.  Commands that are 
- * not handled natively in the bootloader code (i.e. all commands except the ones pertaining to reflashing) are 
- * passed to the application code for processing
- */
-
 #ifndef __bootloader_h__
 #define __bootloader_h__
 
-#define _BOOTLOADER_CODE 	__section(".bootloader")
+#define _BOOTLOADER_CODE __attribute__((section(".bootloader")))
 
-#define kPic24FirmwareSubsection1 0x1000
-#define kPic24FirmwareSubsection2 0x2000
-#define kPic24FirmwareSubsection3 0x3000
-#define kPic24FirmwareSubsection4 0x4000
-#define kPic24FirmwareSubsection5 0x5000
+#define APPLICATION_PROGRAM_ADDRESS            0xFF0000
+
+#define BOOTLOADER_MAX_FIRMWARE_SIZE           0x4000 //16kb for pic24f16ka101
+#define BOOTLOADER_FLASH_FIRMWARE_OFFSET       0x4 // One byte for "ready", 3 for length
+
+#define BOOTLOADER_FLASH_BLOCK_START           0x0 //TODO
+#define BOOTLOADER_FLASH_FIRMWARE_START        (BOOTLOADER_FLASH_BLOCK_START+BOOTLOADER_FLASH_FIRMWARE_OFFSET)
+
+#define BOOTLOADER_FLASH_BACKUP_START          (BOOTLOADER_FLASH_FIRMWARE_START+BOOTLOADER_MAX_FIRMWARE_SIZE)
+#define BOOTLOADER_FLASH_BACKUP_FIRMWARE_START (BOOTLOADER_FLASH_BACKUP_START+BOOTLOADER_FLASH_FIRMWARE_OFFSET)
+
+#include "pic24.h"
+
+bool BootloadPending();
+
+bool BootloadApplicationFirmware();
+int  RunBootloadedApplication();
+
+typedef uint8 (*FirmwareRowCallback)( uint32 addr, const BYTE** buffer_ptr ); //TODO: Allow arbitrary addresses per callback
+bool CacheFirmwareForBootloading( FirmwareRowCallback callback );
 
 #endif
