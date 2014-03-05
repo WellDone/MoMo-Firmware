@@ -10,7 +10,7 @@ OPTIONAL(-lpPIC24Fxxx)
 
 /*
 ** Memory Regions
-* allocate 512 bytes for the bootloader
+* allocate 1024 bytes for the bootloader
 */
 MEMORY
 {
@@ -19,8 +19,8 @@ MEMORY
   ivt            : ORIGIN = 0x4,           LENGTH = 0xFC
   _reserved      : ORIGIN = 0x100,         LENGTH = 0x4
   aivt           : ORIGIN = 0x104,         LENGTH = 0xFC
-  program (xr)   : ORIGIN = 0x200,         LENGTH = 0x27FE
-  bootloader (xr): ORIGIN = 0x29FE,        LENGTH = 0x200
+  program (xr)   : ORIGIN = 0x200,         LENGTH = 0x2600
+  bootloader (xr): ORIGIN = 0x2800,        LENGTH = 0x400
   eedata         : ORIGIN = 0x7FFE00,      LENGTH = 0x200
   FBS            : ORIGIN = 0xF80000,      LENGTH = 0x2
   FGS            : ORIGIN = 0xF80004,      LENGTH = 0x2
