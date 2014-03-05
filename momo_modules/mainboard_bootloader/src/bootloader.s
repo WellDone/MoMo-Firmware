@@ -13,8 +13,5 @@ _flash_operation:	;W0=NVMCON - no return values
 	bset NVMCON,#WR
 	nop				;Required
 	nop
-write_wait:	
-	btsc NVMCON,#WR	;Wait for write end
-	bra write_wait
 	return
 .end

@@ -43,11 +43,29 @@
 #include "pic24.h"
 #include "memory.h"
 #include "bootloader.h"
+#include "constants.h"
 
 
 int _BOOTLOADER_CODE main(void)
 {
-	configure_SPI();
-	zero_application();
+	AD1PCFG = 0xFFFF;
+	ALARMTRIS = 1;
+
+	//If alarm pin is low for 500 ms, load backup firmware
+	if (ALARMPIN == 0)
+	{
+		DELAY_MS(500);
+		if (ALARMPIN == 0)
+			program_application(kBackupFirmwareSector);
+	}
+	else if (0) //TODO allow entry from application firmware for reprogramming flash
+		program_application(kMainFirmwareSector);
+
+	if (valid_instruction(0x100))
+		goto_address(0x100);
+
+	while(true)
+		;
+
 	return 0;
 }
