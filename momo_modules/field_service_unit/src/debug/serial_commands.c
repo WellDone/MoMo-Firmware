@@ -26,6 +26,7 @@ void register_command_handlers()
     register_command("adc", handle_adc);
 
     register_command("binrpc", handle_binrpc);
+    register_command("alarm", handle_alarm);
 
     getln( process_commands_task );
 }
