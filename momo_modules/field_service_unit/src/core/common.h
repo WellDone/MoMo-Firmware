@@ -9,5 +9,4 @@
 #define ALARM_PIN 				_RB15
 #define ALARM_TRIS				_TRISB15
 
-
 #endif
