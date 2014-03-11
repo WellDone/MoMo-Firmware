@@ -110,6 +110,7 @@ class HexTool(cmdln.Cmdln):
 		out = merge.extract_hex(stub, write_addr, skip_ranges, max_size)
 		out.write_hex_file(opts.output)
 
+	@cmdln.option("-p", '--pic24', action="store_true", default=False, help='Is the hex file for a 16 bit PIC' )
 	def do_compare(self, subcmd, opts, file1, file2):
 		"""${cmd_name}: compare file1 and file2 
 
@@ -123,8 +124,8 @@ class HexTool(cmdln.Cmdln):
 		${cmd_option_list}
 		"""
 
-		ih1 = self.load_ih(file1)
-		ih2 = self.load_ih(file2)
+		ih1 = self.load_ih(file1, opts.pic24)
+		ih2 = self.load_ih(file2, opts.pic24)
 
 		ranges1 = extract_ranges(ih1)
 		ranges2 = extract_ranges(ih2)
@@ -181,9 +182,12 @@ class HexTool(cmdln.Cmdln):
 
 		print "Range: 0x%X-0x%X" % (rstart, valid_addr[-1])
 
-	def load_ih(self, hexfile):
+	def load_ih(self, hexfile, pic24=False):
 		try:
-			ih = intelhex.IntelHex16bit(hexfile)
+			if not pic24:
+				ih = intelhex.IntelHex16bit(hexfile)
+			else:
+				ih = intelhex.IntelHex(hexfile)
 		except IOError as e:
 			self.error(str(e))
 
