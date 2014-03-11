@@ -5,7 +5,7 @@
 #include "scheduler.h"
 #include "fsu_reset_handler.h"
 #include "bus_master.h"
-
+#include "eeprom.h"
 #include "bus_master.h"
 
 // FBS
@@ -53,6 +53,17 @@
 
 int main(void) {
     AD1PCFG = 0xFFFF;
+
+    if (eeprom_read(0) == 0xAA)
+    {
+    	ALARM_TRIS = 0;
+    	ALARM_PIN = 0;
+    }
+    else
+    {
+    	ALARM_TRIS = 1;
+    	ALARM_PIN = 0;
+    }
 
     register_reset_handlers();
     handle_reset();

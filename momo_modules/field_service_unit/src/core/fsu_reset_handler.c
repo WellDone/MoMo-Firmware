@@ -21,9 +21,6 @@ void handle_all_resets_before(unsigned int type)
     scheduler_init();
     debug_init();
 
-    ALARM_TRIS = 1;
-    ALARM_PIN = 0;
-
     bus_init( 10 );
 
     mclr_triggered = false;

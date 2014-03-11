@@ -15,6 +15,7 @@
 #include "base64.h"
 #include "debug_utilities.h"
 #include "bus_master.h"
+#include "eeprom.h"
 
 extern volatile unsigned int adc_buffer[kADCBufferSize];
 ScheduledTask test_task;
@@ -350,12 +351,14 @@ CommandStatus handle_alarm(command_params *params)
     {
         ALARM_PIN = 0;
         ALARM_TRIS = 0;
+        eeprom_write(0, 0xAA);
         return kSuccess;
     }
     else if (strcmp(cmd, "no") == 0)
     {
         ALARM_TRIS = 1;
         ALARM_PIN = 0;
+        eeprom_write(0, 0xFF);
         return kSuccess;
     }
 

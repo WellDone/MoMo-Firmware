@@ -24,5 +24,4 @@ void debug_init()
 
     sendf(DEBUG_UART, "Type was: %d.\r\n", last_reset_type());
     put(DEBUG_UART, ACK);
-    //print(DEBUG_PROMPT);
 }
