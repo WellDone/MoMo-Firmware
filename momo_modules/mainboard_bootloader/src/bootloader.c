@@ -12,7 +12,7 @@ void _BOOTLOADER_CODE write_row(unsigned int row, unsigned char *row_buffer)
 
 	for (j=0; j<kFlashRowSizeInstructions; ++j)
 	{
-		unsigned int low = (row_buffer[j*3+1] << 8) | row_buffer[j*3];
+		unsigned int low = (((unsigned int)row_buffer[j*3+1]) << 8) | ((unsigned int)row_buffer[j*3]);
 		unsigned int high = row_buffer[j*3+2];
 
 		__builtin_tblwtl((row*kFlashRowSizeWords + j*2) & 0xFFFF, low);
@@ -63,6 +63,8 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
 
 		erase_row(i);
 		write_row(i, row_buffer);
+
+		addr += kFlashRowSizeInstructions*3;
 	}
 }
 

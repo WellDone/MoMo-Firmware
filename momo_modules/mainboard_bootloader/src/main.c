@@ -7,12 +7,12 @@
 #pragma config GCP = OFF                // General Segment Code Flash Code Protection bit (No protection)
 
 // FOSCSEL
-#pragma config FNOSC = FRC           // Oscillator Select (8 MHz FRC oscillator (FRC)) with PLL
+#pragma config FNOSC = FRC           	// Oscillator Select (8 MHz FRC oscillator (FRC)) with PLL
 #pragma config IESO  = OFF              // Internal External Switch Over bit (Internal External Switchover mode disabled (Two-Speed Start-up disabled))
 
 // FOSC
 #pragma config POSCMOD = NONE           // Primary Oscillator Configuration bits (Primary oscillator disabled)
-#pragma config OSCIOFNC = ON            // CLKO Enable Configuration bit (CLKO output signal is active on the OSCO pin)
+#pragma config OSCIOFNC = OFF            // CLKO Enable Configuration bit (CLKO output signal is active on the OSCO pin)
 #pragma config POSCFREQ = HS            // Primary Oscillator Frequency Range Configuration bits (Primary oscillator/external clock input frequency greater than 8 MHz)
 #pragma config SOSCSEL = SOSCHP         // SOSC Power Selection Configuration bits (Secondary oscillator configured for high-power operation)
 #pragma config FCKSM = CSECMD           // Clock Switching and Monitor Selection (Clock switching is enabled, Fail-Safe Clock Monitor is disabled)
@@ -51,12 +51,23 @@ int _BOOTLOADER_CODE main(void)
 	AD1PCFG = 0xFFFF;
 	ALARMTRIS = 1;
 
-	//If alarm pin is low for 500 ms, load backup firmware
+	//Allow 100 ms for someone to assert the alarm pin in case this is a
+	//power on reset.
+	DELAY_MS(100);
+
+	//If alarm pin is low for 400 ms, load backup firmware
 	if (ALARMPIN == 0)
 	{
-		DELAY_MS(500);
+		DELAY_MS(400);
 		if (ALARMPIN == 0)
+		{
+			//Reflash ourselves and pull alarm pin low during the operation so
+			//people can know when we're done.
+			ALARMPIN = 0;
+			ALARMTRIS= 0;
 			program_application(kBackupFirmwareSector);
+			ALARMTRIS = 1;
+		}
 	}
 	else if (0) //TODO allow entry from application firmware for reprogramming flash
 		program_application(kMainFirmwareSector);
@@ -64,8 +75,14 @@ int _BOOTLOADER_CODE main(void)
 	if (valid_instruction(0x100))
 		goto_address(0x100);
 
+	ALARMPIN = 0;
 	while(true)
-		;
+	{
+		ALARMTRIS= 0;
+		DELAY_MS(250);
+		ALARMTRIS=1;
+		DELAY_MS(250);
+	}
 
 	return 0;
 }

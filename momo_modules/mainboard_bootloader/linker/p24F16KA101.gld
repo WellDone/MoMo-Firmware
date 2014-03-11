@@ -109,7 +109,7 @@ SECTIONS
         KEEP (*(.isr*));
         *(.libc) *(.libm) *(.libdsp);  /* keep together in this order */
         *(.lib*);
-  } >program
+  } > bootloader
 
 
   /*
@@ -126,7 +126,7 @@ SECTIONS
   usercode :
   {
         *(usercode);
-  } >program
+  } > bootloader
 
 
   /*
