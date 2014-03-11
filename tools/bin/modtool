@@ -50,9 +50,31 @@ class ModTool(cmdln.Cmdln):
 		pytest.main('--pyargs pymomo %s' % test_string)
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-	@cmdln.option('-t', '--type', options=['module', 'controller', 'backup'], default='module', help='What type of firmware module')
+	def do_alarm(self, subcmd, opts, *asserted):
+		con = self._get_controller(opts)
+
+
+		if len(asserted) == 0:
+			status = con.alarm_asserted()
+
+			if status:
+				message = "Asserted"
+			else:
+				message = "Idle"
+			print "Alarm status: %s" % message
+		elif len(asserted) == 1:
+			cmd = asserted[0]
+			if cmd == "assert":
+				con.set_alarm(True)
+			elif cmd == "clear":
+				con.set_alarm(False)
+			else:
+				print "Unknown command passed to modtool alarm: %s" % cmd
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-t', '--type', choices=['module', 'controller', 'backup'], default='module', help='What type of firmware module')
 	@cmdln.option('-c', '--clear', action='store_true', default=False, help='Clear the firmware cache before pushing')
-	def push_firmware(self, subcmd, opts, hexfile):
+	def do_push_firmware(self, subcmd, opts, hexfile):
 		"""${cmd_name}: Push a firmware file to the attached momo unit.  
 
 		You can either push the firmware into the 4 module firmware bins,
@@ -66,19 +88,19 @@ class ModTool(cmdln.Cmdln):
 		con = self._get_controller(opts)
 
 		if opts.clear:
-			controller.clear_firmware_cache()
+			con.clear_firmware_cache()
 
 		if opts.type == "module":
 			type = 0
 			print "Pushing module firmware"
 		elif opts.type == "controller":
-			type = 4
+			type = 5
 			print "Pushing main controller firmware"
 		elif opts.type == "backup":
-			type = 5
+			type = 6
 			print "Pushing backup controller firmware"
 
-		controller.push_firmware(hexfile, type, verbose=True)
+		con.push_firmware(hexfile, type, verbose=True)
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_info(self, subcmd, opts, index):
