@@ -338,8 +338,6 @@ CommandStatus handle_alarm(command_params *params)
 
     if (strcmp(cmd, "status") == 0)
     {
-        ALARM_TRIS = 1;
-
         if (ALARM_PIN == 0)
             print("0\n");
         else
