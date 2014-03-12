@@ -1775,7 +1775,7 @@ design rules under a new name.</description>
 </element>
 <element name="C6" library="rcl" package="C0805" value="4.7 uF" x="39.9542" y="36.9062" smashed="yes">
 <attribute name="DIGIKEY-PN" value="1276-1259-1-ND" x="39.9542" y="36.9062" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="37.7952" y="36.6522" size="0.8128" layer="25" rot="R90"/>
+<attribute name="NAME" x="37.7952" y="36.3474" size="0.8128" layer="25" rot="R90"/>
 <attribute name="VALUE" x="38.6842" y="34.3662" size="1.27" layer="27"/>
 </element>
 <element name="C5" library="rcl" package="CT3528" value="220 uF" x="18.5928" y="8.382" smashed="yes" rot="R90">
