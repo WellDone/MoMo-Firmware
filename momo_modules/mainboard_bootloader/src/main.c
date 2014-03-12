@@ -45,6 +45,17 @@
 #include "bootloader.h"
 #include "constants.h"
 
+#define kEEPROMPage 0x7F
+#define kEEPROMOffset 0xFE00		//valid for pic24f16ka101
+
+enum
+{
+	kEEPROMEraseWord = 0x4058,
+	kEEPROMWriteWord = 0x4004
+};
+
+void eeprom_erase(unsigned int offset);
+unsigned int eeprom_read(unsigned int offset);
 
 int _BOOTLOADER_CODE main(void)
 {
@@ -69,8 +80,15 @@ int _BOOTLOADER_CODE main(void)
 			ALARMTRIS = 1;
 		}
 	}
-	else if (0) //TODO allow entry from application firmware for reprogramming flash
+	else if (eeprom_read(kBootloaderMagicEEPROMLoc) == 0xAA)
+	{
+		//If we are told to reflash, do so.
+		ALARMPIN = 0;
+		ALARMTRIS= 0;
 		program_application(kMainFirmwareSector);
+		eeprom_erase(kBootloaderMagicEEPROMLoc);
+		ALARMTRIS = 1;
+	}
 
 	//TODO: this only works if I jump directly to the start of the code, rather than the
 	//goto instruction stored at 0x100.  It is unclear why but it also happens when I 
@@ -89,4 +107,26 @@ int _BOOTLOADER_CODE main(void)
 	}
 
 	return 0;
+}
+
+void _BOOTLOADER_CODE eeprom_erase(unsigned int offset)
+{
+	NVMCON = kEEPROMEraseWord;
+	TBLPAG = kEEPROMPage;
+
+	offset |= kEEPROMOffset;
+	__builtin_tblwtl(offset, 0);
+	asm volatile ("disi #5");
+	__builtin_write_NVM();
+
+	while(_WR)
+		;
+}
+
+unsigned int _BOOTLOADER_CODE eeprom_read(unsigned int offset)
+{
+	TBLPAG = kEEPROMPage;
+	offset |= kEEPROMOffset;
+
+	return __builtin_tblrdl(offset);
 }

@@ -7,6 +7,7 @@
 #include "adc.h"
 #include "flashblock.h"
 #include "common.h"
+#include "eeprom.h"
 
 #define MAX_MODULES 8
 #define MODULE_BASE_ADDRESS 11
@@ -167,6 +168,12 @@ void test_fb_read()
 	bus_slave_setreturn(pack_return_status(kNoMIBError, 20));
 }
 
+void reflash_self()
+{
+	eeprom_write(0, 0xAA);
+	asm volatile("reset");
+}
+
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x00, register_module, plist_spec(0,true) },
@@ -178,6 +185,7 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x06, erase_subsection_rpc, plist_spec(2, false)},
 	{0x07, test_fb_init, plist_spec(1, false)},
 	{0x08, test_fb_write, plist_spec(0, true)},
-	{0x09, test_fb_read, plist_spec(0, false)}
+	{0x09, test_fb_read, plist_spec(0, false)},
+	{0x0A, reflash_self, plist_spec_empty()},
 };
 DEFINE_MIB_FEATURE(controller);
