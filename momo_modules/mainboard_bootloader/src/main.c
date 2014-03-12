@@ -72,8 +72,12 @@ int _BOOTLOADER_CODE main(void)
 	else if (0) //TODO allow entry from application firmware for reprogramming flash
 		program_application(kMainFirmwareSector);
 
+	//TODO: this only works if I jump directly to the start of the code, rather than the
+	//goto instruction stored at 0x100.  It is unclear why but it also happens when I 
+	//directly program the chip to jump to 0x100 on reset with a goto instruction at 0x100
+	//that points to 0x200
 	if (valid_instruction(0x100))
-		goto_address(0x100);
+		goto_address(0x200);
 
 	ALARMPIN = 0;
 	while(true)
