@@ -12983,8 +12983,9 @@ Source: http://products.nichicon.co.jp/en/pdf/XJA043/e-ud.pdf</description>
 <wire x1="-22.86" y1="-35.56" x2="20.32" y2="-35.56" width="0.254" layer="97"/>
 <text x="-7.62" y="-35.56" size="1.778" layer="97">MoMo GSM Module</text>
 <text x="-7.62" y="-38.1" size="1.778" layer="97">Tim Burke</text>
-<text x="-7.62" y="-40.64" size="1.778" layer="97">9/22/2013</text>
-<text x="-7.62" y="-43.18" size="1.778" layer="97">3 (modular, final)</text>
+<text x="-7.62" y="-40.64" size="1.778" layer="97">3/11/2014</text>
+<text x="-7.62" y="-43.18" size="1.778" layer="97">4 (modular, final)</text>
+<text x="-7.62" y="-45.72" size="1.778" layer="97">Now 1.3x2 inches</text>
 </plain>
 <instances>
 <instance part="VCC1" gate="G$1" x="-12.7" y="104.14"/>
