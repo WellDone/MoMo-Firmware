@@ -110,7 +110,7 @@ class ModTool(cmdln.Cmdln):
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-t', '--type', choices=['module', 'controller', 'backup'], default='module', help='What type of firmware module')
 	@cmdln.option('-c', '--clear', action='store_true', default=False, help='Clear the firmware cache before pushing')
-	def do_push_firmware(self, subcmd, opts, hexfile):
+	def do_push(self, subcmd, opts, hexfile):
 		"""${cmd_name}: Push a firmware file to the attached momo unit.  
 
 		You can either push the firmware into the 4 module firmware bins,
@@ -145,6 +145,37 @@ class ModTool(cmdln.Cmdln):
 		#If we created a new processed file, remove it
 		if processed != hexfile:
 			os.remove(processed)
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-b', '--bucket', type=int, help='Firmware bucket to pull from (0-5)')
+	def do_pull(self, subcmd, opts, hexfile):
+		"""${cmd_name}: Pull a firmware file from the attached momo unit.  
+
+		The firmware from the given bucket is pulled and saved to a file. 
+		If the bucket is 4 or 5, the firmware is padded out to 4-byte words
+		from 24 bit words since those two buckets are pic24 firmwares.  Otherwise
+		the firmware is saved as is.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		if opts.bucket >= 6:
+			print "Invalid bucket %d: must be in [0, 5]" % opts.bucket
+
+		if opts.bucket >= 4:
+			pic12 = False
+		else:
+			pic12 = True
+
+		con = self._get_controller(opts)
+		hexobj = con.pull_firmware(opts.bucket, pic12=pic12, verbose=True)
+
+		if not pic12:
+			hexobj = pad_pic24_hex(hexobj)
+
+		hexobj.write_hex_file(hexfile)
+
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-l', '--length', choices=['8', '16', '24', '32'], default=16)
