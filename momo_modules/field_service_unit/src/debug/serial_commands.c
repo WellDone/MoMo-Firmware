@@ -26,6 +26,7 @@ void register_command_handlers()
     register_command("adc", handle_adc);
 
     register_command("binrpc", handle_binrpc);
+    register_command("alarm", handle_alarm);
 
     getln( process_commands_task );
 }
@@ -60,7 +61,7 @@ static void send_command_acknowledgement()
 
 void set_command_result( bool success )
 {
-  command_status = (success)?kSuccess:kFailure;
+  command_status = ((success)?kSuccess:kFailure);
   send_command_acknowledgement();
 }
 
@@ -122,7 +123,6 @@ static void process_commands_task(char* command_buffer, int len, bool overflown)
   if ( command_status != kPending && command_status != kNone ) {
     send_command_acknowledgement();
   }
-  //print( DEBUG_PROMPT );
 }
 
 void fill_param_struct(command_params *params, char *buff)

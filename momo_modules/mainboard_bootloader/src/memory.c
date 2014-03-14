@@ -1,4 +1,5 @@
 #include "memory.h"
+#include "bootloader.h"
 
 #define SS_VALUE LATBbits.LATB15
 #define ENABLE_MEMORY() SS_VALUE = 0
@@ -35,7 +36,7 @@ static void spi_send_addr(unsigned long data);
 #define ERASE_SUBSECTION() spi_transfer( SSE )
 #define ERASE_ALL() spi_transfer( BE )
 
-void configure_SPI() {
+void _BOOTLOADER_CODE configure_SPI() {
   SPI1CON1bits.MODE16 = 0; //communication is byte-wide
   SPI1CON1bits.MSTEN = 1; //SPI is in master mode
   SPI1CON1bits.CKP = 1; //data is clocked out on high-low transition
@@ -51,7 +52,7 @@ void configure_SPI() {
   DISABLE_MEMORY(); //idle state of SS is high
 }
 
-static BYTE spi_transfer(BYTE data)
+static BYTE _BOOTLOADER_CODE spi_transfer(BYTE data)
 {
 
   while(MEMORY_TX_STATUS)
@@ -64,7 +65,7 @@ static BYTE spi_transfer(BYTE data)
   return MEMORY_BUFFER_REGISTER;
 }
 
-static void spi_send_addr(unsigned long data)
+static void _BOOTLOADER_CODE spi_send_addr(unsigned long data)
 {
     data &= MEMORY_ADDRESS_MASK;
     spi_transfer((data>>16)&0xFF);
@@ -72,86 +73,7 @@ static void spi_send_addr(unsigned long data)
     spi_transfer(data&0xFF);
 }
 
-bool mem_test() {
-  BYTE manufacturer_id;
-  BYTE memory_type;
-  BYTE memory_capacity;
-
-  ENABLE_MEMORY();
-
-  READ_IDENTIFICATION();
-  manufacturer_id = spi_receive();
-  memory_type  = spi_receive();
-  memory_capacity = spi_receive();
-
-  DISABLE_MEMORY();
-
-  if ( manufacturer_id != 0x20 || memory_type != 0x71 || memory_capacity != 0x14 ) // M25PX80 = 0x20, 0x71
-    return false;
-
-  return true;
-}
-
-static inline void mem_enable_write() 
-{
-  ENABLE_MEMORY();
-  WRITE_MODE_ENABLE();
-  DISABLE_MEMORY();
-}
-
-static inline void mem_wait_while_writing() 
-{
-  BYTE status = 0b1;
-
-  ENABLE_MEMORY();
-  
-  READ_STATUS_REGISTER();
-  while (status & 0b1)
-    status = spi_receive();
-
-  DISABLE_MEMORY();
-}
-
-void mem_write(uint32 addr, const BYTE* data, unsigned int length)
-{
-  uint32 end_addr = addr+length;
-  
-  while (addr < end_addr)
-  {
-    uint32 page_rem = 256 - (addr & 0xFF);
-    uint32 rem = end_addr - addr;
-    unsigned int write_len;
-
-    if (page_rem >= rem)
-      write_len = rem;
-    else
-      write_len = page_rem;
-
-    mem_write_aligned(addr, data, write_len);
-    addr += write_len;
-    data += write_len;
-  }
-}
-
-// Length is capped at 256, 1 page of flash memory.
-void mem_write_aligned(const uint32 addr, const BYTE *data, unsigned int length) 
-{
-  unsigned int i;
-
-  mem_wait_while_writing();
-  mem_enable_write();
-  ENABLE_MEMORY();
-  PAGE_PROGRAM_MODE();
-
-  spi_send_addr(addr);
-
-  for(i = 0; i < length; ++i) 
-    spi_transfer(data[i]);
-
-  DISABLE_MEMORY();
-}
-
-void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes) 
+void _BOOTLOADER_CODE mem_read(uint32 addr, BYTE* buf, unsigned int numBytes) 
 {
   BYTE* bufEnd = buf+numBytes;
 
@@ -166,7 +88,7 @@ void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes)
   DISABLE_MEMORY();
 }
 
-BYTE mem_status() 
+BYTE _BOOTLOADER_CODE mem_status() 
 {
   BYTE status;
 
@@ -176,29 +98,4 @@ BYTE mem_status()
   DISABLE_MEMORY();
 
   return status;
-}
-
-void mem_clear_all() 
-{
-  mem_wait_while_writing();
-  mem_enable_write();
-
-  ENABLE_MEMORY();
-  ERASE_ALL();
-  DISABLE_MEMORY();
-
-  mem_wait_while_writing();
-}
-
-void mem_clear_subsection(uint32 addr) 
-{
-  mem_wait_while_writing();
-  mem_enable_write();
-
-  ENABLE_MEMORY();
-  ERASE_SUBSECTION();
-  spi_send_addr(addr);
-  DISABLE_MEMORY();
-
-  mem_wait_while_writing();
 }

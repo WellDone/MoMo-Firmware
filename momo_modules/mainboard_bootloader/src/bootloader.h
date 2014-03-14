@@ -1,27 +1,25 @@
-#ifndef __common_h__
-#define __common_h__
+#ifndef __bootloader_h__
+#define __bootloader_h__
 
 #include "pic24.h"
 
-#define SENSOR_INTERRUPT_BIT    IFS1bits.INT2IF
-#define RTC_INTERRUPT_BIT       IFS3bits.RTCIF
+#define _BOOTLOADER_CODE __attribute__((section(".bootloader")))
 
-#define BATTERY_VOLTAGE_LATCH	_LATA1
-#define BATTERY_VOLTAGE_TRIS	_TRISA1
-#define BATTERY_VOLTAGE_DIGITAL	_PCFG1
+enum
+{
+	kFlashWriteRow = 0b0100000000000100,
+	kFlashEraseRow = 0b0100000001011000
+}; 
 
-#define SOLAR_VOLTAGE_LATCH 	_LATA3
-#define SOLAR_VOLTAGE_TRIS		_TRISA3
-#define SOLAR_VOLTAGE_DIGITAL	_PCFG5
-#define SOLAR_VOLTAGE_OD		_ODA3
+void program_application();
+void erase_row(unsigned int row);
+void patch_reset_vector(unsigned char *row_buffer, uint32 low, uint32 high);
+void extract_reset_vector(unsigned char *row_buffer, uint32 *low, uint32 *high);
+bool valid_instruction(unsigned int addr);
+void goto_address(unsigned int addr);
 
-#define DEBUG_UART              U2
-#define GSM_UART                U1
-
-#define BUS_ENABLE_LAT			_LATA0
-#define BUS_ENABLE_TRIS			_TRISA0
-#define BUS_ENABLE_DIG			_PCFG0
-
+//Assembly Instructions
+extern void flash_operation(unsigned int nvmcon);
 
 //Clock configuration and delays
 #define FCY   4000000L  //define your instruction frequency, FCY = FOSC/2

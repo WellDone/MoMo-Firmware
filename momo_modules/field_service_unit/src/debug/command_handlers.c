@@ -15,6 +15,7 @@
 #include "base64.h"
 #include "debug_utilities.h"
 #include "bus_master.h"
+#include "eeprom.h"
 
 extern volatile unsigned int adc_buffer[kADCBufferSize];
 ScheduledTask test_task;
@@ -321,4 +322,43 @@ CommandStatus handle_binrpc(command_params *params)
 
     bus_master_rpc_async(rpc_callback, address, feature, command, spec );
     return kPending;
+}
+
+CommandStatus handle_alarm(command_params *params)
+{
+    char *cmd;
+
+    if (params->num_params != 1) 
+    {
+        print( "Usage: alarm [yes|no|status]\n");
+        return kFailure;
+    }
+
+    cmd = get_param_string(params, 0);
+
+    if (strcmp(cmd, "status") == 0)
+    {
+        if (ALARM_PIN == 0)
+            print("0\n");
+        else
+            print("1\n");
+
+        return kSuccess;
+    }
+    else if (strcmp(cmd, "yes") == 0)
+    {
+        ALARM_PIN = 0;
+        ALARM_TRIS = 0;
+        eeprom_write(0, 0xAA);
+        return kSuccess;
+    }
+    else if (strcmp(cmd, "no") == 0)
+    {
+        ALARM_TRIS = 1;
+        ALARM_PIN = 0;
+        eeprom_write(0, 0xFF);
+        return kSuccess;
+    }
+
+    return kFailure;
 }

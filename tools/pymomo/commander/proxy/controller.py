@@ -1,14 +1,30 @@
 import proxy
 from pymomo.commander.exceptions import *
 from pymomo.commander.types import *
+from pymomo.commander.cmdstream import *
 from pymomo.utilities.console import ProgressBar
 import struct
 from intelhex import IntelHex
+from time import sleep
 
 class MIBController (proxy.MIBProxyObject):
+	MaxModuleFirmwares = 4
+
 	def __init__(self, stream):
 		super(MIBController, self).__init__(stream, 8)
 		self.name = 'Controller'
+
+	def reset_bus(self, sync=True):
+		"""
+		Cycle power on all attched momo modules except the controller.
+		The count of attached modules is also reset to zero in anticipation
+		of the modules reregistering
+		"""
+
+		res = self.rpc(42, 5)
+
+		if sync:
+			sleep(1.5)
 
 	def count_modules(self):
 		"""
@@ -17,6 +33,13 @@ class MIBController (proxy.MIBProxyObject):
 
 		res = self.rpc(42, 1, result_type=(1, False))
 		return res['ints'][0]
+
+	def reflash(self):
+		try:
+			self.rpc(42, 0xA)
+		except RPCException as e:
+			if e.type != 7:
+				raise e
 
 	def describe_module(self, index):
 		"""
@@ -132,10 +155,10 @@ class MIBController (proxy.MIBProxyObject):
 		return bucket
 
 	def pull_firmware(self, bucket, verbose=True, pic12=True):
-		cnt = self.get_firmware_count()
+		res, reason = self._firmware_bucket_loaded(bucket)
 
-		if bucket >= cnt:
-			raise ValueError("Invalid firmware bucket specified, only %d buckets are filled" % cnt)
+		if res == False:
+			raise ValueError(reason)
 
 		info = self.get_firmware_info(bucket)
 		length = info['length']
@@ -155,15 +178,49 @@ class MIBController (proxy.MIBProxyObject):
 				if pic12 and (j%2 != 0):
 					out[i+j] &= 0x3F
 
-			prog.progress(i//20)
+			if verbose:
+				prog.progress(i//20)
 
-		prog.end()
+		if verbose:
+			prog.end()
 
 		return out
 
+	def _firmware_bucket_loaded(self, index):
+		res = self.get_firmware_count()
+		mods = res['module_buckets']
+
+		if index < 4 and index >= mods:
+			return False, "Invalid firmware bucket specified, only %d buckets are filled" % mods
+
+		if index == 4 and not res['controller_firmware']:
+			return False, "Controller firmware requested and none is loaded"
+
+		if index == 5 and not res['backup_firmware']:
+			return False, "Backup firmware requested and none is loaded"
+
+		if index > 5:
+			return False, "Invalid bucket index, there are only 6 firmware buckets (0-5)."
+
+		return True, "" 
+
 	def get_firmware_count(self):
-		res = self.rpc(7, 5, result_type=(1, False))
-		return res['ints'][0]
+		"""
+		Return a dictionary containing:
+		- the number of module firmwares loaded
+		- if there is a controller firmware loaded
+		- if there is a backup controller firmware loaded
+		"""
+
+		res = self.rpc(7, 5, result_type=(2, False))
+		con = res['ints'][1]
+
+		dic = {}
+		dic['module_buckets'] = res['ints'][0]
+		dic['controller_firmware'] = (con&0b1 == 1)
+		dic['backup_firmware'] = ((con >> 1) == 1)
+
+		return dic
 
 	def clear_firmware_cache(self):
 		self.rpc(7, 0x0A)
@@ -173,16 +230,130 @@ class MIBController (proxy.MIBProxyObject):
 		Get the firmware size and module type stored in the indicated bucket
 		"""
 
-		res = self.rpc(7, 3, bucket, result_type=(5, False))
+		res = self.rpc(7, 3, bucket, result_type=(7, False))
 
 		length = res['ints'][1] << 16 | res['ints'][2]
 		base = res['ints'][3] << 16 | res['ints'][4]
-		return {'module_type': res['ints'][0], 'length': length, 'base_address': base}
+		sub_start = res['ints'][5]
+		subs = res['ints'][6]
 
-	def get_firmware_count(self):
+		return {'module_type': res['ints'][0], 'length': length, 'base_address': base, 'bucket_start': sub_start, 'bucket_size': subs}
+
+	def read_flash(self, baseaddr, count, verbose=True):
 		"""
-		Get the number of firmware buckets currently occupied
+		Read count bytes of the controller's external flash starting at addr.
+		The flash is read 20 bytes at a time since this is the maximum mib 
+		frame size.
 		"""
 
-		res = self.rpc(7, 5, result_type=(1, False))
-		return res['ints'][0]
+		if baseaddr >= 1024*1024:
+			raise ValueError("Address too large, flash is only 1MB in size")
+
+		buffer = bytearray()
+
+		if verbose:
+			prog = ProgressBar("Reading Flash", count)
+			prog.start()
+
+		for i in xrange(0, count, 20):
+			if verbose:
+				prog.progress(i)
+
+			addr = baseaddr + i
+			addr_low = addr & 0xFFFF
+			addr_high = addr >> 16
+
+			length = min(20, count-i)
+
+			res = self.rpc(42, 3, addr_low, addr_high, result_type=(0, True))
+			buffer.extend(res['buffer'][0:length])
+
+		if len(buffer) != count:
+			raise RuntimeError("Unknown error in read_flash, tried to read %d bytes, only read %d" % (count, len(buffer)))
+
+		if verbose:
+			prog.end()
+
+		return buffer
+
+	def write_flash(self, baseaddr, buffer, verbose=True):
+		"""
+		Write all of the bytes in buffer to the controller's external flash starting at baseaddr
+		"""
+
+		count = len(buffer)
+
+		if baseaddr >= 1024*1024:
+			raise ValueError("Address too large, flash is only 1MB in size")
+
+		if verbose:
+			prog = ProgressBar("Writing Flash", count)
+			prog.start()
+
+		i = 0
+		while i < count:
+			if verbose:
+				prog.progress(i)
+
+			addr = baseaddr + i
+			addr_low = addr & 0xFFFF
+			addr_high = addr >> 16
+
+			length = min(14, count-i)		
+			res = self.rpc(42, 4, addr_low, addr_high, buffer[i:i+length], result_type=(2, False))
+
+			written_addr = res['ints'][0] | (res['ints'][1] << 16)
+
+			if written_addr != addr:
+				raise RuntimeError("Tried to write to address 0x%X but wrote to address 0x%X instead" % (addr, written_addr))
+
+			i += length
+
+		if verbose:
+			prog.end()
+
+	def erase_flash(self, addr):
+		if addr >= 1024*1024:
+			raise ValueError("Address too large, flash is only 1MB in size")
+
+		addr_low = addr & 0xFFFF
+		addr_high = addr >> 16
+
+		res = self.rpc(42, 6, addr_low, addr_high)
+
+	def alarm_asserted(self):
+		"""
+		Query the field service unit if the alarm pin on the bus is asserted.  Returns True if 
+		the alarm is asserted (low value since it's active low).  Returns False otherwise
+		"""
+
+		resp, result = self.stream.send_cmd("alarm status")
+		if result != CMDStream.OkayResult:
+			raise RuntimeError("Alarm status command failed")
+
+		resp = resp.lstrip().rstrip()
+		val = int(resp)
+
+		if val == 0:
+			return True
+		elif val == 1:
+			return False
+		else:
+			raise RuntimeError("Invalid result returned from 'alarm status' command: %s" % resp)
+
+
+	def set_alarm(self, asserted):
+		"""
+		Instruct the field service unit to assert or deassert the alarm line on the MoMo bus.
+		"""
+
+		if asserted:
+			arg = "yes"
+		else:
+			arg = "no"
+
+		cmd = "alarm %s" % arg
+
+		resp, result = self.stream.send_cmd(cmd)
+		if result != CMDStream.OkayResult:
+			raise RuntimeError("Set alarm command failed")

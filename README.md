@@ -24,4 +24,4 @@ These may all be downloaded and installed automatically using easy_install.
 * intelhex
 * BeautifulSoup4
 * Cheetah
-* weasyprint
+* scons

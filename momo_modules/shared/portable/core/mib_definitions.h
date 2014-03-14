@@ -24,10 +24,11 @@
 #define kMIBSensorType				5
 
 //Defined MIB Hardware Types
-#define kMIBPic24f16ka101			1
-#define kMIBPic12lf1822				2
-#define kMIBPic16lf1823				3
-#define kMIBPic16lf1847				4
+#define kMIBPic12lf1822					2
+#define kMIBPic16lf1823					3
+#define kMIBPic16lf1847					4
+#define kMIBControllerFirmware			5
+#define kMIBBackupControllerFirmware	6
 
 //Defined MIB Protocol revisions
 #define kMIBVersion1				1

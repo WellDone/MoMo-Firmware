@@ -1,12 +1,3 @@
-#include <stdlib.h>
-#include "common.h"
-#include "mainboard_reset_handler.h"
-#include "task_manager.h"
-#include "scheduler.h"
-#include "bus_master.h"
-#include "report_manager.h"
-#include <string.h>
-
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
 #pragma config BSS = OFF                // Boot segment Protect (No boot program Flash segment)
@@ -49,22 +40,93 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
-ScheduledTask task1;
+#include "pic24.h"
+#include "memory.h"
+#include "bootloader.h"
+#include "constants.h"
 
-ScheduledTask i2c;
+#define kEEPROMPage 0x7F
+#define kEEPROMOffset 0xFE00		//valid for pic24f16ka101
 
-int main(void)
+enum
 {
-    AD1PCFG = 0xFFFF;
+	kEEPROMEraseWord = 0x4058,
+	kEEPROMWriteWord = 0x4004
+};
 
-    //Enable the Memory Module
-    _RB7 = 1;
-    _TRISB7 = 0;
+void eeprom_erase(unsigned int offset);
+unsigned int eeprom_read(unsigned int offset);
 
-    register_reset_handlers();
-    handle_reset();
-    
-    taskloop_loop();
+int _BOOTLOADER_CODE main(void)
+{
+	AD1PCFG = 0xFFFF;
+	ALARMTRIS = 1;
 
-    return (EXIT_SUCCESS);
+	//Allow 100 ms for someone to assert the alarm pin in case this is a
+	//power on reset.
+	DELAY_MS(100);
+
+	//If alarm pin is low for 400 ms, load backup firmware
+	if (ALARMPIN == 0)
+	{
+		DELAY_MS(400);
+		if (ALARMPIN == 0)
+		{
+			//Reflash ourselves and pull alarm pin low during the operation so
+			//people can know when we're done.
+			ALARMPIN = 0;
+			ALARMTRIS= 0;
+			program_application(kBackupFirmwareSector);
+			ALARMTRIS = 1;
+		}
+	}
+	else if (eeprom_read(kBootloaderMagicEEPROMLoc) == 0xAA)
+	{
+		//If we are told to reflash, do so.
+		ALARMPIN = 0;
+		ALARMTRIS= 0;
+		program_application(kMainFirmwareSector);
+		eeprom_erase(kBootloaderMagicEEPROMLoc);
+		ALARMTRIS = 1;
+	}
+
+	//TODO: this only works if I jump directly to the start of the code, rather than the
+	//goto instruction stored at 0x100.  It is unclear why but it also happens when I 
+	//directly program the chip to jump to 0x100 on reset with a goto instruction at 0x100
+	//that points to 0x200
+	if (valid_instruction(0x100))
+		goto_address(0x200);
+
+	ALARMPIN = 0;
+	while(true)
+	{
+		ALARMTRIS= 0;
+		DELAY_MS(250);
+		ALARMTRIS=1;
+		DELAY_MS(250);
+	}
+
+	return 0;
+}
+
+void _BOOTLOADER_CODE eeprom_erase(unsigned int offset)
+{
+	NVMCON = kEEPROMEraseWord;
+	TBLPAG = kEEPROMPage;
+
+	offset |= kEEPROMOffset;
+	__builtin_tblwtl(offset, 0);
+	asm volatile ("disi #5");
+	__builtin_write_NVM();
+
+	while(_WR)
+		;
+}
+
+unsigned int _BOOTLOADER_CODE eeprom_read(unsigned int offset)
+{
+	TBLPAG = kEEPROMPage;
+	offset |= kEEPROMOffset;
+
+	return __builtin_tblrdl(offset);
 }
