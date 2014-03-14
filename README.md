@@ -11,6 +11,10 @@ Before contributing, study the enforced Git branching model on the [Wiki](http:/
 * **pcb** - This is where the PCB board schematics and other miscellaneous hardware information lives.
 * **tools** - Various tools that are useful for building and interacting with a MoMo
 
+## Contributing ##
+
+See the [Getting Started](https://github.com/WellDone/MoMo-Firmware/wiki/Getting-Started) wiki page for a thorough introduction to development of the MoMo platform.
+
 ## Build System ##
 MoMo firmware is moving toward the SCons build system for build management and unit testing
 
