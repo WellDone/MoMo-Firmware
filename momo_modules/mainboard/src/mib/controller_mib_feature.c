@@ -29,7 +29,7 @@ void con_reset_bus()
 	BUS_ENABLE_TRIS = 0;
 
 	module_count = 0;
-	DELAY_MS(1);
+	DELAY_MS(50);
 
 	BUS_ENABLE_TRIS = 1;
 }
