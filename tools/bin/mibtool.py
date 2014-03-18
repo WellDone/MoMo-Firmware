@@ -49,7 +49,7 @@ class MIBTool(cmdln.Cmdln):
 		proj = Project([project], opts.proc, opts.template)
 		proj.create(opts.output)
 
-	def do_build(self, subcmd, opts, *args):
+	def do_build(self, argv):
 		"""${cmd_name}: Build the mib12 project in the current directory
 		
 		${cmd_usage}
@@ -60,7 +60,7 @@ class MIBTool(cmdln.Cmdln):
 		import SCons.Script
 
 		all_args = ['mibtool', '--site-dir=../../tools/site_scons']
-		sys.argv = all_args + list(args)
+		sys.argv = all_args + list(argv[1:])
 		SCons.Script.main()
 
 	def do_mib12(self, subcmd, opts, name):
