@@ -3,6 +3,10 @@
 
 import SCons.Builder
 import os.path
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+from pymomo.utilities.paths import convert_path
 
 xc8_flags = []
 xc8_flags.append('-G')
@@ -27,7 +31,7 @@ def xc8_generator(source, target, env, for_signature):
 	if 'INCLUDE' in env:
 		incs = map(lambda x: '-I'+str(x), env['INCLUDE'])
 
-	src = map(lambda x: str(x), source)
+	src = map(lambda x: convert_path(str(x)), source)
 	out = ['-o' + str(target[0])]
 
 	args.extend(make_chip(env))
