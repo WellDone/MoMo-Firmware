@@ -33,6 +33,7 @@ fi
 echo "Installing xc8 compiler..."
 ./$XC8INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc8/v1.30"
 echo "PATH=\"\$PATH:/opt/microchip/xc8/v1.30/bin\"" >> /home/vagrant/.profile
+rm -f ./$XC8INSTALLER
 echo "DONE!"
 
 XC16INSTALLER=xc16-v1.21-linux-installer.run
@@ -54,6 +55,7 @@ elif [ ! -e ./$XC16INSTALLER ]; then
 fi
 echo "Installing xc16 compiler..."
 ./$XC16INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc16/v1.21"
+rm -f ./$XC16INSTALLER
 echo "PATH=\"\$PATH:/opt/microchip/xc16/v1.21/bin\"" >> /home/vagrant/.profile
 echo "DONE!"
 
