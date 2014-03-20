@@ -255,6 +255,14 @@ class ModTool(cmdln.Cmdln):
 	def _get_controller(self, opts):
 		try:
 			c = get_controller(opts.port)
+		except NoSerialConnectionException as e:
+			print "Available serial ports:"
+			if not e.available_ports():
+				print "<none>"
+			else:
+				for port, desc, hwid in e.available_ports():
+					print "\t%s (%s, %s)" % ( port, desc, hwid )
+			self.error(str(e))
 		except ValueError as e:
 			self.error(str(e))
 
