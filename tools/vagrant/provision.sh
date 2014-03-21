@@ -3,7 +3,7 @@
 die() { echo "$@" 1>&2; exit 1; }
 
 apt-get update
-apt-get install -y python python-setuptools python-dev libc6:i386
+apt-get install -y python python-setuptools python-dev libc6:i386 lib32stdc++6
 
 easy_install cmdln ZODB3 colorama pyparsing intelhex BeautifulSoup4 Cheetah pyserial pytest
 
@@ -14,6 +14,8 @@ wget $URL -O - | tar -xvzf -
 cd scons-$SCONSVERSION
 python setup.py install
 cd ..
+
+gem install rake
 
 XC8INSTALLER='xc8-v1.30-linux.run'
 if [ -e /vagrant/.cached_downloads/$XC8INSTALLER ]; then
