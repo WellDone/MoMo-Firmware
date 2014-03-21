@@ -6,20 +6,6 @@
 #include "i2c.h"
 #include "protocol.h"
 
-//Bus error codes that can be returned
-enum
-{
-	kNoMIBError = 0,
-	kUnsupportedCommand = 1,
-	kWrongParameterType = 2,
-	kParameterTooLong = 3,
-	kParameterChecksumError = 4,
-	kCommandChecksumError = 5,
-	kUnknownError = 6,
-	kCallbackError = 7,
-	kSlaveNotAvailable = 255
-};
-
 //Takes 2 bits to store
 //Cannot change.  Referenced by mib_hal.as in pic12 code
 typedef enum

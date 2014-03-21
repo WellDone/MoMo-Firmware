@@ -28,7 +28,7 @@ static void bus_slave_searchcommand()
 {
 	if (i2c_calculate_checksum() != 0)
 	{
-		bus_slave_setreturn(pack_return_status(kChecksumError, 0)); //Make sure the parameter checksum was valid.
+		bus_slave_setreturn(pack_return_status(kCommandChecksumError, 0)); //Make sure the command checksum was valid.
 		return;
 	}
 
@@ -53,9 +53,15 @@ static void bus_slave_searchcommand()
  */
 static uint8 bus_slave_validateparams()
 {
+	if (i2c_calculate_checksum() != 0)
+	{
+		bus_slave_seterror(kParameterChecksumError); //Make sure the parameter checksum was valid.
+		return 0;
+	}
+	
 	if (!validate_param_spec(mib_state.slave_handler))
 	{
-		bus_slave_setreturn(pack_return_status(kWrongParameterType, 0)); //Make sure the parameter checksum was valid.
+		bus_slave_setreturn(pack_return_status(kWrongParameterType, 0)); //Check the type of the parameter.
 		return 0;
 	}
 

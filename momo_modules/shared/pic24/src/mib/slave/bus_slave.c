@@ -89,7 +89,7 @@ static uint8 bus_slave_validateparams()
 
 	if (!validate_param_spec(mib_state.slave_handler))
 	{
-		bus_slave_seterror(kWrongParameterType); //Make sure the parameter checksum was valid.
+		bus_slave_seterror(kWrongParameterType); //Check the type of the parameter.
 		return 0;
 	}
 

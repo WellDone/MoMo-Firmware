@@ -12,19 +12,6 @@
 #define kReturnStatusOffset 1
 #define kReturnValueOffset 3
 
-//Bus error codes that can be returned
-enum
-{
-	kNoMIBError = 0,
-	kUnsupportedCommand = 1,
-	kWrongParameterType = 2,
-	kParameterTooLong = 3,
-	kChecksumError = 4,
-	kUnknownError = 6,
-	kCallbackError = 7,
-	kSlaveNotAvailable = 255
-};
-
 //Takes 2 bits to store
 //Cannot change.  Referenced by mib_hal.as in pic12 code
 typedef enum

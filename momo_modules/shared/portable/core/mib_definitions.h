@@ -12,6 +12,17 @@
 #include "common_types.h"
 #endif
 
+//Bus error codes that can be returned
+#define kNoMIBError             0
+#define kUnsupportedCommand     1
+#define kWrongParameterType     2
+#define kParameterTooLong       3
+#define kParameterChecksumError 4
+#define kCommandChecksumError   5
+#define kUnknownError           6
+#define kCallbackError          7
+#define kSlaveNotAvailable      255
+
 //Well-Known MIB Addresses
 #define kMIBControllerAddress		8
 #define kMIBUnenumeratedAddress		127
