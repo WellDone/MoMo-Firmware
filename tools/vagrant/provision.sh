@@ -1,5 +1,7 @@
 #!/bin/bash
 
+die() { echo "$@" 1>&2; exit 1; }
+
 apt-get update
 apt-get install -y python python-setuptools python-dev libc6:i386
 
@@ -25,15 +27,18 @@ elif [ ! -e ./$XC8INSTALLER.run ]; then
 		mkdir -p /vagrant/.cached_downloads
 		cp ./$XC8INSTALLER /vagrant/.cached_downloads
 	else
-		echo "Invalid downloaded file hash, exiting!"
 		rm -f ./$XC8INSTALLER
-		exit 1
+		die "Invalid downloaded file hash, exiting!"
 	fi
 fi
 echo "Installing xc8 compiler..."
 ./$XC8INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc8/v1.30"
+CODE=$?
 echo "PATH=\"\$PATH:/opt/microchip/xc8/v1.30/bin\"" >> /home/vagrant/.profile
 rm -f ./$XC8INSTALLER
+if [ $CODE -ne 0 ]; then
+	die "Failed to install xc8, exiting!"
+fi
 echo "DONE!"
 
 XC16INSTALLER=xc16-v1.21-linux-installer.run
@@ -48,14 +53,17 @@ elif [ ! -e ./$XC16INSTALLER ]; then
 		mkdir -p /vagrant/.cached_downloads
 		cp ./$XC16INSTALLER /vagrant/.cached_downloads
 	else
-		echo "Invalid downloaded file hash, exiting!"
 		rm -f ./$XC16INSTALLER
-		exit 1
+		die "Invalid downloaded file hash, exiting!"
 	fi
 fi
 echo "Installing xc16 compiler..."
 ./$XC16INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc16/v1.21"
+CODE=$?
 rm -f ./$XC16INSTALLER
+if [ $CODE -ne 0 ]; then
+	die "Failed to install xc16, exiting!"
+fi
 echo "PATH=\"\$PATH:/opt/microchip/xc16/v1.21/bin\"" >> /home/vagrant/.profile
 echo "DONE!"
 
