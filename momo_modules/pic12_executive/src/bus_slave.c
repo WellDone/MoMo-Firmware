@@ -55,7 +55,7 @@ static uint8 bus_slave_validateparams()
 {
 	if (i2c_calculate_checksum() != 0)
 	{
-		bus_slave_seterror(kParameterChecksumError); //Make sure the parameter checksum was valid.
+		bus_slave_setreturn(pack_return_status(kParameterChecksumError, 0)); //Make sure the parameter checksum was valid.
 		return 0;
 	}
 	
