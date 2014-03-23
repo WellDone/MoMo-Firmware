@@ -100,10 +100,14 @@ void bus_slave_seterror(uint8 error)
 
 uint8 bus_is_idle()
 {
-	if (_P && !_S)
+/*	if (_P && !_S)
 		return 1;
 
 	if (!_S && _RB8 && _RB9)
+		return 1;
+*/
+
+	if (_RB8 && _RB9)
 		return 1;
 
 	return 0;

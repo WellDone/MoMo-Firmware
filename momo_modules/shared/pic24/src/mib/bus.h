@@ -13,21 +13,18 @@ enum
 	kUnsupportedCommand = 1,
 	kWrongParameterType = 2,
 	kParameterTooLong = 3,
-	kParameterChecksumError = 4,
-	kCommandChecksumError = 5,
+	kChecksumError = 4,
 	kUnknownError = 6,
 	kCallbackError = 7,
 	kSlaveNotAvailable = 255
 };
 
-//Takes 2 bits to store
-//Cannot change.  Referenced by mib_hal.as in pic12 code
 typedef enum
 {
 	kMIBIdleState = 0,
 	kMIBSearchCommand = 1,
 	kMIBFinishCommand = 2,
-	kMIBProtocolError = 3,
+	kMIBProtocolError = 3
 } MIBSlaveState;
 
 //Need these because XC8 is really bad at optimizing bit operations
@@ -41,7 +38,7 @@ typedef enum
 #define bus_numreads_odd()				(mib_state.combined_state & 0x01)
 #define bus_numreads_full()				((mib_state.combined_state & 0b11) == 0b11)
 #define bus_numreads_nonzero()			(mib_state.combined_state & 0b11)
-//Takes 3 bits to store
+
 typedef enum 
 {
 	kMIBSendParameters = 1,
@@ -81,7 +78,7 @@ typedef struct
 
 typedef struct
 {
-	unsigned char 		padding;
+	unsigned char 		address;
 	MIBCommandPacket	bus_command;	//3 bytes
 	unsigned char 		mib_buffer[kBusMaxMessageSize];
 } MIBUnified; 

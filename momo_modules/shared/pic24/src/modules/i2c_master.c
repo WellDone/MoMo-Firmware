@@ -72,7 +72,14 @@ void i2c_master_receivechecksum()
 
 void __attribute__((interrupt,no_auto_psv)) _MI2C1Interrupt()
 {
-	//TODO add code for handling bus collision arbitration losses and stops
+	if (_BCL)
+	{
+		master.last_error = kI2CCollision;
+		_BCL = 0;
+		taskloop_add_critical(i2c_callback);
+		return;
+	}
+
 	switch(master.state)
 	{
 		case kI2CSendAddressState:

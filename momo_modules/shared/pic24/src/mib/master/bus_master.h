@@ -4,20 +4,7 @@
 #include "bus.h"
 
 //Master Routines
-void 			bus_master_callback();
-#ifndef _PIC12
-void 			bus_master_rpc_async(mib_rpc_function callback, unsigned char address, unsigned char feature, unsigned char cmd, unsigned char spec);
-void      bus_master_init();
-#else
-#define			bus_master_prepare(ftr, cmd, spc)  			\
-				{											\
-					mib_state.bus_command.feature = ftr;	\
-					mib_state.bus_command.command = cmd;	\
-					mib_state.bus_command.param_spec = spc;	\
-				}
-
-uint8			bus_master_rpc_sync(unsigned char address);
-
-#endif
-
+void bus_master_callback();
+void bus_master_rpc_async(mib_rpc_function callback, const MIBUnified *data);
+void bus_master_init();
 #endif

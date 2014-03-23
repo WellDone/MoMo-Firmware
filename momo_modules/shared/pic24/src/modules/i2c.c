@@ -80,7 +80,6 @@ void i2c_start_transmission()
 void i2c_finish_transmission()
 {
 	i2c_send_stop();
-
 	master.state = kI2CIdleState;
 }
 

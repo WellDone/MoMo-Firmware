@@ -78,7 +78,8 @@ typedef enum
 typedef enum
 {
 	kI2CNoError = 0,
-	kI2CInvalidChecksum
+	kI2CInvalidChecksum,
+	kI2CCollision
 } I2CErrorCode;
 
 typedef struct

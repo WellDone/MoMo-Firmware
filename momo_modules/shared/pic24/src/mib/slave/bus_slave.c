@@ -53,7 +53,7 @@ static void bus_slave_searchcommand()
 {
 	if (i2c_slave_lasterror() != kI2CNoError)
 	{
-		bus_slave_seterror(kCommandChecksumError); //Make sure the parameter checksum was valid.
+		bus_slave_seterror(kChecksumError); //Make sure the parameter checksum was valid.
 		return;
 	}
 	
@@ -83,7 +83,7 @@ static uint8 bus_slave_validateparams()
 {
 	if (i2c_slave_lasterror() != kI2CNoError)
 	{
-		bus_slave_seterror(kParameterChecksumError); //Make sure the parameter checksum was valid.
+		bus_slave_seterror(kChecksumError); //Make sure the parameter checksum was valid.
 		return 0;
 	}
 
