@@ -59,7 +59,6 @@ void bus_init(uint8 address)
 	i2c_set_flag(&config, kEnableSoftwareClockStretchingFlag);
 
 	mib_state.num_reads = 0;
-	mib_state.slave_state = kMIBIdleState;
 	mib_state.master_state = kMIBIdleState;
 
 	i2c_configure(&config);
@@ -94,8 +93,6 @@ void bus_slave_seterror(uint8 error)
 {
 	mib_state.bus_returnstatus.return_status = 0;
 	mib_state.bus_returnstatus.return_status |= (error << 5);
-
-	set_slave_state(kMIBProtocolError);
 }
 
 uint8 bus_is_idle()

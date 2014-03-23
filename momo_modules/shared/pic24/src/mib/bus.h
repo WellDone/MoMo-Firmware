@@ -19,29 +19,18 @@ enum
 	kSlaveNotAvailable = 255
 };
 
-typedef enum
-{
-	kMIBIdleState = 0,
-	kMIBSearchCommand = 1,
-	kMIBFinishCommand = 2,
-	kMIBProtocolError = 3
-} MIBSlaveState;
-
 //Need these because XC8 is really bad at optimizing bit operations
-#define shift_master_state(state)		(state << 4)
-#define set_master_state(state)			{mib_state.combined_state &= 0b10001111; mib_state.combined_state |= shift_master_state(state);}
-#define shift_slave_state(state)		(state << 2)
-#define set_slave_state(state)			{mib_state.combined_state &= 0b111110011; mib_state.combined_state |= shift_slave_state(state);}
+#define set_master_state(state)			mib_state.master_state = state
+#define set_slave_state(state)			mib_state.slave_state = state
 #define bus_has_returnvalue()			(mib_state.bus_returnstatus.len != 0)
 #define bus_get_returnvalue_length()	(mib_state.bus_returnstatus.len)
-#define bus_inc_numreads()				(mib_state.combined_state += 1)							//okay since numreads cannot be more than 2 so this won't overflow
-#define bus_numreads_odd()				(mib_state.combined_state & 0x01)
-#define bus_numreads_full()				((mib_state.combined_state & 0b11) == 0b11)
-#define bus_numreads_nonzero()			(mib_state.combined_state & 0b11)
+#define bus_inc_numreads()				mib_state.num_reads += 1							//okay since numreads cannot be more than 2 so this won't overflow
+#define bus_numreads_odd()				(mib_state.num_reads & 0x01)
 
 typedef enum 
 {
-	kMIBSendParameters = 1,
+	kMIBIdleState = 0,
+	kMIBSendParameters,
 	kMIBReadReturnStatus,
 	kMIBReadReturnValue,
 	kMIBExecuteCallback,
@@ -62,18 +51,9 @@ typedef struct
 	
 	mib_rpc_function		master_callback;
 
-	union 									//1 byte
-	{
-		struct 
-		{
-			volatile uint8			num_reads	 : 2;
-			volatile uint8			slave_state  : 2;
-			volatile uint8 			master_state : 3;
-			volatile uint8			rpc_done 	 : 1;
-		};
-
-		volatile uint8 				combined_state;
-	};
+	volatile uint8			num_reads;
+	volatile uint8 			master_state;
+	volatile uint8			rpc_done;
 } MIBState;
 
 typedef struct

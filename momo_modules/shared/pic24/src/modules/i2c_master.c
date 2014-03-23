@@ -36,13 +36,10 @@ void i2c_master_disable()
 
 void i2c_master_enable()
 {
-	if (master.state == kI2CDisabledState)
-	{
-		master.last_error = kI2CNoError;
-		master.state = kI2CIdleState;
+	master.last_error = kI2CNoError;
+	master.state = kI2CIdleState;
 
-		I2C1RCV;
-	}
+	I2C1RCV;
 }
 
 int i2c_master_lasterror()

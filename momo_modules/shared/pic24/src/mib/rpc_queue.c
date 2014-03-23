@@ -24,7 +24,7 @@ void rpc_queue(mib_rpc_function callback, const MIBUnified *data)
 
 inline void rpc_dequeue(rpc_info* out)
 {
-	ringbuffer_pop( &the_rpc_queue, out );
+	ringbuffer_pop(&the_rpc_queue, out);
 	taskloop_unlock();
 }
 inline const rpc_info* rpc_queue_peek()

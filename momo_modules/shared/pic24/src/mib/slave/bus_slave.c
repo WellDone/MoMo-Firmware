@@ -19,11 +19,13 @@ void bus_slave_setreturn(uint8 status)
 	mib_state.bus_returnstatus.return_status = status;
 }
 
-inline void bus_slave_set_returnbuffer_length( uint8 length ) {
+inline void bus_slave_set_returnbuffer_length( uint8 length ) 
+{
 	bus_slave_setreturn( pack_return_status( kNoMIBError, length ) );	
 }
 
-void bus_slave_return_buffer( const void* buff, uint8 length ) {
+void bus_slave_return_buffer( const void* buff, uint8 length ) 
+{
 	if ( length > kBusMaxMessageSize ) {
 		bus_slave_seterror( kUnknownError ); //TODO: Better
 		return;
@@ -40,12 +42,10 @@ void bus_slave_return_int16( int16 val ) {
 static void bus_slave_startcommand()
 {
 	//Initialize all the state
-	set_slave_state(kMIBSearchCommand);
 	mib_state.slave_handler = kInvalidMIBIndex;
 	mib_state.num_reads = 0;
 
 	bus_slave_setreturn(kUnknownError); //Make sure that if nothing else happens we return an error status.
-
 	bus_slave_receive((unsigned char *)&mib_unified.bus_command, sizeof(MIBCommandPacket) + 24, 0);
 }
 
@@ -70,8 +70,6 @@ static void bus_slave_searchcommand()
 		bus_slave_seterror(kParameterTooLong);
 		return;
 	}
-
-	set_slave_state(kMIBFinishCommand);
 }
 
 /*
@@ -81,12 +79,6 @@ static void bus_slave_searchcommand()
  */
 static uint8 bus_slave_validateparams()
 {
-	if (i2c_slave_lasterror() != kI2CNoError)
-	{
-		bus_slave_seterror(kChecksumError); //Make sure the parameter checksum was valid.
-		return 0;
-	}
-
 	if (!validate_param_spec(mib_state.slave_handler))
 	{
 		bus_slave_seterror(kWrongParameterType); //Make sure the parameter checksum was valid.
@@ -100,20 +92,12 @@ static void bus_slave_callcommand()
 {	
 	if (mib_state.slave_handler != kInvalidMIBIndex)
 	{
-		if (bus_slave_validateparams()) {
+		if (bus_slave_validateparams()) 
+		{
 			bus_slave_setreturn( pack_return_status( kNoMIBError, 0 ) );
 			call_handler(mib_state.slave_handler);
 		}
 	}
-}
-
-void bus_slave_reset()
-{
-	//A write after any number of reads is a protocol reset so we reset ourselves back to idle
-	//This is a failsafe to make sure we can't get into a state where the slave locks up
-	set_slave_state(kMIBIdleState);
-	mib_state.num_reads = 0;
-	i2c_slave_setidle();
 }
 
 void bus_slave_callback()
@@ -122,6 +106,13 @@ void bus_slave_callback()
 	{
 		if (i2c_slave_is_read())
 		{
+			
+			if (mib_state.num_reads == 0)
+			{
+				bus_slave_searchcommand();
+				bus_slave_callcommand();
+			}
+
 			bus_inc_numreads();
 
 			//Odd reads are for the return status
@@ -133,17 +124,8 @@ void bus_slave_callback()
 				 * subsequent reads until the master is satisfied that it has received one with a valid checksum.
 				 */
 
-				bus_slave_searchcommand();
-				bus_slave_callcommand();
-
 				//slave callback should set the return status via bus_slave_setreturn and set mib_unified.mib_buffer to point to the return value if any
 				bus_slave_send(&mib_state.bus_returnstatus.return_status, sizeof(MIBReturnValueHeader), kSendImmediately);
-
-				//If we don't expect to send a return value, finish the command after this transmission
-				if (mib_state.bus_returnstatus.len == 0)
-				{
-					set_slave_state(kMIBFinishCommand);
-				}
 			}
 			else
 			{
@@ -158,31 +140,18 @@ void bus_slave_callback()
 				else
 				{
 					bus_slave_send((unsigned char *)mib_unified.mib_buffer, 1, kSendImmediately); //protocol error so just send 1 byte, doesn't matter
-				}
-				
-				set_slave_state(kMIBFinishCommand);
-
-				//Make sure we can never overflow
-				//Just toggle back and forth between 1, 2 and 3. Clear the slave handler though so
-				//that we don't recall the function
+				}		
 			}
 
-			if (bus_numreads_full())
-			{
-				mib_state.slave_handler = kInvalidMIBIndex;
+			//Make sure we can never overflow
+			//Just toggle back and forth between 1, 2 and 3. 
+			if (mib_state.num_reads == 3)
 				mib_state.num_reads = 1; 
-			}
 		}
 		else
-		{
-			//We received a write
 			bus_slave_startcommand(); //A write always indicates a new command
-		}
-
-		//Always release the clock.  The slave should never hold the clock forever.
-		i2c_release_clock();
-		return;
 	}
 
+	//Always release the clock, the slave should never hold the clock forever
 	i2c_release_clock();
 }

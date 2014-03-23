@@ -41,16 +41,6 @@ I2CLogicState i2c_slave_state()
 	return slave.state;
 }
 
-void i2c_slave_setidle()
-{
-	slave.state = kI2CIdleState;
-	slave.last_error = kI2CNoError;
-
-	i2c_master_enable(); //let the master logic use the bus again if it needs.
-
-	i2c_release_clock();
-}
-
 void i2c_slave_sendbyte()
 {
 		i2c_transmit(*(i2c_msg->data_ptr));
@@ -71,11 +61,10 @@ int i2c_slave_lasterror()
 
 void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt()
 {
-	volatile unsigned char unused;
 
 	if (i2c_address_received())
 	{
-		unused = I2C1RCV;
+		I2C1RCV;
 		_I2COV = 0;
 
 		i2c_master_disable(); //If we receive a valid address, the the master must not be running so take over the i2c data structures

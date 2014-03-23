@@ -139,7 +139,6 @@ void i2c_master_disable();
 //Slave Functions
 void i2c_slave_receivedata();
 void i2c_slave_receivechecksum();
-void i2c_slave_setidle();
 void i2c_slave_sendbyte();
 int  i2c_slave_lasterror();
 

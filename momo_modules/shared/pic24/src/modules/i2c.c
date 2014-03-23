@@ -39,14 +39,13 @@ void i2c_configure(const I2CConfig *config)
 
 void i2c_enable()
 {
-	unsigned char unused;
 	//enable module power
 	peripheral_enable(kI2CModule);
 
 	master.state = kI2CIdleState;
 	slave.state = kI2CIdleState;
 
-	unused = I2C1RCV; //Clear out receive buffer
+	I2C1RCV; //Clear out receive buffer
 	_I2CEN = 1;
 
 	//set up interrupts
@@ -61,6 +60,7 @@ void i2c_disable()
 {
 	//disable interrupts
 	_SI2C1IE = 0;
+	_MI2C1IE = 0;
 
 	//cut power to module
 	peripheral_disable(kI2CModule);
@@ -69,7 +69,9 @@ void i2c_disable()
 void i2c_start_transmission()
 {
 	if (master.state == kI2CIdleState)
+	{
 		i2c_send_start();
+	}
 	else
 		i2c_send_repeatedstart();
 

@@ -9,7 +9,7 @@ void 			bus_master_handleerror();
 void 			bus_master_sendrpc();
 void 			bus_master_readstatus();
 
-rpc_info *master_rpcdata;
+const rpc_info *master_rpcdata;
 
 void bus_master_finish(uint8 next)
 {
@@ -25,17 +25,18 @@ void bus_master_init()
 
 void bus_master_rpc_async_do()
 {
-	rpc_dequeue(master_rpcdata);
+	master_rpcdata = rpc_queue_peek();
 	mib_state.master_callback = master_rpcdata->callback;
 
 	bus_master_sendrpc();
+	rpc_dequeue(NULL);
 }
 
 void bus_master_rpc_async(mib_rpc_function callback, const MIBUnified *data)
 {
 	rpc_queue(callback, data);
 
-	if ( mib_state.rpc_done )
+	if (mib_state.rpc_done)
 		bus_master_rpc_async_do();
 }
 
