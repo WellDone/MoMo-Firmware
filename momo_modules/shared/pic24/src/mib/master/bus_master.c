@@ -9,7 +9,7 @@ void 			bus_master_handleerror();
 void 			bus_master_sendrpc();
 void 			bus_master_readstatus();
 
-const rpc_info *master_rpcdata;
+rpc_info *master_rpcdata;
 
 void bus_master_finish(uint8 next)
 {
@@ -40,7 +40,7 @@ void bus_master_rpc_async(mib_rpc_function callback, const MIBUnified *data)
 }
 
 /*
- * Send or resend the rpc call currently stored in mib_state.  
+ * Send or resend the rpc call currently pointed to .  
  */
 
 void bus_master_sendrpc()

@@ -8,6 +8,7 @@
 #include "pme.h"
 #include "memory.h"
 #include "bus.h"
+#include "battery.h"
 #include "mainboard_mib_commands.h"
 #include "report_manager.h"
 #include "memory_manager.h"
@@ -45,7 +46,10 @@ void handle_all_resets_after(unsigned int type)
     if (!rtcc_enabled())
         enable_rtcc();
 
-    //start_report_scheduling();
+    //All modules that need to schedule tasks MUST BE called after
+    //rtcc is on and enabled. 
+    battery_init();
+    start_report_scheduling();
 }
 
 void handle_poweron_reset(unsigned int type)

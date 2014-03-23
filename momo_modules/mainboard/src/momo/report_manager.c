@@ -22,6 +22,8 @@ typedef struct { //103
     unsigned long hourly_buckets[24]; //96
 } sms_report;
 
+//+1415-992-8370
+
 // base64 length = 4 * ( ( sizeof(sms_report) + 2 ) / 3)
 #define BASE64_REPORT_LENGTH 140
 static char base64_report_buffer[BASE64_REPORT_LENGTH+1];
@@ -123,10 +125,9 @@ void post_report()
   report_stream_offset = 0;
 
   //TODO: Get address of GSM module.
-  uint8 gsm_address = 11;
   MIBUnified cmd;
 
-  cmd.address = gsm_address;
+  cmd.address = 11;
   cmd.bus_command.feature = 11;
   cmd.bus_command.command = 0;
   cmd.bus_command.param_spec = plist_with_buffer(0,strlen(report_server_gsm_address));
