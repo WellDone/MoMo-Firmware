@@ -17,3 +17,6 @@ config/*.local.json
 funclist
 *.sconsign.dblite
 config/*.cache*
+
+.vagrant
+.cached_downloads
