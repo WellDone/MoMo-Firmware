@@ -9,6 +9,7 @@
 #include "common.h"
 #include "battery.h"
 #include "eeprom.h"
+#include "rtcc.h"
 
 #define MAX_MODULES 8
 #define MODULE_BASE_ADDRESS 11
@@ -16,6 +17,8 @@
 static momo_module_descriptor the_modules[MAX_MODULES];
 static unsigned int module_count = 0;
 static flash_block_info fb_info;
+
+unsigned int debug_flag_value = 0;
 
 void con_init()
 {
@@ -141,6 +144,28 @@ void reflash_self()
 	asm volatile("reset");
 }
 
+void current_time()
+{
+	rtcc_datetime t;
+
+	rtcc_get_time(&t);
+
+	plist_set_int16(0, t.year);
+	plist_set_int16(1, t.month);
+	plist_set_int16(2, t.day);
+	plist_set_int16(3, t.hours);
+	plist_set_int16(4, t.minutes);
+	plist_set_int16(5, t.seconds);
+
+	bus_slave_setreturn(pack_return_status(kNoMIBError, 12));
+}
+
+void debug_value()
+{
+	bus_slave_return_int16(debug_flag_value);
+}
+
+
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x00, register_module, plist_spec(0,true) },
@@ -154,6 +179,8 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x08, test_fb_write, plist_spec(0, true)},
 	{0x09, test_fb_read, plist_spec(0, false)},
 	{0x0A, reflash_self, plist_spec_empty()},
-	{0x0B, report_battery, plist_spec_empty()}
+	{0x0B, report_battery, plist_spec_empty()},
+	{0x0C, current_time, plist_spec_empty()},
+	{0x0D, debug_value, plist_spec_empty()},
 };
 DEFINE_MIB_FEATURE(controller);

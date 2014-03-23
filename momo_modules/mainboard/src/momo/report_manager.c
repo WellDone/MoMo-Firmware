@@ -22,15 +22,20 @@ typedef struct { //103
     unsigned long hourly_buckets[24]; //96
 } sms_report;
 
+extern unsigned int debug_flag_value;
+
 //+1415-992-8370
 
 // base64 length = 4 * ( ( sizeof(sms_report) + 2 ) / 3)
 #define BASE64_REPORT_LENGTH 140
 static char base64_report_buffer[BASE64_REPORT_LENGTH+1];
-static char report_server_gsm_address[16] = {'+','1','6','5','0','6','6','9','5','2','2','5','\0','\0',0,0};
+static char report_server_gsm_address[16] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0','\0',0,0};
 extern unsigned int last_battery_voltage;
 
 static sensor_event event_buffer[EVENT_BUFFER_SIZE];
+static int demo_i=0;
+
+static unsigned int demo_data[10] = {1, 5, 2, 6, 7, 3, 4, 2, 8, 4};
 bool construct_report()
 {
   sms_report report;
@@ -73,7 +78,9 @@ bool construct_report()
     count = read_sensor_events( event_buffer, 1 );
   }*/
 
-  report.event_count = 20;
+  report.event_count = demo_data[demo_i++];
+  if (demo_i == 10)
+    demo_i = 0;
 
   count = base64_encode( (BYTE*)&report, 104, base64_report_buffer, BASE64_REPORT_LENGTH );
   base64_report_buffer[count] = '\0';
@@ -109,7 +116,8 @@ void stream_to_gsm() {
 
   bus_master_rpc_async( receive_gsm_stream_response, &cmd);
 }
-void receive_gsm_stream_response(unsigned char a) {
+void receive_gsm_stream_response(unsigned char a) 
+{
   if ( a != kNoMIBError ) {
     return;
   }
