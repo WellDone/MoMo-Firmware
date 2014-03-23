@@ -96,7 +96,8 @@ uint8 bus_master_tryrpc()
 		//At this point we know that we read a valid return status, check what it tells us
 
 		//If there was a checksum error on the command packet
-		if (mib_data.return_status.bus_returnstatus.result == kChecksumError)
+		if ( mib_data.return_status.bus_returnstatus.result == kCommandChecksumError
+ 		  || mib_data.return_status.bus_returnstatus.result == kParameterChecksumError )
 			goto restart_command;
 
 		//If there was a return value, read it in

@@ -11,4 +11,8 @@ void bus_slave_return_buffer( const void* buff, uint8 length );
 inline void bus_slave_set_returnbuffer_length( uint8 length );
 void bus_slave_setreturn(uint8 status);
 
+#define mib_success() bus_slave_setreturn( pack_return_status(0,0) )
+#define mib_return(return_length) bus_slave_setreturn( pack_return_status( 0, return_length ) )
+#define mib_error(code,return_length) bus_slave_setreturn( pack_return_status( code, return_length ) )
+
 #endif
