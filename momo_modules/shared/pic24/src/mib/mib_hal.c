@@ -58,7 +58,7 @@ void bus_init(uint8 address)
 	i2c_set_flag(&config, kEnableGeneralCallFlag);
 	i2c_set_flag(&config, kEnableSoftwareClockStretchingFlag);
 
-	mib_state.num_reads = 0;
+	mib_state.first_read = 1;
 	mib_state.master_state = kMIBIdleState;
 
 	i2c_configure(&config);
@@ -91,21 +91,19 @@ uint8 plist_param_length(uint8 plist)
 
 void bus_slave_seterror(uint8 error)
 {
-	mib_state.bus_returnstatus.return_status = 0;
-	mib_state.bus_returnstatus.return_status |= (error << 5);
+	mib_unified.bus_returnstatus.return_status = 0;
+	mib_unified.bus_returnstatus.return_status |= (error << 5);
 }
 
 uint8 bus_is_idle()
 {
-/*	if (_P && !_S)
-		return 1;
+	//Make sure a transaction is not in progress
+	if (_S)
+		return 0;
 
-	if (!_S && _RB8 && _RB9)
-		return 1;
-*/
+	//Make sure we are not curently using the I2C hardware.
+	if (I2C1CON & 0b11111)
+		return 0;
 
-	if (_RB8 && _RB9)
-		return 1;
-
-	return 0;
+	return 1;
 }

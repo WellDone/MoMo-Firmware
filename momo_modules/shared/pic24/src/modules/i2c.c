@@ -85,20 +85,8 @@ void i2c_finish_transmission()
 	master.state = kI2CIdleState;
 }
 
-void i2c_send_message()
+void i2c_send_master_message()
 {
-    mib_state.bus_msg.checksum = 0;
-
-    //Check if this is a slave transmission
-    if (!i2c_address_valid(mib_state.bus_msg.address))
-    {
-        slave.state = kI2CSendDataState;
-        if (mib_state.bus_msg.address == kInvalidImmediateAddress)
-            i2c_slave_sendbyte();
-
-        return;
-    }
-
     master.dir = kMasterSendData;
     mib_state.bus_msg.address <<= 1;
 
@@ -108,9 +96,7 @@ void i2c_send_message()
 }
 
 void i2c_receive_message()
-{
-	mib_state.bus_msg.checksum = 0;
-	
+{	
     //Check if this is a slave reception
     if (!i2c_address_valid(mib_state.bus_msg.address))
     {
@@ -122,6 +108,18 @@ void i2c_receive_message()
     mib_state.bus_msg.address <<= 1;
 
     SET_BIT(mib_state.bus_msg.address, 0); //set read indication
-
     i2c_start_transmission();
+}
+
+int i2c_receive_byte()
+{
+	unsigned char data = I2C1RCV;
+	*(i2c_msg->data_ptr++) = data;
+	i2c_msg->checksum += data;
+
+	//Check if we are at the end of the message 
+	if (i2c_msg->data_ptr == i2c_msg->last_data)
+		return 1;
+
+	return 0;
 }

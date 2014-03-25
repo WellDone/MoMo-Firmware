@@ -23,9 +23,7 @@ enum
 #define set_master_state(state)			mib_state.master_state = state
 #define set_slave_state(state)			mib_state.slave_state = state
 #define bus_has_returnvalue()			(mib_state.bus_returnstatus.len != 0)
-#define bus_get_returnvalue_length()	(mib_state.bus_returnstatus.len)
-#define bus_inc_numreads()				mib_state.num_reads += 1							//okay since numreads cannot be more than 2 so this won't overflow
-#define bus_numreads_odd()				(mib_state.num_reads & 0x01)
+#define bus_get_returnvalue_length()	(mib_unified.bus_returnstatus.len)
 
 typedef enum 
 {
@@ -34,16 +32,13 @@ typedef enum
 	kMIBReadReturnStatus,
 	kMIBReadReturnValue,
 	kMIBExecuteCallback,
-	kMIBResendCommand,
 	kMIBFinalizeMessage
 } MIBMasterState;
 
-//10 bytes long
 typedef struct 
 {
 	//Shared Buffers
 	I2CMessage				bus_msg;		//4 bytes
-	MIBReturnValueHeader	bus_returnstatus;//1 byte
 
 	//handlers
 	uint8					feature_index;
@@ -51,16 +46,27 @@ typedef struct
 	
 	mib_rpc_function		master_callback;
 
-	volatile uint8			num_reads;
+	volatile uint8			first_read;
 	volatile uint8 			master_state;
 	volatile uint8			rpc_done;
 } MIBState;
 
 typedef struct
 {
-	unsigned char 		address;
-	MIBCommandPacket	bus_command;	//3 bytes
+	unsigned char 			address;
+	union
+	{
+		MIBCommandPacket	bus_command;	//3 bytes
+		struct
+		{
+			unsigned char 		 padding;
+			MIBReturnValueHeader bus_returnstatus;//1 byte
+			unsigned char		 status_checksum;
+		};
+	};
+
 	unsigned char 		mib_buffer[kBusMaxMessageSize];
+	unsigned char		buffer_checksum;	//need potentially one more byte for checksum if mib_buffer is completely full
 } MIBUnified; 
 
 /*
@@ -79,7 +85,9 @@ uint8 plist_param_length(uint8 plist);
 //Bus transmission functions
 void bus_send(unsigned char address, unsigned char *buffer, unsigned char len);
 void bus_receive(unsigned char address, unsigned char *buffer, unsigned char len);
-void bus_slave_send(unsigned char* buffer, uint8 len, unsigned char imm);
-void bus_slave_receive(unsigned char* buffer, uint8 len, unsigned char imm);
+void bus_slave_send(unsigned char* buffer, uint8 len);
+void bus_slave_receive(unsigned char* buffer, uint8 len);
+
+void bus_append_checksum(unsigned char *buffer, unsigned int length);
 
 #endif

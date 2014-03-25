@@ -5,6 +5,6 @@
 
 //Master Routines
 void bus_master_callback();
-void bus_master_rpc_async(mib_rpc_function callback, const MIBUnified *data);
+void bus_master_rpc_async(mib_rpc_function callback, MIBUnified *data);
 void bus_master_init();
 #endif
