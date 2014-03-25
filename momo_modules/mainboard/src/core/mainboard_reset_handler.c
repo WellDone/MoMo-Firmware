@@ -49,7 +49,7 @@ void handle_all_resets_after(unsigned int type)
     //All modules that need to schedule tasks MUST BE called after
     //rtcc is on and enabled. 
     battery_init();
-    start_report_scheduling();
+    //start_report_scheduling();
 }
 
 void handle_poweron_reset(unsigned int type)
