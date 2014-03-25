@@ -295,7 +295,7 @@ CommandStatus handle_binrpc(command_params *params)
         return kFailure;
     }
 
-    str = get_param_string( params, 0);
+    str = get_param_string(params, 0);
 
     if (strlen(str) != 32)
     {
@@ -362,4 +362,11 @@ CommandStatus handle_alarm(command_params *params)
     }
 
     return kFailure;
+}
+
+CommandStatus handle_i2cstatus(command_params *params)
+{
+    put(DEBUG_UART, I2C1STAT&0xFF);
+    put(DEBUG_UART, I2C1STAT>>8);
+    return kSuccess;
 }

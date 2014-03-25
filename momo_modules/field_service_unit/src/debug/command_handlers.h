@@ -10,6 +10,7 @@ CommandStatus handle_adc(command_params *params);
 CommandStatus handle_rpc(command_params *params);
 CommandStatus handle_binrpc(command_params *params);
 CommandStatus handle_alarm(command_params *params);
+CommandStatus handle_i2cstatus(command_params *params);
 
 #endif	/* __command_handlers_h__ */
 
