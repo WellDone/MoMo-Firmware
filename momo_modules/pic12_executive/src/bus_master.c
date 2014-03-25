@@ -48,8 +48,12 @@ uint8 bus_master_rpc_sync(unsigned char address)
 		;
 
 	if (bus_master_tryrpc() == 0)
+	{
+		i2c_finish_transmission();
 		goto wait_and_start;
+	}
 
+	i2c_finish_transmission();
 	i2c_set_master_mode(0);
 
 	return mib_data.return_status.bus_returnstatus.result;
@@ -69,52 +73,44 @@ uint8 bus_master_tryrpc()
 
 	i2c_init_buffer(kCommandOffset);
 	if (bus_master_send(sizeof(MIBCommandPacket) + plist_param_length()) == 1)	//Do not include 1 byte of room for checksum since that will be appended
-		goto restart_command;
+		return 0;
 
 	while (true)
 	{
 		i2c_init_buffer(kReturnStatusOffset);
 		if (bus_master_receive(sizeof(MIBReturnValueHeader) + 1) == 1)
-			goto restart_command;
+			return 0;
 
 		if (i2c_calculate_checksum() != 0)
 		{
 			if (mib_data.return_status.bus_returnstatus.return_status == 0xFF)
-			{
-				i2c_finish_transmission();
-				return 1;
-			}
-			else
-			{
-				if (bus_master_receive(sizeof(MIBReturnValueHeader) + 1) == 1)
-					goto restart_command;
-
-				continue;
-			}
+				break;
+			
+			continue;
 		}
 
 		//At this point we know that we read a valid return status, check what it tells us
 
 		//If there was a checksum error on the command packet
 		if (mib_data.return_status.bus_returnstatus.result == kChecksumError)
-			goto restart_command;
+			return 0;
 
-		//If there was a return value, read it in
+		//If there was a return value, read it in.
+		//Note that for simplicity of implementation, we also read in the return status again.
+		//The slave sends the same information on every read.
 		if (bus_retval_size() > 0)
 		{
-			i2c_init_buffer(kReturnValueOffset);
-			if (bus_master_receive(bus_retval_size() + 1) == 1)
-				goto restart_command;
+			i2c_init_buffer(kReturnStatusOffset);
+			if (bus_master_receive(bus_retval_size() + 1 + sizeof(MIBReturnValueHeader) + 1) == 1)
+				return 0;
 
 			if (i2c_calculate_checksum() != 0)
 				continue;
 		}
 
 		//If we got all the way through the loop, the command was successful
-		return 1;
+		break;
 	}
 
-	restart_command:
-	i2c_finish_transmission();
-	return 0;
+	return 1;
 }

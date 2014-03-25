@@ -28,7 +28,7 @@ typedef union
 		uint8 wdt_timedout	: 1; //cannot change, referenced in watchdog.as
 		uint8 slave_active 	: 1; //cannot change, referenced in i2c_utilities.as
 		uint8 first_read	: 1;
-		uint8 send_value	: 1; 
+		uint8 reserved		: 1; 
 	};
 
 	uint8 status;
