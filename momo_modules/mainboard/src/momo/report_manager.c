@@ -22,13 +22,20 @@ typedef struct { //103
     unsigned long hourly_buckets[24]; //96
 } sms_report;
 
+extern unsigned int debug_flag_value;
+
+//+1415-992-8370
+
 // base64 length = 4 * ( ( sizeof(sms_report) + 2 ) / 3)
 #define BASE64_REPORT_LENGTH 140
 static char base64_report_buffer[BASE64_REPORT_LENGTH+1];
-static char report_server_gsm_address[16] = {'+','2','5','5','7','1','4','2','3','8','4','7','5','\0',0,0};
+static char report_server_gsm_address[16] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0','\0',0,0};
 extern unsigned int last_battery_voltage;
 
 static sensor_event event_buffer[EVENT_BUFFER_SIZE];
+static int demo_i=0;
+
+static unsigned int demo_data[10] = {1, 5, 2, 6, 7, 3, 4, 2, 8, 4};
 bool construct_report()
 {
   sms_report report;
@@ -47,7 +54,7 @@ bool construct_report()
   report.event_count = 0;
   report.sensor_type = 0;
 
-  count = read_sensor_events( event_buffer, 1 );
+  /*count = read_sensor_events( event_buffer, 1 );
 
   if ( count != 0 ) {
     report.sensor_type = event_buffer[0].type;
@@ -69,9 +76,11 @@ bool construct_report()
     report.hourly_buckets[event_buffer[0].starttime.hour] += event_buffer[0].value;
 
     count = read_sensor_events( event_buffer, 1 );
-  }
+  }*/
 
-  report.event_count = 20;
+  report.event_count = demo_data[demo_i++];
+  if (demo_i == 10)
+    demo_i = 0;
 
   count = base64_encode( (BYTE*)&report, 104, base64_report_buffer, BASE64_REPORT_LENGTH );
   base64_report_buffer[count] = '\0';
@@ -82,33 +91,41 @@ static uint8 report_stream_offset;
 void receive_gsm_stream_response(unsigned char a);
 void stream_to_gsm() {
   uint8 gsm_address = 11;
+  MIBUnified cmd;
+
   if ( report_stream_offset >= BASE64_REPORT_LENGTH )
   {
-    bus_master_rpc_async( NULL, gsm_address, 11, 2, plist_empty() ); //TODO: Handle failure to send
+    cmd.address = gsm_address;
+    cmd.bus_command.feature = 11;
+    cmd.bus_command.command = 2;
+    cmd.bus_command.param_spec = plist_empty();
+    bus_master_rpc_async(NULL, &cmd); //TODO: Handle failure to send
     return;
   }
+
   uint8 byte_count = BASE64_REPORT_LENGTH-report_stream_offset;
   if ( byte_count > kBusMaxMessageSize )
     byte_count = kBusMaxMessageSize;
-  memcpy( plist_get_buffer(0), base64_report_buffer+report_stream_offset, byte_count );
+  memcpy( &cmd.mib_buffer, base64_report_buffer+report_stream_offset, byte_count );
   report_stream_offset += byte_count;
 
-  bus_master_rpc_async( receive_gsm_stream_response, gsm_address, 11, 1, plist_with_buffer(0,byte_count) );
+  cmd.address = gsm_address;
+  cmd.bus_command.feature = 11;
+  cmd.bus_command.command = 1;
+  cmd.bus_command.param_spec = plist_with_buffer(0,byte_count);
+
+  bus_master_rpc_async( receive_gsm_stream_response, &cmd);
 }
-void receive_gsm_stream_response(unsigned char a) {
+void receive_gsm_stream_response(unsigned char a) 
+{
   if ( a != kNoMIBError ) {
     return;
   }
   
   taskloop_add( stream_to_gsm );
 }
-void post_report() {
-    if (!bus_is_idle())
-    {
-      taskloop_add(post_report);
-      return;
-    }
-
+void post_report() 
+{
   //TODO: Gather sensor data from sensor modules
   if (!construct_report())
     return;
@@ -116,9 +133,14 @@ void post_report() {
   report_stream_offset = 0;
 
   //TODO: Get address of GSM module.
-  uint8 gsm_address = 11;
-  memcpy( plist_get_buffer(0), report_server_gsm_address, strlen(report_server_gsm_address) );
-  bus_master_rpc_async( receive_gsm_stream_response, gsm_address, 11, 0, plist_with_buffer(0,strlen(report_server_gsm_address)) );
+  MIBUnified cmd;
+
+  cmd.address = 11;
+  cmd.bus_command.feature = 11;
+  cmd.bus_command.command = 0;
+  cmd.bus_command.param_spec = plist_with_buffer(0,strlen(report_server_gsm_address));
+  memcpy( cmd.mib_buffer, report_server_gsm_address, strlen(report_server_gsm_address) );
+  bus_master_rpc_async( receive_gsm_stream_response, &cmd);
 }
 
 static ScheduledTask report_task;

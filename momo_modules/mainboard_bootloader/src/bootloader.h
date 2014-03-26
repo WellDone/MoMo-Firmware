@@ -14,7 +14,7 @@ enum
 void program_application();
 void erase_row(unsigned int row);
 void patch_reset_vector(unsigned char *row_buffer, uint32 low, uint32 high);
-void extract_reset_vector(unsigned char *row_buffer, uint32 *low, uint32 *high);
+void extract_reset_vector(uint32 *low, uint32 *high);
 bool valid_instruction(unsigned int addr);
 void goto_address(unsigned int addr);
 
