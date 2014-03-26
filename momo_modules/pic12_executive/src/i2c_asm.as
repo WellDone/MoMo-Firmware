@@ -99,14 +99,14 @@ BEGINFUNCTION _i2c_incptr
 	xorwf	BANKMASK(curr_loc),w
 	btfsc 	ZERO
 		return 			;if buffer is full, do not increment
-	incf 	BANKMASK(curr_loc)
+	incf 	BANKMASK(curr_loc),f
 	return
 ENDFUNCTION _i2c_incptr
 
 ;Decrement the next available location pointer
 BEGINFUNCTION _i2c_decptr
 	banksel _mib_state
-	decf 	BANKMASK(curr_loc)
+	decf 	BANKMASK(curr_loc),f
 	return
 ENDFUNCTION _i2c_decptr
 

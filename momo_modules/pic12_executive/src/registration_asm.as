@@ -12,11 +12,13 @@
 ASM_INCLUDE_GLOBALS()
 
 global _mib_to_fsr0, _get_magic, _get_mib_block
-global _copy_fsr, _bus_master_rpc_sync
+global _copy_fsr, _bus_master_send_rpc, _bus_master_begin_rpc
 
 PSECT text_asm_register,local,class=CODE,delta=2
 
 BEGINFUNCTION _register_module
+	
+	call _bus_master_begin_rpc
 	;check if there's a valid application module loaded
 	call 	_get_magic
 	skipnel kMIBMagicNumber
@@ -50,7 +52,7 @@ BEGINFUNCTION _register_module
 	movwf BANKMASK(bus_spec)
 
 	movlw kMIBControllerAddress
-	call _bus_master_rpc_sync
+	call _bus_master_send_rpc
 
 	;Check if we were successful (return value == 0)
 	;return 0 if we failed

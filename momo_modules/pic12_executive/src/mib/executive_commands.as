@@ -26,11 +26,3 @@ BEGINREGION exec_spec_map
 	retlw 0
 	retlw 0
 ENDREGION exec_spec_map
-
-BEGINFUNCTION _exec_get_spec
-	goto exec_spec_map
-ENDFUNCTION _exec_get_spec
-
-BEGINFUNCTION _exec_call_cmd
-	goto exec_cmd_map
-ENDFUNCTION _exec_call_cmd

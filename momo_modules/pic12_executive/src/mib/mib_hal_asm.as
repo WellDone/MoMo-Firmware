@@ -8,7 +8,7 @@
 ;Assembly routines for dealing with MIB things in an efficient way
 ;very quickly and with minimal code overhead
 
-GLOBAL _exec_call_cmd, _exec_get_spec, _find_handler
+GLOBAL exec_cmd_map, exec_spec_map, _find_handler
 global _mib_data
 
 PSECT text100,local,class=CODE,delta=2
@@ -93,7 +93,7 @@ BEGINFUNCTION _call_handler
 	btfss ZERO
 	GOTO call_app
 	movf FSR1L,w
-	GOTO _exec_call_cmd
+	GOTO exec_cmd_map
 	call_app:
 	movf FSR1L,w
 
@@ -123,7 +123,7 @@ BEGINFUNCTION _get_param_spec
 	btfss ZERO
 	GOTO call_spec
 	movf FSR1L,w
-	GOTO _exec_get_spec
+	GOTO exec_spec_map
 	
 	call_spec:
 	movf FSR1L,w
@@ -158,27 +158,19 @@ BEGINFUNCTION _get_num_features
 	return
 ENDFUNCTION _get_num_features
 
-BEGINFUNCTION _plist_int_count
-	andlw 0b01100000	; ((plist & 0b01100000) >> 5)
-	swapf WREG,w
-	lsrf  WREG,w
-	return
-ENDFUNCTION _plist_int_count
-
 ; compute ((plist_int_count(plist) << 1) + (plist & plist_buffer_mask))
 ; efficiently on the pic12
-; Uses: EEADRL and EEDATL
+; Uses: FSR0L and FSR0H
 BEGINFUNCTION _plist_param_length
 	banksel _mib_data
 	movf 	mibspec,w
-	movlb 3
-	movwf BANKMASK(EEADRL)  					
+	movwf BANKMASK(FSR0L)  					
 	andlw 0b01100000
 	swapf WREG,w
-	movwf BANKMASK(EEDATL)	;contains int size
+	movwf BANKMASK(FSR0H)	;contains int size
 	movlw 0b00011111
-	andwf BANKMASK(EEADRL),w
-	addwf BANKMASK(EEDATL),w
+	andwf BANKMASK(FSR0L),w
+	addwf BANKMASK(FSR0H),w
 	return
 ENDFUNCTION _plist_param_length
 
