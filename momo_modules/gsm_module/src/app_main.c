@@ -43,12 +43,24 @@ void gsm_module_on()
 
 	bus_slave_setreturn(pack_return_status(0,2));
 }
+void gsm_module_off()
+{
+	gsm_off();
+	bus_slave_setreturn(pack_return_status(0,0));
+}
 
 void gsm_power_on()
 {
 	MAKE_DIGITAL(MODULEPOWERPIN);
 	DRIVE_HI(MODULEPOWERPIN);
 	bus_slave_setreturn(pack_return_status(0,0));
+}
+
+void gsm_power_off()
+{
+	MAKE_DIGITAL(MODULEPOWERPIN);
+	DRIVE_LOW(MODULEPOWERPIN);
+	bus_slave_setreturn(pack_return_status(0,0));	
 }
 
 void gsm_testsim()
@@ -77,7 +89,11 @@ void gsm_sendcommand()
 		uint8 resp_len;
 
 		send_buffer();
-		receive_response();
+		uint8 status = receive_response();
+		if ( status != 0 ) {
+			bus_slave_setreturn( pack_return_status(6,0) );
+			return;
+		}
 
 		resp_len = copy_to_mib();
 		bus_slave_setreturn(pack_return_status(0, resp_len));
@@ -85,7 +101,7 @@ void gsm_sendcommand()
 		return;
 	}
 
-	bus_slave_setreturn(pack_return_status(6,0));
+	bus_slave_setreturn(pack_return_status(7,0));
 }
 
 /*
