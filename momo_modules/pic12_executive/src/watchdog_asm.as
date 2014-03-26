@@ -8,29 +8,6 @@ global	start
 
 PSECT wdt_utils,local,class=CODE,delta=2
 
-;disable the wdt and remember if it was enabled or not
-;before the disabling occured.
-BEGINFUNCTION _wdt_pushenabled
-	BANKSEL WDTCON
-	movf BANKMASK(WDTCON),w
-	andlw 1
-	bcf SWDTEN
-	BANKSEL _status
-	bcf BANKMASK(_status),0
-	iorwf BANKMASK(_status),f
-	return
-ENDFUNCTION _wdt_pushenabled
-
-BEGINFUNCTION _wdt_popenabled
-	BANKSEL _status
-	btfss BANKMASK(_status),0
-	goto done
-	BANKSEL WDTCON
-	bsf SWDTEN
-	done:
-	return
-ENDFUNCTION _wdt_popenabled
-
 BEGINFUNCTION _wdt_settimeout
 	banksel WDTCON
 	movwf BANKMASK(WDTCON)

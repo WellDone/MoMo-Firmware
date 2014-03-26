@@ -39,7 +39,7 @@ BEGINFUNCTION _register_module
 	call _copy_fsr
 
 	;mib_buffer now has the module descriptor
-	;send it to controller endpoint(40, 0)
+	;send it to controller endpoint(42, 0)
 	banksel _mib_data
 	movlw 42
 	movwf BANKMASK(bus_feature)
