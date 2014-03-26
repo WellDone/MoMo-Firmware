@@ -4,6 +4,8 @@
 #include "memory.h"
 #include "constants.h"
 
+extern void *_reset;
+
 void _BOOTLOADER_CODE write_row(unsigned int row, unsigned char *row_buffer)
 {
 	unsigned int j;
@@ -38,6 +40,8 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
 
 	uint32 reset_low, reset_high;
 
+	extract_reset_vector(&reset_low, &reset_high);
+
 	//Enable the Memory Module
     _RB7 = 1;
     _TRISB7 = 0;
@@ -51,15 +55,20 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
 	{
 		mem_read(addr, row_buffer, kFlashRowSizeInstructions*3);
 
-		//Save and patch the application goto vector and replace the reset vector
+		//Patch the application goto vector and replace the reset vector
 		//with a jump to us.
 		if (i == 0)
-		{
-			extract_reset_vector(row_buffer, &reset_low, &reset_high);
-			patch_reset_vector(row_buffer, kBootloaderGotoLow, kBootloaderGotoHigh);
-		}
-		else if (i == kAppJumpRow)
 			patch_reset_vector(row_buffer, reset_low, reset_high);
+		else if(i == kAppJumpRow)
+		{
+			//Overwrite the flash at address 0x100 so that we know we have a valid application
+			row_buffer[0] = 0xAA;
+			row_buffer[1] = 0xAA;
+			row_buffer[2] = 0xAA;
+			row_buffer[3] = 0xAA;
+			row_buffer[4] = 0xAA;
+			row_buffer[5] = 0xAA;
+		}
 
 		erase_row(i);
 		write_row(i, row_buffer);
@@ -82,17 +91,24 @@ bool _BOOTLOADER_CODE valid_instruction(unsigned int addr)
 	return true;
 }
 
-void _BOOTLOADER_CODE extract_reset_vector(unsigned char *row_buffer, uint32 *low, uint32 *high)
+void _BOOTLOADER_CODE extract_reset_vector(uint32 *low, uint32 *high)
 {
+	unsigned int tmpl, tmph;
+
+	TBLPAG = 0;
+	tmpl = __builtin_tblrdl(0);
+	tmph = __builtin_tblrdh(0);
+
 	*low = 0;
-	*low |= row_buffer[0];
-	*low |= ((uint32)row_buffer[1]) << 8;
-	*low |= ((uint32)row_buffer[2]) << 16;
+	*low |= tmpl;
+	*low |= ((uint32)tmph & 0xFF) << 16;
+
+	tmpl = __builtin_tblrdl(2);
+	tmph = __builtin_tblrdh(2);
 
 	*high = 0;
-	*high |= row_buffer[3];
-	*high |= ((uint32)row_buffer[4]) << 8;
-	*high |= ((uint32)row_buffer[5]) << 16;
+	*high |= tmpl;
+	*high |= ((uint32)tmph & 0xFF) << 16;
 }
 
 void _BOOTLOADER_CODE patch_reset_vector(unsigned char *row_buffer, uint32 low, uint32 high)
@@ -101,8 +117,8 @@ void _BOOTLOADER_CODE patch_reset_vector(unsigned char *row_buffer, uint32 low, 
 	row_buffer[1] = (low >> 8) & 0xFF;
 	row_buffer[2] = (low >> 16) & 0xFF;
 
-	row_buffer[3] = (high >> 0) & 0xFF;
-	row_buffer[4] = (high >> 8) & 0xFF;
+	row_buffer[4] = (high >> 0) & 0xFF;
+	row_buffer[3] = (high >> 8) & 0xFF;
 	row_buffer[5] = (high >> 16) & 0xFF;
 }
 

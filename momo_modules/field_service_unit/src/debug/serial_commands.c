@@ -27,6 +27,7 @@ void register_command_handlers()
 
     register_command("binrpc", handle_binrpc);
     register_command("alarm", handle_alarm);
+    register_command("i2c", handle_i2cstatus);
 
     getln( process_commands_task );
 }

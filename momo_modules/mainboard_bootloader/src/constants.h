@@ -25,8 +25,7 @@
 
 #define kAppJumpRow				(0x100 / kFlashRowSizeWords)
 
-#define kBootloaderGotoLow 		0x042AA6ULL
-#define kBootloaderGotoHigh		0x000000ULL
+#define kBootloaderGotoHighByte 0x04
 
 #define kBootloaderMagicEEPROMLoc 0
 

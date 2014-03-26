@@ -39,14 +39,13 @@ void i2c_configure(const I2CConfig *config)
 
 void i2c_enable()
 {
-	unsigned char unused;
 	//enable module power
 	peripheral_enable(kI2CModule);
 
 	master.state = kI2CIdleState;
 	slave.state = kI2CIdleState;
 
-	unused = I2C1RCV; //Clear out receive buffer
+	I2C1RCV; //Clear out receive buffer
 	_I2CEN = 1;
 
 	//set up interrupts
@@ -61,6 +60,7 @@ void i2c_disable()
 {
 	//disable interrupts
 	_SI2C1IE = 0;
+	_MI2C1IE = 0;
 
 	//cut power to module
 	peripheral_disable(kI2CModule);
@@ -69,7 +69,9 @@ void i2c_disable()
 void i2c_start_transmission()
 {
 	if (master.state == kI2CIdleState)
+	{
 		i2c_send_start();
+	}
 	else
 		i2c_send_repeatedstart();
 
@@ -80,24 +82,11 @@ void i2c_start_transmission()
 void i2c_finish_transmission()
 {
 	i2c_send_stop();
-
 	master.state = kI2CIdleState;
 }
 
-void i2c_send_message()
+void i2c_send_master_message()
 {
-    mib_state.bus_msg.checksum = 0;
-
-    //Check if this is a slave transmission
-    if (!i2c_address_valid(mib_state.bus_msg.address))
-    {
-        slave.state = kI2CSendDataState;
-        if (mib_state.bus_msg.address == kInvalidImmediateAddress)
-            i2c_slave_sendbyte();
-
-        return;
-    }
-
     master.dir = kMasterSendData;
     mib_state.bus_msg.address <<= 1;
 
@@ -107,9 +96,7 @@ void i2c_send_message()
 }
 
 void i2c_receive_message()
-{
-	mib_state.bus_msg.checksum = 0;
-	
+{	
     //Check if this is a slave reception
     if (!i2c_address_valid(mib_state.bus_msg.address))
     {
@@ -121,6 +108,18 @@ void i2c_receive_message()
     mib_state.bus_msg.address <<= 1;
 
     SET_BIT(mib_state.bus_msg.address, 0); //set read indication
-
     i2c_start_transmission();
+}
+
+int i2c_receive_byte()
+{
+	unsigned char data = I2C1RCV;
+	*(i2c_msg->data_ptr++) = data;
+	i2c_msg->checksum += data;
+
+	//Check if we are at the end of the message 
+	if (i2c_msg->data_ptr == i2c_msg->last_data)
+		return 1;
+
+	return 0;
 }

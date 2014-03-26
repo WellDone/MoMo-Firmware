@@ -7,7 +7,9 @@
 #include "adc.h"
 #include "flashblock.h"
 #include "common.h"
+#include "battery.h"
 #include "eeprom.h"
+#include "rtcc.h"
 
 #define MAX_MODULES 8
 #define MODULE_BASE_ADDRESS 11
@@ -15,6 +17,8 @@
 static momo_module_descriptor the_modules[MAX_MODULES];
 static unsigned int module_count = 0;
 static flash_block_info fb_info;
+
+unsigned int debug_flag_value = 0;
 
 void con_init()
 {
@@ -65,40 +69,6 @@ void describe_module(void)
 	}
 	
 	bus_slave_return_buffer( (const char*)&the_modules[index], sizeof(momo_module_descriptor) );
-}
-
-void get_battery_voltage()
-{
-	ADCConfig batt_adc_config;
-	unsigned int last_battery_voltage;
-
-	//Store ADC configuration
-    batt_adc_config.output_format = kUIntegerFormat;
-    batt_adc_config.trigger = kInternalCounter;
-    batt_adc_config.reference = kVDDVSS;
-    batt_adc_config.enable_in_idle = 0;
-    batt_adc_config.sample_autostart = 1;
-    batt_adc_config.scan_input = 0;
-    batt_adc_config.alternate_muxes = 0;
-    batt_adc_config.autosample_wait = 0b11111;
-
-    batt_adc_config.oneshot = 1;
-    batt_adc_config.num_samples = 1;
-
-    adc_configure(&batt_adc_config);
-
-    //Battery monitor is on RA2
-    _PCFG2 = 0;
-    _TRISA2 = 1;
-
-    adc_set_channel(4);
-
-    last_battery_voltage = adc_convert_one();
-
-    mib_unified.mib_buffer[0] = last_battery_voltage & 0xFF;
-    mib_unified.mib_buffer[1] = last_battery_voltage >> 8;
-
-	bus_slave_setreturn( pack_return_status( kNoMIBError, 2));
 }
 
 void read_flash_rpc()
@@ -174,6 +144,28 @@ void reflash_self()
 	asm volatile("reset");
 }
 
+void current_time()
+{
+	rtcc_datetime t;
+
+	rtcc_get_time(&t);
+
+	plist_set_int16(0, t.year);
+	plist_set_int16(1, t.month);
+	plist_set_int16(2, t.day);
+	plist_set_int16(3, t.hours);
+	plist_set_int16(4, t.minutes);
+	plist_set_int16(5, t.seconds);
+
+	bus_slave_setreturn(pack_return_status(kNoMIBError, 12));
+}
+
+void debug_value()
+{
+	bus_slave_return_int16(debug_flag_value);
+}
+
+
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x00, register_module, plist_spec(0,true) },
@@ -187,5 +179,8 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x08, test_fb_write, plist_spec(0, true)},
 	{0x09, test_fb_read, plist_spec(0, false)},
 	{0x0A, reflash_self, plist_spec_empty()},
+	{0x0B, report_battery, plist_spec_empty()},
+	{0x0C, current_time, plist_spec_empty()},
+	{0x0D, debug_value, plist_spec_empty()},
 };
 DEFINE_MIB_FEATURE(controller);

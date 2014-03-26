@@ -72,13 +72,14 @@ typedef enum
 	kI2CReceiveChecksumState,
 	kI2CUserCallbackState,
 	kI2CDisabledState, 			//When the slave logic is using the bus, disable the master and vice-versa
-	kI2CForceStopState 			//When a stop condition is asserted on the bus, make sure we clean up everything
+	kI2CForceStopState			//When a stop condition is asserted on the bus, make sure we clean up everything
 } I2CLogicState;
 
 typedef enum
 {
 	kI2CNoError = 0,
-	kI2CInvalidChecksum
+	kI2CInvalidChecksum,
+	kI2CCollision
 } I2CErrorCode;
 
 typedef struct
@@ -107,6 +108,7 @@ typedef struct
 	I2CLogicState 		state;
 	I2CMasterDirection 	dir;
 	I2CErrorCode		last_error;
+	unsigned char		send_nack;
 } I2CMasterStatus;
 
 typedef struct 
@@ -121,8 +123,9 @@ void i2c_enable();
 void i2c_disable();
 
 //Shared Common Functions
-void i2c_send_message();
+void i2c_send_master_message();
 void i2c_receive_message();
+int  i2c_receive_byte();
 
 void i2c_start_transmission();
 void i2c_finish_transmission();
@@ -136,9 +139,9 @@ void i2c_master_enable();
 void i2c_master_disable();
 
 //Slave Functions
+void i2c_slave_receive_mesage();
 void i2c_slave_receivedata();
 void i2c_slave_receivechecksum();
-void i2c_slave_setidle();
 void i2c_slave_sendbyte();
 int  i2c_slave_lasterror();
 

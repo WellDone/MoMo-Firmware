@@ -18,9 +18,8 @@ void bus_slave_startcommand()
 	//Initialize all the state
 	mib_state.slave_handler = kInvalidMIBIndex;
 	status.first_read = 1;
-	status.send_value = 0;
 
-	i2c_init_buffer(kCommandOffset);	//Initialize
+	i2c_init_buffer(kCommandOffset);	//Initialize buffer to read in command + parameters
 	i2c_release_clock();
 }
 
@@ -86,25 +85,19 @@ void bus_slave_read_callback()
 		i2c_setoffset(1);
 		i2c_append_checksum();
 		
-		i2c_init_buffer(kReturnValueOffset);
-		i2c_setoffset(bus_retval_size());
+		i2c_init_buffer(kReturnStatusOffset);
+		i2c_setoffset(bus_retval_size() + 2);	//Second checksum includes return status + first checksum byte + return value
 		i2c_append_checksum();
 	}
 
 	/*
 	 * To allow for bus error recovery, we keep resending the return status and return value (if any) on all
-	 * subsequent reads until the master is satisfied that it has received one with a valid checksum.
-	 *
-	 * Odd reads are for the return status
-	 * Even reads are for the return value
+	 * subsequent reads until the master is satisfied that it has received one with a valid checksum.  If you
+	 * just read the return status, it will have a valid checksum and if you read the return value as well it 
+	 * will also have a valid checksum.
 	 */
 
-	if (status.send_value == 0)
-		i2c_init_buffer(kReturnStatusOffset); //Set up buffer pointer to point to return status + return value
-	else
-		i2c_init_buffer(kReturnValueOffset);
-
-	status.send_value = ~status.send_value;
+	i2c_init_buffer(kReturnStatusOffset); //Set up buffer pointer to point to return status + return value
 
 	i2c_loadbuffer();
 	i2c_write(); //Initialize first byte for immediate reading

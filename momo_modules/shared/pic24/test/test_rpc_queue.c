@@ -39,8 +39,9 @@ void noncritical_task_3(void) {
 	++task_count;
 }
 void queue_rpc(void) {
+	MIBUnified data;
 	TEST_ASSERT_FALSE( rpc_queue_full() );
-	rpc_queue( NULL, 0, 0, 0, 0 );
+	rpc_queue( NULL, &data);
 }
 void dequeue_rpc(void) {
 	TEST_ASSERT_FALSE( rpc_queue_empty() );
@@ -71,27 +72,4 @@ void test_rpc_queue_taskloop_locking(void) {
 		rpc_dequeue(NULL); // Clear out anything left over
 	taskloop_pseudo_loop();
 	TEST_ASSERT_EQUAL_INT( 4, task_count );
-}
-
-static rpc_info infos[] = {
-	{(void*)200,3,17,42,99},
-	{(void*)255,6,34,84,198},
-	{(void*)0,1,2,3,4}
-};
-void test_rpc_queue(void) {
-	int i;
-	int count = sizeof(infos)/sizeof(rpc_info);
-	while (!rpc_queue_empty())
-		rpc_dequeue(NULL); // Clear out anything left over
-	for ( i=0; i<count; ++i ) {
-		rpc_queue( infos[i].callback, infos[i].address, infos[i].feature, infos[i].cmd, infos[i].param_spec );
-	}
-
-	rpc_info dequeued_info;
-	for ( i=0; i<count; ++i ) {
-		TEST_ASSERT_FALSE( rpc_queue_empty() );
-		rpc_dequeue( &dequeued_info );
-		TEST_ASSERT_EQUAL_INT( 0, memcmp( &dequeued_info, &infos[i], sizeof(rpc_info) ) );
-	}
-	TEST_ASSERT_TRUE( rpc_queue_empty() );
 }

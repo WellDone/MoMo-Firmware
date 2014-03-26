@@ -284,10 +284,10 @@ static void rpc_callback(unsigned char status)
 
 CommandStatus handle_binrpc(command_params *params)
 {
-    unsigned char  address, feature, command, spec;
     unsigned char buffer[24];
-    int length;
+    int i,length;
     char* str;
+    MIBUnified data;
 
     if (params->num_params != 1) {
         put(DEBUG_UART, 254);
@@ -295,7 +295,7 @@ CommandStatus handle_binrpc(command_params *params)
         return kFailure;
     }
 
-    str = get_param_string( params, 0);
+    str = get_param_string(params, 0);
 
     if (strlen(str) != 32)
     {
@@ -313,14 +313,15 @@ CommandStatus handle_binrpc(command_params *params)
         return kFailure;
     }
 
-    address = buffer[0];
-    feature = buffer[1];
-    command = buffer[2];
-    spec = buffer[3];
+    data.address = buffer[0];
+    data.bus_command.feature = buffer[1];
+    data.bus_command.command = buffer[2];
+    data.bus_command.param_spec = buffer[3];
 
-    memcpy( plist_get_buffer(0), buffer+4, 20);
+    for(i=0; i<kBusMaxMessageSize; ++i)
+        data.mib_buffer[i] = buffer[i+4];
 
-    bus_master_rpc_async(rpc_callback, address, feature, command, spec );
+    bus_master_rpc_async(rpc_callback, &data);
     return kPending;
 }
 
@@ -361,4 +362,11 @@ CommandStatus handle_alarm(command_params *params)
     }
 
     return kFailure;
+}
+
+CommandStatus handle_i2cstatus(command_params *params)
+{
+    put(DEBUG_UART, I2C1STAT&0xFF);
+    put(DEBUG_UART, I2C1STAT>>8);
+    return kSuccess;
 }
