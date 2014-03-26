@@ -38,33 +38,6 @@ class ModTool(cmdln.Cmdln):
 		for i, mod in enumerate(mods):
 			print "%d: %s at address %d" % (i, mod.name, mod.address)
 
-#	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-#	def do_reset_controller(self, subcmd, opts):
-#		"""${cmd_name}: Reset the controller module
-#
-#		Note that all submodule registrations will be lost, use `modtool reset_bus` to
-#		power-cycle all sub-modules and cause them to re-register.
-#
-#		${cmd_usage}
-#		${cmd_option_list}
-#		"""
-#
-#		con = self._get_controller(opts)
-#		con.reset()
-#		print """Controller has been reset.
-#						 Use `modtool reset_bus` to power-cycle all sub-modules and cause them to re-register."""
-#
-#	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-#	def do_reset_bus(self, subcmd, opts):
-#		"""${cmd_name}: Power-cycle all sub-modules
-#
-#		${cmd_usage}
-#		${cmd_option_list}
-#		"""
-#
-#		con = self._get_controller(opts)
-#		con.reset_bus()
-
 	def do_test(self, subcmd, opts, *tests):
 		"""${cmd_name}: Run hardware tests on attached MoMo device
 
