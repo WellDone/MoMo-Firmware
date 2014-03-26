@@ -8,7 +8,7 @@ extern bank1 __persistent MIBExecutiveStatus status;
 //Local Prototypes that should not be called outside of this file
 uint8 bus_master_tryrpc();
 
-uint8 bus_master_send(uint8 length)				
+/*uint8 bus_master_send(uint8 length)				
 {
 	mib_state.curr_loc = mib_state.buffer_start + length;
 	i2c_append_checksum();
@@ -22,13 +22,10 @@ uint8 bus_master_receive(uint8 length)
 {													
 	mib_state.buffer_end = mib_state.buffer_start + length;
 	return i2c_master_receive_message();					
-}
+}*/
 
-uint8 bus_master_rpc_sync(unsigned char address)
+void bus_master_begin_rpc()
 {
-	mib_state.save_command 	= mib_data.bus_command.command;
-	mib_state.save_spec		= mib_data.bus_command.param_spec;
-
 	//Wait until the bus is idle to make sure that we don't trample
 	//a currently happening slave call
 	while (!bus_is_idle())
@@ -36,9 +33,14 @@ uint8 bus_master_rpc_sync(unsigned char address)
 
 	//Take control of the bus from the slave so that we can use the
 	//shared buffers for master storage
-	status.slave_active = 0;
+	i2c_master_enable();
+}
 
+uint8 bus_master_send_rpc(unsigned char address)
+{
 	mib_state.send_address = address << 1;
+	mib_state.save_command 	= mib_data.bus_command.command;
+	mib_state.save_spec		= mib_data.bus_command.param_spec;
 
 	//Multimaster support, wait until the bus is idle before starting an RPC call
 	wait_and_start:
@@ -65,7 +67,6 @@ uint8 bus_master_rpc_sync(unsigned char address)
 
 uint8 bus_master_tryrpc()
 {
-	i2c_master_enable();
 	//Copy the command spec back in because they would have been overwritten if we're
 	//retrying a call after getting a checksum error from the slave.
 	mib_data.bus_command.command = mib_state.save_command;

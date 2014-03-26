@@ -4,6 +4,8 @@
 #include "bus.h"
 
 //Master Routines
+
+void			bus_master_begin_rpc();
 #define			bus_master_prepare(ftr, cmd, spc)  			\
 				{											\
 					mib_data.bus_command.feature = ftr;	\
@@ -11,6 +13,7 @@
 					mib_data.bus_command.param_spec = spc;	\
 				}
 
-uint8			bus_master_rpc_sync(unsigned char address);
-
+uint8			bus_master_send_rpc(unsigned char address);
+uint8			bus_master_send(uint8 length);
+uint8			bus_master_receive(uint8 length);
 #endif
