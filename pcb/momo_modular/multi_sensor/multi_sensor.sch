@@ -6937,10 +6937,10 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <text x="-116.586" y="-93.726" size="1.778" layer="97">Revision</text>
 <text x="-116.586" y="-96.266" size="1.778" layer="97">Date</text>
 <text x="-116.586" y="-98.552" size="1.778" layer="97">Notes</text>
-<text x="-103.378" y="-88.392" size="1.778" layer="97">Voltage Board and SD Storage</text>
+<text x="-103.378" y="-88.392" size="1.778" layer="97">Multisensor Acquisition Board</text>
 <text x="-103.378" y="-91.186" size="1.778" layer="97">Tim Burke</text>
 <text x="-103.632" y="-93.726" size="1.778" layer="97">1.0</text>
-<text x="-103.632" y="-96.266" size="1.778" layer="97">11/6/2013</text>
+<text x="-103.632" y="-96.266" size="1.778" layer="97">3/30/2014</text>
 <text x="20.32" y="7.62" size="1.778" layer="97">Programming Header</text>
 <text x="22.86" y="93.98" size="1.9304" layer="97">Offset Calibration Block</text>
 <text x="-38.1" y="93.98" size="1.9304" layer="97">Input Multiplexer</text>
