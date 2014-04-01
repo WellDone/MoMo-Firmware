@@ -7452,6 +7452,11 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <wire x1="99.06" y1="-48.26" x2="91.44" y2="-48.26" width="0.1524" layer="91"/>
 <label x="83.82" y="-48.26" size="1.9304" layer="95"/>
 </segment>
+<segment>
+<pinref part="U7" gate="G$1" pin="VCLAMP"/>
+<wire x1="73.66" y1="40.64" x2="73.66" y2="27.94" width="0.1524" layer="91"/>
+<label x="73.66" y="27.94" size="1.778" layer="95" rot="R90"/>
+</segment>
 </net>
 <net name="VREF" class="0">
 <segment>
