@@ -137,10 +137,13 @@ class PCBTool(cmdln.Cmdln):
 			lines = len (brd.variants[var])
 			items = sum([len(x) for x in brd.variants[var]])
 
-			print "%s" % var
+			print "Variant Name: %s" % var
 			print "Distinct BOM Lines: %d" % lines
 			print "Total Part Count: %d" % items
-
+			print "Through-Hole Parts: %d" % sum([len(x) for x in brd.variants[var] if x[0].package_info()['pins']>0])
+			print "Total Through-Hole Pins: %d" % sum(map(lambda x: x[0].package_info()['pins']*len(x), brd.variants[var])) 
+			print "SMD Parts: %d" % sum([len(x) for x in brd.variants[var] if x[0].package_info()['pads']>0])
+			print "Total SMD Pads: %d" % sum(map(lambda x: x[0].package_info()['pads']*len(x), brd.variants[var]))
 			print ""
 
 	@cmdln.option('-e', '--excess', action='store', type=float, default=0.0, help="Excess percentage to purchase of each component, in %. (rounded up)")
@@ -150,7 +153,7 @@ class PCBTool(cmdln.Cmdln):
 		order should be specified by giving 3 items:
 		<board id> <variant> <number>
 
-		All baords will have the same excess applied.
+		All boards will have the same excess applied.
 
 		${cmd_usage}
         ${cmd_option_list}
