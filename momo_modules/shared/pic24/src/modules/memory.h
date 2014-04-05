@@ -1,3 +1,6 @@
+#ifndef __memory_h__
+#define __memory_h__
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "pic24.h"
@@ -22,7 +25,7 @@ typedef struct
 	unsigned int write_wait : 1;
 	unsigned int enabled : 1;
 	unsigned int reserved : 14;
-} memory_status;
+} memory_config;
 
 void configure_SPI();
 
@@ -38,3 +41,5 @@ bool mem_test();
 
 void disable_memory();
 void enable_memory();
+
+#endif

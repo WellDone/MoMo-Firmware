@@ -3,6 +3,7 @@
 #include "uart.h"
 #include "utilities.h"
 #include "pic24.h"
+#include "memory.h"
 
 task_list taskqueue;
 void taskloop_init()
@@ -10,7 +11,7 @@ void taskloop_init()
     ringbuffer_create(&taskqueue.tasks, (void*)taskqueue.taskdata, sizeof(task_item), kMAXTASKS);
     taskqueue.flags = 0;
 
-    taskloop_set_sleep(0);
+    taskloop_set_sleep(1);
 }
 
 void taskloop_set_sleep(int sleep)
@@ -65,8 +66,10 @@ void taskloop_loop()
             ;
 
         if ( BIT_TEST(taskqueue.flags, kTaskLoopSleepBit) )
+        {
+            disable_memory();
             asm_sleep();
-
+        }
     }
 }
 int taskloop_process_one()

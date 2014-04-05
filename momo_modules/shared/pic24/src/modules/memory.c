@@ -1,8 +1,15 @@
 #include "memory.h"
 
-#define FCY 4000000
+//Clock configuration and delays
+#define FCY   4000000L  //define your instruction frequency, FCY = FOSC/2
+  
+#define CYCLES_PER_MS ((unsigned long long)(FCY * 0.001))        //instruction cycles per millisecond
+#define CYCLES_PER_US ((unsigned long long)(FCY * 0.000001))   //instruction cycles per microsecond
+#define DELAY_MS(ms)  __delay32(CYCLES_PER_MS * ((unsigned long long) ms));   //__delay32 is provided by the compiler, delay some # of milliseconds
+#define DELAY_US(us)  __delay32(CYCLES_PER_US * ((unsigned long long) us));    //delay some number of microseconds
+extern void __delay32(unsigned long long);
 
-memory_status status;
+memory_config status;
 
 #define SS_VALUE LATBbits.LATB15
 #define ENABLE_MEMORY() SS_VALUE = 0
@@ -65,7 +72,7 @@ void enable_memory()
   _TRISB7 = 0;
 
   //Memory specifies a 30 us delay between power on and assert CS
-  __delay_us(30);
+  DELAY_US(30);
 
   configure_SPI();
   status.write_wait = 1;
@@ -145,20 +152,20 @@ static inline void mem_enable_write()
 
 static inline void mem_wait_while_writing() 
 {
-  BYTE status = 0b1;
+  BYTE received = 0b1;
 
-  memory_enable();
+  enable_memory();
   if (status.write_wait)
   {
-    __delay_ms(10); //datasheet specifies at most 10 ms until a write is allowed.
+    DELAY_MS(10); //datasheet specifies at most 10 ms until a write is allowed.
     status.write_wait = 0;
   }
 
   ENABLE_MEMORY();
   
   READ_STATUS_REGISTER();
-  while (status & 0b1)
-    status = spi_receive();
+  while (received & 0b1)
+    received = spi_receive();
 
   DISABLE_MEMORY();
 }

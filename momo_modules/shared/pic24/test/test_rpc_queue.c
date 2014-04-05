@@ -9,6 +9,11 @@ void asm_sleep()
 	// do nothing
 }
 
+void disable_memory()
+{
+	
+}
+
 static int task_count = 0;
 void setUp(void) {
 	rpc_queue_init();
