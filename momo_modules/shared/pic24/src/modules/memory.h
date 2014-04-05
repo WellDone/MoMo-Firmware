@@ -17,6 +17,13 @@
 #define MEMORY_ADDRESS_MASK 0xFFFFFL
 #define MEMORY_CAPACITY			0x14		//defined in M25PX_80 datasheet (page 21)
 
+typedef struct
+{
+	unsigned int write_wait : 1;
+	unsigned int enabled : 1;
+	unsigned int reserved : 14;
+} memory_status;
+
 void configure_SPI();
 
 void mem_write(uint32 addr, const BYTE* data, unsigned int length );
@@ -28,3 +35,6 @@ void mem_clear_all();
 
 BYTE mem_status();
 bool mem_test();
+
+void disable_memory();
+void enable_memory();

@@ -1,5 +1,9 @@
 #include "memory.h"
 
+#define FCY 4000000
+
+memory_status status;
+
 #define SS_VALUE LATBbits.LATB15
 #define ENABLE_MEMORY() SS_VALUE = 0
 #define DISABLE_MEMORY() SS_VALUE = 1
@@ -51,6 +55,44 @@ void configure_SPI() {
   DISABLE_MEMORY(); //idle state of SS is high
 }
 
+void enable_memory()
+{
+  if (status.enabled)
+    return;
+
+  //Enable the Memory Module
+  _RB7 = 1;
+  _TRISB7 = 0;
+
+  //Memory specifies a 30 us delay between power on and assert CS
+  __delay_us(30);
+
+  configure_SPI();
+  status.write_wait = 1;
+  status.enabled = 1;
+}
+
+void disable_memory()
+{
+  _RB7 = 0;
+  _TRISB7 = 0;
+
+  SPI1STATbits.SPIEN = 0;
+
+  //Drive all pins low to minimize power consumption
+  TRISBbits.TRISB15 = 0; // SS
+  TRISBbits.TRISB14 = 0; // SDI (IO)
+  AD1PCFGbits.PCFG14 = 1; // SDI (analog/digital)
+  TRISBbits.TRISB13 = 0; // SDO
+  TRISBbits.TRISB12 = 0; // SDCK
+  _RB15 = 0;
+  _RB14 = 0;
+  _RB13 = 0;
+  _RB12 = 0;
+
+  status.enabled = 0;
+}
+
 static BYTE spi_transfer(BYTE data)
 {
 
@@ -77,6 +119,8 @@ bool mem_test() {
   BYTE memory_type;
   BYTE memory_capacity;
 
+  enable_memory();
+
   ENABLE_MEMORY();
 
   READ_IDENTIFICATION();
@@ -102,6 +146,13 @@ static inline void mem_enable_write()
 static inline void mem_wait_while_writing() 
 {
   BYTE status = 0b1;
+
+  memory_enable();
+  if (status.write_wait)
+  {
+    __delay_ms(10); //datasheet specifies at most 10 ms until a write is allowed.
+    status.write_wait = 0;
+  }
 
   ENABLE_MEMORY();
   
@@ -155,6 +206,8 @@ void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes)
 {
   BYTE* bufEnd = buf+numBytes;
 
+  enable_memory();
+
   ENABLE_MEMORY();
   READ_MODE();
 
@@ -169,6 +222,8 @@ void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes)
 BYTE mem_status() 
 {
   BYTE status;
+
+  enable_memory();
 
   ENABLE_MEMORY();
   READ_STATUS_REGISTER();

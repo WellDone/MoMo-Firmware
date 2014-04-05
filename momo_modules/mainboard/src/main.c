@@ -16,7 +16,7 @@
 #pragma config GCP = OFF                // General Segment Code Flash Code Protection bit (No protection)
 
 // FOSCSEL
-#pragma config FNOSC = FRC           	// Oscillator Select (8 MHz FRC oscillator (FRC)) with PLL
+#pragma config FNOSC = FRC           	// Oscillator Select (8 MHz FRC oscillator (FRC)) without PLL
 #pragma config IESO  = OFF              // Internal External Switch Over bit (Internal External Switchover mode disabled (Two-Speed Start-up disabled))
 
 // FOSC
@@ -56,10 +56,6 @@ ScheduledTask i2c;
 int main(void)
 {
     AD1PCFG = 0xFFFF;
-
-    //Enable the Memory Module
-    _RB7 = 1;
-    _TRISB7 = 0;
 
     register_reset_handlers();
     handle_reset();
