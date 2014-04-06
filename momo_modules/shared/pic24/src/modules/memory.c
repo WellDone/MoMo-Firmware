@@ -211,7 +211,6 @@ void mem_write_aligned(const uint32 addr, const BYTE *data, unsigned int length)
 
   enable_memory(1);
 
-  mem_wait_while_writing();
   mem_enable_write();
   ENABLE_MEMORY();
   PAGE_PROGRAM_MODE();
@@ -222,6 +221,8 @@ void mem_write_aligned(const uint32 addr, const BYTE *data, unsigned int length)
     spi_transfer(data[i]);
 
   DISABLE_MEMORY();
+
+  mem_wait_while_writing();
 }
 
 void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes) 
@@ -258,8 +259,6 @@ BYTE mem_status()
 void mem_clear_all() 
 {
   enable_memory(1);
-
-  mem_wait_while_writing();
   mem_enable_write();
 
   ENABLE_MEMORY();
@@ -272,8 +271,6 @@ void mem_clear_all()
 void mem_clear_subsection(uint32 addr) 
 {
   enable_memory(1);
-
-  mem_wait_while_writing();
   mem_enable_write();
 
   ENABLE_MEMORY();
