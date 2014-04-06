@@ -25,6 +25,8 @@ void con_init()
 	BUS_ENABLE_TRIS = 1;
 	BUS_ENABLE_DIG = 1;
 	BUS_ENABLE_LAT = 1;
+
+	con_reset_bus();
 }
 
 void con_reset_bus()
