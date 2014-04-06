@@ -3,6 +3,7 @@
 #include "mainboard_reset_handler.h"
 #include "task_manager.h"
 #include "scheduler.h"
+#include "memory.h"
 #include "bus_master.h"
 #include "report_manager.h"
 #include <string.h>
@@ -49,9 +50,7 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
-ScheduledTask task1;
-
-ScheduledTask i2c;
+int sleep_handler(int task);
 
 int main(void)
 {
@@ -59,8 +58,21 @@ int main(void)
 
     register_reset_handlers();
     handle_reset();
+
+    taskloop_set_sleephandler(sleep_handler);
     
     taskloop_loop();
 
     return (EXIT_SUCCESS);
+}
+
+int sleep_handler(int task)
+{
+	if (bus_master_idle())
+	{
+		disable_memory();
+		return kCanEnterSleep;
+	}
+
+	return kCannotEnterSleep;
 }
