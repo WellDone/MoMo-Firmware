@@ -26,7 +26,6 @@ void handle_all_resets_before(unsigned int type)
     //oscillator_init();
 
     taskloop_init();
-    taskloop_set_sleep(1);
     scheduler_init();
     
     bus_init(kMIBControllerAddress);

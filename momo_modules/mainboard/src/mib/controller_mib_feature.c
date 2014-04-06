@@ -168,9 +168,9 @@ void debug_value()
 void set_sleep()
 {
 	if (plist_get_int16(0))
-		taskloop_set_sleep(1);
+		taskloop_set_flag(kTaskLoopSleepBit, 1);
 	else
-		taskloop_set_sleep(0);
+		taskloop_set_flag(kTaskLoopSleepBit, 0);
 }
 
 
