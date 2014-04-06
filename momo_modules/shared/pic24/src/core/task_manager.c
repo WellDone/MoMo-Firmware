@@ -4,6 +4,7 @@
 #include "utilities.h"
 #include "pic24.h"
 #include "memory.h"
+#include "bus_master.h"
 
 task_list taskqueue;
 void taskloop_init()
@@ -11,7 +12,7 @@ void taskloop_init()
     ringbuffer_create(&taskqueue.tasks, (void*)taskqueue.taskdata, sizeof(task_item), kMAXTASKS);
     taskqueue.flags = 0;
 
-    taskloop_set_sleep(1);
+    taskloop_set_sleep(0);
 }
 
 void taskloop_set_sleep(int sleep)
@@ -67,8 +68,12 @@ void taskloop_loop()
 
         if ( BIT_TEST(taskqueue.flags, kTaskLoopSleepBit) )
         {
-            disable_memory();
-            asm_sleep();
+            //Don't cut-off an rpc master call in progress.
+            if (bus_master_idle())
+            {
+                disable_memory();
+                asm_sleep();
+            }
         }
     }
 }

@@ -34,6 +34,8 @@ typedef enum {
 //Functions only for this 
 static BYTE spi_transfer(BYTE data);
 static void spi_send_addr(unsigned long data);
+static void configure_SPI();
+
 
 #define spi_receive()   spi_transfer(0x00)
 
@@ -45,6 +47,11 @@ static void spi_send_addr(unsigned long data);
 #define READ_MODE() spi_transfer( READ )
 #define ERASE_SUBSECTION() spi_transfer( SSE )
 #define ERASE_ALL() spi_transfer( BE )
+
+void init_memory()
+{
+  status.enabled = 0;
+}
 
 void configure_SPI() {
   SPI1CON1bits.MODE16 = 0; //communication is byte-wide
@@ -62,29 +69,41 @@ void configure_SPI() {
   DISABLE_MEMORY(); //idle state of SS is high
 }
 
-void enable_memory()
+void enable_memory(uint8 for_writing)
 {
-  if (status.enabled)
-    return;
+  if (status.enabled == 0)
+  {
+    configure_SPI();
 
-  //Enable the Memory Module
-  _RB7 = 1;
-  _TRISB7 = 0;
+    //Enable the Memory Module
+    _RB7 = 1;
+    _TRISB7 = 0;
 
-  //Memory specifies a 30 us delay between power on and assert CS
-  DELAY_US(30);
+    status.enabled = 1;
+    status.write_wait = 1;
 
-  configure_SPI();
-  status.write_wait = 1;
-  status.enabled = 1;
+    //Memory specifies a 30 us delay between power on and assert CS, allow for slop in clock
+    DELAY_MS(1);
+  }
+  
+  if (for_writing && status.write_wait)
+  {
+    DELAY_MS(12);
+    status.write_wait = 0;
+  }
+}
+
+unsigned int memory_enabled()
+{
+  return status.enabled;
 }
 
 void disable_memory()
 {
+  SPI1STATbits.SPIEN = 0;
+
   _RB7 = 0;
   _TRISB7 = 0;
-
-  SPI1STATbits.SPIEN = 0;
 
   //Drive all pins low to minimize power consumption
   TRISBbits.TRISB15 = 0; // SS
@@ -92,10 +111,10 @@ void disable_memory()
   AD1PCFGbits.PCFG14 = 1; // SDI (analog/digital)
   TRISBbits.TRISB13 = 0; // SDO
   TRISBbits.TRISB12 = 0; // SDCK
-  _RB15 = 0;
-  _RB14 = 0;
-  _RB13 = 0;
-  _RB12 = 0;
+  _LATB15 = 0;
+  _LATB14 = 0;
+  _LATB13 = 0;
+  _LATB12 = 0;
 
   status.enabled = 0;
 }
@@ -121,12 +140,13 @@ static void spi_send_addr(unsigned long data)
     spi_transfer(data&0xFF);
 }
 
-bool mem_test() {
+bool mem_test() 
+{
   BYTE manufacturer_id;
   BYTE memory_type;
   BYTE memory_capacity;
 
-  enable_memory();
+  enable_memory(0);
 
   ENABLE_MEMORY();
 
@@ -150,16 +170,9 @@ static inline void mem_enable_write()
   DISABLE_MEMORY();
 }
 
-static inline void mem_wait_while_writing() 
+void mem_wait_while_writing() 
 {
   BYTE received = 0b1;
-
-  enable_memory();
-  if (status.write_wait)
-  {
-    DELAY_MS(10); //datasheet specifies at most 10 ms until a write is allowed.
-    status.write_wait = 0;
-  }
 
   ENABLE_MEMORY();
   
@@ -196,6 +209,8 @@ void mem_write_aligned(const uint32 addr, const BYTE *data, unsigned int length)
 {
   unsigned int i;
 
+  enable_memory(1);
+
   mem_wait_while_writing();
   mem_enable_write();
   ENABLE_MEMORY();
@@ -213,7 +228,7 @@ void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes)
 {
   BYTE* bufEnd = buf+numBytes;
 
-  enable_memory();
+  enable_memory(0);
 
   ENABLE_MEMORY();
   READ_MODE();
@@ -230,7 +245,7 @@ BYTE mem_status()
 {
   BYTE status;
 
-  enable_memory();
+  enable_memory(0);
 
   ENABLE_MEMORY();
   READ_STATUS_REGISTER();
@@ -242,6 +257,8 @@ BYTE mem_status()
 
 void mem_clear_all() 
 {
+  enable_memory(1);
+
   mem_wait_while_writing();
   mem_enable_write();
 
@@ -254,6 +271,8 @@ void mem_clear_all()
 
 void mem_clear_subsection(uint32 addr) 
 {
+  enable_memory(1);
+
   mem_wait_while_writing();
   mem_enable_write();
 

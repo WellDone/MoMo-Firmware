@@ -20,11 +20,13 @@ void handle_all_resets_before(unsigned int type)
 {
     //Add code here that should be called before all other reset code
     disable_unneeded_peripherals();
-    disable_memory();
+    init_memory();
+    enable_memory(1);
     configure_interrupts();
-    oscillator_init();
+    //oscillator_init();
 
     taskloop_init();
+    taskloop_set_sleep(1);
     scheduler_init();
     
     bus_init(kMIBControllerAddress);

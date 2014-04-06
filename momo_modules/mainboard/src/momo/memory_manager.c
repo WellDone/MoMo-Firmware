@@ -20,8 +20,6 @@ static inline memory_block create_block( unsigned int subsection_index, unsigned
 
 void flash_memory_init()
 {
-  configure_SPI();
-
   init_momo_config(kMomoConfigSubsector); // Currently accepts a subsection index, not an address
 
   memory_block log_memory_block = create_block(MEMORY_SECTION_TO_SUB(kSensorDataSector), kSensorLogSubsectors);
