@@ -11,16 +11,33 @@ void taskloop_init()
 {
     ringbuffer_create(&taskqueue.tasks, (void*)taskqueue.taskdata, sizeof(task_item), kMAXTASKS);
     taskqueue.flags = 0;
+    taskqueue.sleep_handler = NULL;
 
-    taskloop_set_sleep(0);
+    taskloop_set_flag(kTaskLoopSleepBit, 0);
 }
 
-void taskloop_set_sleep(int sleep)
+void taskloop_set_flag(unsigned int flag, unsigned int value)
 {
-    if (sleep)
-        SET_BIT(taskqueue.flags, kTaskLoopSleepBit);
+    if (flag >= 16)
+        return;
+
+    if (value)
+        SET_BIT(taskqueue.flags, flag);
     else
-        CLEAR_BIT(taskqueue.flags, kTaskLoopSleepBit);
+        CLEAR_BIT(taskqueue.flags, flag);
+}
+
+int taskloop_get_flag(unsigned int flag)
+{
+    if (flag >= 16)
+        return 0;
+
+    return BIT_TEST(taskqueue.flags, flag);
+}
+
+void taskloop_set_sleephandler(sleep_callback handler)
+{
+    taskqueue.sleep_handler = handler;
 }
 
 int taskloop_add_impl(task_callback task, bool critical )
@@ -63,17 +80,13 @@ void taskloop_loop()
 {
     while(1)
     {
-        while( taskloop_process_one() )
+        while (taskloop_process_one())
             ;
 
-        if ( BIT_TEST(taskqueue.flags, kTaskLoopSleepBit) )
+        if (BIT_TEST(taskqueue.flags, kTaskLoopSleepBit))
         {
-            //Don't cut-off an rpc master call in progress.
-            if (bus_master_idle())
-            {
-                disable_memory();
+            if (taskqueue.sleep_handler == NULL || taskqueue.sleep_handler(kSleepCallback) == kCanEnterSleep)
                 asm_sleep();
-            }
         }
     }
 }
