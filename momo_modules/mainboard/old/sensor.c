@@ -51,7 +51,7 @@ void save_event()
   saved_sensor_event event;
   ringbuffer_pop( &sensor_event_buf, &event );
 
-  log_sensor_event(momo_pulse_counter, &event.timestamp, event.value);
+  //log_sensor_event(momo_pulse_counter, &event.timestamp, event.value);
 }
 /**********************************************************************
                                 ISRs

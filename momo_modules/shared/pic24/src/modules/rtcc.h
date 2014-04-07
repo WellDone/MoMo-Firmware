@@ -33,6 +33,16 @@ typedef struct
     unsigned char day;
     unsigned char hours;
     unsigned char minutes;
+    unsigned char seconds;  
+} rtcc_timestamp;
+
+typedef struct
+{
+    unsigned char year;
+    unsigned char month;
+    unsigned char day;
+    unsigned char hours;
+    unsigned char minutes;
     unsigned char seconds;
 
     unsigned char weekday;
@@ -71,6 +81,8 @@ void            rtcc_datetime_difference(rtcc_datetime *time1, rtcc_datetime *ti
 void rtcc_get_time(rtcc_datetime *time);
 void rtcc_set_time(rtcc_datetime *time);
 void rtcc_get_alarm(rtcc_datetime *alarm);
+
+void rtcc_create_timestamp(const rtcc_datetime *source, rtcc_timestamp *dest);
 
 //Utility functions
 void get_rtcc_datetime_unsafe(rtcc_datetime *time);

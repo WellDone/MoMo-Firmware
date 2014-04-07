@@ -79,6 +79,16 @@ void rtcc_get_time(rtcc_datetime *time)
     get_rtcc_datetime_unsafe(time);
 }
 
+void rtcc_create_timestamp(const rtcc_datetime *source, rtcc_timestamp *dest)
+{
+    dest->year = source->year;
+    dest->month = source->month;
+    dest->day = source->day;
+    dest->hours = source->hours;
+    dest->minutes = source->minutes;
+    dest->seconds = source->seconds;
+}
+
 unsigned int rtcc_datetimes_equal(rtcc_datetime *time1, rtcc_datetime *time2)
 {
     return (rtcc_compare_times(time1, time2) == 0);

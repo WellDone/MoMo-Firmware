@@ -7,6 +7,7 @@ DEFINE_FEATURE_MAP()
 	MIB_FEATURE(controller),
 	MIB_FEATURE(firmware_cache),
 	MIB_FEATURE(reporting),
+	MIB_FEATURE(sensor)
 };
 
 void init_mainboard_mib()

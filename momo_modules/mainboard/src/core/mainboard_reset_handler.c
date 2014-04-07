@@ -12,7 +12,6 @@
 #include "mainboard_mib_commands.h"
 #include "report_manager.h"
 #include "memory_manager.h"
-#include "firmware_cache.h"
 #include "controller_mib_feature.h"
 
 static bool mclr_triggered;
@@ -31,7 +30,6 @@ void handle_all_resets_before(unsigned int type)
 
     init_mainboard_mib();
     flash_memory_init();
-    fc_init(); //depends on flash_memory_init
 
     mclr_triggered = false;
 }

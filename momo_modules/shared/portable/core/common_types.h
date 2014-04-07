@@ -10,10 +10,15 @@ typedef unsigned short bool;
 
 typedef signed char 	int8;
 typedef unsigned char	uint8;
+
 typedef signed int      int16;
 typedef unsigned int    uint16;
+
 typedef signed long     int32;
 typedef unsigned long   uint32;
+
+typedef signed long long int64;
+typedef unsigned long long uint64;
 
 inline uint16 makeu16( uint8 high, uint8 low );
 inline uint16 make16( int8 high, int8 low );
