@@ -12,7 +12,7 @@ void flash_queue_create( flash_queue* queue,
   queue->elem_size = element_size;
 
   fb_init( &queue->counters_block, start_subsection, sizeof( flash_queue_counters ) );
-  if ( fb_count( &queue->counters_block ) == 0 )
+  if ( fb_count( &queue->counters_block ) > 0 )
   {
     fb_read( &queue->counters_block, &queue->counters );
   }
