@@ -34,5 +34,5 @@ typedef struct
 } firmware_cache_state;
 
 //Externally Callable Module Functions
-void fc_init( unsigned long memory_subsection );
+void fc_init( uint8 memory_subsection );
 #endif

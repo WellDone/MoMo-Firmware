@@ -1,4 +1,5 @@
 #include "sensor_manager.h"
+#include "sensor_event_log.h"
 
 typedef uint8 SensorStream;
 

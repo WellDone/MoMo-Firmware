@@ -21,6 +21,7 @@ bool log_sensor_event( uint8 stream_id, uint8 meta, const rtcc_datetime* datetim
   event.value = *value;
 
   flash_queue_queue( &event_log, &event );
+  return true;
 }
 
 unsigned int read_sensor_events( sensor_event* events, uint64 max ) {

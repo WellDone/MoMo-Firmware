@@ -282,6 +282,34 @@ class ModTool(cmdln.Cmdln):
 		print Fore.RED + "Error Occurred: " + Style.RESET_ALL + text
 		sys.exit(1)
 
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_log(self, subcmd, opts, value):
+		"""${cmd_name}: Log a fake sensor value
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		
+		con = self._get_controller(opts)
+		con.log_sensor_event(int(value))
+
+		print "Logged event."
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_readlog(self, subcmd, opts):
+		"""${cmd_name}: Read one event from the log.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		
+		con = self._get_controller(opts)
+		event = con.read_sensor_value()
+
+		print "Stream: %d" % event.stream
+		print "MetaData: %d" % event.metadata
+		print "Timestamp: %d" % event.timestamp
+		print "Value: %d" % event.value
 
 modtool = ModTool()
 sys.exit(modtool.main())
