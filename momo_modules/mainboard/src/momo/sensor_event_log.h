@@ -12,8 +12,8 @@ typedef struct {
 
 void init_sensor_event_log( uint8 start_subsector, uint8 num_subsectors );
 bool log_sensor_event( uint8 stream_id, uint8 meta, const rtcc_datetime* timestamp, uint64 *value );
-unsigned int read_sensor_events( sensor_event* events, uint64 max );
+uint32 read_sensor_events( sensor_event* events, uint32 max );
 bool sensor_event_log_empty();
-unsigned long sensor_event_log_count();
+uint32 sensor_event_log_count();
 
 #endif

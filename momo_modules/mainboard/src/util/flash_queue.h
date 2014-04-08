@@ -10,14 +10,14 @@
 */
 
 typedef struct {
-	uint64   start; //the first valid item
-  uint64   end; //one past the last valid item
+	uint32   start; //the first valid item
+  uint32   end;   //one past the last valid item
 } flash_queue_counters;
 
 typedef struct {
   uint8                elem_size;
-  uint8                first_subsection;
-  uint8                last_subsection;
+  uint32                start_address;
+  uint32                end_address;
 
   flash_block_info     counters_block;
 
@@ -32,9 +32,9 @@ void flash_queue_reset( flash_queue* queue );
 
 void flash_queue_queue( flash_queue* queue, const void* data );
 bool flash_queue_dequeue( flash_queue* queue, void* data );
-uint64 flash_queue_batchdequeue( flash_queue* queue, void* data, uint64 count );
+uint32 flash_queue_batchdequeue( flash_queue* queue, void* data, uint32 count );
 
 bool flash_queue_empty( const flash_queue* queue );
-uint64 flash_queue_count( const flash_queue* queue );
+uint32 flash_queue_count( const flash_queue* queue );
 
 #endif

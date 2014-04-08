@@ -13,7 +13,7 @@ static void log_sensor_event_mib(void)
 	uint8 meta = plist_get_int8(2);
 	uint64 *value = (uint64*)plist_get_buffer(3);
 	
-	//TODO: Lazily write to flash
+	//TODO: Keep in-memory queue, lazily write to flash
 	push_sensor_value( mib_addr, stream_id, meta, value );
 
 	bus_slave_setreturn(pack_return_status(kNoMIBError, 0));
@@ -21,13 +21,12 @@ static void log_sensor_event_mib(void)
 
 static void read_sensor_event_mib(void)
 {
-	if ( sensor_event_log_empty() )
+	if ( 0 == read_sensor_events( (sensor_event*)plist_get_buffer(0), 1 ) )
 	{
 		bus_slave_setreturn( pack_return_status( kCallbackError, 0 ) );
 	}
 	else
-	{
-		read_sensor_events( (sensor_event*)plist_get_buffer(0), 1 );
+	{	
 		bus_slave_setreturn( pack_return_status( kNoMIBError, sizeof(sensor_event) ) );
 	}
 }

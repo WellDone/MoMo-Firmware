@@ -7,7 +7,7 @@ void init_sensor_event_log( uint8 start_subsection, uint8 subsection_count )
 {
   flash_queue_create( &event_log, start_subsection,
                       sizeof(sensor_event), 
-                      subsection_count / sizeof(sensor_event) );
+                      subsection_count );
 }
 
 bool log_sensor_event( uint8 stream_id, uint8 meta, const rtcc_datetime* datetime, uint64 *value )
@@ -24,7 +24,7 @@ bool log_sensor_event( uint8 stream_id, uint8 meta, const rtcc_datetime* datetim
   return true;
 }
 
-unsigned int read_sensor_events( sensor_event* events, uint64 max ) {
+uint32 read_sensor_events( sensor_event* events, uint32 max ) {
   return flash_queue_batchdequeue( &event_log, events, max );
 }
 
@@ -32,6 +32,6 @@ bool sensor_event_log_empty() {
   return flash_queue_empty( &event_log );
 }
 
-unsigned long sensor_event_log_count() {
+uint32 sensor_event_log_count() {
   return flash_queue_count( &event_log );
 }

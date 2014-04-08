@@ -6,8 +6,8 @@ void flash_queue_create( flash_queue* queue,
                          uint8 element_size,
                          uint8 subsection_count )
 {
-  queue->first_subsection = start_subsection+1;
-  queue->last_subsection = start_subsection + subsection_count;
+  queue->start_address = MEMORY_SUBSECTION_ADDR( start_subsection+1 );
+  queue->end_address = MEMORY_SUBSECTION_ADDR( start_subsection + subsection_count );
 
   queue->elem_size = element_size;
 
@@ -24,11 +24,12 @@ void flash_queue_create( flash_queue* queue,
 
 static inline void save_queue_counters( flash_queue* queue )
 {
+  //TODO: Batch these writes...?
   fb_write( &queue->counters_block, &queue->counters );
 }
 void flash_queue_reset( flash_queue* queue )
 {
-  queue->counters.start = queue->counters.end = MEMORY_SUBSECTION_ADDR( queue->first_subsection );
+  queue->counters.start = queue->counters.end = queue->start_address;
   save_queue_counters( queue );
 }
 
@@ -37,9 +38,9 @@ void flash_queue_queue( flash_queue* queue, const void* data )
 {
   if ( MEMORY_SUBSECTION_OFFSET( queue->counters.end ) <= queue->elem_size )
   {
-    if ( MEMORY_ADDR_SUBSECTION( queue->counters.end ) > queue->last_subsection )
+    if ( queue->counters.end > queue->end_address )
     {
-      queue->counters.end = MEMORY_SUBSECTION_ADDR( queue->first_subsection ); //TODO: Log that we lost some data
+      queue->counters.end = queue->start_address; //TODO: Log that we lost some data
     }
     mem_clear_subsection( queue->counters.end );
   }
@@ -52,9 +53,9 @@ void flash_queue_queue( flash_queue* queue, const void* data )
 
 void wrap_start_pointer( flash_queue* queue )
 {
-  if ( MEMORY_ADDR_SUBSECTION( queue->counters.start ) > queue->last_subsection )
+  if ( queue->counters.start > queue->end_address )
   {
-    queue->counters.start = MEMORY_SUBSECTION_ADDR( queue->first_subsection );
+    queue->counters.start = queue->start_address;
   }
 }
 bool flash_queue_dequeue( flash_queue* queue, void* data )
@@ -69,14 +70,13 @@ bool flash_queue_dequeue( flash_queue* queue, void* data )
   return true;
 }
 
-static uint64 batchdequeue_impl( flash_queue* queue, void** data, uint64 length )
+static uint32 batchdequeue_impl( flash_queue* queue, void** data, uint32 length )
 {
-  uint64 last_address = MEMORY_SUBSECTION_ADDR( queue->last_subsection + 1 );
-  if ( queue->counters.start + length > last_address )
+  if ( queue->counters.start + length > queue->end_address )
   {
-    uint64 overflow = queue->counters.start + length - last_address;
-    uint64 rem = length - overflow;
-    uint64 count = 0;
+    uint32 overflow = queue->counters.start + length - queue->end_address;
+    uint32 rem = length - overflow;
+    uint32 count = 0;
     count += batchdequeue_impl( queue, data, rem);
     count += batchdequeue_impl( queue, data, overflow);
     return count;
@@ -88,25 +88,25 @@ static uint64 batchdequeue_impl( flash_queue* queue, void** data, uint64 length 
   *data += length;
   return length / queue->elem_size;
 }
-uint64 flash_queue_batchdequeue( flash_queue* queue, void* data, uint64 count ) {
+uint32 flash_queue_batchdequeue( flash_queue* queue, void* data, uint32 count ) {
   if ( flash_queue_empty( queue ) ) {
     return 0;
   }
-  uint64 queue_count = flash_queue_count( queue );
+  uint32 queue_count = flash_queue_count( queue );
   if ( count > queue_count ) {
     count = queue_count;
   }
-  uint64 l = queue->elem_size * count;
+  uint32 l = queue->elem_size * count;
   batchdequeue_impl( queue, &data, l );
   save_queue_counters( queue );
   return count;
 }
 
-uint64 flash_queue_count( const flash_queue* queue ) {
+uint32 flash_queue_count( const flash_queue* queue ) {
   if ( queue->counters.end >= queue->counters.start ) {
     return (queue->counters.end - queue->counters.start)/queue->elem_size;
   } else {
-    uint64 size = MEMORY_SUBSECTION_ADDR(queue->last_subsection+1) - MEMORY_SUBSECTION_ADDR(queue->first_subsection);
+    uint32 size = queue->end_address - queue->start_address;
     return ( size - (queue->counters.start - queue->counters.end))/queue->elem_size;
   }
 }
