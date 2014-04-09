@@ -10,12 +10,15 @@ typedef unsigned short bool;
 
 typedef signed char 	int8;
 typedef unsigned char	uint8;
+#define MAX_UINT8 255
 
 typedef signed int      int16;
 typedef unsigned int    uint16;
+#define MAX_UINT16 65,535
 
 typedef signed long     int32;
 typedef unsigned long   uint32;
+#define MAX_UINT32 4,294,967,295L
 
 typedef signed long long int64;
 typedef unsigned long long uint64;

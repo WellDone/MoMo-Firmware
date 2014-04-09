@@ -28,7 +28,7 @@ class MoMoSensor(cmdln.Cmdln):
 		def log_event( scheduler ):
 			s.enter( .1, 1, log_event, (scheduler,) )
 			value = randint(1,1000)
-			con.log_sensor_event(value)
+			con.log_sensor_event( address, meta, value )
 			print "Logged event!  Value: %d" % value
 
 		s.enter( 1, 1, log_event, (s,) )
@@ -51,14 +51,14 @@ class MoMoSensor(cmdln.Cmdln):
 		print "Value: %d" % event.value
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-	def do_log(self, subcmd, opts, value):
+	def do_log(self, subcmd, opts, address, meta, value):
 		"""${cmd_name}: Log one integer value (max: 2^64)
 
 		${cmd_usage}
 		${cmd_option_list}
 		"""
 		con = self._get_controller(opts)
-		con.log_sensor_event(int(value))
+		con.log_sensor_event( int(address), int(meta), int(value) )
 		print "Logged event!"
 
 	def _get_controller(self, opts):

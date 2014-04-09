@@ -28,39 +28,39 @@ typedef enum
 
 typedef struct
 {
-    unsigned char year;
-    unsigned char month;
-    unsigned char day;
-    unsigned char hours;
-    unsigned char minutes;
-    unsigned char seconds;  
+    uint8 year;
+    uint8 month;
+    uint8 day;
+    uint8 hours;
+    uint8 minutes;
+    uint8 seconds;
 } rtcc_timestamp;
 
 typedef struct
 {
-    unsigned char year;
-    unsigned char month;
-    unsigned char day;
-    unsigned char hours;
-    unsigned char minutes;
-    unsigned char seconds;
+    uint8 year;
+    uint8 month;
+    uint8 day;
+    uint8 hours;
+    uint8 minutes;
+    uint8 seconds;
 
-    unsigned char weekday;
-    unsigned char unused;
+    uint8 weekday;
+    uint8 unused;
 } rtcc_datetime;
 
 typedef struct
 {
-    unsigned char year;
-    unsigned char month;
-    unsigned char day;
+    uint8 year;
+    uint8 month;
+    uint8 day;
 } rtcc_date;
 
 typedef struct
 {
-    unsigned char hour;
-    unsigned char minute;
-    unsigned char second;
+    uint8 hour;
+    uint8 minute;
+    uint8 second;
 } rtcc_time;
 
 //Assembly function prototypes
@@ -86,13 +86,13 @@ void rtcc_create_timestamp(const rtcc_datetime *source, rtcc_timestamp *dest);
 
 //Utility functions
 void get_rtcc_datetime_unsafe(rtcc_datetime *time);
-unsigned char from_bcd(unsigned char val);
-unsigned char to_bcd(unsigned char val);
+uint8 from_bcd(uint8 val);
+uint8 to_bcd(uint8 val);
 
 void         set_recurring_task(AlarmRepeatTime repeat, alarm_callback routine);
 void         clear_recurring_task();
 unsigned int last_alarm_frequency();
 
-void wait_ms( unsigned long milliseconds );
+void wait_ms( uint32 milliseconds );
 
 #endif

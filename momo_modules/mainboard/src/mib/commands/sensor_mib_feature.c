@@ -8,13 +8,12 @@
 
 static void log_sensor_event_mib(void)
 {
-	uint8 mib_addr = plist_get_int8(0);
-	uint8 stream_id = plist_get_int8(1); 
-	uint8 meta = plist_get_int8(2);
-	uint64 *value = (uint64*)plist_get_buffer(3);
+	uint8 mib_addr = plist_get_int8(0); 
+	uint8 metadata = plist_get_int8(1);
+	uint64 *value = (uint64*)plist_get_buffer(2);
 	
 	//TODO: Keep in-memory queue, lazily write to flash
-	push_sensor_value( mib_addr, stream_id, meta, value );
+	push_sensor_value( mib_addr, metadata, value );
 
 	bus_slave_setreturn(pack_return_status(kNoMIBError, 0));
 }
@@ -32,7 +31,7 @@ static void read_sensor_event_mib(void)
 }
 
 DEFINE_MIB_FEATURE_COMMANDS(sensor) {
-	{ 0x00, log_sensor_event_mib, plist_spec(3, true) },
+	{ 0x00, log_sensor_event_mib, plist_spec(2, true) },
 	{ 0x10, read_sensor_event_mib, plist_spec_empty() }
 };
 DEFINE_MIB_FEATURE(sensor);

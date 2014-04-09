@@ -45,8 +45,13 @@ void flash_queue_queue( flash_queue* queue, const void* data )
     mem_clear_subsection( queue->counters.end );
   }
 
+  uint32 new_end = queue->counters.end + queue->elem_size;
+  if ( queue->counters.end < queue->counters.start &&
+       new_end > queue->counters.start )
+    queue->counters.start += queue->elem_size;
+
   mem_write( queue->counters.end, data, queue->elem_size );
-  queue->counters.end += queue->elem_size;
+  queue->counters.end = new_end;
 
   save_queue_counters( queue );
 }
@@ -100,6 +105,22 @@ uint32 flash_queue_batchdequeue( flash_queue* queue, void* data, uint32 count ) 
   batchdequeue_impl( queue, &data, l );
   save_queue_counters( queue );
   return count;
+}
+
+void flash_queue_requeue( flash_queue* queue, uint32 count ) {
+  uint32 new_start = queue->counters.start - ( count * queue->elem_size );
+  if ( new_start < queue->counters.end ) //TODO: Possible race condition
+    new_start = queue->counters.end;
+  else if ( new_start < queue->start_address )
+    new_start = queue->start_address;
+  queue->counters.start = new_start;
+}
+
+bool flash_queue_peek( flash_queue* queue, void* data ) {
+  if ( flash_queue_empty( queue ) )
+    return false;
+  mem_read( queue->counters.start, data, queue->elem_size );
+  return true;
 }
 
 uint32 flash_queue_count( const flash_queue* queue ) {

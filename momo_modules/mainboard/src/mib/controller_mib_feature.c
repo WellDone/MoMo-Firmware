@@ -11,7 +11,6 @@
 #include "eeprom.h"
 #include "rtcc.h"
 
-#define MAX_MODULES 16
 #define MODULE_BASE_ADDRESS 11
 
 static momo_module_descriptor the_modules[MAX_MODULES];
