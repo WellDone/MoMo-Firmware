@@ -15,7 +15,7 @@ bool log_sensor_event( uint8 module, SensorMetadata metadata, const rtcc_datetim
   sensor_event event;
 
   event.module = module;
-  event.metadata = meta;
+  event.metadata = metadata;
 
   rtcc_create_timestamp( datetime, &event.timestamp );
   event.value = *value;

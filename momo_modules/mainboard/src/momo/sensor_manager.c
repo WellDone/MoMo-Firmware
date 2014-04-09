@@ -6,5 +6,5 @@ void push_sensor_value( uint8 stream_id, uint8 meta, uint64 *value )
 	rtcc_datetime now;
 	rtcc_get_time( &now );
 
-	log_sensor_event( stream_id, meta, &now, value );
+	log_sensor_event( stream_id, (SensorMetadata)meta, &now, value );
 }
