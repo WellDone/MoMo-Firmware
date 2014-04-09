@@ -1,2 +1,6 @@
 #!/usr/bin/env python
-import gsmtool
+from gsmtool import *
+import sys
+
+gsmtool = GSMTool()
+sys.exit(gsmtool.main())
