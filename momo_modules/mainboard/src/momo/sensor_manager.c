@@ -1,7 +1,7 @@
 #include "sensor_manager.h"
 #include "sensor_event_log.h"
 
-void push_sensor_value( uint8 stream_id, uint8 meta, uint64 *value )
+void push_sensor_value( uint8 stream_id, uint8 meta, uint32 *value )
 {
 	rtcc_datetime now;
 	rtcc_get_time( &now );

@@ -10,7 +10,7 @@ void init_sensor_event_log( uint8 start_subsection, uint8 subsection_count )
                       subsection_count );
 }
 
-bool log_sensor_event( uint8 module, SensorMetadata metadata, const rtcc_datetime* datetime, uint64 *value )
+bool log_sensor_event( uint8 module, SensorMetadata metadata, const rtcc_datetime* datetime, uint32 *value )
 {
   sensor_event event;
 
