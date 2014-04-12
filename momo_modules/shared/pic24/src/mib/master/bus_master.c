@@ -12,6 +12,11 @@ void 			bus_master_rpc_async_do();
 
 const rpc_info *master_rpcdata;
 
+unsigned int bus_master_idle()
+{
+	return mib_state.rpc_done;
+}
+
 static void bus_master_finish()
 {
 	unsigned int i=0;

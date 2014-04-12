@@ -5,10 +5,22 @@
 #define ENABLE_MEMORY() LAT(CS) = 0
 #define DISABLE_MEMORY() LAT(CS) = 1
 #else
+
 #define SS_VALUE LATBbits.LATB15
 #define ENABLE_MEMORY() SS_VALUE = 0
 #define DISABLE_MEMORY() SS_VALUE = 1
-#endif 
+#endif
+
+//Clock configuration and delays
+#define FCY   4000000L  //define your instruction frequency, FCY = FOSC/2
+  
+#define CYCLES_PER_MS ((unsigned long long)(FCY * 0.001))        //instruction cycles per millisecond
+#define CYCLES_PER_US ((unsigned long long)(FCY * 0.000001))   //instruction cycles per microsecond
+#define DELAY_MS(ms)  __delay32(CYCLES_PER_MS * ((unsigned long long) ms));   //__delay32 is provided by the compiler, delay some # of milliseconds
+#define DELAY_US(us)  __delay32(CYCLES_PER_US * ((unsigned long long) us));    //delay some number of microseconds
+extern void __delay32(unsigned long long);
+
+memory_config status; 
 
 #define MEMORY_TX_STATUS SPI1STATbits.SPITBF
 #define MEMORY_STATUS_OVERFLOWN SPI1STATbits.SPIROV
@@ -30,6 +42,10 @@ typedef enum {
 //Functions only for this 
 static BYTE spi_transfer(BYTE data);
 static void spi_send_addr(unsigned long data);
+static void configure_SPI();
+static void mem_wait_while_writing();
+
+
 
 #define spi_receive()   spi_transfer(0x00)
 
@@ -42,7 +58,13 @@ static void spi_send_addr(unsigned long data);
 #define ERASE_SUBSECTION() spi_transfer( SSE )
 #define ERASE_ALL() spi_transfer( BE )
 
-void configure_SPI() {
+void mem_init()
+{
+  status.enabled = 0;
+}
+
+void configure_SPI() 
+{
   SPI1CON1bits.MODE16 = 0; //communication is byte-wide
   SPI1CON1bits.MSTEN = 1; //SPI is in master mode
   SPI1CON1bits.CKP = 1; //data is clocked out on high-low transition
@@ -81,6 +103,81 @@ void configure_SPI() {
   DISABLE_MEMORY(); //idle state of SS is high
 }
 
+void mem_ensure_powered(MemoryStartupTimer for_writing)
+{
+  if (status.enabled == 0)
+  {
+    configure_SPI();
+
+#ifndef __PIC24FJ64GA306__
+    _RB7 = 1;
+    _TRISB7 = 0;
+#else
+    LAT(MEMPOWER) = 1;
+    DIR(MEMPOWER) = OUTPUT;
+#endif
+
+    status.enabled = 1;
+    status.write_wait = 1;
+
+    //Memory specifies a 30 us delay between power on and assert CS, allow for slop in clock
+    DELAY_MS(1);
+  }
+  
+  if (for_writing && status.write_wait)
+  {
+    DELAY_MS(12);
+    status.write_wait = 0;
+  }
+}
+
+unsigned int mem_enabled()
+{
+  return status.enabled;
+}
+
+void mem_remove_power()
+{
+  SPI1STATbits.SPIEN = 0;
+
+#ifndef __PIC24FJ64GA306__
+    _RB7 = 0;
+    _TRISB7 = 0;
+
+        //Drive all pins low to minimize power consumption
+    TRISBbits.TRISB15 = 0; // SS
+    TRISBbits.TRISB14 = 0; // SDI (IO)
+    AD1PCFGbits.PCFG14 = 1; // SDI (analog/digital)
+    TRISBbits.TRISB13 = 0; // SDO
+    TRISBbits.TRISB12 = 0; // SDCK
+    _LATB15 = 0;
+    _LATB14 = 0;
+    _LATB13 = 0;
+    _LATB12 = 0;
+#else
+    LAT(MEMPOWER) = 0;
+    DIR(MEMPOWER) = OUTPUT;
+
+    DIR(CS) = OUTPUT;
+    LAT(CS) = 0;
+    TYPE(CS) = DIGITAL;
+  
+    DIR(SDI) = OUTPUT;
+    LAT(SDI) = 0;
+    TYPE(SDI) = DIGITAL;
+
+    DIR(SDO) = OUTPUT;
+    LAT(SDO) = 0;
+    TYPE(SDO)= DIGITAL;
+  
+    DIR(SCK) = OUTPUT;
+    LAT(SDO) = 0;
+    TYPE(SCK) = DIGITAL;
+#endif
+
+  status.enabled = 0;
+}
+
 static BYTE spi_transfer(BYTE data)
 {
 
@@ -102,10 +199,13 @@ static void spi_send_addr(unsigned long data)
     spi_transfer(data&0xFF);
 }
 
-bool mem_test() {
+bool mem_test() 
+{
   BYTE manufacturer_id;
   BYTE memory_type;
   BYTE memory_capacity;
+
+  mem_ensure_powered(0);
 
   ENABLE_MEMORY();
 
@@ -129,15 +229,15 @@ static inline void mem_enable_write()
   DISABLE_MEMORY();
 }
 
-static inline void mem_wait_while_writing() 
+static void mem_wait_while_writing() 
 {
-  BYTE status = 0b1;
+  BYTE received = 0b1;
 
   ENABLE_MEMORY();
   
   READ_STATUS_REGISTER();
-  while (status & 0b1)
-    status = spi_receive();
+  while (received & 0b1)
+    received = spi_receive();
 
   DISABLE_MEMORY();
 }
@@ -168,7 +268,8 @@ void mem_write_aligned(const uint32 addr, const BYTE *data, unsigned int length)
 {
   unsigned int i;
 
-  mem_wait_while_writing();
+  mem_ensure_powered(1);
+
   mem_enable_write();
   ENABLE_MEMORY();
   PAGE_PROGRAM_MODE();
@@ -179,11 +280,15 @@ void mem_write_aligned(const uint32 addr, const BYTE *data, unsigned int length)
     spi_transfer(data[i]);
 
   DISABLE_MEMORY();
+
+  mem_wait_while_writing();
 }
 
 void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes) 
 {
   BYTE* bufEnd = buf+numBytes;
+
+  mem_ensure_powered(0);
 
   ENABLE_MEMORY();
   READ_MODE();
@@ -200,6 +305,8 @@ BYTE mem_status()
 {
   BYTE status;
 
+  mem_ensure_powered(0);
+
   ENABLE_MEMORY();
   READ_STATUS_REGISTER();
   status = spi_receive();
@@ -210,7 +317,7 @@ BYTE mem_status()
 
 void mem_clear_all() 
 {
-  mem_wait_while_writing();
+  mem_ensure_powered(1);
   mem_enable_write();
 
   ENABLE_MEMORY();
@@ -222,7 +329,7 @@ void mem_clear_all()
 
 void mem_clear_subsection(uint32 addr) 
 {
-  mem_wait_while_writing();
+  mem_ensure_powered(1);
   mem_enable_write();
 
   ENABLE_MEMORY();

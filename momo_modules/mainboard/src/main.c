@@ -3,10 +3,12 @@
 #include "mainboard_reset_handler.h"
 #include "task_manager.h"
 #include "scheduler.h"
+#include "memory.h"
 #include "bus_master.h"
 #include "report_manager.h"
 #include <string.h>
 
+<<<<<<< HEAD
 // CONFIG4
 #pragma config DSWDTPS = DSWDTPS1F      // Deep Sleep Watchdog Timer Postscale Select bits (1:68719476736 (25.7 Days))
 #pragma config DSWDTOSC = LPRC          // DSWDT Reference Clock Select (DSWDT uses LPRC as reference clock)
@@ -45,17 +47,26 @@
 #pragma config GCP = OFF                // General Segment Code Protect (Code protection is disabled)
 #pragma config JTAGEN = OFF             // JTAG Port Enable (Disabled)
 
+TaskManagerSleepStatus sleep_handler(TaskManagerCallbackReason task);
+
 int main(void)
 {
-    //Enable the Memory Module
-    TYPE(MEM_POWER) = DIGITAL;
-    LAT(MEM_POWER) = 1;
-    DIR(MEM_POWER) = OUTPUT;
-
     register_reset_handlers();
     handle_reset();
-    
+
+    taskloop_set_sleephandler(sleep_handler);
     taskloop_loop();
 
     return (EXIT_SUCCESS);
+}
+
+TaskManagerSleepStatus sleep_handler(TaskManagerCallbackReason task)
+{
+	if (bus_master_idle())
+	{
+		mem_remove_power();
+		return kCanEnterSleep;
+	}
+
+	return kCannotEnterSleep;
 }

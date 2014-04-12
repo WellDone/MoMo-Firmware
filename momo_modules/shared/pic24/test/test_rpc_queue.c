@@ -4,9 +4,30 @@
 #include "ringbuffer.h"
 #include <string.h>
 
+//Mocked functions
 void asm_sleep()
 {
 	// do nothing
+}
+
+void disable_memory()
+{
+
+}
+
+void mem_wait_while_writing()
+{
+
+}
+
+unsigned int bus_master_idle()
+{
+	return 1;
+}
+
+unsigned int memory_enabled()
+{
+	return 0;
 }
 
 static int task_count = 0;
