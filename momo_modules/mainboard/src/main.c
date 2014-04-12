@@ -8,7 +8,6 @@
 #include "report_manager.h"
 #include <string.h>
 
-<<<<<<< HEAD
 // CONFIG4
 #pragma config DSWDTPS = DSWDTPS1F      // Deep Sleep Watchdog Timer Postscale Select bits (1:68719476736 (25.7 Days))
 #pragma config DSWDTOSC = LPRC          // DSWDT Reference Clock Select (DSWDT uses LPRC as reference clock)
