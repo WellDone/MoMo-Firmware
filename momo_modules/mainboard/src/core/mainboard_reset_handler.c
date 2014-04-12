@@ -44,7 +44,10 @@ void handle_all_resets_after(unsigned int type)
 
     //The RTCC must be enabled for scheduling tasks, so ensure that
     if (!rtcc_enabled())
+    {
+        configure_rtcc();
         enable_rtcc();
+    }
 
     //All modules that need to schedule tasks MUST BE called after
     //rtcc is on and enabled. 
@@ -54,9 +57,6 @@ void handle_all_resets_after(unsigned int type)
 
 void handle_poweron_reset(unsigned int type)
 {
-    //Power-on reset resets the rtcc, so configure and enable it.
-    configure_rtcc();
-    enable_rtcc();
 }
 
 void handle_mclr_reset(unsigned int type)
