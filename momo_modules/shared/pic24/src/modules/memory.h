@@ -11,6 +11,7 @@
 #define MEMORY_SUBSECTION_ADDR(num) (MEMORY_SUBSECTION_SIZE*num)
 #define MEMORY_ADDR_SUBSECTION(addr) ( addr>>12 )
 #define MEMORY_SUBSECTION_OFFSET(addr) ( addr & MEMORY_SUBSECTION_MASK )
+#define MEMORY_ADDR_SUBSECTION_ADDR(addr) ( addr & ~MEMORY_SUBSECTION_MASK )
 
 //Convert a sector number to a subsector number (sector size=64K, subsector size=4K, 16 subsectors per sector)
 #define MEMORY_SECTION_TO_SUB(sec)	(((unsigned long long)sec) << 4)

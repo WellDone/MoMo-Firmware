@@ -40,18 +40,20 @@ void flash_queue_queue( flash_queue* queue, const void* data )
   {
     if ( queue->counters.end > queue->end_address )
     {
-      queue->counters.end = queue->start_address; //TODO: Log that we lost some data
+      queue->counters.end = queue->start_address;
     }
     mem_clear_subsection( queue->counters.end );
+
+    uint32 next_subsection_addr = MEMORY_ADDR_SUBSECTION_ADDR(queue->counters.end) + MEMORY_SUBSECTION_SIZE;
+    if ( queue->counters.start > MEMORY_ADDR_SUBSECTION_ADDR(queue->counters.end) &&
+         queue->counters.start < next_subsection_addr )
+    {
+      queue->counters.start = next_subsection_addr; //TODO: Log that we lost some data
+    }
   }
 
-  uint32 new_end = queue->counters.end + queue->elem_size;
-  if ( queue->counters.end < queue->counters.start &&
-       new_end > queue->counters.start )
-    queue->counters.start += queue->elem_size;
-
   mem_write( queue->counters.end, data, queue->elem_size );
-  queue->counters.end = new_end;
+  queue->counters.end = queue->counters.end + queue->elem_size;
 
   save_queue_counters( queue );
 }
