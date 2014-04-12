@@ -50,7 +50,7 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
-int sleep_handler(int task);
+TaskManagerSleepStatus sleep_handler(TaskManagerCallbackReason task);
 
 int main(void)
 {
@@ -66,11 +66,11 @@ int main(void)
     return (EXIT_SUCCESS);
 }
 
-int sleep_handler(int task)
+TaskManagerSleepStatus sleep_handler(TaskManagerCallbackReason task)
 {
 	if (bus_master_idle())
 	{
-		disable_memory();
+		mem_remove_power();
 		return kCanEnterSleep;
 	}
 

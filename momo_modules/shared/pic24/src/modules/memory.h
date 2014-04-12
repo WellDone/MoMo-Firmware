@@ -27,9 +27,14 @@ typedef struct
 	unsigned int reserved : 14;
 } memory_config;
 
+typedef enum
+{
+	kReadOnly = 0,
+	kReadWrite = 1
+} MemoryStartupTimer;
+
 void mem_write(uint32 addr, const BYTE* data, unsigned int length );
 void mem_write_aligned(const uint32 addr, const BYTE* data, unsigned int length);
-void mem_wait_while_writing();
 void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes );
 
 void mem_clear_subsection(uint32 addr);
@@ -38,9 +43,9 @@ void mem_clear_all();
 BYTE mem_status();
 bool mem_test();
 
-void disable_memory();
-void enable_memory(uint8 for_writing);
-void init_memory();
-unsigned int memory_enabled();
+void mem_remove_power();
+void mem_ensure_powered(MemoryStartupTimer for_writing);
+void mem_init();
+unsigned int mem_enabled();
 
 #endif

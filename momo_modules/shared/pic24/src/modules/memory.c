@@ -35,6 +35,8 @@ typedef enum {
 static BYTE spi_transfer(BYTE data);
 static void spi_send_addr(unsigned long data);
 static void configure_SPI();
+static void mem_wait_while_writing();
+
 
 
 #define spi_receive()   spi_transfer(0x00)
@@ -48,12 +50,13 @@ static void configure_SPI();
 #define ERASE_SUBSECTION() spi_transfer( SSE )
 #define ERASE_ALL() spi_transfer( BE )
 
-void init_memory()
+void mem_init()
 {
   status.enabled = 0;
 }
 
-void configure_SPI() {
+void configure_SPI() 
+{
   SPI1CON1bits.MODE16 = 0; //communication is byte-wide
   SPI1CON1bits.MSTEN = 1; //SPI is in master mode
   SPI1CON1bits.CKP = 1; //data is clocked out on high-low transition
@@ -69,7 +72,7 @@ void configure_SPI() {
   DISABLE_MEMORY(); //idle state of SS is high
 }
 
-void enable_memory(uint8 for_writing)
+void mem_ensure_powered(MemoryStartupTimer for_writing)
 {
   if (status.enabled == 0)
   {
@@ -93,12 +96,12 @@ void enable_memory(uint8 for_writing)
   }
 }
 
-unsigned int memory_enabled()
+unsigned int mem_enabled()
 {
   return status.enabled;
 }
 
-void disable_memory()
+void mem_remove_power()
 {
   SPI1STATbits.SPIEN = 0;
 
@@ -146,7 +149,7 @@ bool mem_test()
   BYTE memory_type;
   BYTE memory_capacity;
 
-  enable_memory(0);
+  mem_ensure_powered(0);
 
   ENABLE_MEMORY();
 
@@ -170,7 +173,7 @@ static inline void mem_enable_write()
   DISABLE_MEMORY();
 }
 
-void mem_wait_while_writing() 
+static void mem_wait_while_writing() 
 {
   BYTE received = 0b1;
 
@@ -209,7 +212,7 @@ void mem_write_aligned(const uint32 addr, const BYTE *data, unsigned int length)
 {
   unsigned int i;
 
-  enable_memory(1);
+  mem_ensure_powered(1);
 
   mem_enable_write();
   ENABLE_MEMORY();
@@ -229,7 +232,7 @@ void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes)
 {
   BYTE* bufEnd = buf+numBytes;
 
-  enable_memory(0);
+  mem_ensure_powered(0);
 
   ENABLE_MEMORY();
   READ_MODE();
@@ -246,7 +249,7 @@ BYTE mem_status()
 {
   BYTE status;
 
-  enable_memory(0);
+  mem_ensure_powered(0);
 
   ENABLE_MEMORY();
   READ_STATUS_REGISTER();
@@ -258,7 +261,7 @@ BYTE mem_status()
 
 void mem_clear_all() 
 {
-  enable_memory(1);
+  mem_ensure_powered(1);
   mem_enable_write();
 
   ENABLE_MEMORY();
@@ -270,7 +273,7 @@ void mem_clear_all()
 
 void mem_clear_subsection(uint32 addr) 
 {
-  enable_memory(1);
+  mem_ensure_powered(1);
   mem_enable_write();
 
   ENABLE_MEMORY();
