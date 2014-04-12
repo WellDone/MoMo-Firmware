@@ -25,6 +25,7 @@ void handle_all_resets_before(unsigned int type)
     configure_interrupts();
 
     taskloop_init();
+    taskloop_set_flag(kTaskLoopSleepBit, 1);
     scheduler_init();
     
     bus_init(kMIBControllerAddress);
