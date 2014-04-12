@@ -63,8 +63,10 @@ TaskManagerSleepStatus sleep_handler(TaskManagerCallbackReason task)
 {
 	if (bus_master_idle())
 	{
-		mem_remove_power();
-		return kCanEnterSleep;
+        if (taskloop_get_flag(kTaskLoopLightSleepBit) == 0)
+		  mem_remove_power();
+		
+        return kCanEnterSleep;
 	}
 
 	return kCannotEnterSleep;

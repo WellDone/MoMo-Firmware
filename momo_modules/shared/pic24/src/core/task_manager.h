@@ -18,7 +18,7 @@ typedef enum
 {
     kTaskLoopSleepBit = 0,
     kTaskLoopLockedBit = 1,
-    kTaskLoopDisableMemoryBit = 2
+    kTaskLoopLightSleepBit = 2      //Instruct the taskloop sleep handler that we expect to wake soon (used to keep the Flash memory powered up)
 } TaskManagerFlag;
 
 typedef enum
