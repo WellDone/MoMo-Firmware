@@ -127,7 +127,7 @@
       - -o ${2}
       - ${1}
       - -L../shared/pic24/build/release/
-      - -lPIC24shared
+      - -lPIC24shared_fj
       - -Wl,-T./linker/p24FJ64GA306.gld,-Map=./build/release/MoMo-mainboard-firmware.map,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem
 :plugins:
   :load_paths:
