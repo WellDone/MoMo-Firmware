@@ -14,11 +14,11 @@ typedef unsigned char	uint8;
 
 typedef signed int      int16;
 typedef unsigned int    uint16;
-#define MAX_UINT16 65,535
+#define MAX_UINT16 65535
 
 typedef signed long     int32;
 typedef unsigned long   uint32;
-#define MAX_UINT32 4,294,967,295L
+#define MAX_UINT32 4294967295L
 
 typedef signed long long int64;
 typedef unsigned long long uint64;
