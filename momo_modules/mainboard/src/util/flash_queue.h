@@ -16,8 +16,9 @@ typedef struct {
 
 typedef struct {
   uint8                elem_size;
-  uint32                start_address;
-  uint32                end_address;
+  uint32               start_address;
+  uint32               end_address;
+  bool                 wrapped;
 
   flash_block_info     counters_block;
 

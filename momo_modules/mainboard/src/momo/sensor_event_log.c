@@ -1,7 +1,7 @@
 #include "sensor_event_log.h"
 #include "flash_queue.h"
 
-static flash_queue event_log;
+flash_queue event_log;
 
 void init_sensor_event_log( uint8 start_subsection, uint8 subsection_count )
 {
@@ -34,4 +34,8 @@ bool sensor_event_log_empty() {
 
 uint32 sensor_event_log_count() {
   return flash_queue_count( &event_log );
+}
+
+void sensor_event_log_clear() {
+  flash_queue_reset( &event_log );
 }

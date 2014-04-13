@@ -7,7 +7,7 @@ void flash_queue_create( flash_queue* queue,
                          uint8 subsection_count )
 {
   queue->start_address = MEMORY_SUBSECTION_ADDR( start_subsection+1 );
-  queue->end_address = MEMORY_SUBSECTION_ADDR( start_subsection + subsection_count );
+  queue->end_address = MEMORY_SUBSECTION_ADDR( start_subsection + 3 );
 
   queue->elem_size = element_size;
 
@@ -30,22 +30,27 @@ static inline void save_queue_counters( flash_queue* queue )
 void flash_queue_reset( flash_queue* queue )
 {
   queue->counters.start = queue->counters.end = queue->start_address;
+  queue->wrapped = false;
   save_queue_counters( queue );
 }
 
 // TODO: Error reporting and success/failure indications.
 void flash_queue_queue( flash_queue* queue, const void* data )
 {
-  if ( MEMORY_SUBSECTION_OFFSET( queue->counters.end ) <= queue->elem_size )
+  if ( queue->counters.end + queue->elem_size > queue->end_address )
   {
-    if ( queue->counters.end > queue->end_address )
-    {
-      queue->counters.end = queue->start_address;
-    }
+    queue->counters.end = queue->start_address;
+    queue->wrapped = true;
+  }
+
+  if ( MEMORY_SUBSECTION_OFFSET( queue->counters.end ) < queue->elem_size )
+  {
     mem_clear_subsection( queue->counters.end );
 
+    // If `start` is in the subsection we just cleared, bump it to the next one.
     uint32 next_subsection_addr = MEMORY_ADDR_SUBSECTION_ADDR(queue->counters.end) + MEMORY_SUBSECTION_SIZE;
-    if ( queue->counters.start > MEMORY_ADDR_SUBSECTION_ADDR(queue->counters.end) &&
+    if ( queue->wrapped &&
+         queue->counters.start >= MEMORY_ADDR_SUBSECTION_ADDR(queue->counters.end) &&
          queue->counters.start < next_subsection_addr )
     {
       queue->counters.start = next_subsection_addr; //TODO: Log that we lost some data
@@ -53,7 +58,7 @@ void flash_queue_queue( flash_queue* queue, const void* data )
   }
 
   mem_write( queue->counters.end, data, queue->elem_size );
-  queue->counters.end = queue->counters.end + queue->elem_size;
+  queue->counters.end += queue->elem_size;
 
   save_queue_counters( queue );
 }
