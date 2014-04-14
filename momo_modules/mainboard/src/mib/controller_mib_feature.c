@@ -24,6 +24,8 @@ void con_init()
 	BUS_ENABLE_TRIS = 1;
 	BUS_ENABLE_DIG = 1;
 	BUS_ENABLE_LAT = 1;
+
+	con_reset_bus();
 }
 
 void con_reset_bus()
@@ -164,6 +166,13 @@ void debug_value()
 	bus_slave_return_int16(debug_flag_value);
 }
 
+void set_sleep()
+{
+	if (plist_get_int16(0))
+		taskloop_set_flag(kTaskLoopSleepBit, 1);
+	else
+		taskloop_set_flag(kTaskLoopSleepBit, 0);
+}
 
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
@@ -181,5 +190,6 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x0B, report_battery, plist_spec_empty()},
 	{0x0C, current_time, plist_spec_empty()},
 	{0x0D, debug_value, plist_spec_empty()},
+	{0x0E, set_sleep, plist_spec(1, false)}
 };
 DEFINE_MIB_FEATURE(controller);

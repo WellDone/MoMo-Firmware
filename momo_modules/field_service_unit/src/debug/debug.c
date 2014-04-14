@@ -20,7 +20,7 @@ void debug_init()
 
     register_command_handlers(); //register the serial commands that we respond to.
 
-    taskloop_set_sleep(0); //Can't sleep with the UART
+    taskloop_set_flag(kTaskLoopSleepBit, 0); //Can't sleep with the UART
 
     sendf(DEBUG_UART, "Type was: %d.\r\n", last_reset_type());
     put(DEBUG_UART, ACK);

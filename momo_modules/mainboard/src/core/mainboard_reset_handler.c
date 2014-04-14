@@ -19,8 +19,10 @@ void handle_all_resets_before(unsigned int type)
 {
     //Add code here that should be called before all other reset code
     disable_unneeded_peripherals();
+    mem_init();
+    mem_ensure_powered(1);
     configure_interrupts();
-    oscillator_init();
+    //oscillator_init();
 
     taskloop_init();
     scheduler_init();
