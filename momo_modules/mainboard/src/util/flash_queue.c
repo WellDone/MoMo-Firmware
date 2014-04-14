@@ -7,7 +7,7 @@ void flash_queue_create( flash_queue* queue,
                          uint8 subsection_count )
 {
   queue->start_address = MEMORY_SUBSECTION_ADDR( start_subsection+1 );
-  queue->end_address = MEMORY_SUBSECTION_ADDR( start_subsection + 3 );
+  queue->end_address = MEMORY_SUBSECTION_ADDR( start_subsection + subsection_count );
 
   queue->elem_size = element_size;
 

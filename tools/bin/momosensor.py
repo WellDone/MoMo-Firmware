@@ -48,7 +48,7 @@ class MoMoSensor(cmdln.Cmdln):
 		meta = 0x0;
 		s = sched.scheduler(time.time, time.sleep)
 		def log_event( scheduler, count, values ):
-			memory_subsection_count = 2
+			memory_subsection_count = 16 * 12 - 1
 			events_per_subsection = 341 # 4096/12
 			if count >= events_per_subsection*memory_subsection_count + 10: # = when to stop
 				print "COMPLETE"
