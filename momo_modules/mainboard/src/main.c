@@ -3,6 +3,7 @@
 #include "mainboard_reset_handler.h"
 #include "task_manager.h"
 #include "scheduler.h"
+#include "memory.h"
 #include "bus_master.h"
 #include "report_manager.h"
 #include <string.h>
@@ -16,7 +17,7 @@
 #pragma config GCP = OFF                // General Segment Code Flash Code Protection bit (No protection)
 
 // FOSCSEL
-#pragma config FNOSC = FRC           	// Oscillator Select (8 MHz FRC oscillator (FRC)) with PLL
+#pragma config FNOSC = FRC           	// Oscillator Select (8 MHz FRC oscillator (FRC)) without PLL
 #pragma config IESO  = OFF              // Internal External Switch Over bit (Internal External Switchover mode disabled (Two-Speed Start-up disabled))
 
 // FOSC
@@ -49,22 +50,29 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
-ScheduledTask task1;
-
-ScheduledTask i2c;
+TaskManagerSleepStatus sleep_handler(TaskManagerCallbackReason task);
 
 int main(void)
 {
     AD1PCFG = 0xFFFF;
 
-    //Enable the Memory Module
-    _RB7 = 1;
-    _TRISB7 = 0;
-
     register_reset_handlers();
     handle_reset();
+
+    taskloop_set_sleephandler(sleep_handler);
     
     taskloop_loop();
 
     return (EXIT_SUCCESS);
+}
+
+TaskManagerSleepStatus sleep_handler(TaskManagerCallbackReason task)
+{
+	if (bus_master_idle())
+	{
+		mem_remove_power();
+		return kCanEnterSleep;
+	}
+
+	return kCannotEnterSleep;
 }
