@@ -47,33 +47,52 @@ class MoMoSensor(cmdln.Cmdln):
 
 		meta = 0x0;
 		s = sched.scheduler(time.time, time.sleep)
-		def log_event( scheduler, count ):
-			if count >= 342*2 + 10: # = maximum event count, 12 sectors w/ 16 subsectors each (1 for metadata), 12-byte events, 4096-byte subsectors
+		def log_event( scheduler, count, values ):
+			memory_subsection_count = 2
+			events_per_subsection = 341 # 4096/12
+			if count >= events_per_subsection*memory_subsection_count + 10: # = when to stop
 				print "COMPLETE"
 				debug = con.sensor_log_debug()
-				if debug.start = debug.min + 4096:
-					print "SUCCESS"
-				else:
-					print "FAILURE"
+				print "DEBUG ADDRESSES: MIN %d, MAX %d, START %d, END %d" % con.sensor_log_debug()
+				print "Try reading past the end..."
+				while len(values) > 9: #should be 351 at this point, read past the end of the buffer to test wrapping.
+
+					v = con.sensor_log_read().value
+					ev = values.pop(0)
+					if v != ev:
+						print "FAILED: %d != %d (expected)" % ( v, ev )
+						return
+					else:
+						print "(%d) read %d" % (len(values), v)
+					
+					if len(values) != con.sensor_log_count():
+						print "FAILED"
+						print "count: %d, expected: %d" % (con.sensor_log_count(), len(values))
+						print "DEBUG ADDRESSES: MIN %d, MAX %d, START %d, END %d" % con.sensor_log_debug()
+						return
+				print "SUCCESS"
 				print "DEBUG ADDRESSES: MIN %d, MAX %d, START %d, END %d" % con.sensor_log_debug()
 				return
-				
-			modcount = (count % (343)) + ( count / 343 )
-			if ( modcount != con.sensor_log_count() ):
+
+			if ( len(values) > events_per_subsection*memory_subsection_count ):
+				for i in range(events_per_subsection):
+					values.pop(0)
+			if ( len(values) != con.sensor_log_count() ):
 				print "FAILURE"
-				print "count: %d, expected: %d" % (con.sensor_log_count(), modcount)
+				print "count: %d, expected: %d" % (con.sensor_log_count(), len(values))
 				print "DEBUG ADDRESSES: MIN %d, MAX %d, START %d, END %d" % con.sensor_log_debug()
 				return
 
 			value = randint(1,1000)
-			s.enter( .01, 1, log_event, (scheduler,count+1) )
-
+			values.append(value)
 			con.sensor_log( 42, int(meta), value )
-			print "(%d,%d) Logged event!  Value: %d" % ((count+1)/343,(count+1)%343, value)
+			print "(%d) Logged event!  Value: %d" % (len(values), value)
+			s.enter( .01, 1, log_event, (scheduler,count+1,values) )
 
 		con.sensor_log_clear()
 		print "All sensor events cleared from PIC memory."
-		s.enter( .1, 1, log_event, (s,0) )
+		values = []
+		s.enter( .1, 1, log_event, (s,0,values) )
 		s.run()
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')

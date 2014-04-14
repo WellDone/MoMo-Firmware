@@ -37,35 +37,42 @@ void flash_queue_reset( flash_queue* queue )
 // TODO: Error reporting and success/failure indications.
 void flash_queue_queue( flash_queue* queue, const void* data )
 {
-  if ( queue->counters.end + queue->elem_size > queue->end_address )
+  uint32 new_end = queue->counters.end + queue->elem_size;
+  if ( new_end > queue->end_address )
   {
     queue->counters.end = queue->start_address;
+    new_end = queue->start_address + queue->elem_size;
     queue->wrapped = true;
   }
 
-  if ( MEMORY_SUBSECTION_OFFSET( queue->counters.end ) < queue->elem_size )
+  if ( MEMORY_ADDR_SUBSECTION_ADDR( queue->counters.end ) == queue->counters.end || 
+       MEMORY_ADDR_SUBSECTION( queue->counters.end ) != MEMORY_ADDR_SUBSECTION( new_end ) )
   {
-    mem_clear_subsection( queue->counters.end );
+    mem_clear_subsection( new_end );
+    queue->counters.end = MEMORY_ADDR_SUBSECTION_ADDR( new_end );
+    new_end = queue->counters.end + queue->elem_size;
 
     // If `start` is in the subsection we just cleared, bump it to the next one.
-    uint32 next_subsection_addr = MEMORY_ADDR_SUBSECTION_ADDR(queue->counters.end) + MEMORY_SUBSECTION_SIZE;
+    uint32 next_subsection_addr = queue->counters.end + MEMORY_SUBSECTION_SIZE;
     if ( queue->wrapped &&
-         queue->counters.start >= MEMORY_ADDR_SUBSECTION_ADDR(queue->counters.end) &&
+         queue->counters.start >= queue->counters.end &&
          queue->counters.start < next_subsection_addr )
     {
       queue->counters.start = next_subsection_addr; //TODO: Log that we lost some data
+      if ( queue->counters.start >= queue->end_address )
+        queue->counters.start = queue->start_address;
     }
   }
 
   mem_write( queue->counters.end, data, queue->elem_size );
-  queue->counters.end += queue->elem_size;
+  queue->counters.end = new_end;
 
   save_queue_counters( queue );
 }
 
 void wrap_start_pointer( flash_queue* queue )
 {
-  if ( queue->counters.start > queue->end_address )
+  if ( queue->counters.start + queue->elem_size > queue->end_address )
   {
     queue->counters.start = queue->start_address;
   }
@@ -131,7 +138,7 @@ bool flash_queue_peek( flash_queue* queue, void* data ) {
 }
 
 uint32 flash_queue_count( const flash_queue* queue ) {
-  if ( queue->counters.end >= queue->counters.start ) {
+  if ( !queue->wrapped || queue->counters.end > queue->counters.start ) {
     return (queue->counters.end - queue->counters.start)/queue->elem_size;
   } else {
     uint32 size = queue->end_address - queue->start_address;
