@@ -45,6 +45,7 @@ typedef enum
 
 //Define macros for manipulating the mib_buffer
 #define plist_set_int16(n, val)			((int*)mib_data.buffer)[n] = val
+#define plist_set_int32(n, val)			((uint16*)mib_data.buffer)[n>>1] = val
 #define plist_set_int8(n, hi, val)		mib_data.buffer[(n<<1) + hi] = val
 #define plist_get_int16(n)				((int*)mib_data.buffer)[n]
 #define plist_get_int8(n)				mib_data.buffer[(n<<1) ]

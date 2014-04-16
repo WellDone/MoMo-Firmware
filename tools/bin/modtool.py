@@ -108,7 +108,7 @@ class ModTool(cmdln.Cmdln):
 				print "Unknown command passed to modtool alarm: %s" % cmd
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-	@cmdln.option('-t', '--type', choices=['module', 'controller', 'backup'], default='module', help='What type of firmware module')
+	@cmdln.option('-t', '--type', choices=['module', 'controller', 'backup'], default='module', help='What type of firmware module (module, controller, backup)')
 	@cmdln.option('-c', '--clear', action='store_true', default=False, help='Clear the firmware cache before pushing')
 	def do_push(self, subcmd, opts, hexfile):
 		"""${cmd_name}: Push a firmware file to the attached momo unit.  
@@ -180,11 +180,7 @@ class ModTool(cmdln.Cmdln):
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-l', '--length', choices=['8', '16', '24', '32'], default=16)
 	def do_read(self, subcmd, opts, address):
-		"""${cmd_name}: Push a firmware file to the attached momo unit.  
-
-		You can either push the firmware into the 4 module firmware bins,
-		the main controller firmware bin or the backup controller firmware
-		bin.  Use -c to clear the controller's firmware cache before pushing.
+		"""${cmd_name}: Read firmware directly from flash.
 
 		${cmd_usage}
 		${cmd_option_list}
@@ -281,7 +277,6 @@ class ModTool(cmdln.Cmdln):
 	def error(self, text):
 		print Fore.RED + "Error Occurred: " + Style.RESET_ALL + text
 		sys.exit(1)
-
 
 modtool = ModTool()
 sys.exit(modtool.main())
