@@ -11,6 +11,7 @@ IMPORT_MIB_FEATURE(test);
 IMPORT_MIB_FEATURE(controller);
 IMPORT_MIB_FEATURE(firmware_cache);
 IMPORT_MIB_FEATURE(reporting);
+IMPORT_MIB_FEATURE(sensor);
 
 
 #endif
@@ -23,6 +24,7 @@ enum {
 	MIB_FEATURE_ID(firmware_cache) = 7,
 	MIB_FEATURE_ID(controller) = 42,
 	MIB_FEATURE_ID(reporting) = 60,
+	MIB_FEATURE_ID(sensor) = 70
 };
 
 

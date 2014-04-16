@@ -1,5 +1,4 @@
 #include "common_types.h"
-#include "memory_manager.h"
 #include "memory.h"
 #include "mib_feature_definition.h"
 #include "intel_hex.h"
@@ -31,9 +30,9 @@ static const uint8				bucket_lengths[kNumFirmwareBuckets] = { \
 	MAX_CONTROLLER_SUBSECTIONS \
 };
 
-void fc_init()
+void fc_init( uint8 memory_subsection )
 {
-	fb_init(&fc_flashlog, kFirmwareConfigSubector, sizeof(firmware_cache_state));
+	fb_init(&fc_flashlog, memory_subsection, sizeof(firmware_cache_state));
 
 	if (fb_count(&fc_flashlog) > 0)
 		fb_read(&fc_flashlog, &fc_state);

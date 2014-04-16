@@ -8,10 +8,10 @@
 #define MEMORY_SUBS_PER_SECTION 16
 
 
-#define MEMORY_SUBSECTION_ADDR(num) (MEMORY_SUBSECTION_SIZE*num)
+#define MEMORY_SUBSECTION_ADDR(num) ( MEMORY_SUBSECTION_SIZE*(num) )
 
 //Convert a sector number to a subsector number (sector size=64K, subsector size=4K, 16 subsectors per sector)
-#define MEMORY_SECTION_TO_SUB(sec)	(((unsigned long long)sec) << 4)
+#define MEMORY_SECTION_TO_SUB(sec)	(((uint64)(sec)) << 4)
 #define MEMORY_SECTION_ADDR(sec) 	MEMORY_SUBSECTION_ADDR(MEMORY_SECTION_TO_SUB(sec))
 
 #define MEMORY_ADDRESS_MASK 0xFFFFFL
