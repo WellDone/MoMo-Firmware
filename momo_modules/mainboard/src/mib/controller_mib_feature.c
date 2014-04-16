@@ -32,7 +32,7 @@ void con_init()
 
 void con_reset_bus()
 {
-	LAT(BUS_ENABLE) = 0;
+	LAT(BUS_ENABLE) = 1;
 	DIR(BUS_ENABLE) = OUTPUT;
 
 	module_count = 0;
