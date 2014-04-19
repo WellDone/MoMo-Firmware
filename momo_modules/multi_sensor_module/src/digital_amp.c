@@ -115,6 +115,9 @@ void damp_set_offset(uint8_t offset_code)
 
 void damp_set_stage1_gain(uint8_t gain_code)
 {
+	if (PIN(AN_POWER) == 0)
+		return;
+
 	gain_code &= 0b01111111;
 
 	damp_send_start();
@@ -127,11 +130,14 @@ void damp_set_stage1_gain(uint8_t gain_code)
 
 void damp_set_stage2_gain(uint8_t gain_code)
 {
+	if (PIN(AN_POWER) == 0)
+		return;
+	
 	gain_code &= 0b111;
 	
 	damp_send_start();
 	damp_send_function(kSimulateParameterValue);
-	damp_send_2bits(kFirstStageGain);
+	damp_send_2bits(kSecondStageGain);
 	damp_send_dummy();
 	damp_send_8bits(gain_code);
 	damp_send_end();
