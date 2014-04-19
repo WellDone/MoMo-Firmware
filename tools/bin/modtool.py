@@ -86,18 +86,44 @@ class ModTool(cmdln.Cmdln):
 		print '\nReflash complete'
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-	def do_heartbeat(self, subcmd, opts):
-		"""${cmd_name}: Ensure that the FSU is attached and responding.  
+	def do_fsu(self, subcmd, opts, command):
+		"""${cmd_name}: Directly control the FSU that is connected to the MoMo unit.  
+
+		Possible subcommands are heartbeat, reset and attached.  
+		- heartbeat checks if the FSU is still there.
+		- reset resets the FSU.
+		- attached determines if a MoMo unit is plugged in to the FSU.
 
 		${cmd_usage}
 		${cmd_option_list}
 		"""
+
+		commands = set(["reset", "heartbeat", "attached"])
+
 		con = self._get_controller(opts)
 
-		if con.stream.heartbeat() is False:
-			print "FSU Heartbeat NOT DETECTED, try resetting it with modtool reset -f"
-		else:
-			print "FSU Heartbeat detected"
+		if command not in commands:
+			print "Usage: modtool fsu [reset|heartbeat|attached]"
+			return 1
+
+		if command == "heartbeat":
+			if con.stream.heartbeat() is False:
+				print "FSU Heartbeat NOT DETECTED, try resetting it with modtool reset -f"
+				return 1
+			else:
+				print "FSU Heartbeat detected"
+		elif command == "reset":
+			status = con.stream.reset()
+			if status is False:
+				print "FSU reset NOT SUCCESSFUL, try unplugging and replugging it from both the MoMo and computer at the same time."
+				return 1
+			else:
+				print "FSU reset successful"
+		elif command == "attached":
+			if con.momo_attached():
+				print "MoMo unit: Attached"
+			else:
+				print "NO MOMO UNIT ATTACHED"
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_alarm(self, subcmd, opts, *asserted):
