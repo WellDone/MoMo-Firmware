@@ -59,8 +59,8 @@ void configure_uart1(uart_parameters *params)
 
     IFS0bits.U1RXIF = 0;  //Clear ISF flags
     IFS0bits.U1TXIF = 0;
-    IPC2bits.U1RXIP = 0b010; //Set high priority
-    IPC3bits.U1TXIP = 0b100;
+    IPC2bits.U1RXIP = 0b100; //Set high priority
+    IPC3bits.U1TXIP = 0b010;
     IEC0bits.U1RXIE = 1; //Enable both interrupts
     IEC0bits.U1TXIE = 1;
 
@@ -113,8 +113,8 @@ void configure_uart2(uart_parameters *params)
 
     IFS1bits.U2RXIF = 0;  //Clear ISF flags
     IFS1bits.U2TXIF = 0;
-    IPC7bits.U2RXIP = 0b010; //Set high priority
-    IPC7bits.U2TXIP = 0b100;
+    IPC2bits.U1RXIP = 0b100; //Set high priority
+    IPC3bits.U1TXIP = 0b010;
     IEC1bits.U2RXIE = 1; //Enable receive interrupt
     IEC1bits.U2TXIE = 1; //Enable transmit interrupt
 
