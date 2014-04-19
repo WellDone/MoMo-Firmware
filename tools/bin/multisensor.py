@@ -14,7 +14,7 @@ class SensorTool(cmdln.Cmdln):
 	name = 'multisensor'
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
+	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
 	def do_read(self, subcmd, opts):
 		"""${cmd_name}: Read the voltage from the multisensor module
 
@@ -28,7 +28,7 @@ class SensorTool(cmdln.Cmdln):
 		print "Voltage: %d" % v
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
+	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
 	def do_offset(self, subcmd, opts, offset):
 		"""${cmd_name}: Set the voltage offset of the digitally controlled amplifier
 		from between 0 to 255, where 0 corresponds to VSS and 255 corresponds to VDD.
@@ -39,6 +39,33 @@ class SensorTool(cmdln.Cmdln):
 
 		sens = self._create_proxy(opts)
 		v = sens.set_offset(int(offset))
+		print "Setting offset to %d" % int(offset)
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
+	def do_gain1(self, subcmd, opts, gain):
+		"""${cmd_name}: Set the stage 1 gain of the amplifier between 0 and 127.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		sens = self._create_proxy(opts)
+		v = sens.set_stage1_gain(int(gain))
+		print "Setting Stage 1 gain to: %d" % int(gain)
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
+	def do_gain2(self, subcmd, opts, gain):
+		"""${cmd_name}: Set the stage 2 gain of the amplifier between 0 and 7.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		sens = self._create_proxy(opts)
+		v = sens.set_stage2_gain(int(gain))
+		print "Setting Stage 2 gain to: %d" % int(gain)
 
 	def _create_proxy(self,opts):
 		try:
