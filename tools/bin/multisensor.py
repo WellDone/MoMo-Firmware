@@ -24,13 +24,9 @@ class SensorTool(cmdln.Cmdln):
 		"""
 
 		sens = self._create_proxy(opts)
+		v = self._average(sens, opts.n)
 
-		readings = []
-		for i in xrange(0, opts.average):
-			v = sens.read_voltage()
-			readings.append(v)
-
-		print "Voltage: %d" % (sum(readings)/len(readings))
+		print "Voltage: %d" % v
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
@@ -72,6 +68,30 @@ class SensorTool(cmdln.Cmdln):
 		v = sens.set_stage2_gain(int(gain))
 		print "Setting Stage 2 gain to: %d" % int(gain)
 
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
+	@cmdln.option('-n', '--average', type=int, default=1, help='Average for N samples' )
+
+	def do_offset_bias(self, subcmd, opts):
+		"""${cmd_name}: Determine the offset bias point by inverting the signal
+		and measuring the average betwen the normal and inverted signals.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		sens = self._create_proxy(opts)
+
+		sens.set_inverted(False)
+		sens.set_offset(127)
+		vnorm = self.average(sens, opts.average)
+		sens.set_inverted(True)
+		vinv = self.average(sens, opts.average)
+
+		print "Normal Voltage: %d" % vnorm
+		print "Inverted Voltage: %d" % vinv
+		print "Offset Bias: %d" % (vnorm + vinv)/2
+
 	def _create_proxy(self,opts):
 		try:
 			con = get_controller(opts.port)
@@ -91,6 +111,14 @@ class SensorTool(cmdln.Cmdln):
 			self.error(str(e))
 
 		return gsm
+
+	def _average(self, sens, n):
+		readings = []
+		for i in xrange(0, n):
+			v = sens.read_voltage()
+			readings.append(v)
+
+		return sum(readings)/len(readings)
 
 if __name__ == "__main__":
 	sensortool = SensorTool()
