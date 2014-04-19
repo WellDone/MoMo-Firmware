@@ -1,4 +1,4 @@
-ModuleName = "multi_mod";
+ModuleName = "multmod";
 ModuleType = 0;
 ModuleFlags = 0;
 

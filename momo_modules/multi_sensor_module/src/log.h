@@ -2,8 +2,6 @@
 #define __log_h__
 
 #include "sample.h"
-#include "fat32.h"
-#include "sdcard.h"
 
 #define kDefaultLogInterval	kLogInterval64s
 
@@ -32,11 +30,5 @@ enum
 	kWatchdog128s = 0b100010,
 	kWatchdog256s = 0b100100
 };
-
-uint8 log_init();
-uint8 log_logsamples();
-void log_getoffset();
-void log_getsector();
-void log_setinterval();
 
 #endif
