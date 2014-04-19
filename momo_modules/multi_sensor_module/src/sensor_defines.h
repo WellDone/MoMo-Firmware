@@ -6,11 +6,8 @@
 #define VOLT3		A2
 #define CURR1		B3
 
-#define SDPOW		A6
-#define SDSEL		A1
-#define SDO			A0
-#define SDI			B2
-#define SDDET		B0
-#define SDCLK		B5
+#define AN_INVERT	B5
+#define AN_SELECT	A0
+#define AN_POWER	A6
 
 #endif

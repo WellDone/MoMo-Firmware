@@ -15,6 +15,8 @@ void task(void)
 {
 	wdt_disable();
 
+	set_analog_power(1);
+
 	while(1)
 	{
 		;
@@ -41,6 +43,18 @@ void initialize(void)
 	
 	PIN_DIR(CURR1, INPUT);
 	PIN_TYPE(CURR1, ANALOG);
+
+	LATCH(AN_POWER) = 0;
+	//PIN_TYPE(AN_POWER, DIGITAL); AN_POWER is digital only (A6)
+	PIN_DIR(AN_POWER, OUTPUT);
+
+	LATCH(AN_SELECT) = 0;
+	PIN_DIR(AN_SELECT, OUTPUT);
+	PIN_TYPE(AN_SELECT, DIGITAL);
+
+	LATCH(AN_INVERT) = 0;
+	PIN_DIR(AN_INVERT, OUTPUT);
+	PIN_TYPE(AN_INVERT, DIGITAL);
 }
 
 void main()
