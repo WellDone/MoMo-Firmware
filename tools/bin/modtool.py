@@ -38,6 +38,20 @@ class ModTool(cmdln.Cmdln):
 		for i, mod in enumerate(mods):
 			print "%d: %s at address %d" % (i, mod.name, mod.address)
 
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-v', '--voltage', action='store_true', help='Display the MoMo battery voltage')
+	def do_status(self, subcmd, opts):
+		"""${cmd_name}: Report the attached momo device's status
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		con = self._get_controller(opts)
+
+		if opts.voltage:
+			print "Battery Voltage: %.2fV" % con.battery_status()
+
 	def do_test(self, subcmd, opts, *tests):
 		"""${cmd_name}: Run hardware tests on attached MoMo device
 
