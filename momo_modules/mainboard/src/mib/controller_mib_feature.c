@@ -10,6 +10,8 @@
 #include "battery.h"
 #include "eeprom.h"
 #include "rtcc.h"
+#include "i2c.h"
+#include "bus.h"
 
 #define MODULE_BASE_ADDRESS 11
 
@@ -26,18 +28,39 @@ void con_init()
 	DIR(BUS_ENABLE) = INPUT;
 	LAT(BUS_ENABLE) = 0;
 
+	DIR(ALARM) = INPUT;
+	LAT(ALARM) = 1;
+
 	con_reset_bus();
 }
 
 void con_reset_bus()
 {
+	i2c_disable();
+
+	LAT(SCL) = 0;
+	LAT(SDA) = 0;
+	LAT(ALARM) = 0;
+
+	DIR(SCL) = OUTPUT;
+	DIR(SDA) = OUTPUT;
+	DIR(ALARM) = OUTPUT;
+
+	//Bus disable FET is active high to remove power
+	//from the bus.
 	LAT(BUS_ENABLE) = 1;
 	DIR(BUS_ENABLE) = OUTPUT;
 
 	module_count = 0;
 	DELAY_MS(50);
 
+	DIR(SCL) = INPUT;
+	DIR(SDA) = INPUT;
+	DIR(ALARM) = INPUT;
+
 	DIR(BUS_ENABLE) = INPUT;
+
+	bus_init(kMIBControllerAddress);
 }
 
 void get_module_count(void)
@@ -146,6 +169,11 @@ void reflash_self()
 	asm volatile("reset");
 }
 
+void reset_self()
+{
+	asm volatile("reset");
+}
+
 void current_time()
 {
 	rtcc_datetime t;
@@ -191,6 +219,7 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x0B, report_battery, plist_spec_empty()},
 	{0x0C, current_time, plist_spec_empty()},
 	{0x0D, debug_value, plist_spec_empty()},
-	{0x0E, set_sleep, plist_spec(1, false)}
+	{0x0E, set_sleep, plist_spec(1, false)},
+	{0x0F, reset_self, plist_spec_empty()},
 };
 DEFINE_MIB_FEATURE(controller);

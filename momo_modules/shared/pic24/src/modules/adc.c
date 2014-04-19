@@ -27,7 +27,7 @@ void adc_configure(const ADCConfig *config)
 	_SMPI 	= kADCInterruptRate;
 	_BUFM 	= 1; //Enable double buffering with 2 8 sample buffers
 	_ALTS	= 0; //Only sample MUX A (don't use MUX B ever)
-	_ADRC 	= 1; //Use the internal clock (b/c the oscillator speed of the PIC can change)
+	_ADRC 	= 0; //Use the system clock
 	_SAMC	= config->autosample_wait;
 
 	//Setup interupt
