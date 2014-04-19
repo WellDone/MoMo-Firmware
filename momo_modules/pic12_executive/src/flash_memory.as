@@ -84,9 +84,9 @@ BEGINFUNCTION _verify_application
 	read_app_loop:
 	movf  	FSR1L,w
 	call  	read_app_row
+	movf 	FSR1L,w
 	incf 	FSR1L,f 				;current row++
-	movlw	kNumFlashRows			;if row == memsize, we're done
-	subwf	FSR1L,w
+	xorlw	(kNumFlashRows-1)		;if last row read == kNumFlashRows-1, we're done
 	btfss	ZERO
 	goto 	read_app_loop
 
