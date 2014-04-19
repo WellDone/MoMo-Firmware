@@ -15,6 +15,7 @@ class SensorTool(cmdln.Cmdln):
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
+	@cmdln.option('-n', '--average', type=int, default=1, help='Average for N samples' )
 	def do_read(self, subcmd, opts):
 		"""${cmd_name}: Read the voltage from the multisensor module
 
@@ -23,9 +24,13 @@ class SensorTool(cmdln.Cmdln):
 		"""
 
 		sens = self._create_proxy(opts)
-		v = sens.read_voltage()
 
-		print "Voltage: %d" % v
+		readings = []
+		for i in xrange(0, opts.average):
+			v = sens.read_voltage()
+			readings.append(v)
+
+		print "Voltage: %d" % sum(readings)/len(readings)
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
