@@ -2,7 +2,7 @@
 
 #include "platform.h"
 #include "watchdog.h"
-#include "pv_defines.h"
+#include "sensor_defines.h"
 #include "port.h"
 #include "sample.h"
 #include "mib12_api.h"
