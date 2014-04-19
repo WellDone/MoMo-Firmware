@@ -15,6 +15,6 @@
 
 void debug_init();
 void debug_setup_handler(uart_newline_callback handler);
-
+int momo_attached();
 #endif	/* DEBUG_H */
 

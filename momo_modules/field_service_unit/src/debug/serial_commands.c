@@ -26,6 +26,7 @@ void register_command_handlers()
 
     register_command("binrpc", handle_binrpc);
     register_command("alarm", handle_alarm);
+    register_command("attached", handle_attached);
     register_command("i2c", handle_i2cstatus);
 
     debug_setup_handler(process_commands_task);
@@ -84,18 +85,6 @@ static void process_commands_task(char* command_buffer, int len, bool overflown)
    }
   }
 
-  if ( strcmp(command_buffer, "help") == 0 ) {
-    for (i=0; i<MAX_COMMANDS; ++i)
-    {
-      if ( known_commands[i] == 0 )
-        break;
-      print( known_commands[i] );
-      print( "\n" );
-    }
-    command_status = kSuccess;
-    send_command_acknowledgement();
-    return;
-  }
   for (i=0; i<MAX_COMMANDS; ++i)
   {
    if (known_commands[i] == 0)

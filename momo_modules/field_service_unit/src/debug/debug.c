@@ -46,3 +46,8 @@ void debug_setup_handler(uart_newline_callback handler)
   debug_callback = handler;
   uart_set_newline_callback(DEBUG_UART, getln_callback, debug_buffer, UART_BUFFER_SIZE);
 }
+
+int momo_attached()
+{
+  return !(ALARM_PIN == 0 && _RB8 == 0 && _RB9 == 0);
+}
