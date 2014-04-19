@@ -13,6 +13,16 @@
 #define kADCInterruptRate		7		//Interrupt every N+1 samples are aquired (basically acquire a full 8 sample buffer)
 #define kADCBufferSize			8
 
+//Support for different PIC24 processors
+#ifdef __PIC24FJ64GA306__
+#define ADC1BUFA		ADC1BUF10
+#define ADC1BUFB		ADC1BUF11
+#define ADC1BUFC		ADC1BUF12
+#define ADC1BUFD		ADC1BUF13
+#define ADC1BUFE		ADC1BUF14
+#define ADC1BUFF		ADC1BUF15
+#endif
+
 //Additinal Channel Scan selection bits
 enum
 {
@@ -50,10 +60,7 @@ typedef enum
 #define kADCVoltageReferenceMask 0b11
 typedef enum
 {
-	kVDDVSS = 0b000,
-	kVRefPosVSS = 0b001,
-	kVDDVRefNeg = 0b010,
-	kVRefPosVRefNeg = 0b011
+	kVDDVSS = 0b000
 } ADCVoltageReference;
 
 typedef struct

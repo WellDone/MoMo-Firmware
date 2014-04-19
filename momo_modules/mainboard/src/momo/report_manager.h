@@ -12,4 +12,3 @@ void set_report_scheduling_interval( AlarmRepeatTime interval );
 void set_report_server_gsm_address( const char* address, uint8 len );
 
 #endif	/* __report_manager_h__ */
-

@@ -14,7 +14,15 @@ void adc_configure(const ADCConfig *config)
 	_FORM 	= config->output_format;
 	_SSRC 	= config->trigger;
 	_ASAM 	= config->sample_autostart;
+
+	//setup the positive and negative voltage references
+#ifdef __PIC24FJ64GA306__
+	_PVCFG	= (config->reference >> 1);
+	_NVCFG0 = (config->reference & 0b1);
+#else
 	_VCFG 	= config->reference;
+#endif
+
 	_CSCNA 	= config->scan_input;
 	_SMPI 	= kADCInterruptRate;
 	_BUFM 	= 1; //Enable double buffering with 2 8 sample buffers
@@ -55,7 +63,7 @@ unsigned int adc_convert_one()
 
     value = ADC1BUF0;
 
-    //Set everything back to the way it was (this needs to stay synced with adc_configure
+    //Set everything back to the way it was (this needs to stay synced with adc_configure)
     _AD1IF = 0;
     //_AD1IE = 1;
     _SMPI = kADCInterruptRate;
@@ -67,8 +75,12 @@ void adc_setup_scan(unsigned int channels)
 {
 	AD1CSSL = channels;
 
+#ifndef __PIC24FJ64GA306__
 	//Set corresponding ports to analog and enable bg reference if any
 	AD1PCFG &= ~channels;
+#else
+#warning Scanning ADC is not supported on PIC24FJ64GA306 yet
+#endif
 
 	_CSCNA = 1; //Enable scanning
 }

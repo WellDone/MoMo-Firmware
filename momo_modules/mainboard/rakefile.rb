@@ -2,7 +2,7 @@ PROJECT_CEEDLING_ROOT = "../../tools/ceedling"
 load "#{PROJECT_CEEDLING_ROOT}/lib/rakefile.rb"
 
 task :shared do
-	sh "(cd ../shared/pic24/; rake;)"
+	sh "(cd ../shared/pic24/; rake buildFJ;)"
 end
 
 task :clean_shared do

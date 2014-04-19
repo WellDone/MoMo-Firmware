@@ -12,7 +12,6 @@
 #include "mainboard_mib_commands.h"
 #include "report_manager.h"
 #include "memory_manager.h"
-#include "firmware_cache.h"
 #include "controller_mib_feature.h"
 
 static bool mclr_triggered;
@@ -23,9 +22,9 @@ void handle_all_resets_before(unsigned int type)
     mem_init();
     mem_ensure_powered(1);
     configure_interrupts();
-    //oscillator_init();
 
     taskloop_init();
+    taskloop_set_flag(kTaskLoopSleepBit, 1);
     scheduler_init();
     
     bus_init(kMIBControllerAddress);
@@ -33,7 +32,6 @@ void handle_all_resets_before(unsigned int type)
 
     init_mainboard_mib();
     flash_memory_init();
-    fc_init(); //depends on flash_memory_init
 
     mclr_triggered = false;
 }
@@ -46,7 +44,10 @@ void handle_all_resets_after(unsigned int type)
 
     //The RTCC must be enabled for scheduling tasks, so ensure that
     if (!rtcc_enabled())
+    {
+        configure_rtcc();
         enable_rtcc();
+    }
 
     //All modules that need to schedule tasks MUST BE called after
     //rtcc is on and enabled. 
@@ -56,9 +57,6 @@ void handle_all_resets_after(unsigned int type)
 
 void handle_poweron_reset(unsigned int type)
 {
-    //Power-on reset resets the rtcc, so configure and enable it.
-    configure_rtcc();
-    enable_rtcc();
 }
 
 void handle_mclr_reset(unsigned int type)

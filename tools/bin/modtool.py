@@ -86,6 +86,46 @@ class ModTool(cmdln.Cmdln):
 		print '\nReflash complete'
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_fsu(self, subcmd, opts, command):
+		"""${cmd_name}: Directly control the FSU that is connected to the MoMo unit.  
+
+		Possible subcommands are heartbeat, reset and attached.  
+		- heartbeat checks if the FSU is still there.
+		- reset resets the FSU.
+		- attached determines if a MoMo unit is plugged in to the FSU.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		commands = set(["reset", "heartbeat", "attached"])
+
+		con = self._get_controller(opts)
+
+		if command not in commands:
+			print "Usage: modtool fsu [reset|heartbeat|attached]"
+			return 1
+
+		if command == "heartbeat":
+			if con.stream.heartbeat() is False:
+				print "FSU Heartbeat NOT DETECTED, try resetting it with modtool reset -f"
+				return 1
+			else:
+				print "FSU Heartbeat detected"
+		elif command == "reset":
+			status = con.stream.reset()
+			if status is False:
+				print "FSU reset NOT SUCCESSFUL, try unplugging and replugging it from both the MoMo and computer at the same time."
+				return 1
+			else:
+				print "FSU reset successful"
+		elif command == "attached":
+			if con.momo_attached():
+				print "MoMo unit: Attached"
+			else:
+				print "NO MOMO UNIT ATTACHED"
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_alarm(self, subcmd, opts, *asserted):
 		con = self._get_controller(opts)
 
@@ -108,7 +148,7 @@ class ModTool(cmdln.Cmdln):
 				print "Unknown command passed to modtool alarm: %s" % cmd
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-	@cmdln.option('-t', '--type', choices=['module', 'controller', 'backup'], default='module', help='What type of firmware module')
+	@cmdln.option('-t', '--type', choices=['module', 'controller', 'backup'], default='module', help='What type of firmware module (module, controller, backup)')
 	@cmdln.option('-c', '--clear', action='store_true', default=False, help='Clear the firmware cache before pushing')
 	def do_push(self, subcmd, opts, hexfile):
 		"""${cmd_name}: Push a firmware file to the attached momo unit.  
@@ -180,11 +220,7 @@ class ModTool(cmdln.Cmdln):
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-l', '--length', choices=['8', '16', '24', '32'], default=16)
 	def do_read(self, subcmd, opts, address):
-		"""${cmd_name}: Push a firmware file to the attached momo unit.  
-
-		You can either push the firmware into the 4 module firmware bins,
-		the main controller firmware bin or the backup controller firmware
-		bin.  Use -c to clear the controller's firmware cache before pushing.
+		"""${cmd_name}: Read firmware directly from flash.
 
 		${cmd_usage}
 		${cmd_option_list}
@@ -281,7 +317,6 @@ class ModTool(cmdln.Cmdln):
 	def error(self, text):
 		print Fore.RED + "Error Occurred: " + Style.RESET_ALL + text
 		sys.exit(1)
-
 
 modtool = ModTool()
 sys.exit(modtool.main())

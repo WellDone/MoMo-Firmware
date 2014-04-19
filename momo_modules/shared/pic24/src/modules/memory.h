@@ -5,16 +5,32 @@
 #include <stdlib.h>
 #include "pic24.h"
 
+#ifdef __PIC24FJ64GA306__
+#define RPSDO		21
+#define RPSCK		26
+#define RPSDI		27
+
+#define CS 			G8
+#define	SCK			G7
+#define SDO			G6
+#define SDI 		G9
+
+#define MEMPOWER 	E5
+#endif
+
 #define MEMORY_SUBSECTION_MASK 0xFFFULL
 #define MEMORY_SUBSECTION_SIZE 0x1000ULL
 
 #define MEMORY_SUBS_PER_SECTION 16
 
 
-#define MEMORY_SUBSECTION_ADDR(num) (MEMORY_SUBSECTION_SIZE*num)
+#define MEMORY_SUBSECTION_ADDR(num) (MEMORY_SUBSECTION_SIZE*(num))
+#define MEMORY_ADDR_SUBSECTION(addr) ( (addr)>>12 )
+#define MEMORY_SUBSECTION_OFFSET(addr) ( (addr) & MEMORY_SUBSECTION_MASK )
+#define MEMORY_ADDR_SUBSECTION_ADDR(addr) ( (addr) & ~MEMORY_SUBSECTION_MASK )
 
 //Convert a sector number to a subsector number (sector size=64K, subsector size=4K, 16 subsectors per sector)
-#define MEMORY_SECTION_TO_SUB(sec)	(((unsigned long long)sec) << 4)
+#define MEMORY_SECTION_TO_SUB(sec)	(((unsigned long long)(sec)) << 4)
 #define MEMORY_SECTION_ADDR(sec) 	MEMORY_SUBSECTION_ADDR(MEMORY_SECTION_TO_SUB(sec))
 
 #define MEMORY_ADDRESS_MASK 0xFFFFFL

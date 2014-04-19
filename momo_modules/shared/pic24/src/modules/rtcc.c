@@ -4,7 +4,7 @@
 #include <string.h>
 
 alarm_callback the_alarm_callback = 0;
-volatile unsigned int alarm_time = kEveryHalfSecond;
+volatile uint16 alarm_time = kEveryHalfSecond;
 
 void enable_rtcc()
 {
@@ -21,7 +21,7 @@ void disable_rtcc()
     _RTCEN = 0;
 }
 
-unsigned int rtcc_enabled()
+uint16 rtcc_enabled()
 {
     return _RTCEN;
 }
@@ -48,7 +48,7 @@ void configure_rtcc()
 
 void rtcc_set_time(rtcc_datetime *time)
 {
-    unsigned int old_status = rtcc_enabled();
+    uint16 old_status = rtcc_enabled();
 
     if (!_RTCWREN)
         asm_enable_rtcon_write();
@@ -79,7 +79,17 @@ void rtcc_get_time(rtcc_datetime *time)
     get_rtcc_datetime_unsafe(time);
 }
 
-unsigned int rtcc_datetimes_equal(rtcc_datetime *time1, rtcc_datetime *time2)
+void rtcc_create_timestamp(const rtcc_datetime *source, rtcc_timestamp *dest)
+{
+    dest->year = source->year;
+    dest->month = source->month;
+    dest->day = source->day;
+    dest->hours = source->hours;
+    dest->minutes = source->minutes;
+    dest->seconds = source->seconds;
+}
+
+uint16 rtcc_datetimes_equal(rtcc_datetime *time1, rtcc_datetime *time2)
 {
     return (rtcc_compare_times(time1, time2) == 0);
 }
@@ -90,7 +100,7 @@ unsigned int rtcc_datetimes_equal(rtcc_datetime *time1, rtcc_datetime *time2)
  * Return 0  if time1 == time2
  * Return >0 if time1 is after time2
  */
-unsigned int rtcc_compare_times(rtcc_datetime *time1, rtcc_datetime *time2)
+uint16 rtcc_compare_times(rtcc_datetime *time1, rtcc_datetime *time2)
 {
     return memcmp(time1, time2, kTimeCompareSize);
 }
@@ -107,7 +117,7 @@ void rtcc_datetime_difference(rtcc_datetime *time1, rtcc_datetime *time2)
 
 void get_rtcc_datetime_unsafe(rtcc_datetime *time)
 {
-    unsigned int curr;
+    uint16 curr;
 
     _RTCPTR = 0b11; //Load in the
 
@@ -129,7 +139,7 @@ void get_rtcc_datetime_unsafe(rtcc_datetime *time)
 
 void rtcc_get_alarm(rtcc_datetime *alarm)
 {
-    unsigned int curr;
+    uint16 curr;
 
     _ALRMPTR = 0b10;
 
@@ -146,19 +156,19 @@ void rtcc_get_alarm(rtcc_datetime *alarm)
     alarm->seconds = from_bcd(LOBYTE(curr));
 }
 
-unsigned char from_bcd(unsigned char val)
+uint8 from_bcd(uint8 val)
 {
     return ((val&0xF0) >> 4)*10 + (val&0x0F);
 }
 
-unsigned char to_bcd(unsigned char val)
+uint8 to_bcd(uint8 val)
 {
     return ((val/10) << 4) | (val%10);
 }
 
 void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
 {
-    unsigned int curr_t, curr_a;
+    uint16 curr_t, curr_a;
     rtcc_datetime diff;
 
 
@@ -221,7 +231,7 @@ void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
     IFS3bits.RTCIF = 0;
 }
 
-unsigned int last_alarm_frequency()
+uint16 last_alarm_frequency()
 {
     return alarm_time;
 }
@@ -264,9 +274,9 @@ void clear_recurring_task()
     uninterruptible_end();
 }
 
-void wait_ms( unsigned long milliseconds )
+void wait_ms( uint32 milliseconds )
 {
-    volatile unsigned long tick = 0;
+    volatile uint32 tick = 0;
     milliseconds = milliseconds * CLOCKSPEED/1000;
     while ( tick!=milliseconds )
         ++tick;

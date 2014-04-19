@@ -11,33 +11,33 @@
 #include "eeprom.h"
 #include "rtcc.h"
 
-#define MAX_MODULES 8
 #define MODULE_BASE_ADDRESS 11
 
 static momo_module_descriptor the_modules[MAX_MODULES];
 static unsigned int module_count = 0;
 static flash_block_info fb_info;
 
+static unsigned int _BOOTLOADER_VAR reflash __attribute__((persistent));
+
 unsigned int debug_flag_value = 0;
 
 void con_init()
 {
-	BUS_ENABLE_TRIS = 1;
-	BUS_ENABLE_DIG = 1;
-	BUS_ENABLE_LAT = 1;
+	DIR(BUS_ENABLE) = INPUT;
+	LAT(BUS_ENABLE) = 0;
 
 	con_reset_bus();
 }
 
 void con_reset_bus()
 {
-	BUS_ENABLE_LAT = 1;
-	BUS_ENABLE_TRIS = 0;
+	LAT(BUS_ENABLE) = 1;
+	DIR(BUS_ENABLE) = OUTPUT;
 
 	module_count = 0;
 	DELAY_MS(50);
 
-	BUS_ENABLE_TRIS = 1;
+	DIR(BUS_ENABLE) = INPUT;
 }
 
 void get_module_count(void)
@@ -142,7 +142,7 @@ void test_fb_read()
 
 void reflash_self()
 {
-	eeprom_write(0, 0xAA);
+	reflash = kReflashMagic;
 	asm volatile("reset");
 }
 

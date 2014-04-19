@@ -7,37 +7,91 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pymomo.commander.meta import *
 from pymomo.commander.exceptions import *
 from pymomo.commander.proxy import *
-from time import sleep
 
-if len(sys.argv) < 2:
-	print "Command me!  available commands:\r\non, off, cmd, dump, msg"
-	quit(1)
+import cmdln
 
-cmd = sys.argv[1]
+class GSMTool(cmdln.Cmdln):
+	name = 'gsmtool'
 
-con = get_controller('/dev/ttyUSB0')
-try:
-	gsm = GSMModule(con.stream, 11)
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
+	def do_on(self, subcmd, opts):
+		"""${cmd_name}: Turn on the GSM modem.
 
-	if cmd == "on":
-		gsm.module_on();
-	if cmd == "off":
-		gsm.module_off();
-	elif cmd == "cmd":
-		if len(sys.argv) != 3:
-			print "No cmd specified"
-			quit(1)
-		res = gsm.at_cmd( sys.argv[2] )
-		print res
-	elif cmd == "dump":
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		gsm = self._create_proxy( opts )
+		gsm.module_on()
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
+	def do_off(self, subcmd, opts):
+		"""${cmd_name}: Turn off the GSM modem
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		gsm = self._create_proxy( opts )
+		gsm.module_off()
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
+	def do_dump(self, subcmd, opts):
+		"""${cmd_name}: Dump the modem's serial buffer (for debugging)
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		gsm = self._create_proxy( opts )
 		res = gsm.dump_buffer();
 		print "buffer: " + res
-	elif cmd == "msg":
-		if len(sys.argv) != 4:
-			print "USAGE: gsmtool msg <number> <text>"
-			quit(1)
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
+	def do_cmd(self, subcmd, opts, cmd):
+		"""${cmd_name}: Tell the GSM modem to execute an AT command
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		gsm = self._create_proxy( opts )
+		res = gsm.at_cmd( cmd )
+		print res
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
+	def do_msg(self, subcmd, opts, dest, text ):
+		"""${cmd_name}: Send a text message with the content <text> to <dest>
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		gsm = self._create_proxy( opts )
 		#gsm.module_on();
-		res = gsm.send_text( sys.argv[2], sys.argv[3] );
+		res = gsm.send_text( dest, text );
 		#gsm.module_off();
-except RPCException as e:
-	print str(e)
+
+	def _create_proxy(self,opts):
+		try:
+			con = get_controller(opts.port)
+			address = 11
+			if opts.address != None:
+				address = opts.address
+			gsm = GSMModule(con.stream, address)
+		except NoSerialConnectionException as e:
+			print "Available serial ports:"
+			if not e.available_ports():
+				print "<none>"
+			else:
+				for port, desc, hwid in e.available_ports():
+					print "\t%s (%s, %s)" % ( port, desc, hwid )
+			self.error(str(e))
+		except ValueError as e:
+			self.error(str(e))
+
+		return gsm
+
+if __name__ == "__main__":
+	gsmtool = GSMTool()
+	sys.exit(gsmtool.main())

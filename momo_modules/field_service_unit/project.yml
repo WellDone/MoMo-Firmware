@@ -125,7 +125,7 @@
       - ${1}
       - -o ${2}
       - -L../shared/pic24/build/release
-      - -lPIC24shared
+      - -lPIC24shared_f
       - -Wl,-Tp24F16KA101.gld,-Map=./build/release/MoMo-fsu-firmware.map,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem
 :plugins:
   :load_paths:

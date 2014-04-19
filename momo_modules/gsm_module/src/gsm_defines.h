@@ -24,7 +24,7 @@
 #define MAKE_ANALOGR(pin)	{ANS##pin = 1; TRIS##pin = 1;}
 #define MAKE_DIGITALR(pin)	ANS##pin = 0
 #define SET_DIRECTIONR(pin, val) TRIS##pin = val
-#define SET_LEVELR(pin, val)	 R##pin = val
+#define SET_LEVELR(pin, val)	 LAT##pin = val
 #define PINR(pin)			 R##pin
 
 #define DRIVE_LOWR(pin)		{SET_LEVEL(pin, 0); SET_DIRECTION(pin, 0);}

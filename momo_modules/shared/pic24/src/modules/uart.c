@@ -1,6 +1,7 @@
 #include "uart.h"
 #include "utilities.h"
 #include "task_manager.h"
+#include "pic24asm.h"
 #include <string.h>
 #include <stdarg.h>
 
@@ -11,12 +12,13 @@
 
 UART_STATUS __attribute__((space(data))) uart_stats[2];
 
-#define U1STAT uart_stats[0]
-#define U2STAT uart_stats[1]
+#define U1STAT (uart_stats[0])
+#define U2STAT (uart_stats[1])
 
 static inline void wait_for_transmission( UARTPort port );
 
 #define STAT(port) ((port==U1)?&U1STAT:&U2STAT)
+
 void configure_uart1(uart_parameters *params)
 {
     //calculate the appropriate baud setting
@@ -65,10 +67,10 @@ void configure_uart1(uart_parameters *params)
     U1MODEbits.UARTEN = 1; //Enable the uart
     U1STAbits.UTXEN = 1; //Enable transmission
 
-    ringbuffer_create( &U1STAT.rcv_buffer, (void*)U1STAT.rcv_buffer_data, sizeof(char), UART_BUFFER_SIZE );
     ringbuffer_create( &U1STAT.send_buffer, (void*)U1STAT.send_buffer_data, sizeof(char), UART_BUFFER_SIZE );
     U1STAT.rx_callback = 0;
     U1STAT.rx_newline_callback = 0;
+    U1STAT.flags = 0;
 }
 
 void configure_uart2(uart_parameters *params)
@@ -119,10 +121,24 @@ void configure_uart2(uart_parameters *params)
     U2MODEbits.UARTEN = 1; //Enable the uart
     U2STAbits.UTXEN = 1; //Enable transmission
 
-    ringbuffer_create( &U1STAT.rcv_buffer, (void*)U1STAT.rcv_buffer_data, sizeof(char), UART_BUFFER_SIZE );
     ringbuffer_create( &U1STAT.send_buffer, (void*)U1STAT.send_buffer_data, sizeof(char), UART_BUFFER_SIZE );
     U2STAT.rx_callback = 0;
     U2STAT.rx_newline_callback = 0;
+    U2STAT.flags = 0;
+}
+
+void uart_set_flag(UARTPort port, UARTFlag flag, unsigned char value)
+{
+    UART_STATUS* stat = STAT(port);
+
+    stat->flags &= ~(1 << flag);
+    stat->flags |= (value & 0b1) << flag;
+}
+
+unsigned int uart_get_flag(UARTPort port, UARTFlag flag)
+{
+    UART_STATUS* stat = STAT(port);
+    return ((stat->flags & (1<<flag)) != 0);
 }
 
 void configure_uart( UARTPort port, uart_parameters *params)
@@ -138,96 +154,126 @@ void configure_uart( UARTPort port, uart_parameters *params)
     }
 }
 
-static void std_rx_callback( UARTPort port, char data );
-static inline void std_rx_callback_task( UARTPort port ) {
+static void std_rx_callback(UARTPort port, unsigned char data);
+
+static inline void std_rx_callback_task( UARTPort port ) 
+{
     UART_STATUS* stat = STAT(port);
 
     stat->rx_newline_callback( (char*)stat->rx_linebuffer, stat->rx_linebuffer_cursor-stat->rx_linebuffer, stat->rx_linebuffer_remaining == 0 );
-    // It is up to the caller to clear out the buffer and re-register the callback.
+    // It is up to the caller to clear out the buffer.
 }
-static void std_rx_callback_task_U1() {
+
+static void std_rx_callback_task_U1() 
+{
     std_rx_callback_task( U1 );
 }
-static void std_rx_callback_task_U2() {
+
+static void std_rx_callback_task_U2() 
+{
     std_rx_callback_task( U2 );
 }
 
-static void std_rx_callback( UARTPort port, char data ) {
+static void std_rx_callback(UARTPort port, unsigned char data) 
+{
     UART_STATUS* stat = STAT(port);
-    if ( stat->rx_linebuffer_remaining <= 0 )
+
+    /*
+     * Allow certain characters to be processed in the interrupt to make
+     * sure that they cannot be blocked by a noncooperative task that
+     * never returns, so the taskloop very runs.
+     * User can configure to allow resetting the device on a NULL character
+     * as well as echoing 255.  This is useful when normal communication is
+     * ASCII 7-bit so 0 and 255 will never be sent normally.
+     */
+
+    if (uart_get_flag(port, kResetOnNullCharacterFlag) && (data == 0))
+        asm_reset();
+    else if (uart_get_flag(port, kDiscardReceivedCharactersFlag))
         return;
+    else if (uart_get_flag(port, kEnableHeartbeatFlag) && (data == kUARTHeartbeatCharacter))
+    {
+        put(port, data);
+        return;
+    }
+
+    if (stat->rx_linebuffer_remaining <= 0)
+        return;
+
     bool newline = (data=='\n');
-    if (!newline) {
+
+    if (!newline) 
+    {
         *(U1STAT.rx_linebuffer_cursor++) = data;
         --(stat->rx_linebuffer_remaining);
     }
-    if ( newline || stat->rx_linebuffer_remaining == 0 ) {
-        taskloop_add( (port==U1)?std_rx_callback_task_U1:std_rx_callback_task_U2 );
-        stat->rx_callback = 0;
-    }
-}
-static void std_rx_callback_U1( char data ) {
-    std_rx_callback( U1, data );
-}
-static void std_rx_callback_U2( char data ) {
-    std_rx_callback( U2, data );
+
+    if ( newline || stat->rx_linebuffer_remaining == 0 ) 
+        taskloop_add((port==U1)?std_rx_callback_task_U1:std_rx_callback_task_U2);
 }
 
-void set_uart_rx_char_callback( UARTPort port, uart_char_callback callback ) {
-    STAT(port)->rx_callback = callback;
+static void std_rx_callback_U1( char data ) 
+{
+    std_rx_callback(U1, data);
 }
-void clear_uart_rx_char_callback( UARTPort port ) {
-    STAT(port)->rx_callback = 0;
+static void std_rx_callback_U2( char data ) 
+{
+    std_rx_callback(U2, data);
 }
 
-void set_uart_rx_newline_callback( UARTPort port, uart_newline_callback callback, char *linebuffer, int buffer_length )
+void uart_clear_receive_buffer(UARTPort port)
+{
+    UART_STATUS* stat = STAT(port);
+
+    stat->rx_linebuffer_cursor = stat->rx_linebuffer;
+    stat->rx_linebuffer_remaining = stat->rx_linebuffer_length;
+}
+
+void uart_set_newline_callback(UARTPort port, uart_newline_callback callback, volatile char *linebuffer, unsigned int buffer_length)
 {
     UART_STATUS* stat = STAT(port);
     stat->rx_newline_callback = callback;
-    stat->rx_linebuffer_cursor = stat->rx_linebuffer = linebuffer;
-    stat->rx_linebuffer_remaining = buffer_length;
+    stat->rx_linebuffer = linebuffer;
+    stat->rx_linebuffer_length = buffer_length;
+
+    uart_clear_receive_buffer(port);
+
     stat->rx_callback = (port==U1)?std_rx_callback_U1:std_rx_callback_U2;
 }
-void clear_uart_rx_newline_callback( UARTPort port ) {
+
+void clear_uart_rx_newline_callback( UARTPort port ) 
+{
     STAT(port)->rx_callback = 0;
     STAT(port)->rx_newline_callback = 0;
 }
 
-void process_RX_char( UART_STATUS* stat, char data ) {
-
-    if ( stat->rx_callback ) {
-        stat->rx_callback( data );
-        return;
-    }
-    ringbuffer_push( &stat->rcv_buffer, &data );
+void process_RX_char(UART_STATUS* stat, char data) 
+{
+    if (stat->rx_callback) 
+        stat->rx_callback(data);
 }
 
 //Interrupt Handlers
 void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 {
-    _RA2 = !_RA2;
-
-   UART_STATUS *stat = &U1STAT;
    while(U1STAbits.URXDA == 1)
-    {
-        process_RX_char( stat, U1RXREG );
-    }
+        process_RX_char(&U1STAT, U1RXREG);
+
     IFS0bits.U1RXIF = 0; //Clear IFS flag
 }
 
 void __attribute__((interrupt,auto_psv)) _U2RXInterrupt()
 {
-    UART_STATUS* stat = &U2STAT;
     while(U2STAbits.URXDA == 1)
-    {
-        process_RX_char( stat, U2RXREG );
-    }
+        process_RX_char(&U2STAT, U2RXREG);
+
     IFS1bits.U2RXIF = 0; //Clear IFS flag
 }
 
 void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt()
 {
-    while ( U1STAbits.UTXBF == 0 && !ringbuffer_empty( &U1STAT.send_buffer ) ) {
+    while ( U1STAbits.UTXBF == 0 && !ringbuffer_empty( &U1STAT.send_buffer ) ) 
+    {
         char data;
         ringbuffer_pop( &U1STAT.send_buffer, &data );
         U1TXREG = data;//data;
@@ -258,7 +304,7 @@ void transmit_one( UARTPort port ) {
 }
 
 // IO Utility functions
-void put( UARTPort port, const char c )
+void put(UARTPort port, const char c)
 {
     ringbuffer_push( &STAT(port)->send_buffer, (void*)&c );
     transmit_one( port );
@@ -324,7 +370,7 @@ static void readln_callback_U2( char* buf, int len, bool overflown ) {
     clear_uart_rx_newline_callback( U2 );
 }
 unsigned int readln_sync( UARTPort port, char* buffer, int buffer_length ) {
-    set_uart_rx_newline_callback( port, (port==U1)?readln_callback_U1:readln_callback_U2, buffer, buffer_length );
+    uart_set_newline_callback( port, (port==U1)?readln_callback_U1:readln_callback_U2, buffer, buffer_length );
     while( STAT(port)->rx_newline_callback )
         ;
     return STAT(port)->rx_linebuffer_cursor - STAT(port)->rx_linebuffer;
