@@ -13,7 +13,7 @@
 #include "reset_manager.h"
 #include "pic24asm.h"
 #include "base64.h"
-#include "debug_utilities.h"
+#include "debug.h"
 #include "bus_master.h"
 #include "eeprom.h"
 
