@@ -30,7 +30,7 @@ class SensorTool(cmdln.Cmdln):
 			v = sens.read_voltage()
 			readings.append(v)
 
-		print "Voltage: %d" % sum(readings)/len(readings)
+		print "Voltage: %d" % (sum(readings)/len(readings))
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
