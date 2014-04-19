@@ -90,7 +90,7 @@ class SensorTool(cmdln.Cmdln):
 
 		print "Normal Voltage: %d" % vnorm
 		print "Inverted Voltage: %d" % vinv
-		print "Offset Bias: %d" % (vnorm + vinv)/2
+		print "Offset Bias: %d" % ((vnorm + vinv)/2)
 
 	def _create_proxy(self,opts):
 		try:
