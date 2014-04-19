@@ -84,9 +84,9 @@ class SensorTool(cmdln.Cmdln):
 
 		sens.set_inverted(False)
 		sens.set_offset(127)
-		vnorm = self.average(sens, opts.average)
+		vnorm = self._average(sens, opts.average)
 		sens.set_inverted(True)
-		vinv = self.average(sens, opts.average)
+		vinv = self._average(sens, opts.average)
 
 		print "Normal Voltage: %d" % vnorm
 		print "Inverted Voltage: %d" % vinv
