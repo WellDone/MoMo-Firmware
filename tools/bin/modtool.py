@@ -86,6 +86,20 @@ class ModTool(cmdln.Cmdln):
 		print '\nReflash complete'
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_heartbeat(self, subcmd, opts):
+		"""${cmd_name}: Ensure that the FSU is attached and responding.  
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		con = self._get_controller(opts)
+
+		if con.stream.heartbeat() is False:
+			print "FSU Heartbeat NOT DETECTED, try resetting it with modtool reset -f"
+		else:
+			print "FSU Heartbeat detected"
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_alarm(self, subcmd, opts, *asserted):
 		con = self._get_controller(opts)
 
