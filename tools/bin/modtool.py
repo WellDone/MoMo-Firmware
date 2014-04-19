@@ -57,6 +57,11 @@ class ModTool(cmdln.Cmdln):
 		pytest.main('--pyargs pymomo %s' % test_string)
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_reset(self, subcmd, opts):
+		con = self._get_controller(opts)
+		con.reset()
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_recover(self, subcmd, opts):
 		con = self._get_controller(opts)
 
