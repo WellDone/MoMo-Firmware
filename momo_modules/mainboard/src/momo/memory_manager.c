@@ -6,7 +6,7 @@
 
 void flash_memory_init()
 {
-  init_memory();
+  mem_init();
 
   init_momo_config( kMomoConfigSubsector );
   fc_init( kFirmwareConfigSubector );

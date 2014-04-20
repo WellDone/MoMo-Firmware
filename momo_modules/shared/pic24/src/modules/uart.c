@@ -205,8 +205,6 @@ void process_RX_char( UART_STATUS* stat, char data ) {
 //Interrupt Handlers
 void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 {
-    _RA2 = !_RA2;
-
    UART_STATUS *stat = &U1STAT;
    while(U1STAbits.URXDA == 1)
     {
