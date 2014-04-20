@@ -136,27 +136,27 @@ static void finish_agg( agg_counters* agg, uint8 agg_set, uint16** target )
 {
   if ( agg_set & kAggCount )
   {
-    **target = agg.count;
+    **target = agg->count;
     ++(*target);
   }
   if ( agg_set & kAggSum )
   {
-    **target = agg.sum;
+    **target = agg->sum;
     ++(*target);
   }
   if ( agg_set & kAggMean )
   {
-    **target = agg.sum / agg.count;
+    **target = agg->sum / agg->count;
     ++(*target);
   }
   if ( agg_set & kAggMin )
   {
-    **target = agg.min;
+    **target = agg->min;
     ++(*target); 
   }
   if ( agg_set & kAggMax )
   {
-    **target = agg.max;
+    **target = agg->max;
     ++(*target);
   }
 }
