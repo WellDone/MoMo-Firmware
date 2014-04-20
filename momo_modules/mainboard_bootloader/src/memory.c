@@ -1,9 +1,16 @@
 #include "memory.h"
+#include "ioport.h"
 #include "bootloader.h"
 
+#ifdef __PIC24FJ64GA306__
+#define ENABLE_MEMORY() LAT(CS) = 0
+#define DISABLE_MEMORY() LAT(CS) = 1
+#else
 #define SS_VALUE LATBbits.LATB15
 #define ENABLE_MEMORY() SS_VALUE = 0
 #define DISABLE_MEMORY() SS_VALUE = 1
+#endif 
+
 #define MEMORY_TX_STATUS SPI1STATbits.SPITBF
 #define MEMORY_STATUS_OVERFLOWN SPI1STATbits.SPIROV
 #define MEMORY_RX_STATUS SPI1STATbits.SPIRBF
@@ -36,18 +43,35 @@ static void spi_send_addr(unsigned long data);
 #define ERASE_SUBSECTION() spi_transfer( SSE )
 #define ERASE_ALL() spi_transfer( BE )
 
-void _BOOTLOADER_CODE configure_SPI() {
+void _BOOTLOADER_CODE configure_SPI() 
+{
   SPI1CON1bits.MODE16 = 0; //communication is byte-wide
   SPI1CON1bits.MSTEN = 1; //SPI is in master mode
   SPI1CON1bits.CKP = 1; //data is clocked out on high-low transition
   SPI1STATbits.SPIROV = 0; // Clear the overflow flag.
+  
+  SPI1CON1bits.PPRE = 0b11; //Set spi clock to half of system clock (maximum possible speed)
+  SPI1CON1bits.SPRE = 0b110;
+  
   SPI1STATbits.SPIEN = 1; // Enable
 
-  TRISBbits.TRISB15 = 0; // SS
-  TRISBbits.TRISB14 = 1; // SDI (IO)
-  AD1PCFGbits.PCFG14 = 1; // SDI (analog/digital)
-  TRISBbits.TRISB13 = 0; // SDO
-  TRISBbits.TRISB12 = 0; // SDCK
+
+  DIR(CS) = OUTPUT;
+  TYPE(CS) = DIGITAL;
+  
+  DIR(SDI) = INPUT;
+  TYPE(SDI) = DIGITAL;
+
+  DIR(SDO) = OUTPUT;
+  TYPE(SDO)= DIGITAL;
+  
+  DIR(SCK) = OUTPUT;
+  TYPE(SCK) = DIGITAL;
+
+  //map peripheral pins
+  MAP_PERIPHERAL_IN(RPSDI, SDI1_INPUT);
+  MAP_PERIPHERAL_OUT(RPSDO, SDO1_OUTPUT);
+  MAP_PERIPHERAL_OUT(RPSCK, SCK1_OUTPUT);
 
   DISABLE_MEMORY(); //idle state of SS is high
 }

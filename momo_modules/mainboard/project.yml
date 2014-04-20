@@ -34,7 +34,7 @@
   #  1) remove the trailing [] from the :common: section
   #  2) add entries to the :common: section (e.g. :test: has TEST defined)
   :commmon: &common_defines
-    - __PIC24F16KA101__
+    - __PIC24FJ64GA306__
     - UNITY_INT_WIDTH=16
     - CMOCK_MEM_INDEX_TYPE=uint16_t
     - CMOCK_MEM_PTR_AS_INT=uint16_t
@@ -65,7 +65,7 @@
   :test_compiler:
     :executable: xc16-gcc
     :arguments:
-      - -mcpu=24F16KA101
+      - -mcpu=24FJ64GA306
       - -x c
       - -c
       - "${1}"
@@ -80,10 +80,10 @@
   :test_linker:
     :executable: xc16-gcc
     :arguments:
-      - -mcpu=24F16KA101
+      - -mcpu=24FJ64GA306
       - ${1}
       - -o "./build/release/TestBuild.elf"
-      - -Wl,-Tlinker/p24F16KA101.gld,-Map=./build/release/TestOutput.map,--report-mem
+      - -Wl,-Tlinker/p24FJ64GA306.gld,-Map=./build/release/TestOutput.map,--report-mem
   :test_fixture:
     :executable: ruby
     :name: "Microchip simulator test fixture"
@@ -94,7 +94,7 @@
   :release_compiler:
     :executable: xc16-gcc
     :arguments:
-      - -mcpu=24F16KA101
+      - -mcpu=24FJ64GA306
       - -x c
       - -c
       - "${1}"
@@ -109,7 +109,7 @@
   :release_assembler:
     :executable: xc16-gcc
     :arguments:
-      - -mcpu=24F16KA101
+      - -mcpu=24FJ64GA306
       - -c
       - ${1}
       - -o ${2}
@@ -123,12 +123,12 @@
   :release_linker:
     :executable: xc16-gcc
     :arguments:
-      - -mcpu=24F16KA101
+      - -mcpu=24FJ64GA306
       - -o ${2}
       - ${1}
       - -L../shared/pic24/build/release/
-      - -lPIC24shared
-      - -Wl,-T./linker/p24F16KA101.gld,-Map=./build/release/MoMo-mainboard-firmware.map,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem
+      - -lPIC24shared_fj
+      - -Wl,-T./linker/p24FJ64GA306.gld,-Map=./build/release/MoMo-mainboard-firmware.map,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem
 :plugins:
   :load_paths:
     - ../../tools/ceedling/plugins

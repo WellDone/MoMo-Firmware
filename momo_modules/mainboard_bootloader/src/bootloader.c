@@ -2,9 +2,8 @@
 
 #include "bootloader.h"
 #include "memory.h"
+#include "ioport.h"
 #include "constants.h"
-
-extern void *_reset;
 
 void _BOOTLOADER_CODE write_row(unsigned int row, unsigned char *row_buffer)
 {
@@ -24,18 +23,18 @@ void _BOOTLOADER_CODE write_row(unsigned int row, unsigned char *row_buffer)
 	flash_operation(kFlashWriteRow);
 }
 
-void _BOOTLOADER_CODE erase_row(unsigned int row)
+void _BOOTLOADER_CODE erase_page(unsigned int page)
 {
 	TBLPAG = 0; //For devices with <= 64kb of RAM, we don't need to page.
 	
-	__builtin_tblwtl((row*kFlashRowSizeWords) & 0xFFFF, 0);
-	flash_operation(kFlashEraseRow);
+	__builtin_tblwtl((page*kFlashPageSizeWords) & 0xFFFF, 0);
+	flash_operation(kFlashErasePage);
 }
 
 void _BOOTLOADER_CODE program_application(unsigned int sector)
 {
 	uint32 	addr = MEMORY_SECTION_ADDR(sector);
-	unsigned int i;
+	unsigned int row, page, i;
 	unsigned char row_buffer[kFlashRowSizeInstructions*3];
 
 	uint32 reset_low, reset_high;
@@ -43,37 +42,42 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
 	extract_reset_vector(&reset_low, &reset_high);
 
 	//Enable the Memory Module
-    _RB7 = 1;
-    _TRISB7 = 0;
+    LAT(E5) = 1;
+    DIR(E5) = OUTPUT;
 	configure_SPI();
 
 	//Give the flash memory time to warm up. (it needs at least 30 us after VCC reaches min value)
 	DELAY_MS(1);
 
-	//Read in all of the rows from flash and program ourselves
-	for (i=0; i<kNumFirmwareRows; ++i)
+	for (page=0, row=0; page<kNumFirmwarePages; ++page)
 	{
-		mem_read(addr, row_buffer, kFlashRowSizeInstructions*3);
+		erase_page(page);
 
-		//Patch the application goto vector and replace the reset vector
-		//with a jump to us.
-		if (i == 0)
-			patch_reset_vector(row_buffer, reset_low, reset_high);
-		else if(i == kAppJumpRow)
+		//Read in all of the rows from flash for this page and program them
+		for (i=0; i<kNumRowsPerPage; ++i)
 		{
-			//Overwrite the flash at address 0x100 so that we know we have a valid application
-			row_buffer[0] = 0xAA;
-			row_buffer[1] = 0xAA;
-			row_buffer[2] = 0xAA;
-			row_buffer[3] = 0xAA;
-			row_buffer[4] = 0xAA;
-			row_buffer[5] = 0xAA;
+			mem_read(addr, row_buffer, kFlashRowSizeInstructions*3);
+
+			//Patch the application goto vector and replace the reset vector
+			//with a jump to us.
+			if (row == 0)
+				patch_reset_vector(row_buffer, reset_low, reset_high);
+			else if(row == kAppJumpRow)
+			{
+				//Overwrite the flash at address 0x100 so that we know we have a valid application
+				row_buffer[0] = 0xAA;
+				row_buffer[1] = 0xAA;
+				row_buffer[2] = 0xAA;
+				row_buffer[3] = 0xAA;
+				row_buffer[4] = 0xAA;
+				row_buffer[5] = 0xAA;
+			}
+
+			write_row(row, row_buffer);
+			++row;
+
+			addr += kFlashRowSizeInstructions*3;
 		}
-
-		erase_row(i);
-		write_row(i, row_buffer);
-
-		addr += kFlashRowSizeInstructions*3;
 	}
 }
 
@@ -117,8 +121,8 @@ void _BOOTLOADER_CODE patch_reset_vector(unsigned char *row_buffer, uint32 low, 
 	row_buffer[1] = (low >> 8) & 0xFF;
 	row_buffer[2] = (low >> 16) & 0xFF;
 
-	row_buffer[4] = (high >> 0) & 0xFF;
-	row_buffer[3] = (high >> 8) & 0xFF;
+	row_buffer[3] = (high >> 0) & 0xFF;
+	row_buffer[4] = (high >> 8) & 0xFF;
 	row_buffer[5] = (high >> 16) & 0xFF;
 }
 

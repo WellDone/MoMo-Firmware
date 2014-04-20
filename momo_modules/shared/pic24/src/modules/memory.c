@@ -1,4 +1,15 @@
 #include "memory.h"
+#include "ioport.h"
+
+#ifdef __PIC24FJ64GA306__
+#define ENABLE_MEMORY() LAT(CS) = 0
+#define DISABLE_MEMORY() LAT(CS) = 1
+#else
+
+#define SS_VALUE LATBbits.LATB15
+#define ENABLE_MEMORY() SS_VALUE = 0
+#define DISABLE_MEMORY() SS_VALUE = 1
+#endif
 
 //Clock configuration and delays
 #define FCY   4000000L  //define your instruction frequency, FCY = FOSC/2
@@ -9,11 +20,8 @@
 #define DELAY_US(us)  __delay32(CYCLES_PER_US * ((unsigned long long) us));    //delay some number of microseconds
 extern void __delay32(unsigned long long);
 
-memory_config status;
+memory_config status; 
 
-#define SS_VALUE LATBbits.LATB15
-#define ENABLE_MEMORY() SS_VALUE = 0
-#define DISABLE_MEMORY() SS_VALUE = 1
 #define MEMORY_TX_STATUS SPI1STATbits.SPITBF
 #define MEMORY_STATUS_OVERFLOWN SPI1STATbits.SPIROV
 #define MEMORY_RX_STATUS SPI1STATbits.SPIRBF
@@ -62,12 +70,35 @@ void configure_SPI()
   SPI1CON1bits.CKP = 1; //data is clocked out on high-low transition
   SPI1STATbits.SPIROV = 0; // Clear the overflow flag.
   SPI1STATbits.SPIEN = 1; // Enable
+  SPI1CON1bits.PPRE = 0b11; //Set spi clock to half of system clock (maximum possible speed)
+  SPI1CON1bits.SPRE = 0b110;
 
+  //Configure pins for SPI use
+#ifndef __PIC24FJ64GA306__
   TRISBbits.TRISB15 = 0; // SS
   TRISBbits.TRISB14 = 1; // SDI (IO)
   AD1PCFGbits.PCFG14 = 1; // SDI (analog/digital)
   TRISBbits.TRISB13 = 0; // SDO
   TRISBbits.TRISB12 = 0; // SDCK
+#else
+  DIR(CS) = OUTPUT;
+  TYPE(CS) = DIGITAL;
+  
+  DIR(SDI) = INPUT;
+  TYPE(SDI) = DIGITAL;
+
+  DIR(SDO) = OUTPUT;
+  TYPE(SDO)= DIGITAL;
+  
+  DIR(SCK) = OUTPUT;
+  TYPE(SCK) = DIGITAL;
+
+  //map peripheral pins
+  MAP_PERIPHERAL_IN(RPSDI, SDI1_INPUT);
+  MAP_PERIPHERAL_OUT(RPSDO, SDO1_OUTPUT);
+  MAP_PERIPHERAL_OUT(RPSCK, SCK1_OUTPUT);
+#endif
+
 
   DISABLE_MEMORY(); //idle state of SS is high
 }
@@ -78,9 +109,13 @@ void mem_ensure_powered(MemoryStartupTimer for_writing)
   {
     configure_SPI();
 
-    //Enable the Memory Module
+#ifndef __PIC24FJ64GA306__
     _RB7 = 1;
     _TRISB7 = 0;
+#else
+    LAT(MEMPOWER) = 1;
+    DIR(MEMPOWER) = OUTPUT;
+#endif
 
     status.enabled = 1;
     status.write_wait = 1;
@@ -105,19 +140,40 @@ void mem_remove_power()
 {
   SPI1STATbits.SPIEN = 0;
 
-  _RB7 = 0;
-  _TRISB7 = 0;
+#ifndef __PIC24FJ64GA306__
+    _RB7 = 0;
+    _TRISB7 = 0;
 
-  //Drive all pins low to minimize power consumption
-  TRISBbits.TRISB15 = 0; // SS
-  TRISBbits.TRISB14 = 0; // SDI (IO)
-  AD1PCFGbits.PCFG14 = 1; // SDI (analog/digital)
-  TRISBbits.TRISB13 = 0; // SDO
-  TRISBbits.TRISB12 = 0; // SDCK
-  _LATB15 = 0;
-  _LATB14 = 0;
-  _LATB13 = 0;
-  _LATB12 = 0;
+        //Drive all pins low to minimize power consumption
+    TRISBbits.TRISB15 = 0; // SS
+    TRISBbits.TRISB14 = 0; // SDI (IO)
+    AD1PCFGbits.PCFG14 = 1; // SDI (analog/digital)
+    TRISBbits.TRISB13 = 0; // SDO
+    TRISBbits.TRISB12 = 0; // SDCK
+    _LATB15 = 0;
+    _LATB14 = 0;
+    _LATB13 = 0;
+    _LATB12 = 0;
+#else
+    LAT(MEMPOWER) = 0;
+    DIR(MEMPOWER) = OUTPUT;
+
+    DIR(CS) = OUTPUT;
+    LAT(CS) = 0;
+    TYPE(CS) = DIGITAL;
+  
+    DIR(SDI) = OUTPUT;
+    LAT(SDI) = 0;
+    TYPE(SDI) = DIGITAL;
+
+    DIR(SDO) = OUTPUT;
+    LAT(SDO) = 0;
+    TYPE(SDO)= DIGITAL;
+  
+    DIR(SCK) = OUTPUT;
+    LAT(SDO) = 0;
+    TYPE(SCK) = DIGITAL;
+#endif
 
   status.enabled = 0;
 }

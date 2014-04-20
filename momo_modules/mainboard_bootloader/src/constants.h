@@ -3,25 +3,32 @@
 
 #include "memory.h"
 
-#define kMainFirmwareSector		2ULL
-#define kBackupFirmwareSector	3ULL
+#define kMainFirmwareSector			2ULL
+#define kBackupFirmwareSector		3ULL
 
-#define kMainFirmwareAddress	MEMORY_SECTION_ADDR(kMainFirmwareSector)
-#define kBackupFirmwareAddress	MEMORY_SECTION_ADDR(kBackupFirmwareSector)
+#define kMainFirmwareAddress		MEMORY_SECTION_ADDR(kMainFirmwareSector)
+#define kBackupFirmwareAddress		MEMORY_SECTION_ADDR(kBackupFirmwareSector)
 
-#define kBootloaderSize			512		//Instructions
+#define kBootloaderSize				512		//Instructions
 
-#ifdef __PIC24F16KA101__
-#define kNumFlashInstructions	5632
-#define	kFlashRowSizeInstructions 32		//Instructions
-#define ALARMPIN				  _RB0
-#define ALARMTRIS				  _TRISB0
+#ifdef __PIC24FJ64GA306__
+#define kNumFlashInstructions 		22016
+#define kFlashRowSizeInstructions 	64
+#define kFlashPageSizeInstructions	512
+
+#define ALARM 						D3
+#define DATA						G3
+
 #else
 #error "Unsupported chip type"
 #endif
 
 #define kFlashRowSizeWords		(2*kFlashRowSizeInstructions)
+#define kFlashPageSizeWords		(2*kFlashPageSizeInstructions)
+
+#define kNumFirmwarePages		((kNumFlashInstructions - kBootloaderSize) / kFlashPageSizeInstructions)
 #define kNumFirmwareRows		((kNumFlashInstructions - kBootloaderSize) / kFlashRowSizeInstructions)
+#define kNumRowsPerPage			(kFlashPageSizeInstructions / kFlashRowSizeInstructions)
 
 #define kAppJumpRow				(0x100 / kFlashRowSizeWords)
 
