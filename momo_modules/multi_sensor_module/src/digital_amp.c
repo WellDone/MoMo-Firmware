@@ -27,7 +27,7 @@ void damp_init()
 void damp_enable()
 {
 	LATCH(AN_POWER) = 1;
-	__delay_ms(1);
+	__delay_ms(5);
 
 	damp_send_offset(damp_get_parameter(kOffsetParameter));
 	damp_send_stage1_gain(damp_get_parameter(kStage1GainParameter));
