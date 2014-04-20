@@ -29,7 +29,7 @@ void battery_init()
     batt_adc_config.sample_autostart = 1;
     batt_adc_config.scan_input = 0;
     batt_adc_config.alternate_muxes = 0;
-    batt_adc_config.autosample_wait = 0b111111;
+    batt_adc_config.autosample_wait = 0b11111;
 
     batt_adc_config.oneshot = 1;
     batt_adc_config.num_samples = 1;
