@@ -24,73 +24,26 @@ class SensorTool(cmdln.Cmdln):
 		"""
 
 		sens = self._create_proxy(opts)
-		v = self._average(sens, opts.n)
+		v = self._average(sens, opts.average)
 
 		print "Voltage: %d" % v
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
-	def do_offset(self, subcmd, opts, offset):
-		"""${cmd_name}: Set the voltage offset of the digitally controlled amplifier
-		from between 0 to 255, where 0 corresponds to VSS and 255 corresponds to VDD.
+	def do_set(self, subcmd, opts, name, value):
+		"""${cmd_name}: Set the parameter 'name' to the value 'value'
+
+		Valid parameter names are: offset, gain1, gain2, select, invert and delay
+		Valid values are: offset: [0, 255], gain1: [0,127], gain2: [0,7], 
+		select: [current|differential], invert: [yes|no], delay: [1, 255]
 
 		${cmd_usage}
 		${cmd_option_list}
 		"""
 
 		sens = self._create_proxy(opts)
-		v = sens.set_offset(int(offset))
-		print "Setting offset to %d" % int(offset)
+		sens.set_parameter(name, value)
 
-	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
-	def do_gain1(self, subcmd, opts, gain):
-		"""${cmd_name}: Set the stage 1 gain of the amplifier between 0 and 127.
-
-		${cmd_usage}
-		${cmd_option_list}
-		"""
-
-		sens = self._create_proxy(opts)
-		v = sens.set_stage1_gain(int(gain))
-		print "Setting Stage 1 gain to: %d" % int(gain)
-
-	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
-	def do_gain2(self, subcmd, opts, gain):
-		"""${cmd_name}: Set the stage 2 gain of the amplifier between 0 and 7.
-
-		${cmd_usage}
-		${cmd_option_list}
-		"""
-
-		sens = self._create_proxy(opts)
-		v = sens.set_stage2_gain(int(gain))
-		print "Setting Stage 2 gain to: %d" % int(gain)
-
-	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
-	@cmdln.option('-n', '--average', type=int, default=1, help='Average for N samples' )
-
-	def do_offset_bias(self, subcmd, opts):
-		"""${cmd_name}: Determine the offset bias point by inverting the signal
-		and measuring the average betwen the normal and inverted signals.
-
-		${cmd_usage}
-		${cmd_option_list}
-		"""
-
-		sens = self._create_proxy(opts)
-
-		sens.set_inverted(False)
-		sens.set_offset(127)
-		vnorm = self._average(sens, opts.average)
-		sens.set_inverted(True)
-		vinv = self._average(sens, opts.average)
-
-		print "Normal Voltage: %d" % vnorm
-		print "Inverted Voltage: %d" % vinv
-		print "Offset Bias: %d" % ((vnorm + vinv)/2)
 
 	def _create_proxy(self,opts):
 		try:
