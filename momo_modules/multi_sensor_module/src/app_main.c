@@ -16,15 +16,7 @@ extern unsigned int adc_result;
 
 void task(void)
 {
-	wdt_disable();
 
-	set_analog_power(1);
-	select_analog_input(kCurrentInput);
-
-	while(1)
-	{
-		;
-	}
 }
 
 void interrupt_handler(void)
@@ -34,8 +26,6 @@ void interrupt_handler(void)
 
 void initialize(void)
 {
-	wdt_disable();
-
 	PIN_DIR(VOLT1, INPUT);
 	PIN_TYPE(VOLT1, ANALOG);
 
@@ -63,6 +53,8 @@ void initialize(void)
 
 	PIN_TYPE(AN_VOLTAGE, ANALOG);
 	PIN_DIR(AN_VOLTAGE, INPUT);
+
+	damp_init();
 }
 
 void main()
@@ -100,9 +92,11 @@ void check_v3()
 	bus_slave_setreturn(pack_return_status(0, 2));
 }
 
-void check_voltage()
+void acquire_voltage()
 {
+	damp_enable();
 	sample_analog();
+	damp_disable();
 
 	mib_buffer[0] = (adc_result & 0xFF);
 	mib_buffer[1] = (adc_result >> 8) & 0xFF;
@@ -110,20 +104,20 @@ void check_voltage()
 	bus_slave_setreturn(pack_return_status(0, 2));
 }
 
-void set_gain1()
+void set_damp_parameter()
 {
-	damp_set_stage1_gain(mib_buffer[0]);
+	if (mib_buffer[0] >= kNumParameters)
+	{
+		bus_slave_setreturn(pack_return_status(6, 0));
+		return;
+	}
+
+	damp_set_parameter((AmplifierSetting)mib_buffer[0], mib_buffer[2]);
 	bus_slave_setreturn(pack_return_status(0, 0));
 }
 
-void set_gain2()
+void power_analog()
 {
-	damp_set_stage2_gain(mib_buffer[0]);
-	bus_slave_setreturn(pack_return_status(0, 0));
-}
-
-void set_offset()
-{
-	damp_set_offset(mib_buffer[0]);
+	set_analog_power(mib_buffer[0]);
 	bus_slave_setreturn(pack_return_status(0, 0));
 }

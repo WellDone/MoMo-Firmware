@@ -6,7 +6,6 @@ feature 20
 0: _check_v1(0, no);
 1: _check_v2(0, no);
 2: _check_v3(0, no);
-3: _set_gain1(1, no);
-4: _set_gain2(1, no);
-5: _set_offset(1, no);
-6: _check_voltage(0, no);
+3: _set_damp_parameter(2, no);
+4: _power_analog(1, no);
+5: _acquire_voltage(0, no);

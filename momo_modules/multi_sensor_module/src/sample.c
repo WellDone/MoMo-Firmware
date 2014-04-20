@@ -13,7 +13,7 @@ void sample_v1()
 	adc_setenabled(1);
 	adc_setchannel(kADCChannelAN2);
 
-	adc_average(10);
+	adc_average(1);
 
 	adc_setenabled(0);
 }
@@ -24,7 +24,7 @@ void sample_v2()
 	adc_setenabled(1);
 	adc_setchannel(kADCChannelAN3);
 
-	adc_average(10);
+	adc_average(1);
 
 	adc_setenabled(0);
 }
@@ -35,7 +35,7 @@ void sample_v3()
 	adc_setenabled(1);
 	adc_setchannel(kADCChannelAN9);
 
-	adc_average(10);
+	adc_average(1);
 
 	adc_setenabled(0);
 }
@@ -46,7 +46,7 @@ void sample_analog()
 	adc_setenabled(1);
 	adc_setchannel(kADCChannelAN4);
 
-	adc_average(10);
+	adc_average(1);
 
 	adc_setenabled(0);
 }
@@ -59,13 +59,4 @@ void set_analog_power(unsigned char on)
 		LATCH(AN_POWER) = 0;
 
 	PIN_DIR(AN_POWER, OUTPUT);
-}
-
-void select_analog_input(AnalogInputSelector sel)
-{
-	if (LATCH(AN_POWER) == 0)
-		return;
-
-	LATCH(AN_SELECT) = sel;
-	PIN_DIR(AN_SELECT, OUTPUT);
 }
