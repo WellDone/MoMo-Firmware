@@ -15,8 +15,11 @@
 //ConfigurationSector subsector assignments
 enum
 {
-	kMomoConfigSubsector	= MEMORY_SECTION_TO_SUB(kConfigurationSector) + 0,
+	kMomoConfigSubsector    = MEMORY_SECTION_TO_SUB(kConfigurationSector) + 0,
 	kFirmwareConfigSubector	= MEMORY_SECTION_TO_SUB(kConfigurationSector) + 1,
+
+	kReportLogSubsector     = MEMORY_SECTION_TO_SUB(kConfigurationSector) + 8, //SIZE: 4
+	kDebugLogSubsector      = MEMORY_SECTION_TO_SUB(kConfigurationSector) + 12 //SIZE: 4
 };
 
 void flash_memory_init();

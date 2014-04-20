@@ -3,6 +3,7 @@
 #define __rtcc_h__
 
 #include "interrupts.h"
+#include "common_types.h"
 
 #define HIBYTE(x) ((x&0xFF00) >> 8)
 #define LOBYTE(x) (x&0xFF)
@@ -76,11 +77,13 @@ void configure_rtcc();
 
 unsigned int    rtcc_datetimes_equal(rtcc_datetime *time1, rtcc_datetime *time2);
 unsigned int    rtcc_compare_times(rtcc_datetime *time1, rtcc_datetime *time2);
-void            rtcc_datetime_difference(rtcc_datetime *time1, rtcc_datetime *time2); //overwrite time2 with time2-time1 componentwise;
+int32           rtcc_timestamp_difference(rtcc_timestamp *time1, rtcc_timestamp *time2); // In seconds
 
 void rtcc_get_time(rtcc_datetime *time);
 void rtcc_set_time(rtcc_datetime *time);
 void rtcc_get_alarm(rtcc_datetime *alarm);
+
+void rtcc_get_timestamp(rtcc_timestamp* time);
 
 void rtcc_create_timestamp(const rtcc_datetime *source, rtcc_timestamp *dest);
 

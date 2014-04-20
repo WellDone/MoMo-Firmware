@@ -11,81 +11,228 @@
 #include "bus_master.h"
 
 #define EVENT_BUFFER_SIZE 1
-typedef struct { //103
-    unsigned char report_version;
-    unsigned char current_hour;
-    unsigned int  battery_voltage; //2
-    unsigned char hour_count;
-    unsigned char event_count;
-    unsigned char sensor_type;
-    unsigned char __unused__;
-    unsigned long hourly_buckets[24]; //96
-} sms_report;
+#define RAW_REPORT_MAX_LENGTH 118
+#define BASE64_REPORT_MAX_LENGTH 160 //( 4 * ( ( RAW_REPORT_MAX_LENGTH + 2 ) / 3) )
 
-extern unsigned int debug_flag_value;
+static BYTE report_buffer[RAW_REPORT_MAX_LENGTH];
+static char base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 
-//+1415-992-8370
-
-// base64 length = 4 * ( ( sizeof(sms_report) + 2 ) / 3)
-#define BASE64_REPORT_LENGTH 140
-static char base64_report_buffer[BASE64_REPORT_LENGTH+1];
+static char fallback_server_gsm_address[13] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0'};
 static char report_server_gsm_address[16] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0','\0',0,0};
+
 extern unsigned int last_battery_voltage;
-
 static sensor_event event_buffer[EVENT_BUFFER_SIZE];
-static int demo_i=0;
 
-static unsigned int demo_data[10] = {1, 5, 2, 6, 7, 3, 4, 2, 8, 4};
-bool construct_report()
+typedef struct { //16
+    uint8          report_version;         // = 2, must be positive
+    uint8          sensor_id;              //   The unique ID of this sensor related to this controller.
+    uint16         sequence;               //2 - which report # is this (for this sensor/stream?)
+    uint16         flags;                  //   Various flags determining how the data will be aggregated and other things
+
+    uint16         battery_voltage;        //2
+    uint16         diagnostics[2];         //4  diagnostic flags and data, usage TBD
+
+    uint8          bulk_aggregates;        //  The aggregate functions to run on the entire span
+    uint8          interval_aggregates;    //  The aggregate functions to run on each interval
+
+    uint8          interval_type:4;        //  0: second, 1: minute, 2: hour, 3: day
+    uint8          interval_step:4;        //
+    uint8          interval_count;         //  Up to 256 'intervals' each aggregated individually
+    // 102 bytes for data
+} report_header;
+
+typedef struct {
+  uint16 count;
+  uint16 min;
+  uint16 max;
+  uint16 sum;
+} agg_counters;
+
+static uint16 report_flags = kReportFlagDefault;
+
+static uint8 bulk_aggregates = kAggCount | kAggMin | kAggMax;
+static uint8 interval_aggregates = kAggCount | kAggMean;
+
+void update_interval_headers( report_header* header, AlarmRepeatTime interval )
 {
-  sms_report report;
-  unsigned int count, i;
-  rtcc_datetime time1, time2;
-  rtcc_get_time( &time2 );
-
-  report.report_version = MOMO_REPORT_VERSION;
-  report.current_hour = time2.hours;
-  report.battery_voltage = last_battery_voltage;
-
-  for ( i=0; i<24; ++i ) {
-    report.hourly_buckets[i] = 0;
+  switch ( interval )
+  {
+    case kEvery10Seconds:
+      header->interval_type = kReportIntervalSecond;
+      header->interval_step = 1;
+      header->interval_count = 10;
+      break;
+    case kEveryMinute:
+      header->interval_type = kReportIntervalSecond;
+      header->interval_step = 6;
+      header->interval_count = 10;
+      break;
+    case kEvery10Minutes:
+      header->interval_type = kReportIntervalMinute;
+      header->interval_step = 1;
+      header->interval_count = 10;
+      break;
+    case kEveryHour:
+      header->interval_type = kReportIntervalMinute;
+      header->interval_step = 6;
+      header->interval_count = 10;
+      break;
+    case kEveryDay:
+      header->interval_type = kReportIntervalHour;
+      header->interval_step = 1;
+      header->interval_count = 24;
+      break;
+    default:
+      //Do nothing
+      break;
   }
-  report.hour_count = 0;
-  report.event_count = 0;
-  report.sensor_type = 0;
-
-  /*count = read_sensor_events( event_buffer, 1 );
-
-  if ( count != 0 ) {
-    report.sensor_type = event_buffer[0].type;
-
-    time1.year = event_buffer[i].starttime.date.year;
-    time1.month = event_buffer[i].starttime.date.month;
-    time1.day = event_buffer[i].starttime.date.day;
-    time1.hours = event_buffer[i].starttime.hour;
-    time1.minutes = event_buffer[i].starttime.minute;
-    time1.seconds = 0;
-
-    rtcc_datetime_difference( &time1, &time2 );
-    report.hour_count = 24 * time2.day + time2.hours+1;
-  }
-  while ( count != 0 ) {
-    if ( event_buffer[0].type != report.sensor_type )
-      continue;
-    report.event_count += 1;
-    report.hourly_buckets[event_buffer[0].starttime.hour] += event_buffer[0].value;
-
-    count = read_sensor_events( event_buffer, 1 );
-  }*/
-
-  report.event_count = demo_data[demo_i++];
-  if (demo_i == 10)
-    demo_i = 0;
-
-  count = base64_encode( (BYTE*)&report, 104, base64_report_buffer, BASE64_REPORT_LENGTH );
-  base64_report_buffer[count] = '\0';
-  return true;
 }
+
+int32 create_time_delta( const report_header* header )
+{
+  switch ( header->interval_type )
+  {
+    case kReportIntervalSecond:
+      return header->interval_step * header->interval_count;
+    case kReportIntervalMinute:
+      return 60 * header->interval_step * header->interval_count;
+    case kReportIntervalHour:
+      return 3600L * header->interval_step * header->interval_count;
+  }
+  return 0;
+}
+
+static uint8 agg_size( uint8 agg_set )
+{
+  uint8 mask = 0x1;
+  uint8 size = 0;
+
+  while ( mask != 0 )
+  {
+    if ( agg_set & mask )
+      size += 1;
+    mask = mask << 1;
+  }
+  return size;
+}
+
+static void init_agg( agg_counters* agg )
+{
+  agg->count = 0;
+  agg->min = MAX_UINT16;
+  agg->max = 0;
+  agg->sum = 0;
+}
+static void update_agg( agg_counters* agg, sensor_event* event )
+{
+  ++(agg->count);
+  agg->sum += event->value;
+  if ( event->value < agg->min )
+    agg->min = event->value;
+  if ( event->value > agg->max )
+    agg->max = event->value;
+}
+static void finish_agg( agg_counters* agg, uint8 agg_set, uint16** target )
+{
+  if ( agg_set & kAggCount )
+  {
+    **target = agg.count;
+    ++(*target);
+  }
+  if ( agg_set & kAggSum )
+  {
+    **target = agg.sum;
+    ++(*target);
+  }
+  if ( agg_set & kAggMean )
+  {
+    **target = agg.sum / agg.count;
+    ++(*target);
+  }
+  if ( agg_set & kAggMin )
+  {
+    **target = agg.min;
+    ++(*target); 
+  }
+  if ( agg_set & kAggMax )
+  {
+    **target = agg.max;
+    ++(*target);
+  }
+}
+
+bool construct_report( AlarmRepeatTime interval )
+{
+  report_header* header = (report_header*) report_buffer;
+
+  header->report_version = 2;
+  header->sensor_id = 0; //TODO
+  header->sequence = 0; //TODO
+  header->flags = report_flags;
+  header->battery_voltage = last_battery_voltage;
+  header->diagnostics[0] = 0;
+  header->diagnostics[1] = 0;
+  header->bulk_aggregates = bulk_aggregates;
+  header->interval_aggregates = interval_aggregates;
+
+  int32 time_delta = create_time_delta( header );
+  update_interval_headers( header, interval );
+
+  agg_counters bulk_agg;
+  init_agg( &bulk_agg );
+
+  agg_counters int_agg;
+  init_agg( &int_agg );
+
+  rtcc_timestamp now;
+  rtcc_get_timestamp( &now );
+
+  uint8 i, c, bucket = 0;
+  uint16* bulk_ptr = (uint16*) ( report_buffer + sizeof(report_header) );
+  uint16* bucket_ptr = bulk_ptr + agg_size( bulk_aggregates );
+  
+  do
+  {
+    c = read_sensor_events( event_buffer, EVENT_BUFFER_SIZE );
+    for ( i = 0; i < c; ++i )
+    {
+      if ( bulk_aggregates != kAggNone)
+      {
+        update_agg( &bulk_agg, &event_buffer[i] );
+      }
+
+      if ( interval_aggregates != kAggNone )
+      {
+        if ( (BYTE*)(bucket_ptr + agg_size(interval_aggregates)) - report_buffer > RAW_REPORT_MAX_LENGTH )
+          continue; //TODO: Extend to a second SMS
+
+        int32 time_seconds = time_delta - rtcc_timestamp_difference( &event_buffer[i].timestamp, &now );
+        if ( time_seconds < 0 )
+          continue;
+        uint8 new_bucket = header->interval_count - 1 - ( time_seconds / header->interval_count );
+        while ( bucket < new_bucket )
+        {
+          finish_agg( &int_agg, interval_aggregates, &bucket_ptr );
+          init_agg( &int_agg );
+          ++bucket;
+        }
+        update_agg( &int_agg, &event_buffer[i] );
+      }
+    }
+  }
+  while ( c > 0 );
+
+  if ( bulk_aggregates != kAggNone)
+  {
+    finish_agg( &bulk_agg, bulk_aggregates, &bulk_ptr );
+  }
+
+  i = base64_encode( (const BYTE*)report_buffer, (BYTE*)bucket_ptr - report_buffer, base64_report_buffer, BASE64_REPORT_MAX_LENGTH );
+  base64_report_buffer[i] = '\0';
+  return i+1;
+}
+
+
 
 static uint8 report_stream_offset;
 void receive_gsm_stream_response(unsigned char a);
@@ -93,7 +240,7 @@ void stream_to_gsm() {
   uint8 gsm_address = 11;
   MIBUnified cmd;
 
-  if ( report_stream_offset >= BASE64_REPORT_LENGTH )
+  if ( report_stream_offset >= BASE64_REPORT_MAX_LENGTH )
   {
     cmd.address = gsm_address;
     cmd.bus_command.feature = 11;
@@ -103,7 +250,7 @@ void stream_to_gsm() {
     return;
   }
 
-  uint8 byte_count = BASE64_REPORT_LENGTH-report_stream_offset;
+  uint8 byte_count = BASE64_REPORT_MAX_LENGTH-report_stream_offset;
   if ( byte_count > kBusMaxMessageSize )
     byte_count = kBusMaxMessageSize;
   memcpy( &cmd.mib_buffer, base64_report_buffer+report_stream_offset, byte_count );
@@ -124,10 +271,13 @@ void receive_gsm_stream_response(unsigned char a)
   
   taskloop_add( stream_to_gsm );
 }
+
+static ScheduledTask report_task;
+static AlarmRepeatTime report_interval = kEvery10Seconds;
 void post_report() 
 {
   //TODO: Gather sensor data from sensor modules
-  if (!construct_report())
+  if (!construct_report( report_interval ))
     return;
 
   report_stream_offset = 0;
@@ -143,8 +293,6 @@ void post_report()
   bus_master_rpc_async( receive_gsm_stream_response, &cmd);
 }
 
-static ScheduledTask report_task;
-static AlarmRepeatTime report_interval = kEvery10Seconds;
 void start_report_scheduling() {
     scheduler_schedule_task( post_report, report_interval, kScheduleForever, &report_task);
 }
