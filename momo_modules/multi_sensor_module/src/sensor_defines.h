@@ -10,5 +10,5 @@
 #define AN_POWER	A6
 #define AN_PROG		A1
 #define AN_VOLTAGE	A4
-
+#define PULSE_IN	A7
 #endif

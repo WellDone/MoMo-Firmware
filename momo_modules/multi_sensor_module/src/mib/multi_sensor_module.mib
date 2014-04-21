@@ -9,3 +9,5 @@ feature 20
 3: _set_damp_parameter(2, no);
 4: _power_analog(1, no);
 5: _acquire_voltage(0, no);
+6: _acquire_pulse(0, no);
+7: _read_pulses(0, no);

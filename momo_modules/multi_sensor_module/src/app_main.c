@@ -9,14 +9,19 @@
 #include "log.h"
 #include "digital_amp.h"
 #include "watchdog.h"
+#include "state.h"
+#include "pulse.h"
 
-#define _XTAL_FREQ			4000000
-
+MultiSensorState state;
 extern unsigned int adc_result;
 
 void task(void)
 {
-
+	if (state.acquire_pulse)
+	{
+		pulse_sample();
+		state.acquire_pulse = 0;
+	}
 }
 
 void interrupt_handler(void)
@@ -54,7 +59,11 @@ void initialize(void)
 	PIN_TYPE(AN_VOLTAGE, ANALOG);
 	PIN_DIR(AN_VOLTAGE, INPUT);
 
+	//PIN_TYPE(PULSE_IN, DIGITAL); A7 is digital only
+	PIN_DIR(PULSE_IN, INPUT);
+
 	damp_init();
+	state.combined_state = 0;
 }
 
 void main()
@@ -120,4 +129,18 @@ void power_analog()
 {
 	set_analog_power(mib_buffer[0]);
 	bus_slave_setreturn(pack_return_status(0, 0));
+}
+
+void acquire_pulse()
+{
+	state.acquire_pulse = 1;
+	bus_slave_setreturn(pack_return_status(0, 0));
+}
+
+void read_pulses()
+{
+	mib_buffer[0] = pulse_count() & 0xFF;
+	mib_buffer[1] = pulse_count() >> 8;
+
+	bus_slave_setreturn(pack_return_status(0, 2));
 }
