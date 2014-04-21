@@ -29,6 +29,7 @@ enum {
 
 #include "rtcc.h"
 
+void create_report();
 void post_report();
 void start_report_scheduling();
 void stop_report_scheduling();

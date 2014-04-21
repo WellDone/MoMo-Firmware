@@ -28,6 +28,10 @@ uint32 read_sensor_events( sensor_event* events, uint32 max ) {
   return flash_queue_batchdequeue( &event_log, events, max );
 }
 
+void requeue_sensor_events( uint32 count ) {
+  flash_queue_requeue( &event_log, count );
+}
+
 bool sensor_event_log_empty() {
   return flash_queue_empty( &event_log );
 }

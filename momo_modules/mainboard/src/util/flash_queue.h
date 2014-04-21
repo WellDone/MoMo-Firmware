@@ -34,6 +34,7 @@ void flash_queue_reset( flash_queue* queue );
 void flash_queue_queue( flash_queue* queue, const void* data );
 bool flash_queue_dequeue( flash_queue* queue, void* data );
 uint32 flash_queue_batchdequeue( flash_queue* queue, void* data, uint32 count );
+void flash_queue_requeue( flash_queue* queue, uint32 count );
 
 bool flash_queue_empty( const flash_queue* queue );
 uint32 flash_queue_count( const flash_queue* queue );

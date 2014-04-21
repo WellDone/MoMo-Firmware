@@ -18,12 +18,12 @@ static BYTE report_buffer[RAW_REPORT_MAX_LENGTH];
 static char base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 
 static char fallback_server_gsm_address[13] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0'};
-static char report_server_gsm_address[16] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0','\0',0,0};
+static char report_server_gsm_address[16] = {'+','1','7','0','7','8','1','5','9','2','5','0','\0','\0',0,0};//{'+','1','4','1','5','9','9','2','8','3','7','0','\0','\0',0,0};
 
 extern unsigned int last_battery_voltage;
 static sensor_event event_buffer[EVENT_BUFFER_SIZE];
 
-typedef struct { //16
+typedef struct { //14
     uint8          report_version;         // = 2, must be positive
     uint8          sensor_id;              //   The unique ID of this sensor related to this controller.
     uint16         sequence;               //2 - which report # is this (for this sensor/stream?)
@@ -38,7 +38,7 @@ typedef struct { //16
     uint8          interval_type:4;        //  0: second, 1: minute, 2: hour, 3: day
     uint8          interval_step:4;        //
     uint8          interval_count;         //  Up to 256 'intervals' each aggregated individually
-    // 102 bytes for data
+    // 104 bytes for data
 } report_header;
 
 typedef struct {
@@ -48,10 +48,11 @@ typedef struct {
   uint16 sum;
 } agg_counters;
 
-static uint16 report_flags = kReportFlagDefault;
-
-static uint8 bulk_aggregates = kAggCount | kAggMin | kAggMax;
-static uint8 interval_aggregates = kAggCount | kAggMean;
+// TODO: Save to flash, support dynamic configuration
+static AlarmRepeatTime report_interval     = kEvery10Seconds;
+static uint16          report_flags        = kReportFlagDefault;
+static uint8           bulk_aggregates     = kAggCount | kAggMin | kAggMax;
+static uint8           interval_aggregates = kAggCount | kAggMean;
 
 void update_interval_headers( report_header* header, AlarmRepeatTime interval )
 {
@@ -83,7 +84,7 @@ void update_interval_headers( report_header* header, AlarmRepeatTime interval )
       header->interval_count = 24;
       break;
     default:
-      //Do nothing
+      //Do nothing, error
       break;
   }
 }
@@ -146,7 +147,7 @@ static void finish_agg( agg_counters* agg, uint8 agg_set, uint16** target )
   }
   if ( agg_set & kAggMean )
   {
-    **target = agg->sum / agg->count;
+    **target = (agg->count==0)? 0 : agg->sum / agg->count;
     ++(*target);
   }
   if ( agg_set & kAggMin )
@@ -161,7 +162,7 @@ static void finish_agg( agg_counters* agg, uint8 agg_set, uint16** target )
   }
 }
 
-bool construct_report( AlarmRepeatTime interval )
+bool construct_report()
 {
   report_header* header = (report_header*) report_buffer;
 
@@ -176,7 +177,8 @@ bool construct_report( AlarmRepeatTime interval )
   header->interval_aggregates = interval_aggregates;
 
   int32 time_delta = create_time_delta( header );
-  update_interval_headers( header, interval );
+  update_interval_headers( header, report_interval );
+  int32 time_step = time_delta / header->interval_count;
 
   agg_counters bulk_agg;
   init_agg( &bulk_agg );
@@ -196,6 +198,7 @@ bool construct_report( AlarmRepeatTime interval )
     c = read_sensor_events( event_buffer, EVENT_BUFFER_SIZE );
     for ( i = 0; i < c; ++i )
     {
+      // TODO: Support multiple sensor streams
       if ( bulk_aggregates != kAggNone)
       {
         update_agg( &bulk_agg, &event_buffer[i] );
@@ -208,8 +211,21 @@ bool construct_report( AlarmRepeatTime interval )
 
         int32 time_seconds = time_delta - rtcc_timestamp_difference( &event_buffer[i].timestamp, &now );
         if ( time_seconds < 0 )
+        {
+          // This event is too old, drop it
+          // TODO: extend the report start backwards to pick up the dropped events?
           continue;
-        uint8 new_bucket = header->interval_count - 1 - ( time_seconds / header->interval_count );
+        }
+
+        if ( time_seconds > time_delta )
+        {
+          // These will go in the next report
+          requeue_sensor_events( c - i );
+          c = 0;
+          break;
+        }
+
+        uint8 new_bucket = header->interval_count - 1 - ( time_seconds / time_step );
         while ( bucket < new_bucket )
         {
           finish_agg( &int_agg, interval_aggregates, &bucket_ptr );
@@ -222,6 +238,19 @@ bool construct_report( AlarmRepeatTime interval )
   }
   while ( c > 0 );
 
+  if ( interval_aggregates != kAggNone )
+  {
+    while ( bucket < header->interval_count )
+    {
+      if ( (BYTE*)(bucket_ptr + agg_size(interval_aggregates)) - report_buffer > RAW_REPORT_MAX_LENGTH )
+        break; //TODO: Extend to a second SMS
+
+      finish_agg( &int_agg, interval_aggregates, &bucket_ptr );
+      init_agg( &int_agg );
+      ++bucket;
+    }
+  }
+
   if ( bulk_aggregates != kAggNone)
   {
     finish_agg( &bulk_agg, bulk_aggregates, &bulk_ptr );
@@ -229,7 +258,7 @@ bool construct_report( AlarmRepeatTime interval )
 
   i = base64_encode( (const BYTE*)report_buffer, (BYTE*)bucket_ptr - report_buffer, base64_report_buffer, BASE64_REPORT_MAX_LENGTH );
   base64_report_buffer[i] = '\0';
-  return i+1;
+  return true;
 }
 
 
@@ -240,7 +269,7 @@ void stream_to_gsm() {
   uint8 gsm_address = 11;
   MIBUnified cmd;
 
-  if ( report_stream_offset >= BASE64_REPORT_MAX_LENGTH )
+  if ( report_stream_offset >= strlen(base64_report_buffer) )
   {
     cmd.address = gsm_address;
     cmd.bus_command.feature = 11;
@@ -250,7 +279,7 @@ void stream_to_gsm() {
     return;
   }
 
-  uint8 byte_count = BASE64_REPORT_MAX_LENGTH-report_stream_offset;
+  uint8 byte_count = strlen(base64_report_buffer)-report_stream_offset;
   if ( byte_count > kBusMaxMessageSize )
     byte_count = kBusMaxMessageSize;
   memcpy( &cmd.mib_buffer, base64_report_buffer+report_stream_offset, byte_count );
@@ -273,16 +302,14 @@ void receive_gsm_stream_response(unsigned char a)
 }
 
 static ScheduledTask report_task;
-static AlarmRepeatTime report_interval = kEvery10Seconds;
 void post_report() 
 {
-  //TODO: Gather sensor data from sensor modules
   if (!construct_report( report_interval ))
-    return;
+    return; //TODO: Log failure
 
   report_stream_offset = 0;
 
-  //TODO: Get address of GSM module.
+  //TODO: Get address of comm module, turn on GSM modem
   MIBUnified cmd;
 
   cmd.address = 11;
