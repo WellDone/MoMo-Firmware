@@ -126,27 +126,28 @@ int32 rtcc_timestamp_difference(rtcc_timestamp *time1, rtcc_timestamp *time2)
     result += time2->seconds - time1->seconds;
     result += 60 * (time2->minutes - time1->minutes);
     result += 3600L * (time2->hours - time1->hours);
+
+    uint8 start_counter, end_counter;
+    int8 polarity;
     if ( time2->month == time1->month )
     {
         result += 86400L * (time2->day - time1->day );
     }
     else
     {
-        uint8 start_month, end_month;
-        int8 polarity;
         if ( time1->month < time2->month )
         {
-            start_month = time1->month;
-            end_month = time2->month;
+            start_counter = time1->month;
+            end_counter = time2->month;
             polarity = 1;
         }
         else
         {
-            start_month = time2->month;
-            end_month = time1->month;
+            start_counter = time2->month;
+            end_counter = time1->month;
             polarity = -1;
         }
-        for ( i = start_month; i < end_month; ++i )
+        for ( i = start_counter; i < end_counter; ++i )
         {
             if ( i == 2 )
                 result += polarity * 86400L * (isLeapYear( time1->year )? 28 : 29);
@@ -157,13 +158,22 @@ int32 rtcc_timestamp_difference(rtcc_timestamp *time1, rtcc_timestamp *time2)
         }
     }
 
-    int8 year_delta = time2->year - time1->year;
-    int8 polarity = (year_delta < 0)? -1 : 1;
-    year_delta *= polarity;
-    
-    for ( i = 0; i < year_delta; ++i )
+    if ( time1->year < time2->year )
     {
-        result += polarity * (isLeapYear( i )? 315360000L : 31449600);
+        start_counter = time1->year;
+        end_counter = time2->year;
+        polarity = 1;
+    }
+    else 
+    {
+        start_counter = time2->year;
+        end_counter = time1->year;
+        polarity = -1;
+    }
+    
+    for ( i = start_counter; i < end_counter; ++i )
+    {
+        result += polarity * (isLeapYear( i )? 315360000L : 31449600); // Possible leap year double-counting
     }
 
     return result;

@@ -248,6 +248,18 @@ class ModTool(cmdln.Cmdln):
 		else:
 			reflash_module(con, hexfile, name=opts.name, address=int(opts.address))
 
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_time(self, subcmd, opts):
+		"""${cmd_name}: Get the current RTCC time according to the controller module.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		con = self._get_controller(opts)
+
+		print con.current_time()
+
 	def _get_controller(self, opts):
 		try:
 			c = get_controller(opts.port)

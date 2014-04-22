@@ -17,13 +17,13 @@
 static BYTE report_buffer[RAW_REPORT_MAX_LENGTH];
 static char base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 
-static char fallback_server_gsm_address[13] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0'};
-static char report_server_gsm_address[16] = {'+','1','7','0','7','8','1','5','9','2','5','0','\0','\0',0,0};//{'+','1','4','1','5','9','9','2','8','3','7','0','\0','\0',0,0};
+//TODO: Implement dynamic report routing based on an initial "registration" ping to the coordinator address
+//static const char fallback_server_gsm_address[13] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0'};
 
 extern unsigned int last_battery_voltage;
 static sensor_event event_buffer[EVENT_BUFFER_SIZE];
 
-typedef struct { //14
+typedef struct { //16
     uint8          report_version;         // = 2, must be positive
     uint8          sensor_id;              //   The unique ID of this sensor related to this controller.
     uint16         sequence;               //2 - which report # is this (for this sensor/stream?)
@@ -38,7 +38,7 @@ typedef struct { //14
     uint8          interval_type:4;        //  0: second, 1: minute, 2: hour, 3: day
     uint8          interval_step:4;        //
     uint8          interval_count;         //  Up to 256 'intervals' each aggregated individually
-    // 104 bytes for data
+    // 102 bytes for data
 } report_header;
 
 typedef struct {
@@ -48,8 +48,9 @@ typedef struct {
   uint16 sum;
 } agg_counters;
 
-// TODO: Save to flash, support dynamic configuration
-static AlarmRepeatTime report_interval     = kEvery10Seconds;
+// TODO: Save to flash, support dynamic configuration (per comm module and/or per sensor)
+static char report_server_gsm_address[16] = {'+','1','7','0','7','8','1','5','9','2','5','0','\0','\0',0,0};//{'+','1','4','1','5','9','9','2','8','3','7','0','\0','\0',0,0};
+static AlarmRepeatTime report_interval     = kEveryMinute;
 static uint16          report_flags        = kReportFlagDefault;
 static uint8           bulk_aggregates     = kAggCount | kAggMin | kAggMax;
 static uint8           interval_aggregates = kAggCount | kAggMean;

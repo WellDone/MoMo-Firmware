@@ -27,8 +27,8 @@ class MoMoSensor(cmdln.Cmdln):
 		meta = 0x0;
 		s = sched.scheduler(time.time, time.sleep)
 		def log_event( scheduler ):
-			s.enter( .1, 1, log_event, (scheduler,) )
-			value = randint(1,1000)
+			s.enter( 1, 1, log_event, (scheduler,) )
+			value = 100 #randint(1,1000)
 			con.sensor_log( int(sensor_address), int(meta), value )
 			print "Logged event!  Value: %d" % value
 
