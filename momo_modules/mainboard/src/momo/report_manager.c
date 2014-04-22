@@ -49,7 +49,7 @@ typedef struct {
 } agg_counters;
 
 // TODO: Save to flash, support dynamic configuration (per comm module and/or per sensor)
-static char report_server_gsm_address[16] = {'+','1','7','0','7','8','1','5','9','2','5','0','\0','\0',0,0};//{'+','1','4','1','5','9','9','2','8','3','7','0','\0','\0',0,0};
+static char report_server_gsm_address[16] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0','\0',0,0};
 static uint16          current_sequence    = 0;
 static AlarmRepeatTime report_interval     = kEveryMinute;
 static uint16          report_flags        = kReportFlagDefault;
