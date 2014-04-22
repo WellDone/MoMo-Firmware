@@ -85,7 +85,7 @@ class Reportinator(cmdln.Cmdln):
 		print "sensor: %d" % sensor
 		print "sequence: %d" % sequence
 		print "flags: %d" % flags
-		print "battery charge: %d%%" % ((battery_voltage / 1024.0)*100);
+		print "battery charge: %.2fV" % ( float(battery_voltage) / 1024 * 2.78 * 2)
 		print "diag: %d, %d" % (diag1, diag2)
 		print "Interval type: %s" % interval_type
 		print "         step: %d" % interval_step

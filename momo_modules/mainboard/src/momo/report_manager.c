@@ -168,17 +168,18 @@ bool construct_report()
   report_header* header = (report_header*) report_buffer;
 
   header->report_version = 2;
-  header->sensor_id = 0; //TODO
+  header->sensor_id = 0;
   header->sequence = 0; //TODO
   header->flags = report_flags;
   header->battery_voltage = last_battery_voltage;
-  header->diagnostics[0] = 0;
+  header->diagnostics[0] = sensor_event_log_count();
   header->diagnostics[1] = 0;
   header->bulk_aggregates = bulk_aggregates;
   header->interval_aggregates = interval_aggregates;
 
-  int32 time_delta = create_time_delta( header );
   update_interval_headers( header, report_interval );
+
+  int32 time_delta = create_time_delta( header );
   int32 time_step = time_delta / header->interval_count;
 
   agg_counters bulk_agg;
@@ -199,7 +200,10 @@ bool construct_report()
     c = read_sensor_events( event_buffer, EVENT_BUFFER_SIZE );
     for ( i = 0; i < c; ++i )
     {
-      // TODO: Support multiple sensor streams
+      if ( header->sensor_id == 0 )
+        header->sensor_id = event_buffer[i].module;
+      else if ( header->sensor_id != event_buffer[i].module )
+        continue; // TODO: Support multiple sensor streams
       if ( bulk_aggregates != kAggNone)
       {
         update_agg( &bulk_agg, &event_buffer[i] );
@@ -210,15 +214,17 @@ bool construct_report()
         if ( (BYTE*)(bucket_ptr + agg_size(interval_aggregates)) - report_buffer > RAW_REPORT_MAX_LENGTH )
           continue; //TODO: Extend to a second SMS
 
-        int32 time_seconds = time_delta - rtcc_timestamp_difference( &event_buffer[i].timestamp, &now );
-        if ( time_seconds < 0 )
+        int32 time_seconds = rtcc_timestamp_difference( &event_buffer[i].timestamp, &now );
+        if ( time_seconds > time_delta )
         {
           // This event is too old, drop it
           // TODO: extend the report start backwards to pick up the dropped events?
+          header->sequence += 1;
+          header->flags = time_seconds;
           continue;
         }
 
-        if ( time_seconds > time_delta )
+        if ( time_seconds < 0 )
         {
           // These will go in the next report
           requeue_sensor_events( c - i );

@@ -108,7 +108,7 @@ class MoMoSensor(cmdln.Cmdln):
 
 		print "Stream: %d" % event.stream
 		print "MetaData: %d" % event.metadata
-		print "Timestamp: {:%Y-%m-%d %H:%M:%S}".format( event.timestamp )
+		print "Timestamp: %s" % str( event.timestamp )
 		print "Value: %d" % event.value
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
