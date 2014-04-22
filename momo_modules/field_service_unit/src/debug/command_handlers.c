@@ -13,7 +13,7 @@
 #include "reset_manager.h"
 #include "pic24asm.h"
 #include "base64.h"
-#include "debug_utilities.h"
+#include "debug.h"
 #include "bus_master.h"
 #include "eeprom.h"
 
@@ -313,6 +313,13 @@ CommandStatus handle_binrpc(command_params *params)
         return kFailure;
     }
 
+    if (!momo_attached())
+    {
+        put(DEBUG_UART, 254);
+        print( "No MoMo unit attached to FSU, cannot send RPC.\n");
+        return kFailure;
+    }
+
     data.address = buffer[0];
     data.bus_command.feature = buffer[1];
     data.bus_command.command = buffer[2];
@@ -323,6 +330,16 @@ CommandStatus handle_binrpc(command_params *params)
 
     bus_master_rpc_async(rpc_callback, &data);
     return kPending;
+}
+
+CommandStatus handle_attached(command_params *params)
+{
+    if (momo_attached())
+        print("1\n");
+    else
+        print("0\n");
+
+    return kSuccess;
 }
 
 CommandStatus handle_alarm(command_params *params)

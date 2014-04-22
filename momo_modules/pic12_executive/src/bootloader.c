@@ -33,8 +33,16 @@ void enter_bootloader()
 	boot_source = get_boot_source();
 	boot_id = get_firmware_id();
 
-	for (boot_count = kFirstApplicationRow; boot_count < kNumFlashRows; ++boot_count)
+	//Note that we compare to kNumFlashRows -1 in case there are 256 rows, which doesn't fit
+	//in an 8-bit unsigned value.  We write this as a do while loop so that we don't overflow
+	//boot_count when kNumFlashRows == 256.
+	
+	boot_count = kFirstApplicationRow-1;
+
+	do
 	{
+		++boot_count;
+
     	invalid_row = 0;
 
     	for (offset = 0; offset < kBootloaderBufferSize; offset += kMIBRequestSize)
@@ -44,8 +52,7 @@ void enter_bootloader()
 		//If there was a problem receiving the row, don't program it.  This is usually b/c
 		//the row is not defined in the application hex file, so it should be all 1's (unprogrammed)
 		if (!invalid_row)
-		{
 			flash_write_row(boot_count);
-		}
-	}
+
+	} while (boot_count != (kNumFlashRows-1));
 }
