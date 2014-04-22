@@ -50,6 +50,7 @@ typedef struct {
 
 // TODO: Save to flash, support dynamic configuration (per comm module and/or per sensor)
 static char report_server_gsm_address[16] = {'+','1','7','0','7','8','1','5','9','2','5','0','\0','\0',0,0};//{'+','1','4','1','5','9','9','2','8','3','7','0','\0','\0',0,0};
+static uint16          current_sequence    = 0;
 static AlarmRepeatTime report_interval     = kEveryMinute;
 static uint16          report_flags        = kReportFlagDefault;
 static uint8           bulk_aggregates     = kAggCount | kAggMin | kAggMax;
@@ -169,7 +170,7 @@ bool construct_report()
 
   header->report_version = 2;
   header->sensor_id = 0;
-  header->sequence = 0; //TODO
+  header->sequence = current_sequence++;
   header->flags = report_flags;
   header->battery_voltage = last_battery_voltage;
   header->diagnostics[0] = sensor_event_log_count();
@@ -219,8 +220,6 @@ bool construct_report()
         {
           // This event is too old, drop it
           // TODO: extend the report start backwards to pick up the dropped events?
-          header->sequence += 1;
-          header->flags = time_seconds;
           continue;
         }
 
