@@ -8,7 +8,6 @@
 #include "serial_commands.h"
 #include "command_handlers.h"
 #include "task_manager.h"
-#include "debug_utilities.h"
 #include "debug.h"
 #include <string.h>
 
@@ -27,9 +26,10 @@ void register_command_handlers()
 
     register_command("binrpc", handle_binrpc);
     register_command("alarm", handle_alarm);
+    register_command("attached", handle_attached);
     register_command("i2c", handle_i2cstatus);
 
-    getln( process_commands_task );
+    debug_setup_handler(process_commands_task);
 }
 
 /*
@@ -57,7 +57,6 @@ static void send_command_acknowledgement()
 {
   put( DEBUG_UART, (command_status == kSuccess)?ACK:NAK );
   command_status = kNone;
-  getln( process_commands_task );
 }
 
 void set_command_result( bool success )
@@ -86,18 +85,6 @@ static void process_commands_task(char* command_buffer, int len, bool overflown)
    }
   }
 
-  if ( strcmp(command_buffer, "help") == 0 ) {
-    for (i=0; i<MAX_COMMANDS; ++i)
-    {
-      if ( known_commands[i] == 0 )
-        break;
-      print( known_commands[i] );
-      print( "\n" );
-    }
-    command_status = kSuccess;
-    send_command_acknowledgement();
-    return;
-  }
   for (i=0; i<MAX_COMMANDS; ++i)
   {
    if (known_commands[i] == 0)

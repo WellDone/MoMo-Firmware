@@ -14,6 +14,10 @@
 #define BUS_ENABLE				F3
 #define MEM_POWER				E5
 
+#define SCL						G2
+#define SDA						G3
+#define ALARM					D3
+
 
 //Clock configuration and delays
 #define FCY   4000000L  //define your instruction frequency, FCY = FOSC/2

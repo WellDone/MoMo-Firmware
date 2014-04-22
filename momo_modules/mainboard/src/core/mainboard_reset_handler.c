@@ -27,7 +27,6 @@ void handle_all_resets_before(unsigned int type)
     taskloop_set_flag(kTaskLoopSleepBit, 1);
     scheduler_init();
     
-    bus_init(kMIBControllerAddress);
     con_init();
 
     init_mainboard_mib();
