@@ -110,6 +110,22 @@ class HexTool(cmdln.Cmdln):
 		out = merge.extract_hex(stub, write_addr, skip_ranges, max_size)
 		out.write_hex_file(opts.output)
 
+	def do_merge(self, subcmd, opts, file1, file2, file3):
+		"""${cmd_name}: merge two pic24 hex files together
+
+		Combine file1 and file2, where the contents of file2 overlap the contents of file1,
+		file2 will overwrite file1.  The result is saved into file3
+		
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		ih1 = intelhex.IntelHex(file1)
+		ih2 = intelhex.IntelHex(file2)
+
+		ih1.merge(ih2, overlap='replace')
+		ih1.write_hex_file(file3)
+
 	@cmdln.option("-p", '--pic24', action="store_true", default=False, help='Is the hex file for a 16 bit PIC' )
 	def do_compare(self, subcmd, opts, file1, file2):
 		"""${cmd_name}: compare file1 and file2 
