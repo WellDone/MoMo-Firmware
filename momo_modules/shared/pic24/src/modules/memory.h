@@ -5,6 +5,19 @@
 #include <stdlib.h>
 #include "pic24.h"
 
+#ifdef __PIC24FJ64GA306__
+#define RPSDO		21
+#define RPSCK		26
+#define RPSDI		27
+
+#define CS 			G8
+#define	SCK			G7
+#define SDO			G6
+#define SDI 		G9
+
+#define MEMPOWER 	E5
+#endif
+
 #define MEMORY_SUBSECTION_MASK 0xFFFULL
 #define MEMORY_SUBSECTION_SIZE 0x1000ULL
 
