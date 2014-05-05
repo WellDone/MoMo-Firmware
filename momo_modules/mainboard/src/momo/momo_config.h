@@ -16,6 +16,6 @@ void init_momo_config( unsigned int subsection_index );
 void reset_momo_state();
 void save_momo_state();
 void load_momo_state();
-void flush_config_to_memory();
+void flush_config_to_memory( void* );
 
 #endif

@@ -9,7 +9,7 @@
 #define LOBYTE(x) (x&0xFF)
 #define PACKWORD(hi, lo) ((hi&0xFF) << 8 | (lo&0xFF))
 
-typedef void(*alarm_callback)(void);
+typedef void(*alarm_callback)(void*);
 
 //Type Definitions
 typedef enum

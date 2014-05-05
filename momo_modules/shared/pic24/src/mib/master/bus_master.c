@@ -25,7 +25,7 @@ static void bus_master_finish()
 	mib_state.rpc_done = 1;
 
 	if ( !rpc_queue_empty() )
-			taskloop_add_critical( bus_master_rpc_async_do );
+			taskloop_add_critical( bus_master_rpc_async_do, NULL );
 
 	i2c_finish_transmission(); 
 	for(i=0; i<200; ++i)
@@ -41,12 +41,12 @@ void bus_master_init()
 	rpc_queue_init();
 }
 
-void bus_master_rpc_async_do()
+void bus_master_rpc_async_do( void* arg )
 {
 	master_rpcdata = rpc_queue_peek();
 	mib_state.master_callback = master_rpcdata->callback;
 
-	bus_master_sendrpc();
+	bus_master_sendrpc( NULL );
 	rpc_dequeue(NULL);
 }
 
@@ -56,7 +56,7 @@ void bus_master_rpc_async(mib_rpc_function callback, MIBUnified *data)
 	rpc_queue(callback, data);
 
 	if (mib_state.rpc_done)
-		bus_master_rpc_async_do();
+		bus_master_rpc_async_do( NULL );
 }
 
 /*
@@ -68,7 +68,7 @@ void bus_master_sendrpc()
 	//If the bus is not idle do not start an RPC, try later
 	if (!bus_is_idle())
 	{
-		taskloop_add_critical(bus_master_sendrpc);
+		taskloop_add_critical(bus_master_sendrpc, NULL);
 		return;
 	}
 
@@ -102,7 +102,7 @@ void bus_master_callback()
 {
 	if (i2c_master_lasterror() == kI2CCollision)
 	{
-		taskloop_add_critical(bus_master_sendrpc);
+		taskloop_add_critical(bus_master_sendrpc, NULL);
 		return;
 	}
 	

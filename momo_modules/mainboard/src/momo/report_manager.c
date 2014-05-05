@@ -304,11 +304,11 @@ void receive_gsm_stream_response(unsigned char a)
     return;
   }
   
-  taskloop_add( stream_to_gsm );
+  taskloop_add( stream_to_gsm, NULL );
 }
 
 static ScheduledTask report_task;
-void post_report() 
+void post_report( void* arg ) 
 {
   if (!construct_report( report_interval ))
     return; //TODO: Log failure
@@ -327,7 +327,7 @@ void post_report()
 }
 
 void start_report_scheduling() {
-    scheduler_schedule_task( post_report, report_interval, kScheduleForever, &report_task);
+    scheduler_schedule_task( post_report, report_interval, kScheduleForever, &report_task, NULL );
 }
 void stop_report_scheduling() {
     scheduler_remove_task( &report_task );
@@ -337,7 +337,7 @@ void set_report_scheduling_interval( AlarmRepeatTime interval ) {
     return;
   report_interval = interval;
   if ( BIT_TEST(report_task.flags, kBeingScheduledBit) )
-    scheduler_schedule_task( post_report, report_interval, kScheduleForever, &report_task);
+    scheduler_schedule_task( post_report, report_interval, kScheduleForever, &report_task, NULL );
 }
 void set_report_server_gsm_address( const char* address, uint8 len )
 {

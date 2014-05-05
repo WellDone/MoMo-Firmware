@@ -15,7 +15,7 @@
 #define enable_charging()		LAT(CHARGE_ENABLE) = 1
 
 void battery_init();
-void battery_callback();
+void battery_callback( void* );
 void report_battery();
 
 void battery_set_charging_allowed(int allowed);

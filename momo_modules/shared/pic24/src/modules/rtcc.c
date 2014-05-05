@@ -290,7 +290,7 @@ void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
     }
 
     if (the_alarm_callback != 0)
-        taskloop_add(the_alarm_callback);
+        taskloop_add(the_alarm_callback, NULL);
 
     IFS3bits.RTCIF = 0;
 }
