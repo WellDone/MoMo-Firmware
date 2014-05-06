@@ -32,7 +32,7 @@ static void bus_master_finish()
 		;			
 	
 	if (mib_state.master_callback != NULL)
-		mib_state.master_callback(mib_unified.bus_returnstatus.result);
+		mib_state.master_callback( (mib_unified.bus_returnstatus.return_status==0xFF)?0xFF:mib_unified.bus_returnstatus.result );
 }
 
 void bus_master_init()
