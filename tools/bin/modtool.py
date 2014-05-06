@@ -319,6 +319,18 @@ class ModTool(cmdln.Cmdln):
 
 		print con.current_time()
 
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_battery(self, subcmd, opts):
+		"""${cmd_name}: Get the current battery voltage
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		con = self._get_controller(opts)
+
+		print con.battery_status()
+
 	def _get_controller(self, opts):
 		try:
 			c = get_controller(opts.port)
