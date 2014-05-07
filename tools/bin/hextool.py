@@ -20,6 +20,7 @@ class HexTool(cmdln.Cmdln):
 	@cmdln.option('-a', '--addr', action='store', help="the address to patch")
 	@cmdln.option('-v', '--verify', action='store', default=None, help="verify the previous contents before patching")
 	@cmdln.option('-r', '--replace', action='store')
+	@cmdln.option("-p", '--pic24', action="store_true", default=False, help='Is the hex file for a 16 bit PIC' )
 	def do_patch(self, subcmd, opts, hexfile):
 		"""${cmd_name}: patch a 16 bit pic12 or pic16 hex file
 
@@ -35,20 +36,26 @@ class HexTool(cmdln.Cmdln):
 		verify = None
 		addr = self.parse_num(opts.addr)
 
-		repl = self.parse_instr(opts.replace)
-		if opts.verify is not None:
-			verify = self.parse_instr(opts.verify)
-
 		#Do the patching
-		ih = self.load_ih(hexfile)
+		ih = self.load_ih(hexfile, pic24=opts.pic24)
 
-		if verify is not None:
-			op = verify.encode()
-			if ih[addr] != op:
-				self.error("Verification failed, old address contents: 0x%X, expected 0x%X for '%s'" % (ih[addr], op, str(verify.op)))
+		if opts.pic24 == False:
+			repl = self.parse_instr(opts.replace)
+			if opts.verify is not None:
+				verify = self.parse_instr(opts.verify)
 
-		print "Replacing Instruction at 0x%X with %s" % (addr, repl.op)
-		ih[addr] = repl.encode()
+			if verify is not None:
+				op = verify.encode()
+				if ih[addr] != op:
+					self.error("Verification failed, old address contents: 0x%X, expected 0x%X for '%s'" % (ih[addr], op, str(verify.op)))
+
+			print "Replacing Instruction at 0x%X with %s" % (addr, repl.op)
+			ih[addr] = repl.encode()
+		else:
+			repl = self.parse_num(opts.replace)
+			print "Replacing 0x%X at address 0x%X with 0x%X" % (ih[addr*2], addr, repl)
+			ih[addr*2] = repl
+
 		ih.write_hex_file(opts.output)
 
 	@cmdln.option('-o', '--output', action='store',  help='output hex file')
@@ -109,6 +116,22 @@ class HexTool(cmdln.Cmdln):
 
 		out = merge.extract_hex(stub, write_addr, skip_ranges, max_size)
 		out.write_hex_file(opts.output)
+
+	def do_merge(self, subcmd, opts, file1, file2, file3):
+		"""${cmd_name}: merge two pic24 hex files together
+
+		Combine file1 and file2, where the contents of file2 overlap the contents of file1,
+		file2 will overwrite file1.  The result is saved into file3
+		
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		ih1 = intelhex.IntelHex(file1)
+		ih2 = intelhex.IntelHex(file2)
+
+		ih1.merge(ih2, overlap='replace')
+		ih1.write_hex_file(file3)
 
 	@cmdln.option("-p", '--pic24', action="store_true", default=False, help='Is the hex file for a 16 bit PIC' )
 	def do_compare(self, subcmd, opts, file1, file2):
