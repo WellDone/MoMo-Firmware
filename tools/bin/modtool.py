@@ -332,13 +332,14 @@ class ModTool(cmdln.Cmdln):
 		print con.battery_status()
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-	def do_scheduler(self, subcmd, opts, command, index = 0):
+	def do_scheduler(self, subcmd, opts, command, index = None):
 		"""${cmd_name}: Get the current battery voltage
 
 		Possible subcommands are heartbeat, reset and attached.  
 		- new creates a new dummy scheduled task (address 43, feature 20, command 8, frequency 1s)
 		- remove removes the dummy scheduled task
 		- map returns the map of task buckets
+		- describe <index> describes the callback at index <index>
 
 		${cmd_usage}
 		${cmd_option_list}
@@ -352,8 +353,34 @@ class ModTool(cmdln.Cmdln):
 		elif command == "remove":
 			con.scheduler_remove(43, 20, 8, 1)
 		elif command == "describe":
-			for x in con.scheduler_describe(index):
-				print int(ord(x))
+			if index == None:
+				print "You must specify a scheduler index to describe."
+				exit(1)
+			callback = con.scheduler_describe(index)
+			if callback == None:
+				print "No scheduled callback found at index %d" % int(index)
+				exit(1)
+			print "Address: %d" % int(callback[0])
+			print "Feature: %d" % int(callback[1])
+			print "Command: %d" % int(callback[2])
+			if callback[3] == 0:
+				frequency = "Every half second"
+			elif callback[3] == 1:
+				frequency = "Every second"
+			elif callback[3] == 2:
+				frequency = "Every 10 seconds"
+			elif callback[3] == 3:
+				frequency = "Every minute"
+			elif callback[3] == 4:
+				frequency = "Every 10 minutes"
+			elif callback[3] == 5:
+				frequency = "Every hour"
+			elif callback[3] == 6:
+				frequency = "Every day"
+			else:
+				frequency = "<unknown>"
+
+			print "Frequency: %s" % frequency
 
 		else:
 			print "Invalid subcommand specified for command 'scheduler'."

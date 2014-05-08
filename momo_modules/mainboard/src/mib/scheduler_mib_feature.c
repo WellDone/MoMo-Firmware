@@ -88,6 +88,11 @@ void get_callback_map()
 void describe_callback()
 {
 	uint8 index = plist_get_int8(0);
+	if ( index >= 16 || !( callback_map & 0x1<<index ) )
+	{
+		bus_slave_seterror( kCallbackError );
+		return;
+	}
 	bus_slave_return_buffer( &(callbacks[index]), sizeof(scheduled_callback) );
 }
 
