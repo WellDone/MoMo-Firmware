@@ -331,6 +331,34 @@ class ModTool(cmdln.Cmdln):
 
 		print con.battery_status()
 
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_scheduler(self, subcmd, opts, command, index = 0):
+		"""${cmd_name}: Get the current battery voltage
+
+		Possible subcommands are heartbeat, reset and attached.  
+		- new creates a new dummy scheduled task (address 43, feature 20, command 8, frequency 1s)
+		- remove removes the dummy scheduled task
+		- map returns the map of task buckets
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		con = self._get_controller(opts)
+		if command == "map":
+			print bin( con.scheduler_map() )
+		elif command == "new":
+			con.scheduler_new(43, 20, 8, 1)
+		elif command == "remove":
+			con.scheduler_remove(43, 20, 8, 1)
+		elif command == "describe":
+			for x in con.scheduler_describe(index):
+				print int(ord(x))
+
+		else:
+			print "Invalid subcommand specified for command 'scheduler'."
+			exit(1)
+
 	def _get_controller(self, opts):
 		try:
 			c = get_controller(opts.port)
