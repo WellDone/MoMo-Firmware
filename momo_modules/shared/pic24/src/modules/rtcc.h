@@ -4,25 +4,13 @@
 
 #include "interrupts.h"
 #include "common_types.h"
+#include "alarm_repeat_times.h"
 
 #define HIBYTE(x) ((x&0xFF00) >> 8)
 #define LOBYTE(x) (x&0xFF)
 #define PACKWORD(hi, lo) ((hi&0xFF) << 8 | (lo&0xFF))
 
 typedef void(*alarm_callback)(void*);
-
-//Type Definitions
-typedef enum
-{
-    kEveryHalfSecond = 0b0000,
-    kEverySecond = 0b0001,
-    kEvery10Seconds = 0b0010,
-    kEveryMinute = 0b0011,
-    kEvery10Minutes = 0b0100,
-    kEveryHour = 0b0101,
-    kEveryDay = 0b0110,
-    kNumAlarmTimes
-} AlarmRepeatTime;
 
 //Only the first 6 bytes of rtcc_datetime are significant for comparisons.  Don't compare the weekday
 #define kTimeCompareSize    6
