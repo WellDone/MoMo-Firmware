@@ -16,8 +16,8 @@ typedef struct {
 	ScheduledTask task;
 } scheduled_callback;
 
-static scheduled_callback callbacks[16];
-static uint16 callback_map;
+#define MAX_SCHEDULED_CALLBACKS 16
+static scheduled_callback callbacks[MAX_SCHEDULED_CALLBACKS];
 
 static void callback( void* arg )
 {
@@ -39,9 +39,9 @@ void schedule_callback()
 	uint8 frequency = plist_get_int16(2) & 0xFF;
 
 	uint8 index = 0;
-	for ( index = 0; index < 16; ++index )
+	for ( index = 0; index < MAX_SCHEDULED_CALLBACKS; ++index )
 	{
-		if ( !( callback_map & 0x1<<index ) )
+		if ( callbacks[index].address == 0 )
 		{
 			scheduled_callback* cb = &(callbacks[index]);
 			cb->address = address;
@@ -50,7 +50,6 @@ void schedule_callback()
 			cb->frequency = frequency;
 
 			scheduler_schedule_task( callback, cb->frequency, kScheduleForever, &(cb->task), (void*) cb );
-			callback_map |= 0x1<<index;
 			break;
 		}
 	}
@@ -66,29 +65,35 @@ void stop_scheduled_callback()
 	uint8 frequency = plist_get_int16(2) & 0xFF;
 
 	uint8 index;
-	for ( index = 0; index < 16; ++index )
+	for ( index = 0; index < MAX_SCHEDULED_CALLBACKS; ++index )
 	{
-		if ( callback_map & 0x1<<index &&
-			   callbacks[index].address == address &&
+		if ( callbacks[index].address == address &&
 			   callbacks[index].feature == feature &&
 			   callbacks[index].command == command &&
 			   callbacks[index].frequency == frequency )
 		{
 			scheduler_remove_task( &callbacks[index].task );
-			callback_map &= ~( 0x1<<index );
+			callbacks[index].address = 0;
 		}
 	}
 }
 
 void get_callback_map()
 {
+	uint32 callback_map = 0;
+	uint8 index;
+	for ( index = 0; index < MAX_SCHEDULED_CALLBACKS; ++index )
+	{
+		if ( callbacks[index].address != 0 )
+			callback_map |= 0x1 << index;
+	}
 	bus_slave_return_int16( callback_map );
 }
 
 void describe_callback()
 {
 	uint8 index = plist_get_int8(0);
-	if ( index >= 16 || !( callback_map & 0x1<<index ) )
+	if ( index >= MAX_SCHEDULED_CALLBACKS || callbacks[index].address == 0 )
 	{
 		bus_slave_seterror( kCallbackError );
 		return;
