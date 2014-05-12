@@ -1,9 +1,10 @@
+#define MOMO_STATE_CONTROLLER
 #include "momo_config.h"
 #include "memory.h"
 #include "scheduler.h"
 #include "flashblock.h"
 
-MoMoState        current_momo_state;
+MoMoState               current_momo_state;
 static flash_block_info config_block;
 static ScheduledTask    flush_config_task;
 

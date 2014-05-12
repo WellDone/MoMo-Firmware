@@ -72,10 +72,16 @@ void flash_queue_queue( flash_queue* queue, const void* data )
 
 void wrap_start_pointer( flash_queue* queue )
 {
-  if ( queue->counters.start + queue->elem_size > queue->end_address )
+  uint32 new_start = queue->counters.start + queue->elem_size;
+  if ( new_start > queue->end_address )
   {
     queue->counters.start = queue->start_address;
   }
+  else if ( MEMORY_ADDR_SUBSECTION( queue->counters.start ) != MEMORY_ADDR_SUBSECTION( new_start ) )
+  {
+    queue->counters.start = MEMORY_ADDR_SUBSECTION_ADDR( new_start );
+  }
+
 }
 bool flash_queue_dequeue( flash_queue* queue, void* data )
 {

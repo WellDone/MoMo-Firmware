@@ -8,7 +8,9 @@ typedef struct {
   bool registered;
 } MoMoState;
 
+#ifndef MOMO_STATE_CONTROLLER
 extern MoMoState current_momo_state;
+#endif
 
 void init_momo_config( unsigned int subsection_index );
 void reset_momo_state();

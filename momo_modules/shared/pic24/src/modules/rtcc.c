@@ -79,6 +79,12 @@ void rtcc_get_time(rtcc_datetime *time)
     get_rtcc_datetime_unsafe(time);
 }
 
+void rtcc_get_timestamp(rtcc_timestamp* time)
+{
+    rtcc_datetime datetime;
+    rtcc_get_time( &datetime );
+    rtcc_create_timestamp( &datetime, time );
+}
 void rtcc_create_timestamp(const rtcc_datetime *source, rtcc_timestamp *dest)
 {
     dest->year = source->year;
@@ -105,14 +111,72 @@ uint16 rtcc_compare_times(rtcc_datetime *time1, rtcc_datetime *time2)
     return memcmp(time1, time2, kTimeCompareSize);
 }
 
-void rtcc_datetime_difference(rtcc_datetime *time1, rtcc_datetime *time2)
+bool isLeapYear( uint8 year )
 {
-    time2->year     -= time1->year;
-    time2->month    -= time1->month;
-    time2->day      -= time1->day;
-    time2->weekday  -= time1->weekday;
-    time2->minutes  -= time1->minutes;
-    time2->seconds  -= time1->seconds;
+    if ( ( (year%4 == 0) && (year%100 != 0) ) || (year%400 == 0) )
+        return true;
+    else
+        return false;
+}
+
+int32 rtcc_timestamp_difference(rtcc_timestamp *time1, rtcc_timestamp *time2)
+{
+    int32 result = 0;
+    uint8 i;
+    result += time2->seconds - time1->seconds;
+    result += 60 * (time2->minutes - time1->minutes);
+    result += 3600L * (time2->hours - time1->hours);
+
+    uint8 start_counter, end_counter;
+    int8 polarity;
+    if ( time2->month == time1->month )
+    {
+        result += 86400L * (time2->day - time1->day );
+    }
+    else
+    {
+        if ( time1->month < time2->month )
+        {
+            start_counter = time1->month;
+            end_counter = time2->month;
+            polarity = 1;
+        }
+        else
+        {
+            start_counter = time2->month;
+            end_counter = time1->month;
+            polarity = -1;
+        }
+        for ( i = start_counter; i < end_counter; ++i )
+        {
+            if ( i == 2 )
+                result += polarity * 86400L * (isLeapYear( time1->year )? 28 : 29);
+            else if ( i == 9 || i == 4 || i == 6 || i == 11 )
+                result += polarity * 86400L * 30;
+            else
+                result += polarity * 86400L * 31;
+        }
+    }
+
+    if ( time1->year < time2->year )
+    {
+        start_counter = time1->year;
+        end_counter = time2->year;
+        polarity = 1;
+    }
+    else 
+    {
+        start_counter = time2->year;
+        end_counter = time1->year;
+        polarity = -1;
+    }
+    
+    for ( i = start_counter; i < end_counter; ++i )
+    {
+        result += polarity * (isLeapYear( i )? 315360000L : 31449600); // Possible leap year double-counting
+    }
+
+    return result;
 }
 
 void get_rtcc_datetime_unsafe(rtcc_datetime *time)

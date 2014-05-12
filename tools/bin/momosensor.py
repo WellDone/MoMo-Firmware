@@ -27,7 +27,7 @@ class MoMoSensor(cmdln.Cmdln):
 		meta = 0x0;
 		s = sched.scheduler(time.time, time.sleep)
 		def log_event( scheduler ):
-			s.enter( .1, 1, log_event, (scheduler,) )
+			s.enter( 1, 1, log_event, (scheduler,) )
 			value = randint(1,1000)
 			con.sensor_log( int(sensor_address), int(meta), value )
 			print "Logged event!  Value: %d" % value
@@ -108,7 +108,7 @@ class MoMoSensor(cmdln.Cmdln):
 
 		print "Stream: %d" % event.stream
 		print "MetaData: %d" % event.metadata
-		print "Timestamp: {:%Y-%m-%d %H:%M:%S}".format( event.timestamp )
+		print "Timestamp: %s" % str( event.timestamp )
 		print "Value: %d" % event.value
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
