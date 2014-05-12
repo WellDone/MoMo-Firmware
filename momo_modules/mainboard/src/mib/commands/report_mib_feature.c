@@ -16,7 +16,7 @@ static void stop_scheduled_reporting(void)
 
 static void send_report(void)
 {
-	taskloop_add( post_report );
+	taskloop_add( post_report, NULL );
 }
 
 static void set_reporting_interval(void)

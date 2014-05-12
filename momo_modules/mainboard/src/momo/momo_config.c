@@ -33,7 +33,7 @@ void load_momo_state()
     fb_read( &config_block, &current_momo_state );
 }
 
-void flush_config_to_memory()
+void flush_config_to_memory( void* arg )
 {
   //There could be a race condition here
   fb_write( &config_block, &current_momo_state );
@@ -43,6 +43,6 @@ void flush_config_to_memory()
 void save_momo_state()
 {
   if ( config_state == kClean )
-    scheduler_schedule_task( flush_config_to_memory, kEvery10Seconds, 1, &flush_config_task );
+    scheduler_schedule_task( flush_config_to_memory, kEvery10Seconds, 1, &flush_config_task, NULL );
   config_state = kDirty;
 }

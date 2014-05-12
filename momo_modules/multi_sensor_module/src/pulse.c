@@ -37,6 +37,9 @@ void pulse_readone()
 	while(PIN(PULSE_IN) == 0 && TMR1IF == 0)
 		;
 
+	if (TMR1IF == 1)
+		return;
+
 	++counter;
 }
 

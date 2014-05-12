@@ -36,10 +36,10 @@ void battery_init()
 
     charging_allowed = 1;
 
-	scheduler_schedule_task(battery_callback, kEvery10Seconds, kScheduleForever, &battery_task);
+	scheduler_schedule_task(battery_callback, kEvery10Seconds, kScheduleForever, &battery_task, NULL);
 }
 
-void battery_callback()
+void battery_callback( void* arg )
 {
 	if (!charging_allowed)
 		return;

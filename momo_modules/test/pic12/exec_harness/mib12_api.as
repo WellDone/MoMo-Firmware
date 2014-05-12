@@ -9,7 +9,7 @@
 #include "constants.h"
 
 global _bus_master_rpc_sync, _bus_slave_setreturn
-global _mib_buffer,_mib_packet,_mib_state
+global _mib_buffer,_mib_packet,_mib_state,_slave_address
 
 ;API Functions
 _bus_master_rpc_sync equ (kFirstApplicationRow-1)*16 + 14
@@ -20,3 +20,4 @@ psect mibstate class=BANK1,abs
 _mib_buffer equ 0xAA
 _mib_packet equ 0xA7
 _mib_state  equ 0xA0
+_slave_address equ 0xA4
