@@ -37,7 +37,7 @@ bool log_sensor_event( uint8 module, SensorMetadata metadata, const rtcc_datetim
   event.value = *value;
 
   ringbuffer_push( &event_buffer, &event );
-  taskloop_add( flush_one_event );
+  taskloop_add( flush_one_event, NULL );
 
   return true;
 }

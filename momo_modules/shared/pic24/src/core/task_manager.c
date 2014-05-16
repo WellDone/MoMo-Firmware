@@ -40,10 +40,11 @@ void taskloop_set_sleephandler(sleep_callback handler)
     taskqueue.sleep_handler = handler;
 }
 
-int taskloop_add_impl(task_callback task, bool critical )
+int taskloop_add_impl(task_callback task, void* argument, bool critical )
 {
     task_item object;
     object.callback = task;
+    object.argument = argument;
     object.critical = critical;
     if ( ringbuffer_full( &taskqueue.tasks ) )
         return 0;
@@ -53,14 +54,14 @@ int taskloop_add_impl(task_callback task, bool critical )
     return 1;
 }
 
-int taskloop_add(task_callback task)
+int taskloop_add(task_callback task, void* argument)
 {
-    return taskloop_add_impl( task, false );
+    return taskloop_add_impl( task, argument, false );
 }
 
-int taskloop_add_critical(task_callback task)
+int taskloop_add_critical(task_callback task, void* argument)
 {
-    return taskloop_add_impl( task, true );   
+    return taskloop_add_impl( task, argument, true );   
 }
 
 void taskloop_lock()
@@ -101,7 +102,7 @@ int taskloop_process_one()
     if ( taskloop_locked() && !task.critical )
         ringbuffer_push( &taskqueue.tasks, &task );
     else
-        task.callback();
+        task.callback( task.argument );
 
     return 1;
 }

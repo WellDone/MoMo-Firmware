@@ -125,7 +125,7 @@ void __attribute__((interrupt,no_auto_psv)) _ADC1Interrupt()
 		adc_disable();
 
 	if (adc_callback)
-		taskloop_add(adc_callback);
+		taskloop_add(adc_callback, NULL);
 
 	_AD1IF = 0;
 }

@@ -53,7 +53,7 @@ void main()
     }
     
     if (status.valid_app && PIN(ALARM) == 1)
-    {  
+    {
         call_app_init();
         reset_page();
 

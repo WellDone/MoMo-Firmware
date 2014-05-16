@@ -30,7 +30,7 @@ enum {
 #include "rtcc.h"
 
 void create_report();
-void post_report();
+void post_report( void* );
 void start_report_scheduling();
 void stop_report_scheduling();
 void set_report_scheduling_interval( AlarmRepeatTime interval );
