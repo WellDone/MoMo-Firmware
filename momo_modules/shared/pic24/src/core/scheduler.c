@@ -21,7 +21,11 @@ void scheduler_init()
 		state.tasks[i] = 0;
 }
 
-void scheduler_schedule_task(task_callback func, AlarmRepeatTime freq, unsigned char numtimes, ScheduledTask /*out*/ *saved_task)
+void scheduler_schedule_task( task_callback func,
+                              AlarmRepeatTime freq,
+                              unsigned char numtimes,
+                              ScheduledTask /*out*/ *saved_task,
+                              void *argument )
 {
 	//If this task is already scheduled, remove it and then readd it so we don't get corruptions
 	if (BIT_TEST(saved_task->flags, kBeingScheduledBit))
@@ -34,6 +38,7 @@ void scheduler_schedule_task(task_callback func, AlarmRepeatTime freq, unsigned 
 	}
 
 	saved_task->callback = func;
+	saved_task->argument = argument;
 	saved_task->flags = 0;
 	saved_task->remaining_calls = numtimes;
 	saved_task->flags |= (freq & kScheduleFrequencyMask);
@@ -151,7 +156,7 @@ void scheduler_callback()
 				--curr->remaining_calls;
 			}
 
-			taskloop_add(curr->callback);
+			taskloop_add(curr->callback, curr->argument);
 
 			last = curr;
 			curr = curr->next;

@@ -11,3 +11,4 @@ feature 20
 5: _acquire_voltage(0, no);
 6: _acquire_pulse(0, no);
 7: _read_pulses(0, no);
+8: _scheduled_callback(0, no);
