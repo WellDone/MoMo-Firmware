@@ -8,8 +8,6 @@ from pymomo.commander.meta import *
 from pymomo.commander.exceptions import *
 from pymomo.commander.proxy import *
 
-import struct
-
 import cmdln
 
 class GSMTool(cmdln.Cmdln):
