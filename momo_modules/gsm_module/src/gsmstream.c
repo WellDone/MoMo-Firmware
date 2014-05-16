@@ -10,33 +10,15 @@
 #include "gsm_defines.h"
 #include "gsm_strings.h"
 #include "gsm_serial.h"
+#include "gsm_module.h"
+#include "global_state.h"
 #include "simcard.h"
-
-extern uint8 gsm_buffer[32];
-extern uint8 buffer_len;
-
-typedef union 
-{
-	struct
-	{
-		volatile uint8 open_module:1;
-		volatile uint8 close_module:1;
-		volatile uint8 send_command:1;
-		volatile uint8 module_open:1;
-		volatile uint8 last_response:1;
-		volatile uint8 wait_for_text: 1;
-		volatile uint8 unused:2;
-	};
-
-	volatile uint8 gsm_state;
-} ModuleState;
-
-extern ModuleState state;
 
 #define _XTAL_FREQ			4000000
 
  void gsm_openstream()
  {
+ 	gsm_on();
  	if (PIN(GSMSTATUSPIN) == 0)
  	{
  		bus_slave_setreturn(pack_return_status(6,0));
@@ -78,8 +60,9 @@ extern ModuleState state;
  {
  	gsm_buffer[0] = 0x1A;
  	buffer_len = 1;
+
+ 	state.shutdown_pending = 1;  // Shutdown the module after we've sent the message.
  	send_buffer();
 
- 	receive_response();
  	bus_slave_setreturn(pack_return_status(0,0));
  }

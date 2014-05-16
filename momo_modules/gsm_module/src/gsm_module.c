@@ -14,7 +14,9 @@ void gsm_init()
 	MAKE_ANALOG(GSMRESETPIN);
 
 	buffer_len = 0;
+	rx_buffer_start = rx_buffer_end = rx_buffer_len = 0;
 	state.module_on = 0;
+	state.shutdown_pending = 0;
 }
 
 uint8 gsm_on()

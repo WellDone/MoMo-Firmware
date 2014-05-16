@@ -16,6 +16,7 @@ feature 10
 4: _gsm_dumpbuffer(0, no);
 5: _gsm_module_off(0, no);
 6: _gsm_power_off(0, no);
+7: _gsm_debug(0, no);
 
 #Communication Channel Feature
 feature 11

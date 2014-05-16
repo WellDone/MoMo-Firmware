@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-#define kHalfSecondConstant 3036UL
-
 void 		pulse_sample();
 uint16_t 	pulse_count();
 

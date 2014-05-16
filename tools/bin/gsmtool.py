@@ -8,6 +8,8 @@ from pymomo.commander.meta import *
 from pymomo.commander.exceptions import *
 from pymomo.commander.proxy import *
 
+import struct
+
 import cmdln
 
 class GSMTool(cmdln.Cmdln):
@@ -44,8 +46,26 @@ class GSMTool(cmdln.Cmdln):
 		${cmd_option_list}
 		"""
 		gsm = self._create_proxy( opts )
-		res = gsm.dump_buffer();
-		print "buffer: " + res
+		res = gsm.dump_buffer()
+		print "buffer (%d): %s" % (len(res), res)
+		for i in range( 0, len(res) ):
+			print ord(res[i])
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
+	def do_debug(self, subcmd, opts):
+		"""${cmd_name}: Get debug info
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		gsm = self._create_proxy( opts )
+		res = gsm.debug()
+		print "module_on: %s" % bool(ord(res[0]))
+		print "shutdown_pending: %s" % bool(ord(res[1]))
+		print "rx_buffer_start: %d" % ord(res[2])
+		print "rx_buffer_end: %d" % ord(res[3])
+		print "rx_buffer_len: %d" % ord(res[4])
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
