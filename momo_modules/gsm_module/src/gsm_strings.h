@@ -8,7 +8,6 @@
 
 #ifndef __DEFINES_ONLY__
 #include "platform.h"
-#define bool uint8
 
 extern uint8 match_okay_response();
 extern uint8 match_error_response();
