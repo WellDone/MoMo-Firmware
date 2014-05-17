@@ -49,6 +49,72 @@ class Reportinator(cmdln.Cmdln):
 		con = self._get_controller( opts )
 		con.send_report();
 
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_route(self, subcmd, opts, addr=None):
+		"""${cmd_name}: Get or set the destination address for reporting.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		con = self._get_controller( opts )
+		if ( addr != None ):
+			con.set_report_address( addr )
+		route = con.get_report_address();
+		print "(%d) %s" % (len(route), route)
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_interval(self, subcmd, opts, interval=None):
+		"""${cmd_name}: Get or set the reporting interval.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		con = self._get_controller( opts )
+		if ( interval != None ):
+			con.rpc( 60, 0x03, int(interval))
+		interval = con.rpc( 60, 0x04, result_type=(1,False) );
+		print "%d" % interval['ints'][0]
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_flags(self, subcmd, opts, flags=None):
+		"""${cmd_name}: Get or set the report flags.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		con = self._get_controller( opts )
+		if ( flags != None ):
+			con.rpc( 60, 0x07, int(flags))
+		flags = con.rpc( 60, 0x08, result_type=(1,False) );
+		print "%d" % flags['ints'][0]
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_aggregates(self, subcmd, opts, bulk=None, interval=None):
+		"""${cmd_name}: Get or set the report aggregates.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		con = self._get_controller( opts )
+		if ( bulk != None and interval != None ):
+			con.rpc( 60, 0x09, int(bulk), int(interval))
+		aggregates = con.rpc( 60, 0x0A, result_type=(2,False) );
+		print "bulk:     %d" % aggregates['ints'][0]
+		print "interval: %d" % aggregates['ints'][1]
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_sequence(self, subcmd, opts):
+		"""${cmd_name}: Get the current report sequence.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		con = self._get_controller( opts )
+		sequence = con.rpc( 60, 0x0B, result_type=(1,False) );
+		print "%d" % sequence['ints'][0]
+
+
+
 	def do_parse(self, subcmd, opts, report):
 		"""${cmd_name}: Parse a report in BASE64 format
 

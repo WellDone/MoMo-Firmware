@@ -13,6 +13,9 @@
 #include "i2c.h"
 #include "bus.h"
 
+#include "momo_config.h"
+#include "sensor_event_log.h"
+
 #define MODULE_BASE_ADDRESS 11
 
 static momo_module_descriptor the_modules[MAX_MODULES];
@@ -174,6 +177,13 @@ void reset_self()
 	asm volatile("reset");
 }
 
+void factory_reset()
+{
+	reset_momo_state();
+	save_momo_state();
+	sensor_event_log_clear();
+}
+
 void current_time()
 {
 	rtcc_datetime t;
@@ -221,5 +231,6 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x0D, debug_value, plist_spec_empty()},
 	{0x0E, set_sleep, plist_spec(1, false)},
 	{0x0F, reset_self, plist_spec_empty()},
+	{0x10, factory_reset, plist_spec_empty()}
 };
 DEFINE_MIB_FEATURE(controller);

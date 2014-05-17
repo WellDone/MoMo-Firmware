@@ -76,6 +76,15 @@ class ModTool(cmdln.Cmdln):
 		con.reset()
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_factory_reset(self, subcmd, opts):
+		really = raw_input("Are you sure you want to reset the device to factory defaults?  Data will be lost.  [y/N]: ")
+		if ( really == "y" or really == "Y" or really == "yes" or really == "Yes" ):
+			con = self._get_controller(opts)
+			con.factory_reset()
+		else:
+			print "Cancelled!"
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_recover(self, subcmd, opts):
 		con = self._get_controller(opts)
 

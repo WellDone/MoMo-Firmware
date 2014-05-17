@@ -1,5 +1,4 @@
 #include "report_manager.h"
-#include "common.h"
 #include "scheduler.h"
 #include "momo_config.h"
 #include "sensor_event_log.h"
@@ -18,7 +17,9 @@ static BYTE report_buffer[RAW_REPORT_MAX_LENGTH];
 static char base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 
 //TODO: Implement dynamic report routing based on an initial "registration" ping to the coordinator address
-//static const char fallback_server_gsm_address[13] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0'};
+static const char default_server_gsm_address[16] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0'};
+
+#define CONFIG current_momo_state.report_config
 
 extern unsigned int last_battery_voltage;
 static sensor_event event_buffer[EVENT_BUFFER_SIZE];
@@ -48,13 +49,15 @@ typedef struct {
   uint16 sum;
 } agg_counters;
 
-// TODO: Save to flash, support dynamic configuration (per comm module and/or per sensor)
-static char report_server_gsm_address[16] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0','\0',0,0};
-static uint16          current_sequence    = 0;
-static AlarmRepeatTime report_interval     = kEveryMinute;
-static uint16          report_flags        = kReportFlagDefault;
-static uint8           bulk_aggregates     = kAggCount | kAggMin | kAggMax;
-static uint8           interval_aggregates = kAggCount | kAggMean;
+void init_report_config()
+{
+  memcpy( CONFIG.report_server_address, default_server_gsm_address, 16 );
+  CONFIG.current_sequence          = 0;
+  CONFIG.report_interval           = kEveryMinute;
+  CONFIG.report_flags              = kReportFlagDefault;
+  CONFIG.bulk_aggregates           = kAggCount | kAggMin | kAggMax;
+  CONFIG.interval_aggregates       = kAggCount | kAggMean;
+}
 
 void update_interval_headers( report_header* header, AlarmRepeatTime interval )
 {
@@ -170,15 +173,15 @@ bool construct_report()
 
   header->report_version = 2;
   header->sensor_id = 0;
-  header->sequence = current_sequence++;
-  header->flags = report_flags;
+  header->sequence = CONFIG.current_sequence++;
+  header->flags = CONFIG.report_flags;
   header->battery_voltage = last_battery_voltage;
   header->diagnostics[0] = sensor_event_log_count();
   header->diagnostics[1] = 0;
-  header->bulk_aggregates = bulk_aggregates;
-  header->interval_aggregates = interval_aggregates;
+  header->bulk_aggregates = CONFIG.bulk_aggregates;
+  header->interval_aggregates = CONFIG.interval_aggregates;
 
-  update_interval_headers( header, report_interval );
+  update_interval_headers( header, CONFIG.report_interval );
 
   int32 time_delta = create_time_delta( header );
   int32 time_step = time_delta / header->interval_count;
@@ -194,7 +197,7 @@ bool construct_report()
 
   uint8 i, c, bucket = 0;
   uint16* bulk_ptr = (uint16*) ( report_buffer + sizeof(report_header) );
-  uint16* bucket_ptr = bulk_ptr + agg_size( bulk_aggregates );
+  uint16* bucket_ptr = bulk_ptr + agg_size( CONFIG.bulk_aggregates );
   
   do
   {
@@ -205,14 +208,14 @@ bool construct_report()
         header->sensor_id = event_buffer[i].module;
       else if ( header->sensor_id != event_buffer[i].module )
         continue; // TODO: Support multiple sensor streams
-      if ( bulk_aggregates != kAggNone)
+      if ( CONFIG.bulk_aggregates != kAggNone)
       {
         update_agg( &bulk_agg, &event_buffer[i] );
       }
 
-      if ( interval_aggregates != kAggNone )
+      if ( CONFIG.interval_aggregates != kAggNone )
       {
-        if ( (BYTE*)(bucket_ptr + agg_size(interval_aggregates)) - report_buffer > RAW_REPORT_MAX_LENGTH )
+        if ( (BYTE*)(bucket_ptr + agg_size(CONFIG.interval_aggregates)) - report_buffer > RAW_REPORT_MAX_LENGTH )
           continue; //TODO: Extend to a second SMS
 
         int32 time_seconds = rtcc_timestamp_difference( &event_buffer[i].timestamp, &now );
@@ -234,7 +237,7 @@ bool construct_report()
         uint8 new_bucket = header->interval_count - 1 - ( time_seconds / time_step );
         while ( bucket < new_bucket )
         {
-          finish_agg( &int_agg, interval_aggregates, &bucket_ptr );
+          finish_agg( &int_agg, CONFIG.interval_aggregates, &bucket_ptr );
           init_agg( &int_agg );
           ++bucket;
         }
@@ -244,22 +247,22 @@ bool construct_report()
   }
   while ( c > 0 );
 
-  if ( interval_aggregates != kAggNone )
+  if ( CONFIG.interval_aggregates != kAggNone )
   {
     while ( bucket < header->interval_count )
     {
-      if ( (BYTE*)(bucket_ptr + agg_size(interval_aggregates)) - report_buffer > RAW_REPORT_MAX_LENGTH )
+      if ( (BYTE*)(bucket_ptr + agg_size(CONFIG.interval_aggregates)) - report_buffer > RAW_REPORT_MAX_LENGTH )
         break; //TODO: Extend to a second SMS
 
-      finish_agg( &int_agg, interval_aggregates, &bucket_ptr );
+      finish_agg( &int_agg, CONFIG.interval_aggregates, &bucket_ptr );
       init_agg( &int_agg );
       ++bucket;
     }
   }
 
-  if ( bulk_aggregates != kAggNone)
+  if ( CONFIG.bulk_aggregates != kAggNone)
   {
-    finish_agg( &bulk_agg, bulk_aggregates, &bulk_ptr );
+    finish_agg( &bulk_agg, CONFIG.bulk_aggregates, &bulk_ptr );
   }
 
   i = base64_encode( (const BYTE*)report_buffer, (BYTE*)bucket_ptr - report_buffer, base64_report_buffer, BASE64_REPORT_MAX_LENGTH );
@@ -296,6 +299,8 @@ void stream_to_gsm() {
   cmd.bus_command.command = 1;
   cmd.bus_command.param_spec = plist_with_buffer(0,byte_count);
 
+  save_momo_state();
+
   bus_master_rpc_async( receive_gsm_stream_response, &cmd);
 }
 void receive_gsm_stream_response(unsigned char a) 
@@ -310,7 +315,7 @@ void receive_gsm_stream_response(unsigned char a)
 static ScheduledTask report_task;
 void post_report( void* arg ) 
 {
-  if (!construct_report( report_interval ))
+  if (!construct_report( CONFIG.report_interval ))
     return; //TODO: Log failure
 
   report_stream_offset = 0;
@@ -321,13 +326,13 @@ void post_report( void* arg )
   cmd.address = 11;
   cmd.bus_command.feature = 11;
   cmd.bus_command.command = 0;
-  cmd.bus_command.param_spec = plist_with_buffer(0,strlen(report_server_gsm_address));
-  memcpy( cmd.mib_buffer, report_server_gsm_address, strlen(report_server_gsm_address) );
+  cmd.bus_command.param_spec = plist_with_buffer(0,strlen(CONFIG.report_server_address));
+  memcpy( cmd.mib_buffer, CONFIG.report_server_address, strlen(CONFIG.report_server_address) );
   bus_master_rpc_async( receive_gsm_stream_response, &cmd);
 }
 
 void start_report_scheduling() {
-    scheduler_schedule_task( post_report, report_interval, kScheduleForever, &report_task, NULL );
+    scheduler_schedule_task( post_report, CONFIG.report_interval, kScheduleForever, &report_task, NULL );
 }
 void stop_report_scheduling() {
     scheduler_remove_task( &report_task );
@@ -335,14 +340,16 @@ void stop_report_scheduling() {
 void set_report_scheduling_interval( AlarmRepeatTime interval ) {
   if ( interval >= kNumAlarmTimes )
     return;
-  report_interval = interval;
+  CONFIG.report_interval = interval;
   if ( BIT_TEST(report_task.flags, kBeingScheduledBit) )
-    scheduler_schedule_task( post_report, report_interval, kScheduleForever, &report_task, NULL );
+    scheduler_schedule_task( post_report, CONFIG.report_interval, kScheduleForever, &report_task, NULL );
+  save_momo_state();
 }
-void set_report_server_gsm_address( const char* address, uint8 len )
+void set_report_server_address( const char* address, uint8 len )
 {
-  if ( len >= sizeof(report_server_gsm_address) )
+  if ( len >= sizeof(CONFIG.report_server_address) )
     return;
-  memcpy( report_server_gsm_address, address, len );
-  report_server_gsm_address[len] = '\0';
+  memcpy( CONFIG.report_server_address, address, len );
+  CONFIG.report_server_address[len] = '\0';
+  save_momo_state();
 }
