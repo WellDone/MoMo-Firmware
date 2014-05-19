@@ -19,6 +19,7 @@
  void gsm_openstream()
  {
  	gsm_on();
+ 	__delay_ms(1000);
  	if (PIN(GSMSTATUSPIN) == 0)
  	{
  		bus_slave_setreturn(pack_return_status(6,0));
@@ -63,6 +64,8 @@
 
  	state.shutdown_pending = 1;  // Shutdown the module after we've sent the message.
  	send_buffer();
+
+ 	receive_response();
 
  	bus_slave_setreturn(pack_return_status(0,0));
  }

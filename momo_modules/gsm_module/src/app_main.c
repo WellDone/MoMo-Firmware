@@ -26,7 +26,7 @@ void task(void)
 			timeout_counter = SHUTDOWN_TIMEOUT;
 		else if ( state.shutdown_pending )
 			--timeout_counter; // decrement if we timed out waiting for an RX byte.
-		if ( state.shutdown_pending && ( timeout_counter == 0 || cmgs_matched() || err_matched() ) )
+		if ( state.shutdown_pending && ( timeout_counter == 0 || cmgs_matched() ) )
 			gsm_off();
 	}
 }
