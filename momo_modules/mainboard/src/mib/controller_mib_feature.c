@@ -12,6 +12,7 @@
 #include "rtcc.h"
 #include "i2c.h"
 #include "bus.h"
+#include "system_log.h"
 
 #define MODULE_BASE_ADDRESS 11
 
@@ -203,6 +204,26 @@ void set_sleep()
 		taskloop_set_flag(kTaskLoopSleepBit, 0);
 }
 
+void write_log()
+{
+	write_system_log( kRemoteLog, plist_get_buffer(0), plist_get_buffer_length() );
+}
+void log_count()
+{
+	bus_slave_return_int16( system_log_count() );
+}
+void read_log()
+{
+	LogEntry log_buffer;
+	read_system_log( &log_buffer )
+	bus_slave_return_int16( system_log_)
+}
+
+void get_lazy_logging()
+{
+
+}
+
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x00, register_module, plist_spec(0,true) },
@@ -221,5 +242,10 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x0D, debug_value, plist_spec_empty()},
 	{0x0E, set_sleep, plist_spec(1, false)},
 	{0x0F, reset_self, plist_spec_empty()},
+	{0x20, write_log, plist_spec(0, true)},
+	{0x21, log_count, plist_spec_empty()},
+	{0x22, read_log, plist_spec(1, false)},
+	{0x23, get_lazy_logging, plist_spec(0, false)},
+	{0x24, set_lazy_logging, plist_spec(1, false)},
 };
 DEFINE_MIB_FEATURE(controller);

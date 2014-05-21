@@ -333,7 +333,7 @@ class ModTool(cmdln.Cmdln):
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_scheduler(self, subcmd, opts, command, index = None):
-		"""${cmd_name}: Get the current battery voltage
+		"""${cmd_name}: Manage scheduled callbacks
 
 		Possible subcommands are heartbeat, reset and attached.  
 		- new creates a new dummy scheduled task (address 43, feature 20, command 8, frequency 1s)
@@ -385,6 +385,35 @@ class ModTool(cmdln.Cmdln):
 		else:
 			print "Invalid subcommand specified for command 'scheduler'."
 			exit(1)
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_log(self, subcmd, opts, command, msg=None):
+		"""${cmd_name}: Read and write system log entries
+
+		Possible subcommands are heartbeat, reset and attached.  
+		- write <msg> - write a new entry
+		- read - read all entries
+		- count - get the current count of log entries
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		con = self._get_controller(opts)
+		if command == "write":
+			if msg==None:
+				print "A message must be specified."
+				exit(1)
+			con.rpc(42,0x20,msg)
+		elif command == "count":
+			res = con.rpc(42,0x21,result_type=(1,False))
+			print res['ints'][0]
+		elif command == "read":
+			index = 0
+			res = self.rpc(42,0x22,result_type=(0,True))
+			while len( res['buffer'] ) > 0:
+				print res['buffer']
+
 
 	def _get_controller(self, opts):
 		try:

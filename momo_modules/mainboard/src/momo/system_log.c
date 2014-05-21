@@ -3,14 +3,9 @@
 #include "ringbuffer.h"
 #include "task_manager.h"
 #include <string.h>
+#include "rtcc.h"
 
-#define LOG_BUFFER_SIZE 10
-#define LOG_ENTRY_SIZE 63
-typedef struct
-{
-	uint8 length;
-	BYTE data[LOG_ENTRY_SIZE];
-} LogEntry;
+#define LOG_BUFFER_SIZE 8
 
 static flash_queue log_queue;
 static ringbuffer log_buffer;
@@ -35,7 +30,7 @@ void flush_task( void* arg )
 		ringbuffer_pop( &log_buffer, NULL );
 	}
 }
-void write_system_log( const char* data, uint8 length )
+void write_system_log( LogStream stream, const BYTE* data, uint8 length )
 {
 	uninterruptible_start();
 
@@ -46,7 +41,9 @@ void write_system_log( const char* data, uint8 length )
 		flush_task( NULL ); // This will lock things up but we need to make sure we save off the log entries
 
 	LogEntry* staged_log_entry = (LogEntry*) ringbuffer_stage( &log_buffer );
+	staged_log_entry->stream = stream;
 	staged_log_entry->length = length;
+	rtcc_get_timestamp( &staged_log_entry->timestamp );
 	memcpy( &staged_log_entry->data, data, length );
 	ringbuffer_commit( &log_buffer );
 
@@ -62,4 +59,10 @@ void write_system_log( const char* data, uint8 length )
 		flush_task( NULL );
 	}
 	uninterruptible_end();
+}
+
+
+uint16 system_log_count()
+{
+	return flash_queue_count( &log_queue );
 }
