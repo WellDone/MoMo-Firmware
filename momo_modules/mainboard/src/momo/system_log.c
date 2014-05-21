@@ -14,11 +14,10 @@ typedef struct
 
 static flash_queue log_queue;
 static ringbuffer log_buffer;
-static LogEntry log_buffer_data[LOG_BUFFER_SIZE];
-
-static LogEntry staged_log_entry;
+LogEntry log_buffer_data[LOG_BUFFER_SIZE];
 
 static bool flush_task_pending = false;
+static bool lazy_logging = true;
 
 void init_system_log( uint8 start_subsection, uint8 subsection_count )
 {
@@ -46,18 +45,21 @@ void write_system_log( const char* data, uint8 length )
 	if ( ringbuffer_full( &log_buffer ) )
 		flush_task( NULL ); // This will lock things up but we need to make sure we save off the log entries
 
-	staged_log_entry.length = length;
-	// TODO: Can we copy this directly to the ringbuffer instead of doing an additional memcpy to stage?
-	memcpy( &staged_log_entry.data, data, length );
+	LogEntry* staged_log_entry = (LogEntry*) ringbuffer_stage( &log_buffer );
+	staged_log_entry->length = length;
+	memcpy( &staged_log_entry->data, data, length );
+	ringbuffer_commit( &log_buffer );
 
 	// NB: There will be garbage after the end of the data buffer, but it's not worth zeroing out
 
-	ringbuffer_push( &log_buffer, &staged_log_entry );
-
-	if ( !flush_task_pending )
+	if ( lazy_logging && !flush_task_pending )
 	{
 		flush_task_pending = true;
 		taskloop_add( flush_task, NULL );
+	}
+	else if ( !lazy_logging )
+	{
+		flush_task( NULL );
 	}
 	uninterruptible_end();
 }
