@@ -5,7 +5,7 @@
 #include "global_state.h"
 #include <xc.h>
 
-void gsm_init()
+void gsm_reset()
 {
 	MAKE_ANALOG(MODULEPOWERPIN);
 	SET_DIRECTION(GSMPOWERPIN, 1);
@@ -13,10 +13,16 @@ void gsm_init()
 
 	MAKE_ANALOG(GSMRESETPIN);
 
-	buffer_len = 0;
-	rx_buffer_start = rx_buffer_end = rx_buffer_len = 0;
 	state.module_on = 0;
 	state.shutdown_pending = 0;
+}
+
+void gsm_init()
+{
+	gsm_reset();
+
+	buffer_len = 0;
+	rx_buffer_start = rx_buffer_end = rx_buffer_len = 0;
 }
 
 uint8 gsm_on()
@@ -56,5 +62,5 @@ uint8 gsm_on()
 
 void gsm_off()
 {
-	gsm_init();
+	gsm_reset();
 }

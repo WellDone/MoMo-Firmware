@@ -286,6 +286,8 @@ class ModTool(cmdln.Cmdln):
 
 		print "Module at index %d" % int(index)
 		print "Name: %s" % mod.name
+		print "Type: %d" % mod.type
+		print "Flags: %d" % mod.flags
 		print "Address: %d" % mod.address
 		print "Features: %d" % mod.num_features
 

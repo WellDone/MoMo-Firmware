@@ -4,7 +4,7 @@
 
 #Module Information
 ModuleName = "gsm_com";
-ModuleType = 0;
+ModuleType = 2;
 ModuleFlags = 0;
 
 #Supported Feature Information

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "bus_master.h"
+#include "module_manager.h"
 
 #define EVENT_BUFFER_SIZE 1
 #define RAW_REPORT_MAX_LENGTH 118
@@ -53,7 +54,7 @@ void init_report_config()
 {
   memcpy( CONFIG.report_server_address, default_server_gsm_address, 16 );
   CONFIG.current_sequence          = 0;
-  CONFIG.report_interval           = kEveryMinute;
+  CONFIG.report_interval           = kEveryDay;
   CONFIG.report_flags              = kReportFlagDefault;
   CONFIG.bulk_aggregates           = kAggCount | kAggMin | kAggMax;
   CONFIG.interval_aggregates       = kAggCount | kAggMean;
@@ -273,43 +274,56 @@ bool construct_report()
 
 
 static uint8 report_stream_offset;
+ModuleIterator comm_module_iterator;
+bool current_stream_finished;
 void receive_gsm_stream_response(unsigned char a);
+void report_rpc( MIBUnified *cmd, uint8 command, uint8 spec )
+{
+  cmd->address = module_iter_address( &comm_module_iterator );
+  cmd->bus_command.feature = 11;
+  cmd->bus_command.command = command;
+  cmd->bus_command.param_spec = spec;
+  bus_master_rpc_async(receive_gsm_stream_response, cmd); //TODO: Handle failure to send
+}
+void next_comm_module( void* arg )
+{
+  module_iter_next( &comm_module_iterator );
+  report_stream_offset = 0;
+  current_stream_finished = false;
+  if ( module_iter_get( &comm_module_iterator ) != NULL )
+  {
+    MIBUnified cmd;
+    memcpy( cmd.mib_buffer, CONFIG.report_server_address, strlen(CONFIG.report_server_address) );
+    report_rpc( &cmd, 0, plist_with_buffer(0,strlen(CONFIG.report_server_address)) );
+  }
+}
 void stream_to_gsm() {
-  uint8 gsm_address = 11;
   MIBUnified cmd;
-
   if ( report_stream_offset >= strlen(base64_report_buffer) )
   {
-    cmd.address = gsm_address;
-    cmd.bus_command.feature = 11;
-    cmd.bus_command.command = 2;
-    cmd.bus_command.param_spec = plist_empty();
-    bus_master_rpc_async(NULL, &cmd); //TODO: Handle failure to send
+    current_stream_finished = true;
+    report_rpc( &cmd, 2, plist_empty() );
     return;
   }
 
   uint8 byte_count = strlen(base64_report_buffer)-report_stream_offset;
   if ( byte_count > kBusMaxMessageSize )
     byte_count = kBusMaxMessageSize;
-  memcpy( &cmd.mib_buffer, base64_report_buffer+report_stream_offset, byte_count );
+  memcpy( cmd.mib_buffer, base64_report_buffer+report_stream_offset, byte_count );
   report_stream_offset += byte_count;
 
-  cmd.address = gsm_address;
-  cmd.bus_command.feature = 11;
-  cmd.bus_command.command = 1;
-  cmd.bus_command.param_spec = plist_with_buffer(0,byte_count);
-
+  report_rpc( &cmd, 1, plist_with_buffer( 0, byte_count ) );
   save_momo_state();
-
-  bus_master_rpc_async( receive_gsm_stream_response, &cmd);
 }
 void receive_gsm_stream_response(unsigned char a) 
 {
-  if ( a != kNoMIBError ) {
-    return;
+  if ( a != kNoMIBError || current_stream_finished ) {
+    taskloop_add( next_comm_module, NULL );
   }
-  
-  taskloop_add( stream_to_gsm, NULL );
+  else
+  {
+    taskloop_add( stream_to_gsm, NULL );
+  } 
 }
 
 static ScheduledTask report_task;
@@ -318,17 +332,8 @@ void post_report( void* arg )
   if (!construct_report( CONFIG.report_interval ))
     return; //TODO: Log failure
 
-  report_stream_offset = 0;
-
-  //TODO: Get address of comm module, turn on GSM modem
-  MIBUnified cmd;
-
-  cmd.address = 11;
-  cmd.bus_command.feature = 11;
-  cmd.bus_command.command = 0;
-  cmd.bus_command.param_spec = plist_with_buffer(0,strlen(CONFIG.report_server_address));
-  memcpy( cmd.mib_buffer, CONFIG.report_server_address, strlen(CONFIG.report_server_address) );
-  bus_master_rpc_async( receive_gsm_stream_response, &cmd);
+  comm_module_iterator = create_module_iterator( kMIBCommunicationType );
+  taskloop_add( next_comm_module, NULL );
 }
 
 void start_report_scheduling() {

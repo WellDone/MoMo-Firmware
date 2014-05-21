@@ -19,6 +19,8 @@ void reset_match_counters();
 bool cmgs_matched();
 bool ok_matched();
 bool err_matched();
+
+void capture_error_code();
 #endif
 
 #endif
