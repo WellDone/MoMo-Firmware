@@ -10,7 +10,7 @@ void  bus_slave_setreturn(uint8 status);
 
 #define mib_buffer_length()			mib_packet.param_spec & 0b00011111
 
-extern bank1 unsigned char 			mib_buffer[kBusMaxMessageSize];
+extern bank1 unsigned char 		mib_buffer[kBusMaxMessageSize];
 extern bank1 MIBCommandPacket   mib_packet;
 extern bank1 uint8              slave_address;
 

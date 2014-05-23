@@ -26,15 +26,18 @@ if (api_addr % 16) != 0:
 #Load in the symbol table
 symtab = patch.parse_symtab(sys.argv[3])
 main = symtab["_main"][0]
-rpc = symtab["_bus_master_rpc_sync"][0]
+
+rpcbegin = symtab['_bus_master_begin_rpc'][0]
+rpcsend = symtab["_bus_master_send_rpc"][0]
 setreturn = symtab["_bus_slave_setreturn"][0]
 
 ih = intelhex.IntelHex(sys.argv[2])
 
-res1 = patch.patch_goto(ih, api_addr+14, main, rpc)
-res2 = patch.patch_goto(ih, api_addr+15, main, setreturn)
+res1 = patch.patch_goto(ih, api_addr+13, main, rpcbegin)
+res2 = patch.patch_goto(ih, api_addr+14, main, rpcsend)
+res3 = patch.patch_goto(ih, api_addr+15, main, setreturn)
 
-if res1 is False or res2 is False:
+if res1 is False or res2 is False or res3 is False:
 	sys.exit(1)
 
 ih.write_hex_file(sys.argv[4])
