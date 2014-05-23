@@ -1,9 +1,10 @@
 ;watchdog.as
 
 #include <xc.inc>
-#include "asm_macros.inc"
+#include "asm_locations.h"
 
-GLOBAL _status
+ASM_INCLUDE_GLOBALS()
+
 global	start
 
 PSECT wdt_utils,local,class=CODE,delta=2
@@ -30,7 +31,7 @@ BEGINREGION powerup
 	BANKSEL _status
 	clrf BANKMASK(_status)
 	btfss nTO
-	bsf BANKMASK(_status), 4
+	bsf BANKMASK(_status), DirtyResetBit
 	bsf nTO
 	goto start
 ENDREGION powerup

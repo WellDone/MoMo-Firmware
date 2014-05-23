@@ -25,7 +25,7 @@ typedef union
 		uint8 valid_app 	: 1;
 		uint8 bootload_mode : 1;
 		uint8 registered	: 1;
-		uint8 reserved2 	: 1; //cannot change, referenced in watchdog.as
+		uint8 dirty_reset 	: 1; //cannot change, referenced in watchdog.as
 		uint8 slave_active 	: 1; //cannot change, referenced in i2c_utilities.as
 		uint8 first_read	: 1;
 		uint8 reserved3		: 1; 
