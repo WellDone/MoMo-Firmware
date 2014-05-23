@@ -4,7 +4,6 @@
 #include "constants.h"
 #include "asm_branches.inc"
 #include "asm_locations.h"
-#include "constants.h"
 
 #define __DEFINES_ONLY__
 #include "mib_definitions.h"
