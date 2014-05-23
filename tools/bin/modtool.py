@@ -428,7 +428,7 @@ class ModTool(cmdln.Cmdln):
 					res = con.rpc(42,0x22,index,0,result_type=(0,True))
 				except RPCException, e:
 					break
-				(stream, length, year, month, day, hours, minutes, seconds ) = struct.unpack('HBBBBBBB', res['buffer'])
+				(stream, length, year, month, day, hours, minutes, seconds ) = struct.unpack('BBBBBBBB', res['buffer'])
 				i = 1
 				msg = ""
 				while len(msg) < length:

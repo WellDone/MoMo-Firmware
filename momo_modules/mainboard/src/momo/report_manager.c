@@ -9,6 +9,7 @@
 #include <string.h>
 #include "bus_master.h"
 #include "module_manager.h"
+#include "system_log.h"
 
 #define EVENT_BUFFER_SIZE 1
 #define RAW_REPORT_MAX_LENGTH 118
@@ -292,6 +293,7 @@ void next_comm_module( void* arg )
   current_stream_finished = false;
   if ( module_iter_get( &comm_module_iterator ) != NULL )
   {
+    DEBUG_LOGL( "Opening comm stream..." );
     MIBUnified cmd;
     memcpy( cmd.mib_buffer, CONFIG.report_server_address, strlen(CONFIG.report_server_address) );
     report_rpc( &cmd, 0, plist_with_buffer(0,strlen(CONFIG.report_server_address)) );
@@ -301,23 +303,25 @@ void stream_to_gsm() {
   MIBUnified cmd;
   if ( report_stream_offset >= strlen(base64_report_buffer) )
   {
+    DEBUG_LOGL( "Closing comm stream." );
     current_stream_finished = true;
     report_rpc( &cmd, 2, plist_empty() );
     return;
   }
 
+  DEBUG_LOGL( "Streaming data..." );
   uint8 byte_count = strlen(base64_report_buffer)-report_stream_offset;
   if ( byte_count > kBusMaxMessageSize )
     byte_count = kBusMaxMessageSize;
   memcpy( cmd.mib_buffer, base64_report_buffer+report_stream_offset, byte_count );
   report_stream_offset += byte_count;
-
   report_rpc( &cmd, 1, plist_with_buffer( 0, byte_count ) );
   save_momo_state();
 }
 void receive_gsm_stream_response(unsigned char a) 
 {
   if ( a != kNoMIBError || current_stream_finished ) {
+    CRITICAL_LOGL( "Failed to send a message to a comm module!" );
     taskloop_add( next_comm_module, NULL );
   }
   else
@@ -329,8 +333,13 @@ void receive_gsm_stream_response(unsigned char a)
 static ScheduledTask report_task;
 void post_report( void* arg ) 
 {
+  DEBUG_LOGL( "Constructing report..." );
   if (!construct_report( CONFIG.report_interval ))
-    return; //TODO: Log failure
+  {
+    CRITICAL_LOGL( "Failed to construct report!" );
+    return; //TODO: Recover
+  }
+  DEBUG_LOGL( "Report constructed." );
 
   comm_module_iterator = create_module_iterator( kMIBCommunicationType );
   taskloop_add( next_comm_module, NULL );

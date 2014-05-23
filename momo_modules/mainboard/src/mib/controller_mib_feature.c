@@ -14,6 +14,7 @@
 #include "bus.h"
 #include "module_manager.h"
 #include "system_log.h"
+#include "memory_manager.h"
 
 #include "momo_config.h"
 #include "sensor_event_log.h"
@@ -170,20 +171,23 @@ void test_fb_read()
 
 void reflash_self()
 {
+	DEBUG_LOGL( "Performing controller firmware reflash..." );
+	FLUSH_LOG();
 	reflash = kReflashMagic;
 	asm volatile("reset");
 }
 
 void reset_self()
 {
+	DEBUG_LOGL( "Reset command received, performing software reset." );
+	FLUSH_LOG();
 	asm volatile("reset");
 }
 
 void factory_reset()
 {
-	reset_momo_state();
-	save_momo_state();
-	sensor_event_log_clear();
+	mem_clear_all();
+	flash_memory_init();
 }
 
 void current_time()

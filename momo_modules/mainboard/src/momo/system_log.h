@@ -19,7 +19,7 @@ typedef enum {
 
 typedef struct
 {
-	LogStream stream;
+	uint8 stream; // LogStream
 	uint8 length;
 	rtcc_timestamp timestamp; //6
 	BYTE data[LOG_ENTRY_SIZE];
@@ -31,10 +31,14 @@ bool read_system_log( uint16 offset, LogEntry* out );
 void clear_system_log();
 uint16 system_log_count();
 
+void flush_log(void*);
+
 #define CRITICAL_LOG( data, length ) write_system_log( kCriticalLog, (BYTE*)data, length )
 #define CRITICAL_LOGL( literal ) CRITICAL_LOG( literal, sizeof(literal) )
 
 #define DEBUG_LOG( data, length ) write_system_log( kDebugLog, (BYTE*)data, length )
 #define DEBUG_LOGL( literal ) DEBUG_LOG( literal, sizeof(literal) )
+
+#define FLUSH_LOG() flush_log(NULL)
 
 #endif
