@@ -2,26 +2,21 @@
 #define __common_h__
 
 #include "pic24.h"
+#include "ioport.h"
 
 #define SENSOR_INTERRUPT_BIT    IFS1bits.INT2IF
 #define RTC_INTERRUPT_BIT       IFS3bits.RTCIF
 
-#define BATTERY_MEASURE_EN		_LATB2
-#define BATTERY_MEASURE_TRIS	_TRISB2
+#define BATTERY_VOLTAGE 		B2
+#define BATTERY_VOLTAGE_AN		2
 
-#define BATTERY_VOLTAGE_LATCH	_LATA2
-#define BATTERY_VOLTAGE_TRIS	_TRISA2
-#define BATTERY_VOLTAGE_DIGITAL	_PCFG4
+#define CHARGE_ENABLE			B0
+#define BUS_ENABLE				F3
+#define MEM_POWER				E5
 
-#define CHARGE_LATCH 			_LATA6
-#define CHARGE_TRIS				_TRISA6
-
-#define DEBUG_UART              U2
-#define GSM_UART                U1
-
-#define BUS_ENABLE_LAT			_LATA0
-#define BUS_ENABLE_TRIS			_TRISA0
-#define BUS_ENABLE_DIG			_PCFG0
+#define SCL						G2
+#define SDA						G3
+#define ALARM					D3
 
 
 //Clock configuration and delays

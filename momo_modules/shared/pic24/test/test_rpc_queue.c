@@ -4,9 +4,30 @@
 #include "ringbuffer.h"
 #include <string.h>
 
+//Mocked functions
 void asm_sleep()
 {
 	// do nothing
+}
+
+void disable_memory()
+{
+
+}
+
+void mem_wait_while_writing()
+{
+
+}
+
+unsigned int bus_master_idle()
+{
+	return 1;
+}
+
+unsigned int memory_enabled()
+{
+	return 0;
 }
 
 static int task_count = 0;
@@ -55,15 +76,15 @@ void taskloop_pseudo_loop(void) {
 }
 void test_rpc_queue_taskloop_locking(void) {
 	task_count = 0;
-	taskloop_add( noncritical_task_0 );
+	taskloop_add( noncritical_task_0, NULL );
 	int i = 0;
 	while ( i++ < RPC_QUEUE_SIZE ) {
 		taskloop_add( queue_rpc );
 	}
-	taskloop_add_critical( critical_task_1 );
-	taskloop_add( noncritical_task_3 ); // won't actually run.
-	taskloop_add_critical( critical_task_2 );
-	taskloop_add_critical( dequeue_rpc );
+	taskloop_add_critical( critical_task_1, NULL );
+	taskloop_add( noncritical_task_3, NULL ); // won't actually run.
+	taskloop_add_critical( critical_task_2, NULL );
+	taskloop_add_critical( dequeue_rpc, NULL );
 	//Note that another task inserted here would run before noncritical_task_3 
 	//  because ordering is not preserved once the taskloop has been locked.
 	//Now noncritical_task_3 should actually run because the taskloop is unlocked

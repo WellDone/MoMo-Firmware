@@ -6,6 +6,7 @@ from pymomo.utilities.console import ProgressBar
 import struct
 from intelhex import IntelHex
 from time import sleep
+from datetime import datetime
 
 class MIBController (proxy.MIBProxyObject):
 	MaxModuleFirmwares = 4
@@ -13,18 +14,6 @@ class MIBController (proxy.MIBProxyObject):
 	def __init__(self, stream):
 		super(MIBController, self).__init__(stream, 8)
 		self.name = 'Controller'
-
-	def reset_bus(self, sync=True):
-		"""
-		Cycle power on all attached momo modules except the controller.
-		The count of attached modules is also reset to zero in anticipation
-		of the modules reregistering
-		"""
-
-		res = self.rpc(42, 5)
-
-		if sync:
-			sleep(1.5)
 
 	def count_modules(self):
 		"""
@@ -100,6 +89,13 @@ class MIBController (proxy.MIBProxyObject):
 		flag = res['ints'][0]
 		return flag
 
+	def set_sleep(self, val):
+		"""
+		Enable or disable sleeping on the controller when there are no tasks 
+		to perform.  val should be True to enable sleeping, False to disable 
+		it. 
+		"""
+		res = self.rpc(42, 0x0E, int(bool(val)))
 
 	def current_time(self):
 		"""
@@ -401,3 +397,117 @@ class MIBController (proxy.MIBProxyObject):
 		resp, result = self.stream.send_cmd(cmd)
 		if result != CMDStream.OkayResult:
 			raise RuntimeError("Set alarm command failed")
+
+	def momo_attached(self):
+		resp, result = self.stream.send_cmd("attached")
+		if result != CMDStream.OkayResult:
+			raise RuntimeError("Attached command failed")
+
+		resp = resp.lstrip().rstrip()
+		val = int(resp)
+
+		if val == 1:
+			return True
+		elif val == 0:
+			return False
+		else:
+			raise RuntimeError("Invalid result returned from 'attached' command: %s" % resp)
+
+	def sensor_log( self, stream, meta, value):
+		res = self.rpc( 70, 0, stream, meta, struct.pack( 'Q', value ) );
+
+	def sensor_log_read( self ):
+		res = self.rpc( 70, 0x1, result_type=(0, True) )
+		return SensorEvent( res['buffer'] );
+
+	def sensor_log_count( self ):
+		res = self.rpc( 70, 0x2, result_type=(0, True) )
+		(count, ) = struct.unpack('I', res['buffer'])
+		return count
+
+	def sensor_log_clear( self ):
+		res = self.rpc( 70, 0x3 )
+
+	def sensor_log_debug( self ):
+		res = self.rpc( 70, 0x4, result_type=(0, True) )
+		(min, max, start, end) = struct.unpack('IIII', res['buffer'])
+		return (min,max,start,end)
+
+	def start_reporting(self):
+		"""
+		Start regular reporting
+		"""
+		self.rpc(60, 1)
+
+	def stop_reporting(self):
+		"""
+		Stop regular reporting
+		"""
+		self.rpc(60, 2)
+
+	def send_report(self):
+		"""
+		Send a single report
+		"""
+
+		self.rpc(60, 0)
+
+	def current_time(self):
+		"""
+		Get the current time according to the controller's RTCC
+		"""
+
+		res = self.rpc(42, 0x0C, result_type=(0, True));
+
+		year, month, day, hour, minute, second = struct.unpack( "HHHHHH", res['buffer'] )
+
+		return datetime( year, month+1, day+1, hour, minute, second )
+
+	def scheduler_map(self):
+		"""
+		Get the map of used scheduler buckets
+		"""
+
+		res = self.rpc(43, 2, result_type=(1, False));
+
+		return res['ints'][0];
+
+	def scheduler_new(self, address, feature, command, frequency):
+		"""
+		Schedule a new task
+		"""
+
+		res = self.rpc(43, 0, int(address), ( (int(feature)<<8) | (int(command)&0xFF) ), int(frequency) );
+
+	def scheduler_remove(self, address, feature, command, frequency):
+		"""
+		Remove a scheduled task
+		"""
+
+		res = self.rpc(43, 1, int(address), ( (int(feature)<<8) | (int(command)&0xFF) ), int(frequency) );
+
+	def scheduler_describe(self, index):
+		"""
+		Describe a scheduled callback
+		"""
+
+		try:
+			res = self.rpc(43, 3, int(index), result_type=(0,True) );
+			return struct.unpack('BBBxB', res['buffer'][:5])
+		except RPCException as e:
+			if e.type == 7:
+				return None
+
+	def reset(self, sync=True):
+		"""
+		Instruct the controller to reset itself.
+		"""
+
+		try:
+			self.rpc(42, 0xF)
+		except RPCException as e:
+			if e.type != 7:
+				raise e
+
+		if sync:
+			sleep(1.5)

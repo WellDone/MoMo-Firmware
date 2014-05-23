@@ -60,8 +60,6 @@ uint8 open_gsm_module()
 	send_buffer();
 	receive_response();
 
-	__delay_ms(200);
-
 	gsm_buffer[0] = 'A';
 	gsm_buffer[1] = 'T';
 	gsm_buffer[2] = '+';
@@ -71,6 +69,22 @@ uint8 open_gsm_module()
 	gsm_buffer[6] = 'E';
 	gsm_buffer[7] = '=';
 	gsm_buffer[8] = '0';
+	gsm_buffer[9] = '\r';
+
+	buffer_len = 10;
+
+	send_buffer();
+	receive_response();
+
+	gsm_buffer[0] = 'A';
+	gsm_buffer[1] = 'T';
+	gsm_buffer[2] = '+';
+	gsm_buffer[3] = 'C';
+	gsm_buffer[4] = 'M';
+	gsm_buffer[5] = 'G';
+	gsm_buffer[6] = 'F';
+	gsm_buffer[7] = '=';
+	gsm_buffer[8] = '1';
 	gsm_buffer[9] = '\r';
 
 	buffer_len = 10;
@@ -109,10 +123,15 @@ uint8 receive_response()
 		CREN = 1;
 	}
 
+	int16 counter;
 	while(1)
 	{
+		counter = 2000;
 		while(!RCIF)
-			;
+		{
+			if ( --counter <= 0 )
+				return 4;
+		}
 
 		gsm_buffer[buffer_len++] = RCREG;
 

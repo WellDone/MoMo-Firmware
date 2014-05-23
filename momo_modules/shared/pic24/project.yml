@@ -8,9 +8,9 @@
   :release_build: TRUE
   :test_file_prefix: test_
   :use_mocks: TRUE
+  :output: libPIC24shared.a
 
 :release_build:
-  :output: libPIC24shared.a
   :use_assembly: TRUE
 
 
@@ -31,7 +31,6 @@
   #  1) remove the trailing [] from the :common: section
   #  2) add entries to the :common: section (e.g. :test: has TEST defined)
   :commmon: &common_defines
-    - __PIC24F16KA101__
     - UNITY_INT_WIDTH=16
     - CMOCK_MEM_INDEX_TYPE=uint16_t
     - CMOCK_MEM_PTR_AS_INT=uint16_t
@@ -55,7 +54,7 @@
   :release_compiler:
     :executable: xc16-gcc
     :arguments:
-      - -mcpu=24F16KA101
+      - -mcpu=$ : PROC
       - -x c
       #- -S
       - -c
@@ -71,13 +70,14 @@
   :release_assembler:
     :executable: xc16-gcc
     :arguments:
-      - -mcpu=24F16KA101
+      - -mcpu=$ : PROC
       - -c
       - ${1}
       - -o ${2}
       - -I"$": COLLECTION_PATHS_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_RELEASE_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_RELEASE_AND_VENDOR
+      - -D$ : PROC_DEFINE
       - -Wall
       - -O1
       - -Wa,--no-relax
@@ -85,12 +85,12 @@
     :executable: xc16-ar
     :arguments:
       - qc
-      - ${2}
+      - build/release/libPIC24shared_$.a : TARGET_EXT
       - ${1}
   :test_compiler:
     :executable: xc16-gcc
     :arguments:
-      - -mcpu=24F16KA101
+      - -mcpu=$ : PROC
       - -x c
       - -c
       - ${1}
@@ -98,6 +98,7 @@
       - -I"$": COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
+      - -D$ : PROC_DEFINE
       - -Wall
       #- -Werror  # We can't keep this on during test becuase of a CMock pointer issue
       - -O0
@@ -105,10 +106,10 @@
   :test_linker:
     :executable: xc16-gcc
     :arguments:
-      - -mcpu=24F16KA101
+      - -mcpu=$ : PROC
       - ${1}
       - -o "./build/test/TestBuild.out"
-      - -Wl,-Tp24F16KA101.gld,-Map=./build/release/TestOutput.map,--report-mem
+      - -Wl,-Tp24FJ64GA306.gld,-Map=./build/release/TestOutput.map,--report-mem
 
   :test_fixture:
     :executable: ruby
@@ -126,6 +127,7 @@
       - -I"$": COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR
       - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
+      - -D$ : PROC_DEFINE
       - -D$: DEFINES_TEST_PREPROCESS
       - ${1}
 
@@ -137,6 +139,7 @@
       - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
       - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
       - -D$: DEFINES_TEST_PREPROCESS
+      - -D$ : PROC_DEFINE
       - ${1}
       - -o ${2}
 

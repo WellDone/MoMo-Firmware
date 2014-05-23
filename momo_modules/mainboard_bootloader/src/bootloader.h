@@ -4,14 +4,17 @@
 #include "pic24.h"
 
 #define _BOOTLOADER_CODE __attribute__((section(".bootloader")))
+#define _BOOTLOADER_VAR  __attribute__((section(".bootvar")))
+
+#define kReflashMagic 		0xABCD 
 
 enum
 {
-	kFlashWriteRow = 0b0100000000000100,
-	kFlashEraseRow = 0b0100000001011000
+	kFlashWriteRow = 0b0100000000000001,
+	kFlashErasePage = 0b0100000001000010
 }; 
 
-void program_application();
+void program_application(unsigned int sector);
 void erase_row(unsigned int row);
 void patch_reset_vector(unsigned char *row_buffer, uint32 low, uint32 high);
 void extract_reset_vector(uint32 *low, uint32 *high);

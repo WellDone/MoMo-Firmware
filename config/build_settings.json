@@ -20,7 +20,7 @@
 			{
 				"executive_rom": [0, 1119],
 				"flash_row_words": 32,
-				"total_rom": 4096,
+				"total_rom": 8192,
 				"aliases": ["16F1847", "16LF1847"],
 				"xc8_target": "16F1847",
 				"xc8_define": "__PIC16LF1847__",
@@ -81,7 +81,8 @@
 		"module_targets" :
 		{
 			"gsm_module": ["16lf1823"],
-			"pv_module": ["16lf1847"]
+			"pv_module": ["16lf1847"],
+			"multi_sensor_module": ["16lf1847"]
 		},
 
 		"test" :

@@ -12,23 +12,27 @@ class GSMModule (proxy.MIBProxyObject):
 		super(GSMModule, self).__init__(stream, addr)
 		self.name = 'GSM Module'
 
-	def power_module(self):
+	def power_module(self, on=True):
 		"""
 		Turn on power to the GSM module
 		"""
 
-		self.rpc(10, 1)
+		if on:
+			self.rpc(10, 1)
+		else:
+			self.rpc(10, 6)
 
 	def send_text(self, number, text):
 		"""
 		Send a text message to the given number which must have the form:
 		+NUMBER with no dashes or spaces, for example: +16506695211
 		"""
+
+		print "Sending message '%s' to %s" % ( text, number )
 		self.rpc(11, 0, number)
 		for i in xrange(0, len(text), 20):
 			buf = text[i:i+20]
 			self.rpc(11, 1, buf)
-
 		self.rpc(11, 2)
 
 	def module_on(self):
@@ -37,9 +41,11 @@ class GSMModule (proxy.MIBProxyObject):
 		if res['ints'][0] == 1:
 			return True
 
-		print res['ints'][0]
-
 		return False
+
+	def module_off(self):
+		res = self.rpc(10,5)
+		return True
 
 	def at_cmd(self, cmd, wait=0.5):
 		"""
@@ -48,5 +54,10 @@ class GSMModule (proxy.MIBProxyObject):
 		"""
 
 		res = self.rpc(10, 2, cmd, result_type=(0, True))
+
+		return res['buffer']
+
+	def dump_buffer(self):
+		res = self.rpc(10,4, result_type=(0, True))
 
 		return res['buffer']

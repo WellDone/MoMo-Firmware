@@ -1,4 +1,4 @@
-.include "p24F16KA101.inc"
+.include "p24FJ64GA306.inc"
 
 .global _flash_operation, ___delay32
 .section .bootloader,code

@@ -4,6 +4,8 @@
 #include "appcode.h"
 #include "watchdog.h"
 #include "mib_definitions.h"
+#include "i2c_defines.h"
+#include "port.h"
 
 //Configuration Words
 #pragma config FOSC=INTOSC      /* Use internal oscillator as the frequency oscillator. */
@@ -50,8 +52,8 @@ void main()
         restore_status();   //Update our status on what mode we should be in now
     }
     
-    if (status.valid_app)
-    {  
+    if (status.valid_app && PIN(ALARM) == 1)
+    {
         call_app_init();
         reset_page();
 
@@ -91,6 +93,9 @@ void initialize()
     TRISB = 0xff;
     ANSELB = 0;
     #endif
+
+    /* Make sure that the alarm pin is an input so that we can disable app loading if required */
+    PIN_DIR(ALARM, INPUT);
 
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
     ANSELA = 0;

@@ -1,5 +1,4 @@
 #include "common_types.h"
-#include "memory_manager.h"
 #include "memory.h"
 #include "mib_feature_definition.h"
 #include "intel_hex.h"
@@ -31,9 +30,9 @@ static const uint8				bucket_lengths[kNumFirmwareBuckets] = { \
 	MAX_CONTROLLER_SUBSECTIONS \
 };
 
-void fc_init()
+void fc_init( uint8 memory_subsection )
 {
-	fb_init(&fc_flashlog, kFirmwareConfigSubector, sizeof(firmware_cache_state));
+	fb_init(&fc_flashlog, memory_subsection, sizeof(firmware_cache_state));
 
 	if (fb_count(&fc_flashlog) > 0)
 		fb_read(&fc_flashlog, &fc_state);
@@ -70,6 +69,11 @@ void fc_startpush(void)
 	}
 
 	firmware_push_started = true;
+
+	//Inform everyone that we do expect to use the flash memory again very soon
+	//so it should not be turned off when we sleep.
+	taskloop_set_flag(kTaskLoopLightSleepBit, 1);
+
 	bus_slave_return_int16(current_bucket);
 }
 
@@ -113,6 +117,9 @@ void fc_push(void)
 
 		//Update our persistent store with the new data
 		fb_write(&fc_flashlog, &fc_state);
+
+		//Inform everyone that we don't expect to use the flash memory very soon.
+		taskloop_set_flag(kTaskLoopLightSleepBit, 0);
 	}
 	//Ignore high address record sections since we don't support addresses path the first 64kb for controller firmware
 	//and past the first 16kb for module firmware.

@@ -248,5 +248,6 @@ class MIBTool(cmdln.Cmdln):
 		print Fore.RED + "Error Occurred: " + Style.RESET_ALL + text
 		sys.exit(1)
 
-mibtool = MIBTool()
-sys.exit(mibtool.main())
+if __name__ == "__main__":
+	mibtool = MIBTool()
+	sys.exit(mibtool.main())

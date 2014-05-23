@@ -3,28 +3,48 @@
 #include "uart.h"
 #include "utilities.h"
 #include "pic24.h"
+#include "memory.h"
+#include "bus_master.h"
 
 task_list taskqueue;
 void taskloop_init()
 {
     ringbuffer_create(&taskqueue.tasks, (void*)taskqueue.taskdata, sizeof(task_item), kMAXTASKS);
     taskqueue.flags = 0;
+    taskqueue.sleep_handler = NULL;
 
-    taskloop_set_sleep(0);
+    taskloop_set_flag(kTaskLoopSleepBit, 0);
 }
 
-void taskloop_set_sleep(int sleep)
+void taskloop_set_flag(unsigned int flag, unsigned int value)
 {
-    if (sleep)
-        SET_BIT(taskqueue.flags, kTaskLoopSleepBit);
+    if (flag >= 16)
+        return;
+
+    if (value)
+        SET_BIT(taskqueue.flags, flag);
     else
-        CLEAR_BIT(taskqueue.flags, kTaskLoopSleepBit);
+        CLEAR_BIT(taskqueue.flags, flag);
 }
 
-int taskloop_add_impl(task_callback task, bool critical )
+int taskloop_get_flag(unsigned int flag)
+{
+    if (flag >= 16)
+        return 0;
+
+    return BIT_TEST(taskqueue.flags, flag);
+}
+
+void taskloop_set_sleephandler(sleep_callback handler)
+{
+    taskqueue.sleep_handler = handler;
+}
+
+int taskloop_add_impl(task_callback task, void* argument, bool critical )
 {
     task_item object;
     object.callback = task;
+    object.argument = argument;
     object.critical = critical;
     if ( ringbuffer_full( &taskqueue.tasks ) )
         return 0;
@@ -34,14 +54,14 @@ int taskloop_add_impl(task_callback task, bool critical )
     return 1;
 }
 
-int taskloop_add(task_callback task)
+int taskloop_add(task_callback task, void* argument)
 {
-    return taskloop_add_impl( task, false );
+    return taskloop_add_impl( task, argument, false );
 }
 
-int taskloop_add_critical(task_callback task)
+int taskloop_add_critical(task_callback task, void* argument)
 {
-    return taskloop_add_impl( task, true );   
+    return taskloop_add_impl( task, argument, true );   
 }
 
 void taskloop_lock()
@@ -61,12 +81,14 @@ void taskloop_loop()
 {
     while(1)
     {
-        while( taskloop_process_one() )
+        while (taskloop_process_one())
             ;
 
-        if ( BIT_TEST(taskqueue.flags, kTaskLoopSleepBit) )
-            asm_sleep();
-
+        if (BIT_TEST(taskqueue.flags, kTaskLoopSleepBit))
+        {
+            if (taskqueue.sleep_handler == NULL || taskqueue.sleep_handler(kSleepCallback) == kCanEnterSleep)
+                asm_sleep();
+        }
     }
 }
 int taskloop_process_one()
@@ -80,7 +102,7 @@ int taskloop_process_one()
     if ( taskloop_locked() && !task.critical )
         ringbuffer_push( &taskqueue.tasks, &task );
     else
-        task.callback();
+        task.callback( task.argument );
 
     return 1;
 }

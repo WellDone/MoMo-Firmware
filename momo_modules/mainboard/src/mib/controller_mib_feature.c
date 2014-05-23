@@ -10,32 +10,57 @@
 #include "battery.h"
 #include "eeprom.h"
 #include "rtcc.h"
+#include "i2c.h"
+#include "bus.h"
 
-#define MAX_MODULES 8
 #define MODULE_BASE_ADDRESS 11
 
 static momo_module_descriptor the_modules[MAX_MODULES];
 static unsigned int module_count = 0;
 static flash_block_info fb_info;
 
+static unsigned int _BOOTLOADER_VAR reflash __attribute__((persistent));
+
 unsigned int debug_flag_value = 0;
 
 void con_init()
 {
-	BUS_ENABLE_TRIS = 1;
-	BUS_ENABLE_DIG = 1;
-	BUS_ENABLE_LAT = 1;
+	DIR(BUS_ENABLE) = INPUT;
+	LAT(BUS_ENABLE) = 0;
+
+	DIR(ALARM) = INPUT;
+	LAT(ALARM) = 1;
+
+	con_reset_bus();
 }
 
 void con_reset_bus()
 {
-	BUS_ENABLE_LAT = 1;
-	BUS_ENABLE_TRIS = 0;
+	i2c_disable();
+
+	LAT(SCL) = 0;
+	LAT(SDA) = 0;
+	LAT(ALARM) = 0;
+
+	DIR(SCL) = OUTPUT;
+	DIR(SDA) = OUTPUT;
+	DIR(ALARM) = OUTPUT;
+
+	//Bus disable FET is active high to remove power
+	//from the bus.
+	LAT(BUS_ENABLE) = 1;
+	DIR(BUS_ENABLE) = OUTPUT;
 
 	module_count = 0;
 	DELAY_MS(50);
 
-	BUS_ENABLE_TRIS = 1;
+	DIR(SCL) = INPUT;
+	DIR(SDA) = INPUT;
+	DIR(ALARM) = INPUT;
+
+	DIR(BUS_ENABLE) = INPUT;
+
+	bus_init(kMIBControllerAddress);
 }
 
 void get_module_count(void)
@@ -140,7 +165,12 @@ void test_fb_read()
 
 void reflash_self()
 {
-	eeprom_write(0, 0xAA);
+	reflash = kReflashMagic;
+	asm volatile("reset");
+}
+
+void reset_self()
+{
 	asm volatile("reset");
 }
 
@@ -165,6 +195,13 @@ void debug_value()
 	bus_slave_return_int16(debug_flag_value);
 }
 
+void set_sleep()
+{
+	if (plist_get_int16(0))
+		taskloop_set_flag(kTaskLoopSleepBit, 1);
+	else
+		taskloop_set_flag(kTaskLoopSleepBit, 0);
+}
 
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
@@ -182,5 +219,7 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x0B, report_battery, plist_spec_empty()},
 	{0x0C, current_time, plist_spec_empty()},
 	{0x0D, debug_value, plist_spec_empty()},
+	{0x0E, set_sleep, plist_spec(1, false)},
+	{0x0F, reset_self, plist_spec_empty()},
 };
 DEFINE_MIB_FEATURE(controller);

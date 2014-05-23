@@ -14,17 +14,12 @@ unsigned int last_battery_voltage = 0;
 void battery_init()
 {
 	//Configure pin for measuring battery voltage
-	BATTERY_VOLTAGE_TRIS = 1;
-	BATTERY_VOLTAGE_DIGITAL = 0;
-
-    //Battery measurement enable is active low Open drain control. 
-    //Always turn the FET on b/c it's a 1 uA draw from the battery
-    BATTERY_MEASURE_TRIS = 0;
-    BATTERY_MEASURE_EN = 0;
+	DIR(BATTERY_VOLTAGE) = INPUT;
+    TYPE(BATTERY_VOLTAGE) = ANALOG;
 
 	//Configure charge controller pin (0 disables charging)
-	CHARGE_LATCH = 0;
-	CHARGE_TRIS = 0;
+	LAT(CHARGE_ENABLE) = 0;
+    DIR(CHARGE_ENABLE) = OUTPUT;
 
 	//Store ADC configuration
     batt_adc_config.output_format = kUIntegerFormat;
@@ -41,16 +36,16 @@ void battery_init()
 
     charging_allowed = 1;
 
-	scheduler_schedule_task(battery_callback, kEvery10Seconds, kScheduleForever, &battery_task);
+	scheduler_schedule_task(battery_callback, kEvery10Seconds, kScheduleForever, &battery_task, NULL);
 }
 
-void battery_callback()
+void battery_callback( void* arg )
 {
 	if (!charging_allowed)
 		return;
 
 	adc_configure(&batt_adc_config);
-    adc_set_channel(4);
+    adc_set_channel(2);
     last_battery_voltage = adc_convert_one();
 
     //Disable charging if battery voltage is greater than max charge level
@@ -73,7 +68,7 @@ void report_battery()
     unsigned int voltage;
 
     adc_configure(&batt_adc_config);
-    adc_set_channel(4);
+    adc_set_channel(2);
     voltage = adc_convert_one();
 
     bus_slave_return_int16(voltage);

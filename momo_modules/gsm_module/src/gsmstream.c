@@ -79,6 +79,7 @@ extern ModuleState state;
  	gsm_buffer[0] = 0x1A;
  	buffer_len = 1;
  	send_buffer();
- 	
+
+ 	receive_response();
  	bus_slave_setreturn(pack_return_status(0,0));
  }

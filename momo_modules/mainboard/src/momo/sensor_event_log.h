@@ -3,27 +3,30 @@
 
 #include "rtcc.h"
 
-typedef enum {
-  momo_pulse_counter=0
-} sensor_type;
+typedef union
+{
+	struct
+	{
+		uint8 error:1;
+		uint8 stream_id:3; // MAX: 8 sensor streams per module
+		uint8 aux:4; // Up to the sensor module, currently unused
+	};
+	uint8 metadata;
+} SensorMetadata;
 
 typedef struct {
-  rtcc_date date; //3
-  unsigned char hour;
-  unsigned char minute;
-  unsigned char second;
-} sensor_event_timestamp;
+  uint8          module;      //1
+  SensorMetadata metadata;    //1
+  rtcc_timestamp timestamp;   //6
+  uint32         value;       //4
+} sensor_event;             //= 12
 
-typedef struct {
-  unsigned char type; //1
-  sensor_event_timestamp starttime; //5
-  unsigned long value; //4
-} sensor_event;
-
-void init_sensor_event_log( unsigned long start_address, unsigned long max_size );
-void log_sensor_event( sensor_type type, const rtcc_datetime* timestamp, unsigned long value );
-unsigned int read_sensor_events( sensor_event* events, unsigned int max );
+void init_sensor_event_log( uint8 start_subsector, uint8 num_subsectors );
+bool log_sensor_event( uint8 module, SensorMetadata metadata, const rtcc_datetime* timestamp, uint32 *value );
+uint32 read_sensor_events( sensor_event* events, uint32 max );
+void requeue_sensor_events( uint32 count );
 bool sensor_event_log_empty();
-unsigned long sensor_event_log_count();
+void sensor_event_log_clear();
+uint32 sensor_event_log_count();
 
 #endif

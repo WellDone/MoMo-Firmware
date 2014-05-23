@@ -9,20 +9,21 @@
 #ifdef __PIC16LF1823__
 #define SDAPIN		RC1	
 #define SCLPIN		RC0
-#define ALARMPIN	RA2
 #define SDATRIS		TRISC1
 #define SCLTRIS		TRISC0
-#define ALARMTRIS	TRISA2
+#define ALARM		A2
 #elif  __PIC12LF1822__
 #define SDAPIN		RA2	
 #define SCLPIN		RA1
 #define SDATRIS		TRISA2
 #define SCLTRIS		TRISA1
+#define ALARM		A5
 #elif  __PIC16LF1847__
 #define SDAPIN		RB1
 #define SCLPIN		RB4
 #define SDATRIS 	TRISB1
 #define SCLTRIS		TRISB4
+#define ALARM		B0
 #else
 #error Unsupported Platform, need to know i2c pin locations.
 #endif
