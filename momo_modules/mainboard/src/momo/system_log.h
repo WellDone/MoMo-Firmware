@@ -31,7 +31,7 @@ bool read_system_log( uint16 offset, LogEntry* out );
 void clear_system_log();
 uint16 system_log_count();
 
-#define CRITICAL_LOG( data, length ) write_system_log( kDebugLog, (BYTE*)data, length )
+#define CRITICAL_LOG( data, length ) write_system_log( kCriticalLog, (BYTE*)data, length )
 #define CRITICAL_LOGL( literal ) CRITICAL_LOG( literal, sizeof(literal) )
 
 #define DEBUG_LOG( data, length ) write_system_log( kDebugLog, (BYTE*)data, length )
