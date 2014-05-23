@@ -51,19 +51,27 @@ void* ringbuffer_peek( ringbuffer *buf )
     return buf->data + (offset*buf->elem_size);
 }
 
-/*
- * If ringbuffer is full, the oldest item is overwritten.
- */
-void ringbuffer_push(ringbuffer *buf, void *in)
+void* ringbuffer_stage(ringbuffer *buf)
 {
-    uninterruptible_start();
     unsigned int mask = buf->length - 1;
     unsigned int offset = (buf->end) & mask;
+    return buf->data + offset*buf->elem_size;
+}
 
-    memcpy(buf->data + offset*buf->elem_size, in, buf->elem_size);
+/*
+ * If ringbuffer is full, the oldest item is overwritten.
+*/
+void ringbuffer_commit(ringbuffer *buf)
+{
     if (ringbuffer_full(buf))
         ringbuffer_incr(buf, &buf->start); //We overflowed so we have to increment start too.
     ringbuffer_incr(buf, &buf->end);
+}
+void ringbuffer_push(ringbuffer *buf, void *in)
+{
+    uninterruptible_start();
+    memcpy(ringbuffer_stage(buf), in, buf->elem_size);
+    ringbuffer_commit(buf);
     uninterruptible_end();
 }
 

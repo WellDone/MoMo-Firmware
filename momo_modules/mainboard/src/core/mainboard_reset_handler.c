@@ -13,6 +13,7 @@
 #include "report_manager.h"
 #include "memory_manager.h"
 #include "controller_mib_feature.h"
+#include "system_log.h"
 
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
@@ -32,7 +33,17 @@ void handle_all_resets_before(unsigned int type)
     init_mainboard_mib();
     flash_memory_init();
 
+    //The RTCC must be enabled for scheduling tasks, so ensure that happens.
+    //All modules that need to schedule tasks MUST BE called after
+    //rtcc is on and enabled. 
+    if (!rtcc_enabled())
+    {
+        configure_rtcc();
+        enable_rtcc();
+    }
+
     mclr_triggered = false;
+    CRITICAL_LOGL( "Device reset.");
 }
 
 void handle_all_resets_after(unsigned int type)
@@ -41,25 +52,20 @@ void handle_all_resets_after(unsigned int type)
      * Add code that should be called after all other reset code here
      */
 
-    //The RTCC must be enabled for scheduling tasks, so ensure that
-    if (!rtcc_enabled())
-    {
-        configure_rtcc();
-        enable_rtcc();
-    }
-
-    //All modules that need to schedule tasks MUST BE called after
-    //rtcc is on and enabled. 
     battery_init();
     //start_report_scheduling();
+
+    CRITICAL_LOGL( "Device initialized." );
 }
 
 void handle_poweron_reset(unsigned int type)
 {
+    CRITICAL_LOGL( "Device powered on." );
 }
 
 void handle_mclr_reset(unsigned int type)
 {
+    CRITICAL_LOGL( "MCLR triggered." );
     mclr_triggered = true;
 }
 
