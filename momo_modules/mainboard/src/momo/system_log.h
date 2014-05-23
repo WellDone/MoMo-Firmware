@@ -6,6 +6,7 @@
 */
 
 #include "platform.h"
+#include "rtcc.h"
 
 #define LOG_ENTRY_SIZE 56
 
@@ -26,7 +27,8 @@ typedef struct
 
 void init_system_log( uint8 start_subsection, uint8 subsection_count );
 void write_system_log( LogStream stream, const BYTE* data, uint8 length );
-void read_system_log( uint16 offset, BYTE* out, uint8 length );
+bool read_system_log( uint16 offset, LogEntry* out );
+void clear_system_log();
 uint16 system_log_count();
 
 #define CRITICAL_LOG( data, length ) write_system_log( kDebugLog, (BYTE*)data, length )

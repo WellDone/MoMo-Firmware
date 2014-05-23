@@ -215,13 +215,49 @@ void log_count()
 void read_log()
 {
 	LogEntry log_buffer;
-	read_system_log( &log_buffer )
-	bus_slave_return_int16( system_log_)
+	if ( !read_system_log( plist_get_int16(0), &log_buffer ) )
+	{
+		bus_slave_seterror( kCallbackError );
+	}
+	else
+	{
+		uint16 offset = plist_get_int16(1);
+		uint8 length = 20;
+		if ( offset == 0 )
+		{
+			length = (log_buffer.data-(BYTE*)&log_buffer);
+		}
+		else if ( 20 * offset < log_buffer.length )
+		{
+			offset = (uint16)(log_buffer.data-(BYTE*)&log_buffer) + ( 20 * (offset-1) );
+			length = 20;
+		}
+		else if ( 20 * (offset-1) < log_buffer.length )
+		{
+			length = log_buffer.length - ( 20 * (offset-1) );
+			offset = (uint16)(log_buffer.data-(BYTE*)&log_buffer) + ( 20 * (offset-1) );
+		}
+		else
+		{
+			bus_slave_seterror( kCallbackError );
+		}
+
+		bus_slave_return_buffer( (BYTE*)(&log_buffer)+offset, length );
+	}
+}
+void clear_log()
+{
+	clear_system_log();
 }
 
+extern bool lazy_system_logging;
 void get_lazy_logging()
 {
-
+	bus_slave_return_int16( lazy_system_logging );
+}
+void set_lazy_logging()
+{
+	lazy_system_logging = (plist_get_int16(0)==0)?false:true;
 }
 
 
@@ -244,8 +280,9 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x0F, reset_self, plist_spec_empty()},
 	{0x20, write_log, plist_spec(0, true)},
 	{0x21, log_count, plist_spec_empty()},
-	{0x22, read_log, plist_spec(1, false)},
-	{0x23, get_lazy_logging, plist_spec(0, false)},
-	{0x24, set_lazy_logging, plist_spec(1, false)},
+	{0x22, read_log, plist_spec(2, false)},
+	{0x23, clear_log, plist_spec_empty() },
+	{0x24, get_lazy_logging, plist_spec(0, false)},
+	{0x25, set_lazy_logging, plist_spec(1, false)},
 };
 DEFINE_MIB_FEATURE(controller);

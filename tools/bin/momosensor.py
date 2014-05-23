@@ -55,7 +55,7 @@ class MoMoSensor(cmdln.Cmdln):
 				debug = con.sensor_log_debug()
 				print "DEBUG ADDRESSES: MIN %d, MAX %d, START %d, END %d" % con.sensor_log_debug()
 				print "Try reading past the end..."
-				while len(values) > 9: #should be 351 at this point, read past the end of the buffer to test wrapping.
+				while len(values) > 0: #should be 351 at this point, read past the end of the buffer to test wrapping.
 
 					v = con.sensor_log_read().value
 					ev = values.pop(0)

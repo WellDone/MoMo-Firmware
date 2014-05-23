@@ -16,6 +16,8 @@ from colorama import Fore, Style
 import pytest
 from tempfile import NamedTemporaryFile
 
+import struct
+
 class ModTool(cmdln.Cmdln):
 	name = 'modtool'
 
@@ -410,9 +412,39 @@ class ModTool(cmdln.Cmdln):
 			print res['ints'][0]
 		elif command == "read":
 			index = 0
-			res = self.rpc(42,0x22,result_type=(0,True))
-			while len( res['buffer'] ) > 0:
-				print res['buffer']
+			while True:
+				try:
+					res = con.rpc(42,0x22,index,0,result_type=(0,True))
+				except RPCException, e:
+					break
+				(stream, length, year, month, day, hours, minutes, seconds ) = struct.unpack('HBBBBBBB', res['buffer'])
+				i = 1
+				msg = ""
+				while len(msg) < length:
+					res = con.rpc(42,0x22,index,i,result_type=(0,True))
+					msg += res['buffer']
+					i += 1
+				if stream == 1:
+					stream = "Critical"
+				elif stream == 2:
+					stream = "Debug"
+				elif stream == 3:
+					stream = "Remote"
+				else:
+					stream = "Unknown (%d)" % stream
+				print "%s (%d:%d:%d) %s" % (stream, hours, minutes, seconds, msg)
+				index += 1
+		elif command == "clear":
+			con.rpc(42,0x23)
+		elif command == "lazy":
+			if msg==None:
+				print con.rpc(42,0x24,result_type=(1,False))['ints'][0]
+			elif msg=="on":
+				con.rpc(42,0x25,1)
+			elif msg=="off":
+				con.rpc(42,0x25,0)
+			else:
+				exit(1)
 
 
 	def _get_controller(self, opts):

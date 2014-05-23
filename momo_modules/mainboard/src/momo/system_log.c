@@ -3,7 +3,6 @@
 #include "ringbuffer.h"
 #include "task_manager.h"
 #include <string.h>
-#include "rtcc.h"
 
 #define LOG_BUFFER_SIZE 8
 
@@ -12,7 +11,7 @@ static ringbuffer log_buffer;
 LogEntry log_buffer_data[LOG_BUFFER_SIZE];
 
 static bool flush_task_pending = false;
-static bool lazy_logging = true;
+bool lazy_system_logging = true;
 
 void init_system_log( uint8 start_subsection, uint8 subsection_count )
 {
@@ -35,7 +34,7 @@ void write_system_log( LogStream stream, const BYTE* data, uint8 length )
 	uninterruptible_start();
 
 	if ( length > LOG_ENTRY_SIZE )
-		return;
+		length = LOG_ENTRY_SIZE;
 
 	if ( ringbuffer_full( &log_buffer ) )
 		flush_task( NULL ); // This will lock things up but we need to make sure we save off the log entries
@@ -49,18 +48,30 @@ void write_system_log( LogStream stream, const BYTE* data, uint8 length )
 
 	// NB: There will be garbage after the end of the data buffer, but it's not worth zeroing out
 
-	if ( lazy_logging && !flush_task_pending )
+	if ( lazy_system_logging && !flush_task_pending )
 	{
 		flush_task_pending = true;
 		taskloop_add( flush_task, NULL );
 	}
-	else if ( !lazy_logging )
+	else if ( !lazy_system_logging )
 	{
 		flush_task( NULL );
 	}
 	uninterruptible_end();
 }
 
+bool read_system_log( uint16 index, LogEntry *out )
+{
+	flash_queue_walker walker = new_flash_queue_walker( &log_queue, index );
+	if ( flash_queue_walk( &walker, (void*)out, 1 ) == 0 )
+		return false;
+	else
+		return true;
+}
+void clear_system_log()
+{
+	flash_queue_reset( &log_queue );
+}
 
 uint16 system_log_count()
 {
