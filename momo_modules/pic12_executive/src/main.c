@@ -58,6 +58,12 @@ void main()
      */
     if (status.dirty_reset)
         trap(0);
+
+    /*
+     * set the poison reset bit so that we know if the module has reset for a 
+     * reason other than by calling the reset API function
+     */
+    status.dirty_reset = 1;
     
     if (status.valid_app && PIN(ALARM) == 1)
     {
