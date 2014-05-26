@@ -1,5 +1,5 @@
 ModuleName = "multmod";
-ModuleType = 0;
+ModuleType = 8;
 ModuleFlags = 0;
 
 feature 20

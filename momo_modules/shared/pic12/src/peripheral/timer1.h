@@ -27,6 +27,8 @@ enum
 
 #define pack_tmr1_config(clock, prescaler)	(pack_2(clock, 6) | pack_2(prescaler, 4))
 
+#define kHalfSecondConstant 3036UL
+
 void tmr1_config(uint8_t config);
 void tmr1_load(uint16_t value);
 void tmr1_setstate(PeripheralState state);

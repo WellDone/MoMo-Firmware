@@ -17,11 +17,11 @@
 #define kMIBUnenumeratedAddress		127
 
 //Defined MIB Module Types
-#define kMIBControllerType 			1
-#define kMIBCommunicationType		2
-#define kMIBGenericType				3
-#define kMIBExecutiveOnlyType		4
-#define kMIBSensorType				5
+#define kMIBGenericType				  0b00000000
+#define kMIBControllerType 			0b00000001
+#define kMIBCommunicationType		0b00000010
+#define kMIBExecutiveOnlyType		0b00000100
+#define kMIBSensorType				  0b00001000
 
 //Defined MIB Hardware Types
 #define kMIBPic12lf1822					2
@@ -52,7 +52,7 @@
 typedef struct 
 {
 	uint8	hardware_type;
-	uint8 	module_type;
+	uint8 module_type;
 	uint8	mib_revision : 4;
 	uint8	flags : 4;
 
