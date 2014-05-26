@@ -34,23 +34,41 @@ void flash_queue_reset( flash_queue* queue )
   save_queue_counters( queue );
 }
 
+void increment_queue_pointer( const flash_queue* queue, uint32 *ptr, uint32 *next_ptr, bool* wrapped, bool* new_subsection )
+{
+  *wrapped = false;
+  *new_subsection = false;
+
+  *next_ptr = *ptr + queue->elem_size;
+  if ( *next_ptr > queue->end_address )
+  {
+    *ptr = queue->start_address;
+    *next_ptr = queue->start_address + queue->elem_size;
+    *wrapped = true;
+    *new_subsection = true;
+  }
+  else if ( MEMORY_ADDR_SUBSECTION( *ptr ) != MEMORY_ADDR_SUBSECTION( *next_ptr ) )
+  {
+    *ptr = MEMORY_ADDR_SUBSECTION_ADDR( *next_ptr );
+    *next_ptr = *ptr + queue->elem_size;
+    *new_subsection = true;
+  }
+}
 // TODO: Error reporting and success/failure indications.
 void flash_queue_queue( flash_queue* queue, const void* data )
 {
-  uint32 new_end = queue->counters.end + queue->elem_size;
-  if ( new_end > queue->end_address )
+  uint32 new_end;
+  bool wrapped, new_subsection;
+  increment_queue_pointer( queue, &queue->counters.end, &new_end, &wrapped, &new_subsection );
+  if ( wrapped )
   {
-    queue->counters.end = queue->start_address;
-    new_end = queue->start_address + queue->elem_size;
     queue->wrapped = true;
   }
 
   if ( MEMORY_ADDR_SUBSECTION_ADDR( queue->counters.end ) == queue->counters.end || 
-       MEMORY_ADDR_SUBSECTION( queue->counters.end ) != MEMORY_ADDR_SUBSECTION( new_end ) )
+       new_subsection )
   {
     mem_clear_subsection( new_end );
-    queue->counters.end = MEMORY_ADDR_SUBSECTION_ADDR( new_end );
-    new_end = queue->counters.end + queue->elem_size;
 
     // If `start` is in the subsection we just cleared, bump it to the next one.
     uint32 next_subsection_addr = queue->counters.end + MEMORY_SUBSECTION_SIZE;
@@ -72,16 +90,9 @@ void flash_queue_queue( flash_queue* queue, const void* data )
 
 void wrap_start_pointer( flash_queue* queue )
 {
-  uint32 new_start = queue->counters.start + queue->elem_size;
-  if ( new_start > queue->end_address )
-  {
-    queue->counters.start = queue->start_address;
-  }
-  else if ( MEMORY_ADDR_SUBSECTION( queue->counters.start ) != MEMORY_ADDR_SUBSECTION( new_start ) )
-  {
-    queue->counters.start = MEMORY_ADDR_SUBSECTION_ADDR( new_start );
-  }
-
+  bool wrapped, new_subsection;
+  uint32 new_start;
+  increment_queue_pointer( queue, &queue->counters.start, &new_start, &wrapped, &new_subsection );
 }
 bool flash_queue_dequeue( flash_queue* queue, void* data )
 {
@@ -144,7 +155,7 @@ bool flash_queue_peek( flash_queue* queue, void* data ) {
 }
 
 uint32 flash_queue_count( const flash_queue* queue ) {
-  if ( !queue->wrapped || queue->counters.end > queue->counters.start ) {
+  if ( !queue->wrapped || queue->counters.end >= queue->counters.start ) {
     return (queue->counters.end - queue->counters.start)/queue->elem_size;
   } else {
     uint32 size = queue->end_address - queue->start_address;
@@ -154,4 +165,42 @@ uint32 flash_queue_count( const flash_queue* queue ) {
 
 bool flash_queue_empty( const flash_queue* queue ) {
   return (queue->counters.start == queue->counters.end);
+}
+
+flash_queue_walker new_flash_queue_walker( const flash_queue* queue, uint32 offset )
+{
+  flash_queue_walker walker;
+  if ( offset > flash_queue_count( queue ) )
+  {
+    walker.location = queue->counters.end;
+    return walker;
+  }
+  offset *= queue->elem_size;
+
+  walker.queue = queue;
+  if ( offset > queue->end_address - queue->counters.start )
+  {
+    offset -= queue->end_address - queue->counters.start;
+    walker.location = queue->start_address + offset;
+  }
+  else
+  {
+    walker.location = queue->counters.start + offset;
+  }
+  return walker;
+}
+uint8 flash_queue_walk( flash_queue_walker* walker, void* data, uint8 batch_size )
+{
+  bool wrapped, new_subsection;
+  uint32 new_location;
+  uint8 count = 0;
+  while ( count < batch_size && walker->location != walker->queue->counters.end )
+  {
+    mem_read( walker->location, data, walker->queue->elem_size );
+    increment_queue_pointer( walker->queue, &walker->location, &new_location, &wrapped, &new_subsection );
+    walker->location = new_location;
+    data += walker->queue->elem_size;
+    ++count;
+  }
+  return count;
 }

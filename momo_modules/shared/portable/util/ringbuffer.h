@@ -27,6 +27,9 @@ bool ringbuffer_empty(ringbuffer *buf);
 bool ringbuffer_full(ringbuffer *buf);
 void ringbuffer_reset(ringbuffer *buf);
 
+void* ringbuffer_stage(ringbuffer* buf);
+void ringbuffer_commit(ringbuffer* buf);
+
 #endif
 
 #endif
