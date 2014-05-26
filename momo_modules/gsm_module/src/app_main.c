@@ -9,16 +9,38 @@
 #include "simcard.h"
 #include "gsm_module.h"
 #include "global_state.h"
+#include "gsm_strings.h"
+#include "timer1.h"
 
+#define SHUTDOWN_TIMEOUT 120 //One minute, in half seconds
 void task(void)
 {
 	wdt_disable();
 	
 	//Don't sleep while the module's on so that we don't miss a
 	//serial message
+	uint8 timeout_counter = SHUTDOWN_TIMEOUT;
 	while(state.module_on)
 	{
-		;
+		if ( gsm_receiveone() == 0 )
+			timeout_counter = SHUTDOWN_TIMEOUT;
+		else if ( state.shutdown_pending )
+			--timeout_counter; // decrement if we timed out waiting for an RX byte.
+
+		if ( state.shutdown_pending )
+		{
+			if ( timeout_counter == 0 || cmgs_matched() )
+			{
+				gsm_off();
+			}
+			else if ( err_matched() )
+			{
+				while ( gsm_receiveone() == 0 )
+					;
+				// TODO: Log the error code.
+				gsm_off();
+			}
+		}
 	}
 }
 
@@ -73,10 +95,17 @@ void gsm_testsim()
 
 void gsm_dumpbuffer()
 {
-	uint8 resp_len;
-	resp_len = copy_to_mib();
+	bus_slave_setreturn(pack_return_status(0, copy_to_mib()));
+}
+void gsm_debug()
+{
+	mib_buffer[0] = state.module_on;
+	mib_buffer[1] = state.shutdown_pending;
+	mib_buffer[2] = rx_buffer_start;
+	mib_buffer[3] = rx_buffer_end;
+	mib_buffer[4] = rx_buffer_len;
 
-	bus_slave_setreturn(pack_return_status(0, resp_len));
+	bus_slave_setreturn(pack_return_status(0, 5));
 }
 
 void gsm_sendcommand()
@@ -86,17 +115,14 @@ void gsm_sendcommand()
 	
 	if (state.module_on)
 	{
-		uint8 resp_len;
-
 		send_buffer();
-		uint8 status = receive_response();
-		if ( status != 0 ) {
+
+		if ( receive_response() == 2 ) { //timeout
 			bus_slave_setreturn( pack_return_status(6,0) );
 			return;
 		}
 
-		resp_len = copy_to_mib();
-		bus_slave_setreturn(pack_return_status(0, resp_len));
+		bus_slave_setreturn(pack_return_status(0, copy_to_mib()));
 		
 		return;
 	}

@@ -3,9 +3,11 @@
 
 #include "rtcc.h"
 #include "flash_queue.h"
+#include "report_manager.h"
 
 typedef struct {
-  bool registered;
+  bool                registered;
+  ReportConfiguration report_config;
 } MoMoState;
 
 #ifndef MOMO_STATE_CONTROLLER
