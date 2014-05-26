@@ -23,15 +23,18 @@ BEGINFUNCTION _wdt_delay
 	return
 ENDFUNCTION _wdt_delay
 
-;We need to save off the status of the reset just after powerup
-;so that we know if it was due to a watchdog reset
-psect powerup,class=CODE,delta=2
 
+psect powerup,class=CODE,delta=2
+;Check if we reset due to a RESET instruction and
+;if so, see if it was due to an API call, if not,
+;save this off so we can trap() and debug the error.
 BEGINREGION powerup
+	;Clear all bits but the DirtyResetBit
 	BANKSEL _status
-	clrf BANKMASK(_status)
-	btfss nTO
-	bsf BANKMASK(_status), DirtyResetBit
-	bsf nTO
+	movlw 0
+	btfss nRI
+		movlw (1<<DirtyResetBit)
+	bsf nRI
+	andwf BANKMASK(_status)
 	goto start
 ENDREGION powerup

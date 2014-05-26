@@ -5,7 +5,10 @@
 
 #include "protocol.h"
 
-uint8 bus_master_rpc_sync(uint8 address);
+void  trap(uint8 code);
+void  reset_device();
+void  bus_master_begin_rpc();
+uint8 bus_master_send_rpc(uint8 address);
 void  bus_slave_setreturn(uint8 status);
 
 #define mib_buffer_length()			mib_packet.param_spec & 0b00011111
