@@ -3,26 +3,8 @@
 #include "mib_state.h"
 #include "bootloader.h"
 
-extern bank1 __persistent MIBExecutiveStatus status;
-
 //Local Prototypes that should not be called outside of this file
-uint8 bus_master_tryrpc();
-
-/*uint8 bus_master_send(uint8 length)				
-{
-	mib_state.curr_loc = mib_state.buffer_start + length;
-	i2c_append_checksum();
-
-	mib_state.buffer_end = mib_state.curr_loc;
-	mib_state.curr_loc = mib_state.buffer_start;
-	return i2c_master_send_message();						
-}
-
-uint8 bus_master_receive(uint8 length)			
-{													
-	mib_state.buffer_end = mib_state.buffer_start + length;
-	return i2c_master_receive_message();					
-}*/
+static uint8 bus_master_tryrpc();
 
 void bus_master_begin_rpc()
 {
@@ -65,7 +47,7 @@ uint8 bus_master_send_rpc(unsigned char address)
  * Send or resend the rpc call currently stored in mib_state.  
  */
 
-uint8 bus_master_tryrpc()
+static uint8 bus_master_tryrpc()
 {
 	//Copy the command spec back in because they would have been overwritten if we're
 	//retrying a call after getting a checksum error from the slave.

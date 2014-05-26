@@ -13,6 +13,7 @@ void exec_prepare_reflash()
 
 void exec_reset()
 {
+	status.dirty_reset = 0;
 	#asm
 	reset 
 	#endasm

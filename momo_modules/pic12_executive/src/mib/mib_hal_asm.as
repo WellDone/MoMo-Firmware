@@ -2,13 +2,14 @@
 #include "executive.h"
 #include "constants.h"
 #include "asm_macros.inc"
+#include "i2c_defines.h"
 #include "asm_branches.inc"
 
 ;mib_params.asm
 ;Assembly routines for dealing with MIB things in an efficient way
 ;very quickly and with minimal code overhead
 
-GLOBAL exec_cmd_map, exec_spec_map, _find_handler
+GLOBAL exec_cmd_map, exec_spec_map, _find_handler, _bus_is_idle
 global _mib_data
 
 PSECT text100,local,class=CODE,delta=2
@@ -184,3 +185,34 @@ BEGINFUNCTION _validate_param_spec
 		retlw 1 
 	retlw 0
 ENDFUNCTION _validate_param_spec
+
+
+;uint8 bus_is_idle()
+;{
+;	//bus is not idle if a start condition has been detected with no stop.
+;	if (SSPSTATbits.S)
+;		return 0;
+
+;	//If a stop has been asserted with no starts, the bus is idle
+;	if (SSPSTATbits.P)
+;		return 1;
+;	else if (SDAPIN && SCLPIN) //If no starts and no stops and the pins are high, it's idle (only happens right after a reset before the first transmission)
+;			return 1;
+
+;	//Otherwise it is not idle
+;	return 0;
+;}
+BEGINFUNCTION _bus_is_idle
+	banksel SSP1STAT
+	btfsc BANKMASK(SSP1STAT), SSP1STAT_S_POSN
+		retlw 0
+	btfsc BANKMASK(SSP1STAT), SSP1STAT_P_POSN
+		retlw 1
+	banksel I2CPORT
+	movf 	BANKMASK(I2CPORT),w
+	andlw	I2CMASK
+	xorlw 	I2CMASK		;zero bit will be set if SCL and SDA are high
+	btfsc 	ZERO
+		retlw 1
+	retlw 0
+ENDFUNCTION _bus_is_idle
