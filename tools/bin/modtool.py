@@ -284,6 +284,7 @@ class ModTool(cmdln.Cmdln):
 	@cmdln.option('-a', '--address', default=None, help='Select device by address')
 	@cmdln.option('-n', '--name', default=None, help='Select device by name')
 	@cmdln.option('-c', '--controller', action='store_true', default=False, help='Reflash the controller')
+	@cmdln.option('--noreset', action='store_true', default=False, help='Do not reset the bus after the reflash')
 	def do_reflash(self, subcmd, opts, hexfile):
 		"""${cmd_name}: Reflash the mib12 module given either its name or address 
 
@@ -305,7 +306,7 @@ class ModTool(cmdln.Cmdln):
 		if opts.controller:
 			reflash_controller(con, hexfile)
 		else:
-			reflash_module(con, hexfile, name=opts.name, address=int(opts.address))
+			reflash_module(con, hexfile, name=opts.name, address=int(opts.address), noreset=opts.noreset)
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_time(self, subcmd, opts):
