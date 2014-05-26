@@ -51,6 +51,13 @@ void main()
         enter_bootloader();
         restore_status();   //Update our status on what mode we should be in now
     }
+
+    /* Check if we reset in a dirty fashion, if so trap and wait for debugging
+     * Do this after reregistering above so that we can be sure that we have a 
+     * valid address for debugging purposes.
+     */
+    if (status.dirty_reset)
+        trap(0);
     
     if (status.valid_app && PIN(ALARM) == 1)
     {

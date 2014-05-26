@@ -38,8 +38,14 @@
 #define DirtyResetBit	4
 #define SlaveActiveBit	5
 #define FirstReadBit	6
-#define SendValueBit	7
+#define TrapBit			7
 
 #define ASM_INCLUDE_GLOBALS()		global _mib_data, _mib_state, _status
+
+#ifdef kMultipageDevice
+#define reset_page()			pagesel($)
+#else
+#define reset_page()
+#endif
 
 #endif

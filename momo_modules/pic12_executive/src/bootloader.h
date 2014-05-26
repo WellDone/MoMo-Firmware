@@ -28,7 +28,7 @@ typedef union
 		uint8 dirty_reset 	: 1; //cannot change, referenced in watchdog.as
 		uint8 slave_active 	: 1; //cannot change, referenced in i2c_utilities.as
 		uint8 first_read	: 1;
-		uint8 reserved3		: 1; 
+		uint8 trapped		: 1; 
 	};
 
 	uint8 status;

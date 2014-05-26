@@ -28,10 +28,10 @@ BEGINREGION mib12_api
 	retlw 0
 	retlw 0
 	retlw 0
-	retlw 0
+	goto _main	;trap(uint8 code)
 
-	goto _main
-	goto _main
-	goto _main
-	goto _main
+	goto _main  ;
+	goto _main  ;
+	goto _main	;
+	goto _main	;
 ENDREGION mib12_api
