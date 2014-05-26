@@ -20,7 +20,7 @@ void init_system_log( uint8 start_subsection, uint8 subsection_count )
                       sizeof(LogEntry), 
                       subsection_count );
 }
-void flush_task( void* arg )
+void flush_log( void* arg )
 {
 	flush_task_pending = false;
 	while ( !ringbuffer_empty( &log_buffer ) )
@@ -37,7 +37,7 @@ void write_system_log( LogStream stream, const BYTE* data, uint8 length )
 		length = LOG_ENTRY_SIZE;
 
 	if ( ringbuffer_full( &log_buffer ) )
-		flush_task( NULL ); // This will lock things up but we need to make sure we save off the log entries
+		flush_log( NULL ); // This will lock things up but we need to make sure we save off the log entries
 
 	LogEntry* staged_log_entry = (LogEntry*) ringbuffer_stage( &log_buffer );
 	staged_log_entry->stream = stream;
@@ -51,11 +51,11 @@ void write_system_log( LogStream stream, const BYTE* data, uint8 length )
 	if ( lazy_system_logging && !flush_task_pending )
 	{
 		flush_task_pending = true;
-		taskloop_add( flush_task, NULL );
+		taskloop_add( flush_log, NULL );
 	}
 	else if ( !lazy_system_logging )
 	{
-		flush_task( NULL );
+		flush_log( NULL );
 	}
 	uninterruptible_end();
 }

@@ -4,7 +4,7 @@
 #include <GenericTypeDefs.h>
 #include "bit_utilities.h"
 
-typedef unsigned short bool;
+#define bool unsigned char
 #define false 0
 #define true 1
 

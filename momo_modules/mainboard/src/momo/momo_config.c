@@ -23,7 +23,9 @@ void init_momo_config( unsigned int subsection_index )
 void reset_momo_state()
 {
   current_momo_state.registered = false;
+  init_report_config();
   config_state = kClean;
+  save_momo_state();
 }
 void load_momo_state()
 {
@@ -43,6 +45,6 @@ void flush_config_to_memory( void* arg )
 void save_momo_state()
 {
   if ( config_state == kClean )
-    scheduler_schedule_task( flush_config_to_memory, kEvery10Seconds, 1, &flush_config_task, NULL );
+    scheduler_schedule_task( flush_config_to_memory, kEveryHalfSecond, 1, &flush_config_task, NULL );
   config_state = kDirty;
 }

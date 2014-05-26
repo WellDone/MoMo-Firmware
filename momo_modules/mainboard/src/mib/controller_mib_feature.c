@@ -12,12 +12,13 @@
 #include "rtcc.h"
 #include "i2c.h"
 #include "bus.h"
+#include "module_manager.h"
 #include "system_log.h"
+#include "memory_manager.h"
 
-#define MODULE_BASE_ADDRESS 11
+#include "momo_config.h"
+#include "sensor_event_log.h"
 
-static momo_module_descriptor the_modules[MAX_MODULES];
-static unsigned int module_count = 0;
 static flash_block_info fb_info;
 
 static unsigned int _BOOTLOADER_VAR reflash __attribute__((persistent));
@@ -52,7 +53,8 @@ void con_reset_bus()
 	LAT(BUS_ENABLE) = 1;
 	DIR(BUS_ENABLE) = OUTPUT;
 
-	module_count = 0;
+	clear_modules();
+
 	DELAY_MS(50);
 
 	DIR(SCL) = INPUT;
@@ -66,35 +68,38 @@ void con_reset_bus()
 
 void get_module_count(void)
 {	
-	bus_slave_return_int16( module_count );
+	bus_slave_return_int16( module_count() );
 }
 
 void register_module(void)
 {
-	if ( module_count == MAX_MODULES 
-	     || plist_get_buffer_length() != sizeof( momo_module_descriptor ) )
+	if ( plist_get_buffer_length() != sizeof( momo_module_descriptor ) )
 	{
 		//TODO: Better error granularity
-		bus_slave_seterror( kCallbackError ); //TODO: User error
+		bus_slave_seterror( kCallbackError );
 		return;
 	}
-
-	memcpy( (void*)(&the_modules[module_count]), plist_get_buffer(0), sizeof( momo_module_descriptor ) );
-
-	bus_slave_return_int16( MODULE_BASE_ADDRESS + module_count );
-	++module_count;
+	uint8 addr = add_module( (momo_module_descriptor*)plist_get_buffer(0) );
+	if ( addr == 0 )
+	{
+		//TODO: Better error granularity
+		bus_slave_seterror( kCallbackError );
+		return;	
+	}
+	
+	bus_slave_return_int16( addr );
 }
 
 void describe_module(void)
 {
 	unsigned long index = plist_get_int16(0);
-	if ( index >= module_count )
+	if ( index >= module_count() )
 	{
 		bus_slave_seterror( kCallbackError ); //TODO: User error
 		return;
 	}
 	
-	bus_slave_return_buffer( (const char*)&the_modules[index], sizeof(momo_module_descriptor) );
+	bus_slave_return_buffer( (const char*)get_module(index), sizeof(momo_module_descriptor) );
 }
 
 void read_flash_rpc()
@@ -166,13 +171,23 @@ void test_fb_read()
 
 void reflash_self()
 {
+	DEBUG_LOGL( "Performing controller firmware reflash..." );
+	FLUSH_LOG();
 	reflash = kReflashMagic;
 	asm volatile("reset");
 }
 
 void reset_self()
 {
+	DEBUG_LOGL( "Reset command received, performing software reset." );
+	FLUSH_LOG();
 	asm volatile("reset");
+}
+
+void factory_reset()
+{
+	mem_clear_all();
+	flash_memory_init();
 }
 
 void current_time()
@@ -278,6 +293,8 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x0D, debug_value, plist_spec_empty()},
 	{0x0E, set_sleep, plist_spec(1, false)},
 	{0x0F, reset_self, plist_spec_empty()},
+	{0x10, factory_reset, plist_spec_empty()},
+
 	{0x20, write_log, plist_spec(0, true)},
 	{0x21, log_count, plist_spec_empty()},
 	{0x22, read_log, plist_spec(2, false)},
