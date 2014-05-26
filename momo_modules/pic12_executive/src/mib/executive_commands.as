@@ -27,6 +27,6 @@ BEGINREGION exec_spec_map
 	retlw (2 << 5)
 	retlw 0
 	retlw 0
-	retlw 0
+	retlw (1 << 5)
 	retlw 0
 ENDREGION exec_spec_map
