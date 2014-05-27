@@ -156,11 +156,17 @@ bool flash_queue_peek( flash_queue* queue, void* data ) {
 }
 
 uint32 flash_queue_count( const flash_queue* queue ) {
+  uint8 rem = MEMORY_SUBSECTION_SIZE % queue->elem_size;
   if ( !queue->wrapped || queue->counters.end >= queue->counters.start ) {
-    return (queue->counters.end - queue->counters.start)/queue->elem_size;
+    uint8 subsections = MEMORY_ADDR_SUBSECTION( queue->counters.end ) - MEMORY_ADDR_SUBSECTION( queue->counters.start );
+    uint8 extra = subsections * rem / queue->elem_size;
+    return (queue->counters.end - queue->counters.start)/queue->elem_size - extra;
   } else {
     uint32 size = queue->end_address - queue->start_address;
-    return ( size - (queue->counters.start - queue->counters.end))/queue->elem_size;
+    size = size - (queue->counters.start - queue->counters.end);
+    uint8 subsections = MEMORY_ADDR_SUBSECTION( size );
+    uint8 extra = subsections * rem / queue->elem_size;
+    return size/queue->elem_size - extra;
   }
 }
 
