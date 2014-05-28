@@ -37,3 +37,11 @@ BEGINFUNCTION _bus_master_send
 
 	goto _i2c_master_send_message
 ENDFUNCTION _bus_master_send
+
+BEGINFUNCTION _get_mib_result
+	movlb	1	; select bank1
+	swapf	BANKMASK(bus_retstatus),w
+  	rrf		WREG,f
+  	andlw	7
+  	return
+ENDFUNCTION _get_mib_result

@@ -40,7 +40,7 @@ uint8 bus_master_send_rpc(unsigned char address)
 	i2c_finish_transmission();
 	i2c_set_master_mode(0);
 
-	return mib_data.return_status.bus_returnstatus.result;
+	return get_mib_result();
 }
 
 /*
@@ -75,7 +75,7 @@ static uint8 bus_master_tryrpc()
 		//At this point we know that we read a valid return status, check what it tells us
 
 		//If there was a checksum error on the command packet
-		if (mib_data.return_status.bus_returnstatus.result == kChecksumError)
+		if (get_mib_result() == kChecksumError)
 			return 0;
 
 		//If there was a return value, read it in.

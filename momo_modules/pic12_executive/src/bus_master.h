@@ -16,4 +16,6 @@ void			bus_master_begin_rpc();
 uint8			bus_master_send_rpc(unsigned char address);
 uint8			bus_master_send(uint8 length);
 uint8			bus_master_receive(uint8 length);
+
+uint8			get_mib_result(); //Return the result portion of the mib return header		
 #endif
