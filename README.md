@@ -14,7 +14,7 @@ A product of [WellDone.org](http://www.welldone.org).
 
 See the [Getting Started](https://github.com/WellDone/MoMo-Firmware/wiki/Getting-Started) wiki page for a thorough introduction to development of the MoMo platform.
 
-Development can be done locally (see [Development Dependencies](https://github.com/WellDone/MoMo-Firmware/wiki/Development-Dependencies) or using [Vagrant](http://www.vagrantup.com/) by simply running `vagrant up && vagrant ssh`)
+Development can be done locally (see [Development Dependencies](https://github.com/WellDone/MoMo-Firmware/wiki/Development-Dependencies)) or using [Vagrant](http://www.vagrantup.com/) by simply running `vagrant up && vagrant ssh`
 
 ## License ##
 
