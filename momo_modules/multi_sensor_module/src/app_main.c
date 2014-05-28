@@ -16,7 +16,7 @@
 MultiSensorState state;
 extern unsigned int adc_result;
 
-static uint8 aggregate_counter;
+static uint16 aggregate_counter;
 
 void task(void)
 {
@@ -32,6 +32,7 @@ void task(void)
 				state.push_pending = 0;
 				if ( aggregate_counter != 0 )
 				{
+					bus_master_begin_rpc();
 					mib_buffer[0] = mib_address;
 					mib_buffer[1] = 0;
 
@@ -42,8 +43,9 @@ void task(void)
 					mib_buffer[5] = 0;
 					mib_buffer[6] = 0;
 					mib_buffer[7] = 0;
-					
-					bus_master_rpc( 8, 70, 0, plist_with_buffer(2, 4) );
+
+					bus_master_prepare_rpc(70, 0, plist_with_buffer(2, 4));
+					bus_master_send_rpc(8);
 
 					aggregate_counter = 0;
 				}
@@ -103,6 +105,8 @@ void initialize(void)
 
 	aggregate_counter = 0;
 
+	bus_master_begin_rpc();
+
 	mib_buffer[0] = mib_address;
 	mib_buffer[1] = 0;
 
@@ -111,8 +115,9 @@ void initialize(void)
 
 	mib_buffer[4] = kEverySecond;
 	mib_buffer[5] = 0;
+	bus_master_prepare_rpc(43, 0, plist_ints(3));
 
-	bus_master_rpc( 8, 43, 0, plist_ints(3) );
+	bus_master_send_rpc(8);
 }
 
 void main()
