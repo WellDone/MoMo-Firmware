@@ -19,10 +19,9 @@ extern bank1 uint8              slave_address;
 
 #define mib_address (slave_address >> 1)
 
-#define bus_master_rpc(a, f, c, s) \
+#define bus_master_prepare_rpc(f, c, s) { \
 	mib_packet.feature = f; \
 	mib_packet.command = c; \
-	mib_packet.param_spec = s; \
-	bus_master_rpc_sync( a )
+	mib_packet.param_spec = s;}
 
 #endif
