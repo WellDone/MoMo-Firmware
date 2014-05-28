@@ -47,7 +47,8 @@ void increment_queue_pointer( const flash_queue* queue, uint32 *ptr, uint32 *nex
     *wrapped = true;
     *new_subsection = true;
   }
-  else if ( MEMORY_ADDR_SUBSECTION( *ptr ) != MEMORY_ADDR_SUBSECTION( *next_ptr ) )
+  else if ( MEMORY_ADDR_SUBSECTION( *ptr ) != MEMORY_ADDR_SUBSECTION( *next_ptr )
+            && *next_ptr != MEMORY_ADDR_SUBSECTION_ADDR( *next_ptr ) )
   {
     *ptr = MEMORY_ADDR_SUBSECTION_ADDR( *next_ptr );
     *next_ptr = *ptr + queue->elem_size;
@@ -155,11 +156,17 @@ bool flash_queue_peek( flash_queue* queue, void* data ) {
 }
 
 uint32 flash_queue_count( const flash_queue* queue ) {
+  uint8 rem = MEMORY_SUBSECTION_SIZE % queue->elem_size;
   if ( !queue->wrapped || queue->counters.end >= queue->counters.start ) {
-    return (queue->counters.end - queue->counters.start)/queue->elem_size;
+    uint8 subsections = MEMORY_ADDR_SUBSECTION( queue->counters.end ) - MEMORY_ADDR_SUBSECTION( queue->counters.start );
+    uint8 extra = subsections * rem / queue->elem_size;
+    return (queue->counters.end - queue->counters.start)/queue->elem_size - extra;
   } else {
     uint32 size = queue->end_address - queue->start_address;
-    return ( size - (queue->counters.start - queue->counters.end))/queue->elem_size;
+    size = size - (queue->counters.start - queue->counters.end);
+    uint8 subsections = MEMORY_ADDR_SUBSECTION( size );
+    uint8 extra = subsections * rem / queue->elem_size;
+    return size/queue->elem_size - extra;
   }
 }
 
@@ -170,14 +177,17 @@ bool flash_queue_empty( const flash_queue* queue ) {
 flash_queue_walker new_flash_queue_walker( const flash_queue* queue, uint32 offset )
 {
   flash_queue_walker walker;
+  walker.queue = queue;
   if ( offset > flash_queue_count( queue ) )
   {
     walker.location = queue->counters.end;
     return walker;
   }
-  offset *= queue->elem_size;
 
-  walker.queue = queue;
+  offset *= queue->elem_size;
+  uint8 subsections = MEMORY_ADDR_SUBSECTION( queue->counters.start + offset ) - MEMORY_ADDR_SUBSECTION( queue->counters.start );
+  offset += ( MEMORY_SUBSECTION_SIZE % queue->elem_size ) * subsections;
+  
   if ( offset > queue->end_address - queue->counters.start )
   {
     offset -= queue->end_address - queue->counters.start;
@@ -187,6 +197,7 @@ flash_queue_walker new_flash_queue_walker( const flash_queue* queue, uint32 offs
   {
     walker.location = queue->counters.start + offset;
   }
+
   return walker;
 }
 uint8 flash_queue_walk( flash_queue_walker* walker, void* data, uint8 batch_size )
