@@ -2,6 +2,7 @@
 
 #include "gsm_module.h"
 #include "gsm_serial.h"
+#include "gsm_strings.h"
 #include "global_state.h"
 #include <xc.h>
 
@@ -58,6 +59,41 @@ uint8 gsm_on()
 	}
 
 	return PIN(GSMSTATUSPIN);
+}
+
+
+void send_creg_query()
+{
+	gsm_buffer[0] = 'A';
+	gsm_buffer[1] = 'T';
+	gsm_buffer[2] = '+';
+	gsm_buffer[3] = 'C';
+	gsm_buffer[4] = 'R';
+	gsm_buffer[5] = 'E';
+	gsm_buffer[6] = 'G';
+	gsm_buffer[7] = '?';
+	buffer_len = 8;
+	append_carriage();
+	send_buffer();
+}
+bool wait_for_registration()
+{
+	reset_match_counters();
+
+	send_creg_query();
+
+	uint8 counter = 0;
+	while ( !creg_matched() )
+	{
+		if ( gsm_receiveone() == 1 )
+		{
+			--counter;
+			if ( counter == 0 ) // We timed out, so we received something but it wasn't a successful registration
+				return false;
+			send_creg_query();
+		}
+	}
+	return true;
 }
 
 void gsm_off()

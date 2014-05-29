@@ -4,10 +4,11 @@
 uint8 ok_counter;
 uint8 err_counter;
 uint8 cmgs_counter;
+uint8 creg_counter;
 
 void reset_match_counters()
 {
-	ok_counter = err_counter = cmgs_counter = 0;
+	ok_counter = err_counter = cmgs_counter = creg_counter = 0;
 }
 bool cmgs_matched()
 {
@@ -25,6 +26,26 @@ bool cmgs_matched()
 		cmgs_counter = 0;
 	return false;
 }
+bool creg_matched()
+{
+	if ( creg_counter == 9 )
+		return true;
+	uint8 c = peek_rx_buffer_end();
+	if ( ( creg_counter == 0 && c == 'C' )
+		|| ( creg_counter == 1 && c == 'R' )
+		|| ( creg_counter == 2 && c == 'E' )
+		|| ( creg_counter == 3 && c == 'G' )
+		|| ( creg_counter == 4 && c == ':' )
+		|| ( creg_counter == 5 && c == ' ' )
+		|| ( creg_counter == 5 && c == '0' )
+		|| ( creg_counter == 5 && c == ',' )
+		|| ( creg_counter == 5 && c == '1' ) )
+		++creg_counter;
+	else
+		creg_counter = 0;
+	return false;
+}
+
 bool ok_matched()
 {
 	if ( ok_counter == 2 )

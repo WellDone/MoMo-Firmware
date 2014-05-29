@@ -10,4 +10,6 @@ void gsm_init();
 uint8 gsm_on();
 void gsm_off();
 
+bool wait_for_registration();
+
 #endif

@@ -19,7 +19,6 @@
  void gsm_openstream()
  {
  	gsm_on();
- 	__delay_ms(1000);
  	if (PIN(GSMSTATUSPIN) == 0)
  	{
  		bus_slave_setreturn(pack_return_status(6,0));
@@ -31,6 +30,13 @@
  		bus_slave_setreturn(pack_return_status(6,0));
  		return;
  	}
+
+ 	if ( !wait_for_registration() )
+ 	{
+ 		gsm_off();
+ 		bus_slave_setreturn( pack_return_status(6, 0) );
+ 	}
+
 
  	load_gsm_constant(kStartStreamString);
  	send_buffer();
