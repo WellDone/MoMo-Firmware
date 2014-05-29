@@ -329,7 +329,7 @@ void receive_gsm_stream_response(unsigned char a)
       char buf[4];
       CRITICAL_LOG( buf, itoa_small( buf, 4, a ) );
     }
-    //taskloop_add( next_comm_module, NULL );
+    taskloop_add( next_comm_module, NULL );
   }
   else
   {
