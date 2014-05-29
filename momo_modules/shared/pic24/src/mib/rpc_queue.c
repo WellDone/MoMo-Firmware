@@ -12,6 +12,7 @@ void rpc_queue_init()
 
 void rpc_queue(mib_rpc_function callback, const MIBUnified *data)
 {
+	uninterruptible_start();
 	rpc_info info;
 	info.callback = callback;
 	memcpy(&info.data, data, sizeof(MIBUnified));
@@ -20,12 +21,15 @@ void rpc_queue(mib_rpc_function callback, const MIBUnified *data)
 
 	if ( rpc_queue_full() )
 		taskloop_lock();
+	uninterruptible_end();
 }
 
 inline void rpc_dequeue(rpc_info* out)
 {
+	uninterruptible_start();
 	ringbuffer_pop(&the_rpc_queue, out);
 	taskloop_unlock();
+	uninterruptible_end();
 }
 inline const rpc_info* rpc_queue_peek()
 {

@@ -1,7 +1,7 @@
 #ifndef __flash_queue_h__
 #define __flash_queue_h__
 
-#include "common.h"
+#include "platform.h"
 #include "flashblock.h"
 
 /*

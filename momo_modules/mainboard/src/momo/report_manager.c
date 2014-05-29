@@ -296,6 +296,7 @@ void next_comm_module( void* arg )
     DEBUG_LOGL( "Opening comm stream..." );
     MIBUnified cmd;
     memcpy( cmd.mib_buffer, CONFIG.report_server_address, strlen(CONFIG.report_server_address) );
+    DEBUG_LOG( cmd.mib_buffer, strlen(CONFIG.report_server_address) );
     report_rpc( &cmd, 0, plist_with_buffer(0,strlen(CONFIG.report_server_address)) );
   }
 }
@@ -314,6 +315,7 @@ void stream_to_gsm() {
   if ( byte_count > kBusMaxMessageSize )
     byte_count = kBusMaxMessageSize;
   memcpy( cmd.mib_buffer, base64_report_buffer+report_stream_offset, byte_count );
+  DEBUG_LOG( cmd.mib_buffer, byte_count );
   report_stream_offset += byte_count;
   report_rpc( &cmd, 1, plist_with_buffer( 0, byte_count ) );
   save_momo_state();
@@ -321,13 +323,19 @@ void stream_to_gsm() {
 void receive_gsm_stream_response(unsigned char a) 
 {
   if ( a != kNoMIBError || current_stream_finished ) {
-    CRITICAL_LOGL( "Failed to send a message to a comm module!" );
-    taskloop_add( next_comm_module, NULL );
+    if ( a != kNoMIBError )
+    {
+      CRITICAL_LOGL( "Failed to send a message to a comm module!  Error: " );
+      char buf[4];
+      CRITICAL_LOG( buf, itoa_small( buf, 4, a ) );
+    }
+    //taskloop_add( next_comm_module, NULL );
   }
   else
   {
     taskloop_add( stream_to_gsm, NULL );
-  } 
+  }
+  FLUSH_LOG();
 }
 
 static ScheduledTask report_task;
@@ -339,7 +347,8 @@ void post_report( void* arg )
     CRITICAL_LOGL( "Failed to construct report!" );
     return; //TODO: Recover
   }
-  DEBUG_LOGL( "Report constructed." );
+  DEBUG_LOGL( "Report constructed:" );
+  DEBUG_LOG( base64_report_buffer, strlen( base64_report_buffer ) );
 
   comm_module_iterator = create_module_iterator( kMIBCommunicationType );
   taskloop_add( next_comm_module, NULL );
