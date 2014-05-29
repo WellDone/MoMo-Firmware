@@ -171,7 +171,7 @@ void test_fb_read()
 
 void reflash_self()
 {
-	DEBUG_LOGL( "Performing controller firmware reflash..." );
+	CRITICAL_LOGL( "Performing controller firmware reflash..." );
 	FLUSH_LOG();
 	reflash = kReflashMagic;
 	asm volatile("reset");
@@ -179,15 +179,17 @@ void reflash_self()
 
 void reset_self()
 {
-	DEBUG_LOGL( "Reset command received, performing software reset." );
+	CRITICAL_LOGL( "Reset command received, performing software reset." );
 	FLUSH_LOG();
 	asm volatile("reset");
 }
 
 void factory_reset()
 {
+	CRITICAL_LOGL( "Performing factory reset..." );
 	mem_clear_all();
 	flash_memory_init();
+	CRITICAL_LOGL( "Factory reset complete!" );
 }
 
 void current_time()
