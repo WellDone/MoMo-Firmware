@@ -13,6 +13,10 @@ void rpc_queue_init()
 void rpc_queue(mib_rpc_function callback, const MIBUnified *data)
 {
 	uninterruptible_start();
+	if ( rpc_queue_full() ) {
+		uninterruptible_end();
+		return;  // THIS IS REALLY BAD!!!!!!
+	}
 	rpc_info info;
 	info.callback = callback;
 	memcpy(&info.data, data, sizeof(MIBUnified));

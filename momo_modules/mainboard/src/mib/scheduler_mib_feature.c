@@ -14,21 +14,44 @@ typedef struct {
 	AlarmRepeatTime frequency;
 
 	ScheduledTask task;
-} scheduled_callback;
+	uint8 rpc_id;
+} RPCCallback;
+
+static uint8 current_rpc_id = 1;
+
 
 #define MAX_SCHEDULED_CALLBACKS 16
-static scheduled_callback callbacks[MAX_SCHEDULED_CALLBACKS];
+static RPCCallback callbacks[MAX_SCHEDULED_CALLBACKS];
 
+static void rpc_done( uint8 status )
+{
+	uint8 index;
+	for ( index = 0; index < MAX_SCHEDULED_CALLBACKS; ++index )
+	{
+		if ( callbacks[index].rpc_id == current_rpc_id )
+		{
+			callbacks[index].rpc_id = 0;
+			break;
+		}
+	}
+}
 static void callback( void* arg )
 {
-	scheduled_callback *cb = (scheduled_callback*) arg;
+	RPCCallback *cb = (RPCCallback*) arg;
+
+	if ( cb->rpc_id > current_rpc_id )
+		return;
+
+	cb->rpc_id = (current_rpc_id++);
+	if ( current_rpc_id == 0 )
+		current_rpc_id = 1;
 
 	MIBUnified cmd;
 	cmd.address = cb->address;
   cmd.bus_command.feature = cb->feature;
   cmd.bus_command.command = cb->command;
   cmd.bus_command.param_spec = plist_empty();
-	bus_master_rpc_async( NULL, &cmd );
+	bus_master_rpc_async( rpc_done, &cmd );
 }
 
 void schedule_callback()
@@ -43,11 +66,12 @@ void schedule_callback()
 	{
 		if ( callbacks[index].address == 0 )
 		{
-			scheduled_callback* cb = &(callbacks[index]);
+			RPCCallback* cb = &(callbacks[index]);
 			cb->address = address;
 			cb->feature = feature;
 			cb->command = command;
 			cb->frequency = frequency;
+			cb->rpc_id = 0;
 
 			scheduler_schedule_task( callback, cb->frequency, kScheduleForever, &(cb->task), (void*) cb );
 			break;
@@ -98,7 +122,7 @@ void describe_callback()
 		bus_slave_seterror( kCallbackError );
 		return;
 	}
-	bus_slave_return_buffer( &(callbacks[index]), sizeof(scheduled_callback) );
+	bus_slave_return_buffer( &(callbacks[index]), sizeof(RPCCallback) );
 }
 
 DEFINE_MIB_FEATURE_COMMANDS(scheduler) {
