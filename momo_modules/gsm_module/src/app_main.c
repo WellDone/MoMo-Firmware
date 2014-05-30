@@ -37,8 +37,9 @@ void task(void)
 			{
 				while ( gsm_receiveone() == 0 )
 					;
-				// TODO: Log the error code.
+
 				gsm_off();
+				bus_master_rpc( 8, 42, 0x20, plist_with_buffer(0,copy_to_mib()) );
 			}
 		}
 	}

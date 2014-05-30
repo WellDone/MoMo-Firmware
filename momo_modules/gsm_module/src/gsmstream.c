@@ -31,6 +31,12 @@
  		return;
  	}
 
+ 	if ( state.stream_in_progress )
+ 	{
+ 		bus_slave_setreturn(pack_return_status(7,0)); //TODO: Busy MIB status code
+ 	}
+ 	state.stream_in_progress = 1;
+
  	if ( !wait_for_registration() )
  	{
  		gsm_off();
@@ -38,7 +44,6 @@
  	}
 
  	__delay_ms( 100 );
-
 
  	load_gsm_constant(kStartStreamString);
  	send_buffer();
@@ -59,8 +64,17 @@
 
  void gsm_putstream()
  {
+ 	if ( !state.stream_in_progress )
+ 	{
+ 		bus_slave_setreturn(pack_return_status(7,0));
+ 		return;
+ 	}
  	copy_mib();
- 	send_buffer();
+ 	if ( !send_buffer() )
+ 	{
+		bus_slave_setreturn(pack_return_status(6,0));
+		return;
+ 	}
 
  	bus_slave_setreturn(pack_return_status(0,0));
  }
@@ -70,7 +84,8 @@
  	gsm_buffer[0] = 0x1A;
  	buffer_len = 1;
 
- 	state.shutdown_pending = 1;  // Shutdown the module after we've sent the message.
+ 	state.shutdown_pending = 1;  // Shutdown the module after we've sent the message (or timed out)
+ 	state.stream_in_progress = 0; //TODO: Prevent new streams until the message has actually sent?
  	send_buffer();
 
  	receive_response();

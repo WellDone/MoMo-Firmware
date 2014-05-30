@@ -16,6 +16,8 @@ void gsm_reset()
 
 	state.module_on = 0;
 	state.shutdown_pending = 0;
+	state.stream_in_progress = 0;
+	state.error_flag = 0;
 }
 
 void gsm_init()
