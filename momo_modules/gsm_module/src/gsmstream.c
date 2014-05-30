@@ -37,6 +37,8 @@
  		bus_slave_setreturn( pack_return_status(6, 0) );
  	}
 
+ 	__delay_ms( 100 );
+
 
  	load_gsm_constant(kStartStreamString);
  	send_buffer();

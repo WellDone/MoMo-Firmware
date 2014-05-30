@@ -28,18 +28,12 @@ bool cmgs_matched()
 }
 bool creg_matched()
 {
-	if ( creg_counter == 9 )
+	if ( creg_counter == 3 )
 		return true;
 	uint8 c = peek_rx_buffer_end();
-	if ( ( creg_counter == 0 && c == 'C' )
-		|| ( creg_counter == 1 && c == 'R' )
-		|| ( creg_counter == 2 && c == 'E' )
-		|| ( creg_counter == 3 && c == 'G' )
-		|| ( creg_counter == 4 && c == ':' )
-		|| ( creg_counter == 5 && c == ' ' )
-		|| ( creg_counter == 5 && c == '0' )
-		|| ( creg_counter == 5 && c == ',' )
-		|| ( creg_counter == 5 && c == '1' ) )
+	if ( ( creg_counter == 0 && c == '0' )
+		|| ( creg_counter == 1 && c == ',' )
+		|| ( creg_counter == 2 && c == '1' ) )
 		++creg_counter;
 	else
 		creg_counter = 0;

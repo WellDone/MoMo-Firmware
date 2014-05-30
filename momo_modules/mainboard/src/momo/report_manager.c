@@ -355,10 +355,12 @@ void post_report( void* arg )
 }
 
 void start_report_scheduling() {
-    scheduler_schedule_task( post_report, CONFIG.report_interval, kScheduleForever, &report_task, NULL );
+  DEBUG_LOGL( "Report scheduling started." );
+  scheduler_schedule_task( post_report, CONFIG.report_interval, kScheduleForever, &report_task, NULL );
 }
 void stop_report_scheduling() {
-    scheduler_remove_task( &report_task );
+  DEBUG_LOGL( "Report scheduling stopped." );
+  scheduler_remove_task( &report_task );
 }
 void set_report_scheduling_interval( AlarmRepeatTime interval ) {
   if ( interval >= kNumAlarmTimes )

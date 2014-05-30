@@ -78,22 +78,27 @@ void send_creg_query()
 }
 bool wait_for_registration()
 {
-	reset_match_counters();
-
-	send_creg_query();
-
-	uint8 counter = 0;
-	while ( !creg_matched() )
+	uint8 counter = GSM_REGISTRATION_TIMEOUT_S * 2;
+	while ( true )
 	{
-		if ( gsm_receiveone() == 1 )
+		if ( counter == 0 )
+			return false;
+
+		reset_match_counters();
+		send_creg_query();
+
+		while ( true )
 		{
-			--counter;
-			if ( counter == 0 ) // We timed out, so we received something but it wasn't a successful registration
-				return false;
-			send_creg_query();
+			if ( gsm_receiveone() == 1 )
+			{
+				counter -= 1;
+				break;
+			}
+			if ( creg_matched() )
+				return true;
 		}
 	}
-	return true;
+	return false;
 }
 
 void gsm_off()
