@@ -15,8 +15,12 @@ typedef struct {
     AlarmRepeatTime frequency;
 
     ScheduledTask task;
+    uint8 rpc_id;
     uint8 flags;
 } RPCCallback;
+
+static uint8 next_queue_rpc_id = 0;
+static uint8 next_dequeue_rpc_id = 0;
 
 #define MAX_SCHEDULED_CALLBACKS 16
 static RPCCallback callbacks[MAX_SCHEDULED_CALLBACKS];
@@ -26,9 +30,12 @@ static void rpc_done( uint8 status )
     uint8 index;
     for ( index = 0; index < MAX_SCHEDULED_CALLBACKS; ++index )
     {
-        if (BIT(callbacks[index].flags, kRPCInProgress))
+        if ( BIT_TEST(callbacks[index].flags, kRPCInProgress) && callbacks[index].rpc_id == next_dequeue_rpc_id )
         {
             CLEAR_BIT(callbacks[index].flags, kRPCInProgress);
+            ++next_dequeue_rpc_id;
+            if ( next_dequeue_rpc_id == 0 )
+                next_dequeue_rpc_id = 1;
             return;
         }
     }
@@ -40,8 +47,6 @@ static void callback( void* arg )
     if (BIT(cb->flags, kRPCInProgress))
         return;
 
-    //CRITICAL_LOGL("Scheduling periodic RPC call.");
-
     MIBUnified cmd;
     cmd.address = cb->address;
     cmd.bus_command.feature = cb->feature;
@@ -49,6 +54,9 @@ static void callback( void* arg )
     cmd.bus_command.param_spec = plist_empty();
 
     SET_BIT(cb->flags, kRPCInProgress);
+    cb->rpc_id = next_queue_rpc_id++;
+    if ( next_queue_rpc_id == 0 )
+        next_queue_rpc_id = 1;
     bus_master_rpc_async( rpc_done, &cmd );
 }
 
