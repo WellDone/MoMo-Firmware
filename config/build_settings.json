@@ -175,13 +175,34 @@
 						"pic24"
 					]
 				}
+			},
+
+			"field_service_unit":
+			{
+				"24f16ka101":
+				{
+					"includes":
+					[
+						"field_service_unit/src/core",
+						"field_service_unit/src/debug",
+						"field_service_unit/src/diagnostics"
+					],
+
+					"libraries":
+					[
+						"pic24"
+					],
+
+					"linker": "p24F16KA101.gld"
+				}
 			}
 		},
 
 		"module_targets" :
 		{
 			"mainboard": ["24fj64ga306"],
-			"mainboard_bootloader": ["24fj64ga306"]
+			"mainboard_bootloader": ["24fj64ga306"],
+			"field_service_unit": ["24f16ka101"]
 		},
 
 		"known_targets" :
