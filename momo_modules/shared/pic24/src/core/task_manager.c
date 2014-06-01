@@ -5,6 +5,7 @@
 #include "pic24.h"
 #include "memory.h"
 #include "bus_master.h"
+#include "system_log.h"
 
 task_list taskqueue;
 void taskloop_init()
@@ -47,7 +48,10 @@ int taskloop_add_impl(task_callback task, void* argument, bool critical )
     object.argument = argument;
     object.critical = critical;
     if ( ringbuffer_full( &taskqueue.tasks ) )
+    {
+        CRITICAL_LOGL( "Taskloop full, task dropped!" );
         return 0;
+    }
 
     ringbuffer_push( &taskqueue.tasks, &object );
 
@@ -66,10 +70,17 @@ int taskloop_add_critical(task_callback task, void* argument)
 
 void taskloop_lock()
 {
+    CRITICAL_LOGL( "Task loop locked!" );
+    FLUSH_LOG();
     SET_BIT(taskqueue.flags, kTaskLoopLockedBit);
 }
 void taskloop_unlock()
 {
+    if ( taskloop_locked() )
+    {
+        CRITICAL_LOGL( "Task loop unlocked!" );
+        FLUSH_LOG();
+    }
     CLEAR_BIT(taskqueue.flags, kTaskLoopLockedBit);
 }
 bool taskloop_locked()

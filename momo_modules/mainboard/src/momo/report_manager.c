@@ -300,6 +300,7 @@ void next_comm_module( void* arg )
     report_rpc( &cmd, 0, plist_with_buffer(0,strlen(CONFIG.report_server_address)) );
   }
 }
+
 void stream_to_gsm() {
   MIBUnified cmd;
   if ( report_stream_offset >= strlen(base64_report_buffer) )
@@ -322,6 +323,8 @@ void stream_to_gsm() {
 }
 void receive_gsm_stream_response(unsigned char a) 
 {
+  DEBUG_LOGL( "RETURNED" );
+  FLUSH_LOG();
   if ( a != kNoMIBError || current_stream_finished ) {
     if ( a != kNoMIBError )
     {
