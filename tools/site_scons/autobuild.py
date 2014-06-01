@@ -2,8 +2,11 @@
 #scons based momo build system
 
 import utilities
+import pic24
 import unit_test
 import unit_test12
+from SCons.Script import *
+from SCons.Environment import Environment
 
 def autobuild_pic12(module, test_dir='test'):
 	"""
@@ -12,7 +15,20 @@ def autobuild_pic12(module, test_dir='test'):
 	the module name and the tests are found automatically and built 
 	using their builtin metadata
 	"""
+	
 	targets = utilities.get_module_targets(module)
 
 	utilities.for_all_targets(module, lambda x: utilities.build_app_for_chip(module, x))
 	unit_test.build_units(test_dir, targets, subclass=unit_test12.Pic12UnitTest)
+
+def autobuild_pic24(module, test_dir='test'):
+	"""
+	Build the given pic24 module for all targets.
+	"""
+
+	family = utilities.get_family('mib24')
+	family.for_all_targets(module, lambda x: pic24.build_module(module, x))
+
+	Alias('release', os.path.join('build', 'output'))
+	Alias('test', os.path.join('build', 'test', 'output'))
+	Default('release')

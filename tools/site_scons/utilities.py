@@ -70,7 +70,33 @@ def compile_mib(chip, name, env):
 	env['MIBFILE'] = '#' + cmdmap_path
 
 	return env.Command(cmdmap_path, mibname, 'mibtool gen -o %s $SOURCE' % dirs['build'])
-	
+
+def build_includes(includes):
+	if isinstance(includes, basestring):
+		includes = [includes]
+
+	return ['-I"%s"' % x for x in includes]
+
+def build_libdirs(libdirs):
+	if isinstance(libdirs, basestring):
+		libdirs = [libdirs]
+
+	return ['-L"%s"' % x for x in libdirs]
+
+def build_staticlibs(libs, chip):
+	if isinstance(libs, basestring):
+		libs = [libs]
+
+	#Append chip type and suffix
+	libs = ["%s_%s" % (x, chip.name) for x in libs]
+
+	return ['-l%s' % x for x in libs]
+
+def build_defines(defines):
+	return ['-D%s=%s' % (x,str(y)) for x,y in defines.iteritems()]
+
+def get_family(fam):
+	return build.ChipFamily(fam)
 
 def for_all_targets(module, func):
 	targets = get_module_targets(module)
