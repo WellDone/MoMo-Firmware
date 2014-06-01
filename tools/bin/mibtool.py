@@ -59,7 +59,10 @@ class MIBTool(cmdln.Cmdln):
 		import pymomo.utilities.invoke
 		import SCons.Script
 
-		all_args = ['mibtool', '--site-dir=../../tools/site_scons']
+		site_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'site_scons'))
+
+
+		all_args = ['mibtool', '--site-dir=%s' % site_path]
 		sys.argv = all_args + list(argv[1:])
 		SCons.Script.main()
 
