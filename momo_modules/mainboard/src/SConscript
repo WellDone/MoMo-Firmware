@@ -1,0 +1,21 @@
+import os
+
+Import('env')
+
+asfiles = []
+srcfiles =    Glob('./core/*.c') \
+			+ Glob('./diagnostics/*.c') \
+			+ Glob('./mib/*.c') \
+			+ Glob('./mib/commands/*.c') \
+			+ Glob('./modules/*.c') \
+			+ Glob('./momo/*.c') \
+			+ Glob('./*.c')
+
+objs = []
+for src in srcfiles:
+	objs.append(env.xc16_gcc(src))
+
+for src in asfiles:
+	objs.append(env.xc16_as(src))
+
+env.xc16_ld(env['OUTPUT'], objs)
