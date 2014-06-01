@@ -1,7 +1,7 @@
 import os
 import os.path
 
-Import('env')
+Import('library_env')
 asfiles = ["./util/pic24asm.s"]
 
 srcfiles =    Glob('./core/*.c') \
@@ -21,15 +21,14 @@ portfiles =   Glob('../../../portable/core/*.c') \
 
 objs = []
 for src in srcfiles:
-	objs.append(env.xc16_gcc(src))
+	objs.append(library_env.xc16_gcc(src))
 
 for src in portfiles:
 	outname = os.path.basename(os.path.splitext(str(src))[0])
 	target = os.path.join('portable', outname)
-	print outname
-	objs.append(env.xc16_gcc(source=src, target=target))
+	objs.append(library_env.xc16_gcc(source=src, target=target))
 
 for src in asfiles:
-	objs.append(env.xc16_as(src))
+	objs.append(library_env.xc16_as(src))
 
-env.Command(env['OUTPUT'], objs, 'xc16-ar -qc $TARGET $SOURCES')
+library_env.Command(library_env['OUTPUT'], objs, 'xc16-ar -qc $TARGET $SOURCES')

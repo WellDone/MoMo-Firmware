@@ -1,34 +1,14 @@
 import os
 import utilities
+import pic24
 
 module_name = 'libpic24'
 family_name = 'mib24'
 
-def build_lib_for_chip(chip):
-	"""
-	Configure Scons to build the static library for the pic24 chip listed in the argument.
-	"""
-
-	dirs = chip.build_dirs()
-	output_name = '%s_%s.a' % (module_name, chip.name)
-
-	VariantDir(dirs['build'], 'src', duplicate=0)
-
-	env = Environment(tools=['xc16_compiler', 'xc16_assembler'], ENV = os.environ)
-	env.AppendENVPath('PATH','../../tools/scripts')
-	env['CHIP'] = chip
-	env['OUTPUT'] = output_name
-	Export('env')
-	
-	SConscript(os.path.join(dirs['build'], 'SConscript'))
-
-	libfile = env.InstallAs(os.path.join(dirs['output'], output_name), os.path.join(dirs['build'], output_name))
-	return [libfile]
-
 
 #Build for all targets
 family = utilities.get_family(family_name)
-family.for_all_targets(module_name, build_lib_for_chip)
+family.for_all_targets(module_name, lambda x: pic24.build_library(module_name, x))
 
 #Build all unit tests
 #unit_test.build_units('test', utilities.get_module_targets(module_name), subclass=unit_test12.Pic12UnitTest)
