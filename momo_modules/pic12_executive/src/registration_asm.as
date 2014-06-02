@@ -4,7 +4,6 @@
 #include "constants.h"
 #include "asm_branches.inc"
 #include "asm_locations.h"
-#include "constants.h"
 
 #define __DEFINES_ONLY__
 #include "mib_definitions.h"
@@ -12,11 +11,13 @@
 ASM_INCLUDE_GLOBALS()
 
 global _mib_to_fsr0, _get_magic, _get_mib_block
-global _copy_fsr, _bus_master_rpc_sync
+global _copy_fsr, _bus_master_send_rpc, _bus_master_begin_rpc
 
 PSECT text_asm_register,local,class=CODE,delta=2
 
 BEGINFUNCTION _register_module
+	
+	call _bus_master_begin_rpc
 	;check if there's a valid application module loaded
 	call 	_get_magic
 	skipnel kMIBMagicNumber
@@ -39,7 +40,7 @@ BEGINFUNCTION _register_module
 	call _copy_fsr
 
 	;mib_buffer now has the module descriptor
-	;send it to controller endpoint(40, 0)
+	;send it to controller endpoint(42, 0)
 	banksel _mib_data
 	movlw 42
 	movwf BANKMASK(bus_feature)
@@ -50,7 +51,7 @@ BEGINFUNCTION _register_module
 	movwf BANKMASK(bus_spec)
 
 	movlw kMIBControllerAddress
-	call _bus_master_rpc_sync
+	call _bus_master_send_rpc
 
 	;Check if we were successful (return value == 0)
 	;return 0 if we failed

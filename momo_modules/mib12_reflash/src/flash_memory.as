@@ -6,6 +6,7 @@
 #undef _DEFINES_ONLY
 
 global _row_buffer, _write_row, _read_row, start
+global _reset_device
 
 PSECT text_flash,local,class=CODE,delta=2
 
@@ -113,7 +114,7 @@ BEGINFUNCTION _reflash_executive
 	;We've successfully reflashed, invalidate ourselves
 	movlw (2048/kFlashRowSize)-1
 	call _flash_erase_row
-	reset
+	goto _reset_device
 ENDFUNCTION _reflash_executive
 
 ;taking in a row number in W, erase that flash row

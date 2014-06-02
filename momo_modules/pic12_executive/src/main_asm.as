@@ -67,3 +67,16 @@ BEGINFUNCTION _restore_status
 	bsf BANKMASK(_status), RegisteredBit
 	goto _bus_init
 ENDFUNCTION _restore_status
+
+;Kernel panic function
+;Move WREG to EEDATL for safekeeping and loop forever
+;Set trap bit so that RPC callers can tell we're dead
+BEGINFUNCTION _trap
+	banksel EEDATL
+	movwf 	BANKMASK(EEDATL)
+	banksel _status
+	bsf 	BANKMASK(_status),TrapBit
+	loop_forever:
+	sleep
+	goto loop_forever
+ENDFUNCTION _trap

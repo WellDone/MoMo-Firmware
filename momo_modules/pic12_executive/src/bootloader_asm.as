@@ -17,7 +17,7 @@
 
 ASM_INCLUDE_GLOBALS()
 
-global _bus_master_rpc_sync, _copy_mib_to_boot, _load_boot_address
+global _bus_master_begin_rpc, _bus_master_send_rpc, _copy_mib_to_boot, _load_boot_address
 global _boot_id, _invalid_row, _boot_source, _offset, _app_buffer
 global _flash_erase_row, _flash_write_row
 
@@ -27,6 +27,7 @@ PSECT text_bootloader_asm,local,class=CODE,delta=2
 ;Takes in a byte in the global offset (bootloader.c) that specifies the offset that
 ;request should fetch in the row.
 BEGINFUNCTION _get_half_row
+	call _bus_master_begin_rpc
 	banksel _boot_id
 	movf 	BANKMASK(_boot_id),w
 	banksel _mib_data
@@ -48,7 +49,7 @@ BEGINFUNCTION _get_half_row
 	
 	banksel _boot_source
 	movf BANKMASK(_boot_source),w
-	call _bus_master_rpc_sync
+	call _bus_master_send_rpc
 
 	banksel _invalid_row
 	iorwf BANKMASK(_invalid_row),f

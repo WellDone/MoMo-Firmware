@@ -13,10 +13,10 @@ static firmware_cache_state fc_state;
 static flash_block_info		fc_flashlog;
 
 static const uint8 				bucket_subsectors[kNumFirmwareBuckets] = { \
-	MEMORY_SECTION_TO_SUB(kMIBFirmwareSector) + 0, \
-	MEMORY_SECTION_TO_SUB(kMIBFirmwareSector) + 1, \
-	MEMORY_SECTION_TO_SUB(kMIBFirmwareSector) + 2, \
-	MEMORY_SECTION_TO_SUB(kMIBFirmwareSector) + 3, \
+	MEMORY_SECTION_TO_SUB(kMIBFirmwareSector) + 0*MAX_FIRMWARE_SUBSECTIONS, \
+	MEMORY_SECTION_TO_SUB(kMIBFirmwareSector) + 1*MAX_FIRMWARE_SUBSECTIONS, \
+	MEMORY_SECTION_TO_SUB(kMIBFirmwareSector) + 2*MAX_FIRMWARE_SUBSECTIONS, \
+	MEMORY_SECTION_TO_SUB(kMIBFirmwareSector) + 3*MAX_FIRMWARE_SUBSECTIONS, \
 	MEMORY_SECTION_TO_SUB(kControllerFirmwareSector), \
 	MEMORY_SECTION_TO_SUB(kBackupFirmwareSector) \
 };
