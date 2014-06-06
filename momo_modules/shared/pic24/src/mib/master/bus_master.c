@@ -46,7 +46,7 @@ void bus_master_rpc_async_do( void* arg )
 	master_rpcdata = rpc_queue_peek();
 	mib_state.master_callback = master_rpcdata->callback;
 
-	bus_master_sendrpc( NULL );
+	bus_master_sendrpc(NULL);
 	rpc_dequeue(NULL);
 }
 
@@ -65,6 +65,10 @@ void bus_master_rpc_async(mib_rpc_function callback, MIBUnified *data)
 
 void bus_master_sendrpc()
 {
+	//Always clear the rpc_done flag so that we don't repeatedly call sendrpc if someone else does
+	//bus_master_rpc_async before the bus becomes idle. 
+	mib_state.rpc_done = 0;
+
 	//If the bus is not idle do not start an RPC, try later
 	if (!bus_is_idle())
 	{
@@ -74,7 +78,6 @@ void bus_master_sendrpc()
 
 	i2c_master_enable();
 
-	mib_state.rpc_done = 0;
 	set_master_state(kMIBReadReturnStatus);
 	bus_send(master_rpcdata->data.address, (unsigned char *)&(master_rpcdata->data.bus_command), sizeof(MIBCommandPacket)+plist_param_length(master_rpcdata->data.bus_command.param_spec));
 }
