@@ -12,7 +12,7 @@
 #include "gsm_strings.h"
 #include "timer1.h"
 
-#define SHUTDOWN_TIMEOUT 120 //One minute, in half seconds
+#define SHUTDOWN_TIMEOUT 240 //One minute, in half seconds
 void task(void)
 {
 	wdt_disable();

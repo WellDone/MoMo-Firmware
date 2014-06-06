@@ -41,6 +41,7 @@
  	{
  		gsm_off();
  		bus_slave_setreturn( pack_return_status(6, 0) );
+ 		return;
  	}
 
  	__delay_ms( 100 );
@@ -57,7 +58,7 @@
  	append_carriage();
  	send_buffer();
 
- 	__delay_ms(50);
+ 	__delay_ms( 200 );
 
  	bus_slave_setreturn(pack_return_status(0,0));
  }
