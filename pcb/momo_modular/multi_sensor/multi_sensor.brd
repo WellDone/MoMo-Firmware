@@ -1629,8 +1629,8 @@ Metric Code Size 1005</description>
 </libraries>
 <attributes>
 <attribute name="HEIGHT" value="1.3"/>
-<attribute name="PARTNAME" value="mult-sensor"/>
-<attribute name="REVISION" value="1.0"/>
+<attribute name="PARTNAME" value="multi-sensor"/>
+<attribute name="REVISION" value="2.0"/>
 <attribute name="WIDTH" value="3.938"/>
 </attributes>
 <variantdefs>
