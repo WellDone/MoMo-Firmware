@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.05" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -2487,6 +2487,7 @@ MAX3223-MAX3243.pdf</description>
 <wire x1="0" y1="5.08" x2="-3.175" y2="5.08" width="0.254" layer="49"/>
 <wire x1="0" y1="7.62" x2="-3.175" y2="7.62" width="0.254" layer="49"/>
 <wire x1="0" y1="10.16" x2="-3.175" y2="10.16" width="0.254" layer="49"/>
+<text x="3.81" y="-3.81" size="0.8128" layer="21" rot="R90">&gt;NAME</text>
 </package>
 <package name="MOMO-EDGE-8F">
 <pad name="V28" x="0" y="10.16" drill="1.016"/>
@@ -3411,15 +3412,17 @@ wide body 7.5 mm/JEDEC MS-013AA</description>
 <wire x1="-7.45" y1="7.265" x2="-7.45" y2="-7.265" width="0.127" layer="21"/>
 <wire x1="-7.45" y1="-7.265" x2="8.12" y2="-7.265" width="0.127" layer="21"/>
 <wire x1="8.12" y1="-7.265" x2="8.12" y2="7.265" width="0.127" layer="21"/>
-<wire x1="-7.5" y1="-5.5" x2="-22.5" y2="-5.5" width="0.127" layer="48"/>
-<wire x1="-22.5" y1="-5.5" x2="-22.5" y2="6.5" width="0.127" layer="48"/>
-<wire x1="-22.5" y1="6.5" x2="-9" y2="6.5" width="0.127" layer="48"/>
-<text x="-18.5" y="-2" size="1.27" layer="48">Micro SIM
+<text x="12" y="-2" size="1.27" layer="49">Micro SIM
 Insertion
 Detail</text>
-<wire x1="-9" y1="6.5" x2="-7.5" y2="5" width="0.127" layer="48"/>
-<text x="-17" y="-5" size="1.016" layer="48">15mm</text>
-<text x="-21" y="-1.5" size="1.016" layer="48" rot="R90">12mm</text>
+<text x="14" y="4.5" size="1.016" layer="49">15mm</text>
+<text x="22.5" y="-2" size="1.016" layer="49" rot="R90">12mm</text>
+<wire x1="8.5" y1="6" x2="23" y2="6" width="0.127" layer="49"/>
+<wire x1="23" y1="6" x2="23" y2="-6" width="0.127" layer="49"/>
+<wire x1="23" y1="-6" x2="10" y2="-6" width="0.127" layer="49"/>
+<wire x1="10" y1="-6" x2="8.5" y2="-4.5" width="0.127" layer="49"/>
+<wire x1="8.5" y1="-4.5" x2="8.5" y2="6" width="0.127" layer="49"/>
+<text x="-3.81" y="-1.27" size="0.8128" layer="25" rot="R90">&gt;NAME</text>
 </package>
 </packages>
 <symbols>
@@ -4301,23 +4304,24 @@ Detail</text>
 <text x="6.35" y="-1.905" size="1.27" layer="95">&gt;NAME</text>
 </symbol>
 <symbol name="PIC16LF1847">
-<pin name="RA0/SD02" x="15.24" y="15.24" visible="pin" length="short" rot="R180"/>
-<pin name="RA1/SS2" x="15.24" y="12.7" visible="pin" length="short" rot="R180"/>
+<description>PIC16lf1847 microcontroller</description>
+<pin name="RA0/AN0" x="15.24" y="15.24" visible="pin" length="short" rot="R180"/>
+<pin name="RA1/AN1" x="15.24" y="12.7" visible="pin" length="short" rot="R180"/>
 <pin name="RA2/AN2" x="15.24" y="10.16" visible="pin" length="short" rot="R180"/>
 <pin name="RA3/AN3" x="15.24" y="7.62" visible="pin" length="short" rot="R180"/>
 <pin name="RA4/AN4" x="15.24" y="5.08" visible="pin" length="short" rot="R180"/>
 <pin name="RA6" x="15.24" y="0" visible="pin" length="short" rot="R180"/>
 <pin name="RA7" x="15.24" y="-2.54" visible="pin" length="short" rot="R180"/>
-<pin name="RB0" x="-25.4" y="15.24" visible="pin" length="short"/>
-<pin name="RB1/SDA1" x="-25.4" y="12.7" visible="pin" length="short"/>
-<pin name="RB2/SDI2" x="-25.4" y="10.16" visible="pin" length="short"/>
+<pin name="RB0/INT" x="-25.4" y="15.24" visible="pin" length="short"/>
+<pin name="RB1/AN11/SDA1" x="-25.4" y="12.7" visible="pin" length="short"/>
+<pin name="RB2/AN10" x="-25.4" y="10.16" visible="pin" length="short"/>
 <pin name="RB3/AN9" x="-25.4" y="7.62" visible="pin" length="short"/>
-<pin name="RB4/SCL1" x="-25.4" y="5.08" visible="pin" length="short"/>
-<pin name="RB5/SCK2" x="-25.4" y="2.54" visible="pin" length="short"/>
+<pin name="RB4/AN8/SCL1" x="-25.4" y="5.08" visible="pin" length="short"/>
+<pin name="RB5/AN7" x="-25.4" y="2.54" visible="pin" length="short"/>
 <pin name="RB6/AN5/ICLK" x="-25.4" y="0" visible="pin" length="short"/>
 <pin name="RB7/AN6/IDAT" x="-25.4" y="-2.54" visible="pin" length="short"/>
 <pin name="GND" x="-2.54" y="-10.16" visible="pin" length="short" direction="pwr" rot="R90"/>
-<pin name="VCC" x="-7.62" y="25.4" visible="pin" length="short" direction="pwr" rot="R270"/>
+<pin name="VCC" x="-5.08" y="25.4" visible="pin" length="short" direction="pwr" rot="R270"/>
 <pin name="MCLR" x="-2.54" y="25.4" visible="pin" length="short" rot="R270"/>
 <wire x1="-22.86" y1="22.86" x2="12.7" y2="22.86" width="0.254" layer="94"/>
 <wire x1="12.7" y1="22.86" x2="12.7" y2="-7.62" width="0.254" layer="94"/>
@@ -5667,6 +5671,15 @@ Detail</text>
 </technologies>
 </device>
 <device name="MICROSIM" package="MOLEX-MICROSIM-0787270001">
+<connects>
+<connect gate="G$1" pin="CLK" pad="C3"/>
+<connect gate="G$1" pin="DAT" pad="C7"/>
+<connect gate="G$1" pin="GND" pad="C5 GND1 GND2 GND3 GND4 GND5 GND6"/>
+<connect gate="G$1" pin="RST" pad="C2"/>
+<connect gate="G$1" pin="SW1" pad="DCONT"/>
+<connect gate="G$1" pin="SW2" pad="DSPRING"/>
+<connect gate="G$1" pin="VCC" pad="C1"/>
+</connects>
 <technologies>
 <technology name="">
 <attribute name="DIGIKEY-PN" value="WM9260CT-ND" constant="no"/>
@@ -6644,19 +6657,19 @@ Detail</text>
 <connects>
 <connect gate="G$1" pin="GND" pad="5 6"/>
 <connect gate="G$1" pin="MCLR" pad="4"/>
-<connect gate="G$1" pin="RA0/SD02" pad="19"/>
-<connect gate="G$1" pin="RA1/SS2" pad="20"/>
+<connect gate="G$1" pin="RA0/AN0" pad="19"/>
+<connect gate="G$1" pin="RA1/AN1" pad="20"/>
 <connect gate="G$1" pin="RA2/AN2" pad="1"/>
 <connect gate="G$1" pin="RA3/AN3" pad="2"/>
 <connect gate="G$1" pin="RA4/AN4" pad="3"/>
 <connect gate="G$1" pin="RA6" pad="17"/>
 <connect gate="G$1" pin="RA7" pad="18"/>
-<connect gate="G$1" pin="RB0" pad="7"/>
-<connect gate="G$1" pin="RB1/SDA1" pad="8"/>
-<connect gate="G$1" pin="RB2/SDI2" pad="9"/>
+<connect gate="G$1" pin="RB0/INT" pad="7"/>
+<connect gate="G$1" pin="RB1/AN11/SDA1" pad="8"/>
+<connect gate="G$1" pin="RB2/AN10" pad="9"/>
 <connect gate="G$1" pin="RB3/AN9" pad="10"/>
-<connect gate="G$1" pin="RB4/SCL1" pad="11"/>
-<connect gate="G$1" pin="RB5/SCK2" pad="12"/>
+<connect gate="G$1" pin="RB4/AN8/SCL1" pad="11"/>
+<connect gate="G$1" pin="RB5/AN7" pad="12"/>
 <connect gate="G$1" pin="RB6/AN5/ICLK" pad="13"/>
 <connect gate="G$1" pin="RB7/AN6/IDAT" pad="14"/>
 <connect gate="G$1" pin="VCC" pad="15 16"/>
@@ -7018,6 +7031,40 @@ Detail</text>
 </connects>
 <technologies>
 <technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="PIC16LF1847" prefix="U">
+<gates>
+<gate name="G$1" symbol="PIC16LF1847" x="5.08" y="-7.62"/>
+</gates>
+<devices>
+<device name="" package="SSOP20">
+<connects>
+<connect gate="G$1" pin="GND" pad="5 6"/>
+<connect gate="G$1" pin="MCLR" pad="4"/>
+<connect gate="G$1" pin="RA0/AN0" pad="19"/>
+<connect gate="G$1" pin="RA1/AN1" pad="20"/>
+<connect gate="G$1" pin="RA2/AN2" pad="1"/>
+<connect gate="G$1" pin="RA3/AN3" pad="2"/>
+<connect gate="G$1" pin="RA4/AN4" pad="3"/>
+<connect gate="G$1" pin="RA6" pad="17"/>
+<connect gate="G$1" pin="RA7" pad="18"/>
+<connect gate="G$1" pin="RB0/INT" pad="7"/>
+<connect gate="G$1" pin="RB1/AN11/SDA1" pad="8"/>
+<connect gate="G$1" pin="RB2/AN10" pad="9"/>
+<connect gate="G$1" pin="RB3/AN9" pad="10"/>
+<connect gate="G$1" pin="RB4/AN8/SCL1" pad="11"/>
+<connect gate="G$1" pin="RB5/AN7" pad="12"/>
+<connect gate="G$1" pin="RB6/AN5/ICLK" pad="13"/>
+<connect gate="G$1" pin="RB7/AN6/IDAT" pad="14"/>
+<connect gate="G$1" pin="VCC" pad="15 16"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DIGIKEY-PN" value="PIC16LF1847-I/SS-ND" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
