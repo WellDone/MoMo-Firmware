@@ -849,7 +849,9 @@ package type TQ</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="6-pin female R/A header" constant="no"/>
 <attribute name="DIGIKEY-PN" value="S5442-ND"/>
+<attribute name="FOOTPRINT" value="Through Hole" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -998,7 +1000,7 @@ package type TQ</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="XTAL-W-CAN-PAD" prefix="XT">
+<deviceset name="XTAL-W-CAN-PAD" prefix="XT" uservalue="yes">
 <gates>
 <gate name="G$1" symbol="CRYSTAL" x="5.08" y="0"/>
 </gates>
@@ -1009,7 +1011,10 @@ package type TQ</description>
 <connect gate="G$1" pin="2" pad="2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DESCRIPTION" value="Quartz Crystal (Radial Can)" constant="no"/>
+<attribute name="FOOTPRINT" value="Through Hole" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>

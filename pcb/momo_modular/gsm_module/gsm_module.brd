@@ -1853,11 +1853,14 @@ design rules under a new name.</description>
 </element>
 <element name="JP2" library="components" package="MOLEX-MICROSIM-0787270001" value="SIMHOLDER-8PINMICROSIM" x="47.8028" y="24.6888" rot="R270">
 <attribute name="DIGIKEY-PN" value="WM9260CT-ND" x="47.8028" y="24.6888" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="DESCRIPTION" value="Molex MicroSIM card slot with detect" x="47.8028" y="24.6888" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="FOOTPRINT" value="Custom SMD" x="47.8028" y="24.6888" size="1.778" layer="27" rot="R270" display="off"/>
 </element>
 <element name="U1" library="components" package="SSOP20" value="PIC16LF1847" x="9.2964" y="10.3632" smashed="yes">
 <attribute name="DIGIKEY-PN" value="PIC16LF1847-I/SS-ND" x="9.2964" y="10.3632" size="1.778" layer="27" display="off"/>
 <attribute name="NAME" x="10.0452" y="10.8712" size="0.8128" layer="25" ratio="10" rot="R180"/>
 <attribute name="VALUE" x="6.541" y="10.3378" size="1.27" layer="27" ratio="10"/>
+<attribute name="DESCRIPTION" value="PIC16LF1847 8-bit microcontroller" x="9.2964" y="10.3632" size="1.778" layer="27" display="off"/>
 </element>
 <element name="JP3" library="pinhead" package="1X01" value="" x="6.858" y="36.4236" smashed="yes">
 <attribute name="VALUE" x="5.588" y="33.2486" size="1.27" layer="27"/>

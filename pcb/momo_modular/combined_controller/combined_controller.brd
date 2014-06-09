@@ -2030,11 +2030,15 @@ design rules under a new name.</description>
 <element name="JP2" library="components" package="MOMO-EDGE-8F" value="MOMO-EDGE-6F" x="74.676" y="28.194" smashed="yes">
 <attribute name="DIGIKEY-PN" value="S5442-ND" x="74.676" y="28.194" size="1.778" layer="27" display="off"/>
 <attribute name="NAME" x="81.1784" y="30.988" size="0.8128" layer="25" rot="R90"/>
+<attribute name="DESCRIPTION" value="6-pin female R/A header" x="74.676" y="28.194" size="1.778" layer="27" display="off"/>
+<attribute name="FOOTPRINT" value="Through Hole" x="74.676" y="28.194" size="1.778" layer="27" display="off"/>
 </element>
 <element name="JP1" library="components" package="1X06" value="MOMO-VERT-6M" x="72.136" y="29.464" smashed="yes" rot="R270">
 <attribute name="DIGIKEY-PN" value="S1011EC-06-ND" x="72.136" y="29.464" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="NAME" x="68.6308" y="34.671" size="0.8128" layer="25" ratio="10" rot="R270"/>
 <attribute name="VALUE" x="68.961" y="39.624" size="1.27" layer="27" rot="R270"/>
+<attribute name="DESCRIPTION" value="6 Pin Vertical Male Header" x="72.136" y="29.464" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="FOOTPRINT" value="Through Hole" x="72.136" y="29.464" size="1.778" layer="27" rot="R270" display="off"/>
 </element>
 <element name="JP3" library="pinhead" package="1X01" value="" x="36.4236" y="18.5928" smashed="yes">
 <attribute name="VALUE" x="35.1536" y="15.4178" size="1.27" layer="27"/>
@@ -2125,6 +2129,8 @@ design rules under a new name.</description>
 <attribute name="DIGIKEY-PN" value="535-9034-ND" x="48.9204" y="41.3004" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="NAME" x="43.18" y="42.6974" size="0.8128" layer="25" ratio="10"/>
 <attribute name="VALUE" x="46.8884" y="43.9674" size="1.27" layer="27" ratio="10" rot="R180"/>
+<attribute name="DESCRIPTION" value="Quartz Crystal (Radial Can)" x="48.9204" y="41.3004" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="FOOTPRINT" value="Through Hole" x="48.9204" y="41.3004" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
 <element name="R14" library="rcl" package="R0603" value="510K" x="67.056" y="36.2712" smashed="yes">
 <attribute name="DIGIKEY-PN" value="P510KHCT-ND" x="67.056" y="41.148" size="0.8128" layer="27" display="off"/>

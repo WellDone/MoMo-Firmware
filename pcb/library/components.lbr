@@ -5555,7 +5555,9 @@ INFINEON, www.infineon.com/cmc_upload/0/000/010/257/eh_db_5b.pdf</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="6-pin female R/A header" constant="no"/>
 <attribute name="DIGIKEY-PN" value="S5442-ND"/>
+<attribute name="FOOTPRINT" value="Through Hole" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -5714,7 +5716,9 @@ INFINEON, www.infineon.com/cmc_upload/0/000/010/257/eh_db_5b.pdf</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="Molex MicroSIM card slot with detect" constant="no"/>
 <attribute name="DIGIKEY-PN" value="WM9260CT-ND" constant="no"/>
+<attribute name="FOOTPRINT" value="Custom SMD" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -7051,7 +7055,7 @@ INFINEON, www.infineon.com/cmc_upload/0/000/010/257/eh_db_5b.pdf</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="XTAL-W-CAN-PAD" prefix="XT">
+<deviceset name="XTAL-W-CAN-PAD" prefix="XT" uservalue="yes">
 <gates>
 <gate name="G$1" symbol="CRYSTAL" x="5.08" y="0"/>
 </gates>
@@ -7062,7 +7066,10 @@ INFINEON, www.infineon.com/cmc_upload/0/000/010/257/eh_db_5b.pdf</description>
 <connect gate="G$1" pin="2" pad="2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DESCRIPTION" value="Quartz Crystal (Radial Can)" constant="no"/>
+<attribute name="FOOTPRINT" value="Through Hole" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -7095,6 +7102,7 @@ INFINEON, www.infineon.com/cmc_upload/0/000/010/257/eh_db_5b.pdf</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="PIC16LF1847 8-bit microcontroller" constant="no"/>
 <attribute name="DIGIKEY-PN" value="PIC16LF1847-I/SS-ND" constant="no"/>
 </technology>
 </technologies>

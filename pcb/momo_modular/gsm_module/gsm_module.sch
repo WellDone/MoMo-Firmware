@@ -679,7 +679,9 @@ Detail</text>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="Molex MicroSIM card slot with detect" constant="no"/>
 <attribute name="DIGIKEY-PN" value="WM9260CT-ND" constant="no"/>
+<attribute name="FOOTPRINT" value="Custom SMD" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -713,6 +715,7 @@ Detail</text>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESCRIPTION" value="PIC16LF1847 8-bit microcontroller" constant="no"/>
 <attribute name="DIGIKEY-PN" value="PIC16LF1847-I/SS-ND" constant="no"/>
 </technology>
 </technologies>
