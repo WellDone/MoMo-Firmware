@@ -6895,7 +6895,9 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <part name="P+3" library="supply1" deviceset="V+" device=""/>
 <part name="VCC6" library="supply1" deviceset="VCCINT" device=""/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
-<part name="JP4" library="components" deviceset="MOMO-SENSOR-RJ11" device=""/>
+<part name="JP4" library="components" deviceset="MOMO-SENSOR-RJ11" device="">
+<attribute name="DIGIKEY-PN" value="AE10371-ND"/>
+</part>
 <part name="JP6" library="pinhead" deviceset="PINHD-1X1" device=""/>
 <part name="U1" library="components" deviceset="MCP6001U" device=""/>
 <part name="R9" library="rcl" deviceset="R-US_" device="R0603" value="649K">
