@@ -75,8 +75,8 @@
 <text x="44.196" y="7.3152" size="0.8128" layer="21">Data</text>
 <text x="46.7868" y="7.1628" size="0.8128" layer="21">VCC</text>
 <text x="49.3776" y="26.9748" size="1.016" layer="21">Pressure Sensor</text>
-<text x="9.2964" y="5.334" size="1.016" layer="21">WellDone Multi-Sensor Board
-v1 (3/30/14)</text>
+<text x="9.7536" y="5.1816" size="1.016" layer="21">WellDone Multi-Sensor Board
+v2 (6/8/14)</text>
 <text x="81.9912" y="16.9164" size="1.016" layer="21" rot="R180">Current
 Sensor</text>
 <text x="97.0788" y="16.764" size="1.016" layer="21" rot="R180">Max: 15A</text>
@@ -2367,9 +2367,6 @@ design rules under a new name.</description>
 <wire x1="94.9452" y1="25.6032" x2="98.6028" y2="25.6032" width="0.1524" layer="1"/>
 <wire x1="98.6028" y1="25.6032" x2="98.6028" y2="22.186" width="0.1524" layer="1"/>
 <wire x1="98.6028" y1="22.186" x2="99.6696" y2="22.186" width="0.1524" layer="1"/>
-</signal>
-<signal name="V3_IN">
-<contactref element="JP8" pad="1"/>
 </signal>
 <signal name="N$3">
 <contactref element="R10" pad="2"/>

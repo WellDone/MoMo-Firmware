@@ -6994,14 +6994,15 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <text x="-116.586" y="-98.552" size="1.778" layer="97">Notes</text>
 <text x="-103.378" y="-88.392" size="1.778" layer="97">Multisensor Acquisition Board</text>
 <text x="-103.378" y="-91.186" size="1.778" layer="97">Tim Burke</text>
-<text x="-103.632" y="-93.726" size="1.778" layer="97">1.0</text>
-<text x="-103.632" y="-96.266" size="1.778" layer="97">3/30/2014</text>
+<text x="-103.632" y="-93.726" size="1.778" layer="97">2.0</text>
+<text x="-103.632" y="-96.266" size="1.778" layer="97">6/8/2014</text>
 <text x="20.32" y="7.62" size="1.778" layer="97">Programming Header</text>
 <text x="22.86" y="93.98" size="1.9304" layer="97">Offset Calibration Block</text>
 <text x="-38.1" y="93.98" size="1.9304" layer="97">Input Multiplexer</text>
 <text x="-99.06" y="93.98" size="1.9304" layer="97">Shunt Current Sensor</text>
 <text x="-96.52" y="15.24" size="1.9304" layer="97">Reference Voltage</text>
 <wire x1="127" y1="96.52" x2="127" y2="-109.22" width="0.1524" layer="97"/>
+<text x="-101.6" y="-99.06" size="1.778" layer="97">Added separate power supply</text>
 </plain>
 <instances>
 <instance part="U2" gate="G$1" x="15.24" y="-27.94">
@@ -7413,13 +7414,6 @@ Source: http://www.murata.com .. GRM43DR72E224KW01.pdf</description>
 <pinref part="JP8" gate="G$1" pin="2"/>
 <wire x1="99.06" y1="-35.56" x2="91.44" y2="-35.56" width="0.1524" layer="91"/>
 <label x="91.44" y="-35.56" size="1.9304" layer="95"/>
-</segment>
-</net>
-<net name="V3_IN" class="0">
-<segment>
-<pinref part="JP8" gate="G$1" pin="1"/>
-<wire x1="99.06" y1="-33.02" x2="91.44" y2="-33.02" width="0.1524" layer="91"/>
-<label x="91.44" y="-33.02" size="1.9304" layer="95"/>
 </segment>
 </net>
 <net name="N$3" class="0">
