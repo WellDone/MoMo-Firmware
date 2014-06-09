@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.006" unitdist="inch" unit="inch" style="lines" multiple="5" display="no" altdistance="0.008" altunitdist="inch" altunit="inch"/>
+<grid distance="0.027" unitdist="inch" unit="inch" style="lines" multiple="5" display="no" altdistance="0.008" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -40,7 +40,7 @@
 <layer number="44" name="Drills" color="7" fill="1" visible="no" active="yes"/>
 <layer number="45" name="Holes" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="46" name="Milling" color="3" fill="1" visible="no" active="yes"/>
-<layer number="47" name="Measures" color="7" fill="1" visible="no" active="yes"/>
+<layer number="47" name="Measures" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="49" name="Reference" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
@@ -58,8 +58,8 @@
 <plain>
 <wire x1="84.836" y1="11.938" x2="84.836" y2="44.958" width="0.254" layer="20"/>
 <wire x1="34.036" y1="44.958" x2="34.036" y2="11.938" width="0.254" layer="20"/>
-<hole x="36.576" y="14.6304" drill="3.3528"/>
-<hole x="36.576" y="42.5196" drill="3.3528"/>
+<hole x="37.2618" y="14.6304" drill="3.3528"/>
+<hole x="37.2618" y="42.5196" drill="3.3528"/>
 <wire x1="34.036" y1="44.958" x2="84.836" y2="44.958" width="0.254" layer="20"/>
 <wire x1="84.836" y1="11.938" x2="34.036" y2="11.938" width="0.254" layer="20"/>
 <dimension x1="38.064121875" y1="13.6045125" x2="35.087878125" y2="15.1482875" x3="28.473403125" y3="-1.2446" textsize="1.778" layer="49" dtype="diameter" unit="inch" precision="3" visible="yes"/>
