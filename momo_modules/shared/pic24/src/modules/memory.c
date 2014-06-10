@@ -1,5 +1,6 @@
 #include "memory.h"
 #include "ioport.h"
+#include "interrupts.h"
 
 #ifdef __PIC24FJ64GA306__
 #define ENABLE_MEMORY() LAT(CS) = 0
@@ -20,8 +21,7 @@
 #define DELAY_US(us)  __delay32(CYCLES_PER_US * ((unsigned long long) us));    //delay some number of microseconds
 extern void __delay32(unsigned long long);
 
-memory_config status; 
-
+memory_config status;
 #define MEMORY_TX_STATUS SPI1STATbits.SPITBF
 #define MEMORY_STATUS_OVERFLOWN SPI1STATbits.SPIROV
 #define MEMORY_RX_STATUS SPI1STATbits.SPIRBF
@@ -205,6 +205,8 @@ bool mem_test()
   BYTE memory_type;
   BYTE memory_capacity;
 
+  int old_level = disable_interrupts();
+
   mem_ensure_powered(0);
 
   ENABLE_MEMORY();
@@ -215,6 +217,8 @@ bool mem_test()
   memory_capacity = spi_receive();
 
   DISABLE_MEMORY();
+
+  enable_interrupts(old_level);
 
   if ( manufacturer_id != 0x20 || memory_type != 0x71 || memory_capacity != 0x14 ) // M25PX80 = 0x20, 0x71
     return false;
@@ -242,6 +246,10 @@ static void mem_wait_while_writing()
   DISABLE_MEMORY();
 }
 
+/*
+ * mem_write does not need to disable interrupts since it does not directly interact with the
+ * memory IC and mem_write_aligned does protect itself from interruptions.
+ */
 void mem_write(uint32 addr, const BYTE* data, unsigned int length)
 {
   uint32 end_addr = addr+length;
@@ -267,6 +275,7 @@ void mem_write(uint32 addr, const BYTE* data, unsigned int length)
 void mem_write_aligned(const uint32 addr, const BYTE *data, unsigned int length) 
 {
   unsigned int i;
+  int old_level = disable_interrupts();
 
   mem_ensure_powered(1);
 
@@ -282,12 +291,15 @@ void mem_write_aligned(const uint32 addr, const BYTE *data, unsigned int length)
   DISABLE_MEMORY();
 
   mem_wait_while_writing();
+
+  enable_interrupts(old_level);
 }
 
 void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes) 
 {
   BYTE* bufEnd = buf+numBytes;
 
+  int old_level = disable_interrupts();
   mem_ensure_powered(0);
 
   ENABLE_MEMORY();
@@ -299,12 +311,15 @@ void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes)
     *buf++ = spi_receive();
 
   DISABLE_MEMORY();
+  enable_interrupts(old_level);
 }
 
 BYTE mem_status() 
 {
   BYTE status;
 
+  int old_level = disable_interrupts();
+  
   mem_ensure_powered(0);
 
   ENABLE_MEMORY();
@@ -312,11 +327,15 @@ BYTE mem_status()
   status = spi_receive();
   DISABLE_MEMORY();
 
+  enable_interrupts(old_level);
+
   return status;
 }
 
 void mem_clear_all() 
 {
+  int old_level = disable_interrupts();
+
   mem_ensure_powered(1);
   mem_enable_write();
 
@@ -325,10 +344,14 @@ void mem_clear_all()
   DISABLE_MEMORY();
 
   mem_wait_while_writing();
+
+  enable_interrupts(old_level);
 }
 
 void mem_clear_subsection(uint32 addr) 
 {
+  int old_level = disable_interrupts();
+
   mem_ensure_powered(1);
   mem_enable_write();
 
@@ -338,4 +361,6 @@ void mem_clear_subsection(uint32 addr)
   DISABLE_MEMORY();
 
   mem_wait_while_writing();
+
+  enable_interrupts(old_level);
 }
