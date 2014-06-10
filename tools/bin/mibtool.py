@@ -11,6 +11,7 @@ from pymomo.proteus.project import Project
 from pymomo.mib.descriptor import MIBDescriptor
 from pymomo.mib.block import MIBBlock
 from pymomo.mib.api import MIBAPI
+from pymomo.mib import config12
 from pymomo.mib.reflash import *
 from pymomo.utilities import build
 import cmdln
@@ -169,8 +170,12 @@ class MIBTool(cmdln.Cmdln):
 		#rom range.
 		try:
 			b = MIBBlock(hexfile)
-			info = build.get_proc(b.chip_name)
+			aliases, settings = build.load_chip_info(b.chip_name)
+			info = config12.MIB12Processor('unnamed', settings)
+			
 			start,end = info.app_rom
+			print start
+			print end
 		except:
 			self.error(str(sys.exc_info()[1]))
 

@@ -1,35 +1,13 @@
 ;watchdog.as
 
 #include <xc.inc>
-#include "asm_macros.inc"
+#include "asm_locations.h"
 
-GLOBAL _status
+ASM_INCLUDE_GLOBALS()
+
 global	start
 
 PSECT wdt_utils,local,class=CODE,delta=2
-
-;disable the wdt and remember if it was enabled or not
-;before the disabling occured.
-BEGINFUNCTION _wdt_pushenabled
-	BANKSEL WDTCON
-	movf BANKMASK(WDTCON),w
-	andlw 1
-	bcf SWDTEN
-	BANKSEL _status
-	bcf BANKMASK(_status),0
-	iorwf BANKMASK(_status),f
-	return
-ENDFUNCTION _wdt_pushenabled
-
-BEGINFUNCTION _wdt_popenabled
-	BANKSEL _status
-	btfss BANKMASK(_status),0
-	goto done
-	BANKSEL WDTCON
-	bsf SWDTEN
-	done:
-	return
-ENDFUNCTION _wdt_popenabled
 
 BEGINFUNCTION _wdt_settimeout
 	banksel WDTCON
@@ -45,15 +23,18 @@ BEGINFUNCTION _wdt_delay
 	return
 ENDFUNCTION _wdt_delay
 
-;We need to save off the status of the reset just after powerup
-;so that we know if it was due to a watchdog reset
-psect powerup,class=CODE,delta=2
 
+psect powerup,class=CODE,delta=2
+;Check if we reset due to a RESET instruction and
+;if so, see if it was due to an API call, if not,
+;save this off so we can trap() and debug the error.
 BEGINREGION powerup
+	;Clear all bits but the DirtyResetBit
 	BANKSEL _status
-	clrf BANKMASK(_status)
-	btfss nTO
-	bsf BANKMASK(_status), 4
-	bsf nTO
+	movlw 0
+	btfss nRI
+		movlw (1<<DirtyResetBit)
+	bsf nRI
+	andwf BANKMASK(_status)
 	goto start
 ENDREGION powerup

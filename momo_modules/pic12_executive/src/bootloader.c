@@ -11,6 +11,7 @@
 #include "bootloader.h"
 #include "constants.h"
 #include "bus_master.h"
+#include "port.h"
 #include <string.h>
 
 //The first N bytes of RAM in bank0 are used for reflashing, where N is 2*the flash row size for the uC.
@@ -39,6 +40,10 @@ void enter_bootloader()
 	
 	boot_count = kFirstApplicationRow-1;
 
+	//Let everyone know that we are reflashing
+	LATCH(ALARM) = 0;
+	PIN_DIR(ALARM, OUTPUT);
+
 	do
 	{
 		++boot_count;
@@ -55,4 +60,6 @@ void enter_bootloader()
 			flash_write_row(boot_count);
 
 	} while (boot_count != (kNumFlashRows-1));
+
+	PIN_DIR(ALARM, INPUT);
 }

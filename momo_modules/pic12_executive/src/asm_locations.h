@@ -3,6 +3,10 @@
 
 #include "asm_macros.inc"
 
+#define __DEFINES_ONLY__
+#include "mib_definitions.h"
+#undef __DEFINES_ONLY__
+
 /*
  * ASM Variable Locations
  * Every variable that is referenced in an assembly file must store its  
@@ -31,11 +35,17 @@
 #define ValidAppBit		1
 #define BootloadBit		2
 #define RegisteredBit	3
-#define TimeoutBit		4
+#define DirtyResetBit	4
 #define SlaveActiveBit	5
 #define FirstReadBit	6
-#define SendValueBit	7
+#define TrapBit			7
 
 #define ASM_INCLUDE_GLOBALS()		global _mib_data, _mib_state, _status
+
+#ifdef kMultipageDevice
+#define reset_page()			pagesel($)
+#else
+#define reset_page()
+#endif
 
 #endif

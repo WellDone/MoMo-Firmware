@@ -42,11 +42,7 @@ uint8 i2c_master_start_address()
     if (i2c_wait_flag() == 0)
     {
         SSP1BUF = mib_state.send_address;
-
-        if(i2c_wait_flag() == 0)
-            return 0;
-
-        return 1;
+        return i2c_wait_flag();
     }
 
     return 1;
@@ -111,15 +107,9 @@ uint8 i2c_master_receive_message()
     	do
         {
     		if (i2c_master_receivedata() == 1)
-            {
-                 if (i2c_wait_flag() == 1)
-                    return 1;
+                return i2c_wait_flag();
 
-    			return 0;
-            }
     	} while (i2c_wait_flag() == 0);
-
-    	return 1;
     }
 
     return 1;

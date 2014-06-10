@@ -2,7 +2,7 @@
 	"mib12" : 
 	{
 		"common_xc8_flags": ["-G", "--addrqual=require", "--summary=default,+psect,-class,+mem,-hex,-file", "--output=default,-inhx032", "--asmlist", "-P", "--mode=pro", "--opt=all,-asmfile" ],
-		"exec_xc8_flags": ["--runtime=default,+clear,+keep,+init,-no_startup,+osccal,+oscval:0,-resetbits,-download,+stackcall,+clib"],
+		"exec_xc8_flags": ["--runtime=default,+clear,+keep,+init,-no_startup,-osccal,,-resetbits,-download,-stackcall,-clib"],
 		"app_xc8_flags": ["--runtime=-init,+no_startup,-osccal,-clear,+clib,-plib,+download"],
 
 		"default_settings" :
@@ -11,7 +11,12 @@
 			"application_ram": [ [32, 120] ],
 			"executive_ram": [ [121,127], [160, 191] ],
 			"total_rom": 2048,
-			"flash_row_words": 16
+			"flash_row_words": 16,
+
+			"defines":
+			{
+				"kExecutiveSerialNumber": 1
+			}
 		},
 
 		"chip_settings" :
