@@ -108,11 +108,12 @@ void scheduler_list_insert(ScheduledTask **list, ScheduledTask *task)
 void scheduler_list_remove(ScheduledTask **list, ScheduledTask *task)
 {
 	ScheduledTask *curr = *list;
-	uninterruptible_start();
 
 	if (*list == 0)
 		return;
 
+	uninterruptible_start();
+	
 	if (*list == task)
 	{
 		*list = task->next;
