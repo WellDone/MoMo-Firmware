@@ -14,6 +14,8 @@
 //Bits for the ScheduledTask flags
 #define kScheduleForeverBit 		7
 #define kBeingScheduledBit			6
+#define kCallbackPendingBit			5
+
 #define kScheduleFrequencyMask		0b111
 
 #define task_frequency(task)		(task->flags & kScheduleFrequencyMask)
@@ -25,6 +27,8 @@ struct ScheduledTask_t
 	
 	unsigned char 	flags;
 	unsigned char 	remaining_calls;
+
+	int 			task_list;
 
 	struct ScheduledTask_t *next;
 };

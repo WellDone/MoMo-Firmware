@@ -2,6 +2,7 @@
 #include "common_types.h"
 #include "utilities.h"
 #include "pic24.h"
+#include "system_log.h"
 
 static SchedulerState state;
 
@@ -10,6 +11,7 @@ static void scheduler_update_rate();
 static void scheduler_list_insert(ScheduledTask **list, ScheduledTask *task);
 static void scheduler_list_remove(ScheduledTask **list, ScheduledTask *task);
 static void scheduler_callback();
+static void scheduler_call_task(void *task);
 
 void scheduler_init()
 {
@@ -113,7 +115,7 @@ void scheduler_list_remove(ScheduledTask **list, ScheduledTask *task)
 		return;
 
 	uninterruptible_start();
-	
+
 	if (*list == task)
 	{
 		*list = task->next;
@@ -140,30 +142,44 @@ void scheduler_list_remove(ScheduledTask **list, ScheduledTask *task)
 	uninterruptible_end();
 }
 
-void scheduler_callback()
+static void scheduler_callback()
 {
 	unsigned int max = last_alarm_frequency();
 	unsigned int i;
-	ScheduledTask *curr, *last;
+	ScheduledTask *curr;
 
 	for (i=0; i<= max; ++i)
 	{
-		curr = state.tasks[i];
-
-		while (curr)
+		for(curr=state.tasks[i]; curr; curr = curr->next)
 		{
-			if (BIT_TEST(curr->flags, kScheduleForeverBit) == 0)
+			if (BIT_TEST(curr->flags, kCallbackPendingBit))
 			{
-				--curr->remaining_calls;
+				CRITICAL_LOGL("Scheduled callback period came and went without callback being called.");
+				continue;
 			}
 
-			taskloop_add(curr->callback, curr->argument);
-
-			last = curr;
-			curr = curr->next;
-
-			if (last->remaining_calls == 0)
-				scheduler_list_remove(&state.tasks[i], last);
+			SET_BIT(curr->flags, kCallbackPendingBit);
+			curr->task_list = i; //we need to know the task list number in the callback below if we have to remove this task
+			taskloop_add(scheduler_call_task, curr);
 		}
 	}
+}
+
+static void scheduler_call_task(void *task)
+{
+	ScheduledTask *curr = task;
+
+	//Call the function and then let it be rescheduled for callback
+	//if needed.  This is so if something is locking the taskloop
+	//for a long time we don't add the same callback N times in a row
+	//without it ever being called.  Call it immediately since we
+	//were added to the task loop just to call it.
+	curr->callback(curr->argument);
+	CLEAR_BIT(curr->flags, kCallbackPendingBit);
+
+	if (BIT_TEST(curr->flags, kScheduleForeverBit) == 0)
+		--curr->remaining_calls;
+	
+	if (curr->remaining_calls == 0)
+		scheduler_list_remove(&state.tasks[curr->task_list], curr);
 }
