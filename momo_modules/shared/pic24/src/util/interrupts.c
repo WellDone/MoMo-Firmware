@@ -4,6 +4,8 @@ void configure_interrupts()
 {
     _NSTDIS = 0; //Allow interrupt nesting
     _ALTIVT = 0;
+
+    enable_interrupts(0);
 }
 
 int  disable_interrupts()

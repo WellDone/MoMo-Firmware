@@ -28,6 +28,7 @@ typedef struct
 void init_system_log( uint8 start_subsection, uint8 subsection_count );
 void write_system_log( LogStream stream, const BYTE* data, uint8 length );
 bool read_system_log( uint16 offset, LogEntry* out );
+void disable_lazy_logging();
 void clear_system_log();
 uint16 system_log_count();
 
