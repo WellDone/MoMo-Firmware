@@ -275,10 +275,11 @@ void mem_write(uint32 addr, const BYTE* data, unsigned int length)
 void mem_write_aligned(const uint32 addr, const BYTE *data, unsigned int length) 
 {
   unsigned int i;
-  int old_level = disable_interrupts();
 
   mem_ensure_powered(1);
 
+  int old_level = disable_interrupts(); //After mem_ensure_powered since that can delay for a long time
+  
   mem_enable_write();
   ENABLE_MEMORY();
   PAGE_PROGRAM_MODE();
@@ -334,9 +335,11 @@ BYTE mem_status()
 
 void mem_clear_all() 
 {
-  int old_level = disable_interrupts();
-
+  int old_level;
   mem_ensure_powered(1);
+
+  old_level = disable_interrupts();
+
   mem_enable_write();
 
   ENABLE_MEMORY();
@@ -350,9 +353,11 @@ void mem_clear_all()
 
 void mem_clear_subsection(uint32 addr) 
 {
-  int old_level = disable_interrupts();
-
+  int old_level;
   mem_ensure_powered(1);
+
+  old_level = disable_interrupts();
+
   mem_enable_write();
 
   ENABLE_MEMORY();
