@@ -5,7 +5,7 @@
 
 #include "ringbuffer.h"
 
-#define RPC_QUEUE_SIZE 4 // Must be a power of 2
+#define RPC_QUEUE_SIZE 8 // Must be a power of 2
 
 typedef struct {
 	mib_rpc_function callback;
