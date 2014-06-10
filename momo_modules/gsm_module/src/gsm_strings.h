@@ -17,6 +17,7 @@ extern uint8 load_gsm_constant(uint8 index);
 
 void reset_match_counters();
 bool cmgs_matched();
+bool creg_matched();
 bool ok_matched();
 bool err_matched();
 

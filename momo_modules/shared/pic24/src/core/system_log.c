@@ -20,6 +20,12 @@ void init_system_log( uint8 start_subsection, uint8 subsection_count )
                       sizeof(LogEntry), 
                       subsection_count );
 }
+
+void disable_lazy_logging()
+{
+	lazy_system_logging = 0;
+}
+
 void flush_log( void* arg )
 {
 	flush_task_pending = false;

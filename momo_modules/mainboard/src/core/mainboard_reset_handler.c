@@ -53,7 +53,7 @@ void handle_all_resets_after(unsigned int type)
      */
 
     battery_init();
-    //start_report_scheduling();
+    start_report_scheduling();
 
     CRITICAL_LOGL( "Device initialized." );
 }

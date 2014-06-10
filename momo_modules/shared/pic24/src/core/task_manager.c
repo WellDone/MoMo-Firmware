@@ -47,10 +47,17 @@ int taskloop_add_impl(task_callback task, void* argument, bool critical )
     object.callback = task;
     object.argument = argument;
     object.critical = critical;
+
+    //If the taskloop is full, choke out a message and reset to a hopefully better future.
     if ( ringbuffer_full( &taskqueue.tasks ) )
     {
-        CRITICAL_LOGL( "Taskloop full, task dropped!" );
-        return 0;
+        //Make sure nothing can interrupt us, this is the end...
+        disable_interrupts();
+
+        //Reset the PIC since this is an unrecoverable error.
+        disable_lazy_logging(); //disable lazing logging since that requires a working taskloop
+        CRITICAL_LOGL( "Taskloop full, resetting the PIC." );
+        asm_reset();
     }
 
     ringbuffer_push( &taskqueue.tasks, &object );
