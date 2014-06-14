@@ -4,10 +4,8 @@
 
 extern bank1 __persistent MIBExecutiveStatus status;
 
-//static prototypes that are only to be used in this file
-
-static void bus_slave_searchcommand();
-static void bus_slave_callcommand();
+//Internal functions used only in this file. file.
+void bus_slave_callcommand();
 
 /*
  * MIB Slave Logic 
@@ -16,14 +14,13 @@ static void bus_slave_callcommand();
 void bus_slave_startcommand()
 {
 	//Initialize all the state
-	mib_state.slave_handler = kInvalidMIBIndex;
 	status.first_read = 1;
 
 	i2c_init_buffer(kCommandOffset);	//Initialize buffer to read in command + parameters
 	i2c_release_clock();
 }
 
-static void bus_slave_searchcommand()
+/*static void bus_slave_searchcommand()
 {
 	if (i2c_calculate_checksum() != 0)
 	{
@@ -43,14 +40,14 @@ static void bus_slave_searchcommand()
 		bus_slave_setreturn(pack_return_status(kUnsupportedCommand,0));
 		return;
 	}
-}
+}*/
 
 /*
  * @preconditions: mib_buffer is full of a packet of parameters or nothing
  * @return: 1 if the parameters are valid types and 0 otherwise
  * @side effects: sets mib slave error state appropriately
  */
-static uint8 bus_slave_validateparams()
+/*static uint8 bus_slave_validateparams()
 {
 	if (!validate_param_spec())
 	{
@@ -70,24 +67,21 @@ static void bus_slave_callcommand()
 			call_handler();
 		}
 	}
-}
+}*/
 
 void bus_slave_read_callback()
 {
 	if (status.first_read)
 	{
-		bus_slave_searchcommand();
 		bus_slave_callcommand();
 		status.first_read = 0;
 
 		//Prepare the return value response
 		i2c_init_buffer(kReturnStatusOffset);
-		i2c_setoffset(1);
-		i2c_append_checksum();
+		i2c_append_checksum_at_offset(1);
 		
 		i2c_init_buffer(kReturnStatusOffset);
-		i2c_setoffset(bus_retval_size() + 2);	//Second checksum includes return status + first checksum byte + return value
-		i2c_append_checksum();
+		i2c_append_checksum_at_offset(bus_retval_size() + 2);	//Second checksum includes return status + first checksum byte + return value
 	}
 
 	/*
