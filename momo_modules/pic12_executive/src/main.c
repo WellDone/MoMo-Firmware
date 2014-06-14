@@ -32,6 +32,8 @@ void interrupt service_isr() {
         __delay_us(10);
         if (PIN(ALARM) == 0)
             exec_reset();
+
+        ioc_flag(ALARMIOC) = 0;
     }
     #endif
 
