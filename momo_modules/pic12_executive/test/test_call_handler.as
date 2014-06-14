@@ -19,9 +19,8 @@ BEGINFUNCTION _begin_tests
 	load_packet mib_test
 	asm_call_find_handler()
 	assertlw 2
-	movlb 1
+
 	movlw 2
-	movwf BANKMASK(slave_handler)
 	asm_call_call_handler()
 
 	return

@@ -20,8 +20,8 @@ PSECT text_unittest,local,class=CODE,delta=2
 BEGINFUNCTION _begin_tests
 	movlw 0
 	asm_call_i2c_init_buffer()	;enable mib slave mode
-	movlw 3+4+1					;simulate receiving a mib_command + 2 parameter ints + checksum
-	asm_call_i2c_setoffset()
+	movlw 3+4					;simulate receiving a mib_command + 2 parameter ints + checksum
+	asm_call_i2c_append_checksum_at_offset()
 	asm_call_i2c_buffersize()
 	assertlw (3+4+1)
 
@@ -29,6 +29,9 @@ BEGINFUNCTION _begin_tests
 	banksel _mib_packet
 	movwf BANKMASK(_mib_packet+2)
 	asm_call_bus_slave_checkparamsize()
-	assertlw 1
+	btfsc ZERO	;if it was the right size, zero flag is set
+		return
+	;Otherwise log the error
+	assertlw 0x00
 
 ENDFUNCTION _begin_tests
