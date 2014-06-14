@@ -68,8 +68,7 @@
 <text x="37.338" y="22.86" size="0.8128" layer="21">NEG in center</text>
 <text x="56.9976" y="43.8404" size="1.016" layer="21" rot="R270">BATT
 3.6V</text>
-<text x="74.8792" y="16.9672" size="1.016" layer="21" rot="R270">Power
-5-17V</text>
+<text x="74.8792" y="16.2814" size="0.8128" layer="21" rot="R270">5-17V</text>
 <text x="60.198" y="39.624" size="1.778" layer="21">+</text>
 <text x="72.39" y="16.256" size="1.778" layer="21">+</text>
 <dimension x1="84.836" y1="44.958" x2="74.676" y2="28.194" x3="88.138" y3="36.576" textsize="0.8128" layer="49" dtype="vertical" unit="inch" precision="3" visible="yes"/>
@@ -86,6 +85,9 @@
 <vertex x="75.184" y="36.576"/>
 <vertex x="75.184" y="37.592"/>
 </polygon>
+<text x="76.8096" y="12.3444" size="0.8128" layer="21">WellDone
+Controller v 3.1
+6/14/2014</text>
 </plain>
 <libraries>
 <library name="components">
