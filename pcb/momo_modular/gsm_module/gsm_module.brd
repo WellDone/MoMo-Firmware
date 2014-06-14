@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.028" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.025" altunitdist="inch" altunit="inch"/>
+<grid distance="0.006" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.025" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -148,6 +148,28 @@
 <vertex x="9.7536" y="7.62"/>
 </polygon>
 <text x="20.2692" y="7.0104" size="1.27" layer="21">+</text>
+<polygon width="0.1524" layer="41">
+<vertex x="7.4676" y="20.2692"/>
+<vertex x="10.668" y="20.2692"/>
+<vertex x="10.668" y="20.1168"/>
+<vertex x="7.3152" y="20.1168"/>
+<vertex x="7.3152" y="20.2692"/>
+</polygon>
+<polygon width="0.1524" layer="41">
+<vertex x="10.0584" y="15.5448"/>
+<vertex x="10.0584" y="16.764"/>
+<vertex x="10.8204" y="16.764"/>
+<vertex x="10.8204" y="15.5448"/>
+</polygon>
+<polygon width="0.1524" layer="41">
+<vertex x="10.8204" y="16.764"/>
+<vertex x="9.144" y="16.764"/>
+<vertex x="9.144" y="16.9164"/>
+<vertex x="10.8204" y="16.9164"/>
+</polygon>
+<text x="41.6052" y="6.096" size="0.8128" layer="21">WellDone
+GSM Module v5
+6/14/2014</text>
 </plain>
 <libraries>
 <library name="components">
