@@ -48,6 +48,12 @@ void con_reset_bus()
 	DIR(SDA) = OUTPUT;
 	DIR(ALARM) = OUTPUT;
 
+	//We need to wait for all of the modules to reset and disable
+	//any functionality on their boards that may parasitically
+	//power the bus when we cut power to it.  100 ms is tested to
+	//be long enough for the gsm_module.  10 ms is too short.
+	DELAY_MS(100);
+
 	//Bus disable FET is active high to remove power
 	//from the bus.
 	LAT(BUS_ENABLE) = 1;
