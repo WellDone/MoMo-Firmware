@@ -81,7 +81,7 @@ void main()
      */
     status.dirty_reset = 1;
     
-    if (status.valid_app && PIN(ALARM) == 1)
+    if (status.valid_app)
     {
         call_app_init();
         reset_page();
@@ -96,9 +96,7 @@ void main()
     }
     //Otherwise wait forever for new firmware to be downloaded
     while (1)
-    {
         sleep();
-    }
 }
 
 void initialize()
@@ -137,7 +135,6 @@ void initialize()
     ioc_detect_falling(ALARMIOC, 1);
     ioc_enable();
     #endif
-
 
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
     
