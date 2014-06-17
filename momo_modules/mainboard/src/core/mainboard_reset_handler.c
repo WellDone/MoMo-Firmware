@@ -36,8 +36,9 @@ void handle_all_resets_before(unsigned int type)
     //The RTCC must be enabled for scheduling tasks, so ensure that happens.
     //All modules that need to schedule tasks MUST BE called after
     //rtcc is on and enabled. 
-    if (!rtcc_enabled())
+    if (!rtcc_enabled() || _RTCLK != 0b01)
     {
+        CRITICAL_LOGL( "RTCC Off, enabling.");
         configure_rtcc();
         enable_rtcc();
     }

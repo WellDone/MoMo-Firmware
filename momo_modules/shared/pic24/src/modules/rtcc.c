@@ -28,15 +28,27 @@ uint16 rtcc_enabled()
 
 void configure_rtcc()
 {
+    rtcc_datetime date;
     _RTCCMD = 0; //Make sure power to the rtcc is enabled.
 
     if (!_RTCWREN)
         asm_enable_rtcon_write();
 
+    _RTCLK = 0b01;
     _CAL = 0; //Clear oscillator trimming
     _RTCOE = 0; //Don't output the clock signal
     _ALRMEN = 0; //Don't set an alarm
     _CHIME = 0; //Don't chime
+
+    date.year = 0;
+    date.month = 1;
+    date.day = 1;
+    date.hours = 0;
+    date.minutes = 0;
+    date.seconds = 0;
+    date.weekday = 0;
+
+    rtcc_set_time(&date);
 }
 
 /*
