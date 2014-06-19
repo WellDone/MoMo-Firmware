@@ -4,7 +4,7 @@
 
 jumpm MACRO name,dest
 name:
-	movlp dest >> 8
+	pagesel(dest)
 	goto  dest && ((1<<11) - 1)
 ENDM
 

@@ -1,43 +1,38 @@
 #include <xc.inc>
 #include "executive.h"
 #include "constants.h"
-#include "asm_macros.inc"
+#include "asm_locations.h"
+#include "i2c_defines.h"
 #include "asm_branches.inc"
 
 ;mib_params.asm
 ;Assembly routines for dealing with MIB things in an efficient way
 ;very quickly and with minimal code overhead
 
-GLOBAL _exec_call_cmd, _exec_get_spec, _find_handler
-global _mib_data
+ASM_INCLUDE_GLOBALS()
+GLOBAL exec_cmd_map, exec_spec_map, _find_handler, _bus_is_idle
 
 PSECT text100,local,class=CODE,delta=2
 
-mibfeature equ BANKMASK(_mib_data+0)
-mibcmd	   equ BANKMASK(_mib_data+1)
-mibspec	   equ BANKMASK(_mib_data+2)
-
 #define kInvalidMIBIndex 255
-
-EXPAND
 
 ;Given a MIB command passed in the MIB packet, decide if
 ;we have a handler for that feature,command pair
 ;Uses: W, FSR0L,FSR0H
 BEGINFUNCTION _find_handler
 	movlb 1
-	;skipnelf mibfeature,kMIBExecutiveFeature
-		movf mibfeature,w
+	;skipnelf BANKMASK(bus_feature),kMIBExecutiveFeature
+		movf BANKMASK(bus_feature),w
 		xorlw kMIBExecutiveFeature
 		btfss ZERO
 	goto  notexecutive
 	;Check if the command is less than the number of executive commands
-	;skipltfl mibcmd, kNumExecutiveCommands
+	;skipltfl BANKMASK(bus_command), kNumExecutiveCommands
 		movlw kNumExecutiveCommands
-		subwf mibcmd,w
+		subwf BANKMASK(bus_command),w
 		btfsc CARRY
 	retlw kInvalidMIBIndex
-	retf mibcmd
+	retf BANKMASK(bus_command)
 
 	;Check if there is an application module loaded and see if it
 	;defines this endpoint
@@ -59,8 +54,8 @@ BEGINFUNCTION _find_handler
 		retlw kInvalidMIBIndex
 	movf FSR0L,w
 	call _get_feature
-	;skipnewf mibfeature
-		xorwf mibfeature,w
+	;skipnewf BANKMASK(bus_feature)
+		xorwf BANKMASK(bus_feature),w
 		btfsc ZERO
 	goto found_feature
 	incf FSR0L,f
@@ -70,7 +65,7 @@ BEGINFUNCTION _find_handler
 	movf FSR0L,w
 	movwf FSR0H
 	call _get_command
-	addwf mibcmd,w
+	addwf BANKMASK(bus_command),w
 	movwf FSR0L			;FSR0L now has cmd+get_command(found_feat)
 	incf  FSR0H,w
 	call _get_command 	;W now has get_command(found_feat+1)
@@ -86,32 +81,33 @@ ENDFUNCTION _find_handler
 ;Given an index into the handler table in application code, call that handler
 ;if the command is handled by the executive, jump to the executive table
 BEGINFUNCTION _call_handler
-	movwf FSR1L
 	movlb 1
+	movf BANKMASK(slave_handler),w
+	movwf FSR1L
 	movlw kMIBExecutiveFeature
-	xorwf mibfeature,w ;see if feature matches kMIBExecutiveFeature
+	xorwf BANKMASK(bus_feature),w ;see if feature matches kMIBExecutiveFeature
 	btfss ZERO
 	GOTO call_app
 	movf FSR1L,w
-	GOTO _exec_call_cmd
+	GOTO exec_cmd_map
 	call_app:
 	movf FSR1L,w
 
 	call 0x7FE				;branch to the goto in high memory that redirects to the application code's mib callback table
-	pagesel($)
+	reset_page()
 	return 
 
 ENDFUNCTION _call_handler
 
 BEGINFUNCTION _get_feature
 	call 0x7FB
-	pagesel($)
+	reset_page()
 	return
 ENDFUNCTION _get_feature
 
 BEGINFUNCTION _get_command
 	call 0x7FC
-	pagesel($)
+	reset_page()
 	return 
 ENDFUNCTION _get_command
 
@@ -119,16 +115,16 @@ BEGINFUNCTION _get_param_spec
 	movwf FSR1L
 	movlb 1
 	movlw kMIBExecutiveFeature
-	xorwf mibfeature,w ;see if feature matches kMIBExecutiveFeature
+	xorwf BANKMASK(bus_feature),w ;see if feature matches kMIBExecutiveFeature
 	btfss ZERO
 	GOTO call_spec
 	movf FSR1L,w
-	GOTO _exec_get_spec
+	GOTO exec_spec_map
 	
 	call_spec:
 	movf FSR1L,w
 	call 0x7FD
-	pagesel($)
+	reset_page()
 	return
 ENDFUNCTION _get_param_spec
 
@@ -154,41 +150,66 @@ ENDFUNCTION _get_magic
 
 BEGINFUNCTION _get_num_features
 	call 0x7FA
-	pagesel($)
+	reset_page()
 	return
 ENDFUNCTION _get_num_features
 
-BEGINFUNCTION _plist_int_count
-	andlw 0b01100000	; ((plist & 0b01100000) >> 5)
-	swapf WREG,w
-	lsrf  WREG,w
-	return
-ENDFUNCTION _plist_int_count
-
 ; compute ((plist_int_count(plist) << 1) + (plist & plist_buffer_mask))
 ; efficiently on the pic12
-; Uses: EEADRL and EEDATL
+; Uses: FSR0L and FSR0H
 BEGINFUNCTION _plist_param_length
 	banksel _mib_data
-	movf 	mibspec,w
-	movlb 3
-	movwf BANKMASK(EEADRL)  					
+	movf 	BANKMASK(bus_spec),w
+	movwf BANKMASK(FSR0L)  					
 	andlw 0b01100000
 	swapf WREG,w
-	movwf BANKMASK(EEDATL)	;contains int size
+	movwf BANKMASK(FSR0H)	;contains int size
 	movlw 0b00011111
-	andwf BANKMASK(EEADRL),w
-	addwf BANKMASK(EEDATL),w
+	andwf BANKMASK(FSR0L),w
+	addwf BANKMASK(FSR0H),w
 	return
 ENDFUNCTION _plist_param_length
 
-; given the handler index in W, validate that the passed params match the spec
+;Takes no argumenst
+;validate that the params required by the slave_handler match the spec
 BEGINFUNCTION _validate_param_spec
-	call _get_param_spec		;handler spec in w
 	movlb 1
-	xorwf mibspec,w ;passed spec xor handler spec
+	movf BANKMASK(slave_handler),w
+	call _get_param_spec		;handler spec in w
+	xorwf BANKMASK(bus_spec),w ;passed spec xor handler spec
 	andlw 0b11100000 				;only look at spec, ignore length
 	btfsc ZERO						;if they match w should be zero
 		retlw 1 
 	retlw 0
 ENDFUNCTION _validate_param_spec
+
+
+;uint8 bus_is_idle()
+;{
+;	//bus is not idle if a start condition has been detected with no stop.
+;	if (SSPSTATbits.S)
+;		return 0;
+
+;	//If a stop has been asserted with no starts, the bus is idle
+;	if (SSPSTATbits.P)
+;		return 1;
+;	else if (SDAPIN && SCLPIN) //If no starts and no stops and the pins are high, it's idle (only happens right after a reset before the first transmission)
+;			return 1;
+
+;	//Otherwise it is not idle
+;	return 0;
+;}
+BEGINFUNCTION _bus_is_idle
+	banksel SSP1STAT
+	btfsc BANKMASK(SSP1STAT), SSP1STAT_S_POSN
+		retlw 0
+	btfsc BANKMASK(SSP1STAT), SSP1STAT_P_POSN
+		retlw 1
+	banksel I2CPORT
+	movf 	BANKMASK(I2CPORT),w
+	andlw	I2CMASK
+	xorlw 	I2CMASK		;zero bit will be set if SCL and SDA are high
+	btfsc 	ZERO
+		retlw 1
+	retlw 0
+ENDFUNCTION _bus_is_idle

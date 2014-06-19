@@ -28,10 +28,10 @@ BEGINREGION mib12_api
 	retlw 0
 	retlw 0
 	retlw 0
-	retlw 0
+	goto _main	;reset()
 
-	retlw 0
-	retlw 0
-	goto _main
-	goto _main
+	goto _main  ;trap(uint8 code)
+	goto _main  ;bus_master_rpc_begin()
+	goto _main	;bus_master_rpc_send(addr)
+	goto _main	;bus_slave_setreturn(value)
 ENDREGION mib12_api

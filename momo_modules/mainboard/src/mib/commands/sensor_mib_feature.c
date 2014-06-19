@@ -14,7 +14,6 @@ static void log_sensor_event_mib(void)
 	uint8 metadata = plist_get_int8(1);
 	uint32 *value = (uint32*)plist_get_buffer(2);
 	
-	//TODO: Keep in-memory queue, lazily write to flash
 	push_sensor_value( mib_addr, metadata, value );
 
 	bus_slave_setreturn(pack_return_status(kNoMIBError, 0));

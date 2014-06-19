@@ -1,4 +1,5 @@
 import proxy
+import proxy12
 from pymomo.commander.exceptions import *
 from pymomo.commander.types import *
 from pymomo.commander.cmdstream import *
@@ -6,6 +7,14 @@ from pymomo.utilities.console import ProgressBar
 import struct
 from intelhex import IntelHex
 from time import sleep
+from datetime import datetime
+from pymomo.utilities.typedargs.annotate import annotated,param,returns
+
+#Formatters for the return types used in this class
+def print_module_list(mods):
+	print "Listing attached modules"
+	for i, mod in enumerate(mods):
+		print "%d: %s at address %d" % (i, mod.name, mod.address)
 
 class MIBController (proxy.MIBProxyObject):
 	MaxModuleFirmwares = 4
@@ -14,6 +23,7 @@ class MIBController (proxy.MIBProxyObject):
 		super(MIBController, self).__init__(stream, 8)
 		self.name = 'Controller'
 
+	@returns(desc='number of attached module', data=True)
 	def count_modules(self):
 		"""
 		Count the number of attached devices to this controller
@@ -37,7 +47,9 @@ class MIBController (proxy.MIBProxyObject):
 
 		return ModuleDescriptor(res['buffer'], 11+index)
 
-	def get_module(self, by_name=None, by_address=None, force=False):
+	@param("name", "string", desc="module name")
+	@param("address", "integer", ("range", 11, 127), desc="modules address")
+	def get_module(self, name=None, address=None, force=False):
 		"""
 		Given a module name or a fixed address, return a proxy object
 		for that module if it is connected to the bus.  If force is True
@@ -46,23 +58,24 @@ class MIBController (proxy.MIBProxyObject):
 		modules.
 		"""
 
-		if by_address is not None and force:
-			obj = proxy.MIBProxyObject(self.stream, by_address)
+		if address is not None and force:
+			obj = proxy12.MIB12ProxyObject(self.stream, address)
 			obj.name = 'Unknown'
 			return obj
 
 		mods = self.enumerate_modules()
-		if by_name is not None and len(by_name) < 7:
-			by_name += (' '*(7 - len(by_name)))
+		if name is not None and len(name) < 7:
+			name += (' '*(7 - len(name)))
 
 		for mod in mods:
-			if by_name == mod.name or by_address == mod.address:
-				obj = proxy.MIBProxyObject(self.stream, mod.address)
+			if name == mod.name or address == mod.address:
+				obj = proxy12.MIB12ProxyObject(self.stream, mod.address)
 				obj.name = mod.name
 				return obj
 
-		raise ValueError("Could not find module by name or address (name=%s, address=%s)" % (str(by_name), str(by_address)))
+		raise ValueError("Could not find module by name or address (name=%s, address=%s)" % (str(name), str(address)))
 
+	@returns(desc='list of attached modules', printer=print_module_list, data=True)
 	def enumerate_modules(self):
 		"""
 		Get list of all attached modules and describe them all
@@ -432,6 +445,78 @@ class MIBController (proxy.MIBProxyObject):
 		(min, max, start, end) = struct.unpack('IIII', res['buffer'])
 		return (min,max,start,end)
 
+	def start_reporting(self):
+		"""
+		Start regular reporting
+		"""
+		self.rpc(60, 1)
+
+	def stop_reporting(self):
+		"""
+		Stop regular reporting
+		"""
+		self.rpc(60, 2)
+
+	def send_report(self):
+		"""
+		Send a single report
+		"""
+
+		self.rpc(60, 0)
+
+	def set_report_address(self, address):
+		self.rpc(60, 5, address)
+
+	def get_report_address(self):
+		res = self.rpc(60, 6, result_type=(0, True))		
+		return res['buffer']
+
+	def current_time(self):
+		"""
+		Get the current time according to the controller's RTCC
+		"""
+
+		res = self.rpc(42, 0x0C, result_type=(0, True));
+
+		year, month, day, hour, minute, second = struct.unpack( "HHHHHH", res['buffer'] )
+
+		return datetime( year, month+1, day+1, hour, minute, second )
+
+	def scheduler_map(self):
+		"""
+		Get the map of used scheduler buckets
+		"""
+
+		res = self.rpc(43, 2, result_type=(1, False));
+
+		return res['ints'][0];
+
+	def scheduler_new(self, address, feature, command, frequency):
+		"""
+		Schedule a new task
+		"""
+
+		res = self.rpc(43, 0, int(address), ( (int(feature)<<8) | (int(command)&0xFF) ), int(frequency) );
+
+	def scheduler_remove(self, address, feature, command, frequency):
+		"""
+		Remove a scheduled task
+		"""
+
+		res = self.rpc(43, 1, int(address), ( (int(feature)<<8) | (int(command)&0xFF) ), int(frequency) );
+
+	def scheduler_describe(self, index):
+		"""
+		Describe a scheduled callback
+		"""
+
+		try:
+			res = self.rpc(43, 3, int(index), result_type=(0,True) );
+			return struct.unpack('BBBxB', res['buffer'][:5])
+		except RPCException as e:
+			if e.type == 7:
+				return None
+
 	def reset(self, sync=True):
 		"""
 		Instruct the controller to reset itself.
@@ -445,3 +530,9 @@ class MIBController (proxy.MIBProxyObject):
 
 		if sync:
 			sleep(1.5)
+
+	def factory_reset(self):
+		"""
+		Instruct the controller to reset all internal state to "factory defaults."  Use with caution.
+		"""
+		self.rpc(42, 0x10)

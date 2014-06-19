@@ -52,7 +52,7 @@ static void bus_slave_searchcommand()
  */
 static uint8 bus_slave_validateparams()
 {
-	if (!validate_param_spec(mib_state.slave_handler))
+	if (!validate_param_spec())
 	{
 		bus_slave_setreturn(pack_return_status(kWrongParameterType, 0)); //Make sure the parameter checksum was valid.
 		return 0;
@@ -67,7 +67,7 @@ static void bus_slave_callcommand()
 	{
 		if (bus_slave_validateparams()) {
 			bus_slave_setreturn( pack_return_status( kNoMIBError, 0 ) );
-			call_handler(mib_state.slave_handler);
+			call_handler();
 		}
 	}
 }

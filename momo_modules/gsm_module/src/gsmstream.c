@@ -10,33 +10,15 @@
 #include "gsm_defines.h"
 #include "gsm_strings.h"
 #include "gsm_serial.h"
+#include "gsm_module.h"
+#include "global_state.h"
 #include "simcard.h"
-
-extern uint8 gsm_buffer[32];
-extern uint8 buffer_len;
-
-typedef union 
-{
-	struct
-	{
-		volatile uint8 open_module:1;
-		volatile uint8 close_module:1;
-		volatile uint8 send_command:1;
-		volatile uint8 module_open:1;
-		volatile uint8 last_response:1;
-		volatile uint8 wait_for_text: 1;
-		volatile uint8 unused:2;
-	};
-
-	volatile uint8 gsm_state;
-} ModuleState;
-
-extern ModuleState state;
 
 #define _XTAL_FREQ			4000000
 
  void gsm_openstream()
  {
+ 	gsm_on();
  	if (PIN(GSMSTATUSPIN) == 0)
  	{
  		bus_slave_setreturn(pack_return_status(6,0));
@@ -48,6 +30,21 @@ extern ModuleState state;
  		bus_slave_setreturn(pack_return_status(6,0));
  		return;
  	}
+
+ 	if ( state.stream_in_progress )
+ 	{
+ 		bus_slave_setreturn(pack_return_status(7,0)); //TODO: Busy MIB status code
+ 	}
+ 	state.stream_in_progress = 1;
+
+ 	if ( !wait_for_registration() )
+ 	{
+ 		gsm_off();
+ 		bus_slave_setreturn( pack_return_status(6, 0) );
+ 		return;
+ 	}
+
+ 	__delay_ms( 100 );
 
  	load_gsm_constant(kStartStreamString);
  	send_buffer();
@@ -61,15 +58,24 @@ extern ModuleState state;
  	append_carriage();
  	send_buffer();
 
- 	__delay_ms(50);
+ 	__delay_ms( 200 );
 
  	bus_slave_setreturn(pack_return_status(0,0));
  }
 
  void gsm_putstream()
  {
+ 	if ( !state.stream_in_progress )
+ 	{
+ 		bus_slave_setreturn(pack_return_status(7,0));
+ 		return;
+ 	}
  	copy_mib();
- 	send_buffer();
+ 	if ( !send_buffer() )
+ 	{
+		bus_slave_setreturn(pack_return_status(6,0));
+		return;
+ 	}
 
  	bus_slave_setreturn(pack_return_status(0,0));
  }
@@ -78,8 +84,12 @@ extern ModuleState state;
  {
  	gsm_buffer[0] = 0x1A;
  	buffer_len = 1;
+
+ 	state.shutdown_pending = 1;  // Shutdown the module after we've sent the message (or timed out)
+ 	state.stream_in_progress = 0; //TODO: Prevent new streams until the message has actually sent?
  	send_buffer();
 
  	receive_response();
+
  	bus_slave_setreturn(pack_return_status(0,0));
  }

@@ -3,6 +3,7 @@
 #include "momo_config.h"
 #include "sensor_event_log.h"
 #include "firmware_cache.h"
+#include "system_log.h"
 
 void flash_memory_init()
 {
@@ -12,4 +13,6 @@ void flash_memory_init()
   fc_init( kFirmwareConfigSubector );
 
   init_sensor_event_log( MEMORY_SECTION_TO_SUB( kSensorDataSector ),  kSensorLogSubsectors );
+  init_system_log( kSystemLogSubsector, 8 );
+  //init_report_log( kReportLogSubsector, 8 );
 }

@@ -8,15 +8,23 @@
 #define kControllerFirmwareSector	2			//Cannot be moved (see push_firmware_start for details)
 #define kBackupFirmwareSector		  3
 #define kSensorDataSector			    4
+#define kLogSector                15
+#define kSensorLogSubsectors		  ((kLogSector - kSensorDataSector)*16)
 
 #define kNumFlashSectors			    16
-#define kSensorLogSubsectors		  ((kNumFlashSectors - kSensorDataSector)*16)
 
 //ConfigurationSector subsector assignments
 enum
 {
-	kMomoConfigSubsector	= MEMORY_SECTION_TO_SUB(kConfigurationSector) + 0,
+	kMomoConfigSubsector    = MEMORY_SECTION_TO_SUB(kConfigurationSector) + 0,
 	kFirmwareConfigSubector	= MEMORY_SECTION_TO_SUB(kConfigurationSector) + 1,
+};
+
+//LogSector subsector assignments
+enum
+{
+	kSystemLogSubsector = MEMORY_SECTION_TO_SUB(kLogSector) + 0, // 7 subsections / 64b = 445 entries
+	kReportLogSubsector = MEMORY_SECTION_TO_SUB(kLogSector) + 8  // 7 subsections / 118b ~= 240 entries
 };
 
 void flash_memory_init();

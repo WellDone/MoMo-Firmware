@@ -10,17 +10,55 @@
 #include "digital_amp.h"
 #include "watchdog.h"
 #include "state.h"
-#include "pulse.h"
+#include "pulse.h" 
+#include "alarm_repeat_times.h"
 
 MultiSensorState state;
 extern unsigned int adc_result;
 
+static uint16 aggregate_counter;
+
 void task(void)
 {
-	if (state.acquire_pulse)
+	while (state.acquire_pulse)
 	{
 		pulse_sample();
-		state.acquire_pulse = 0;
+
+		if ( state.push_pending )
+		{
+			if ( pulse_count() == 0 )
+			{
+				state.acquire_pulse = 0;
+				state.push_pending = 0;
+				if ( aggregate_counter != 0 )
+				{
+					bus_master_begin_rpc();
+					mib_buffer[0] = mib_address;
+					mib_buffer[1] = 0;
+
+					mib_buffer[2] = 0;
+					mib_buffer[3] = 0; //metadata
+
+					mib_buffer[4] = aggregate_counter;
+					mib_buffer[5] = 0;
+					mib_buffer[6] = 0;
+					mib_buffer[7] = 0;
+
+					bus_master_prepare_rpc(70, 0, plist_with_buffer(2, 4));
+					bus_master_send_rpc(8);
+
+					aggregate_counter = 0;
+				}
+			}
+			else
+			{
+				aggregate_counter += pulse_count();
+			}
+		}
+		else
+		{
+			state.acquire_pulse = 0;
+		}
 	}
 }
 
@@ -64,6 +102,22 @@ void initialize(void)
 
 	damp_init();
 	state.combined_state = 0;
+
+	aggregate_counter = 0;
+
+	bus_master_begin_rpc();
+
+	mib_buffer[0] = mib_address;
+	mib_buffer[1] = 0;
+
+	mib_buffer[2] = 8;
+	mib_buffer[3] = 20;
+
+	mib_buffer[4] = kEverySecond;
+	mib_buffer[5] = 0;
+	bus_master_prepare_rpc(43, 0, plist_ints(3));
+
+	bus_master_send_rpc(8);
 }
 
 void main()
@@ -143,4 +197,14 @@ void read_pulses()
 	mib_buffer[1] = pulse_count() >> 8;
 
 	bus_slave_setreturn(pack_return_status(0, 2));
+}
+
+void scheduled_callback()
+{
+	if ( state.acquire_pulse == 0 )
+	{
+		aggregate_counter = 0;
+		state.acquire_pulse = 1;
+		state.push_pending = 1;
+	}
 }

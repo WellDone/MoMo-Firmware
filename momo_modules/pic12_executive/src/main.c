@@ -51,9 +51,22 @@ void main()
         enter_bootloader();
         restore_status();   //Update our status on what mode we should be in now
     }
+
+    /* Check if we reset in a dirty fashion, if so trap and wait for debugging
+     * Do this after reregistering above so that we can be sure that we have a 
+     * valid address for debugging purposes.
+     */
+    if (status.dirty_reset)
+        trap(0);
+
+    /*
+     * set the poison reset bit so that we know if the module has reset for a 
+     * reason other than by calling the reset API function
+     */
+    status.dirty_reset = 1;
     
     if (status.valid_app && PIN(ALARM) == 1)
-    {  
+    {
         call_app_init();
         reset_page();
 
@@ -81,24 +94,33 @@ void initialize()
     while (!HFIOFS)
         ;
 
-    /* Set all PORTA pins to be input. */
+    /* Set all PORT pins to be input. */
     TRISA = 0xff;
 
     #ifdef __PIC16LF1823__
     TRISC = 0xff;
-    ANSELC = 0;
     #endif
 
     #ifdef __PIC16LF1847__
     TRISB = 0xff;
+    #endif
+
+    /* Disable all analog functions */
+    ANSELA = 0;
+    
+    #ifdef __PIC16LF1823__
+    ANSELC = 0;
+    #endif
+
+    #ifdef __PIC16LF1847__
     ANSELB = 0;
     #endif
 
     /* Make sure that the alarm pin is an input so that we can disable app loading if required */
-    PIN_DIR(ALARM, INPUT);
+    //The above calls take care of this
+    //PIN_DIR(ALARM, INPUT);
 
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
-    ANSELA = 0;
     
     /* Enable interrupts globally. */
     GIE = 1;

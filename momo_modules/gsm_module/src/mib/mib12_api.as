@@ -8,14 +8,19 @@
 #include <xc.inc>
 #include "constants.h"
 
-global _bus_master_rpc_sync, _bus_slave_setreturn
-global _mib_buffer,_mib_packet
+global _bus_master_send_rpc, _bus_slave_setreturn
+global _bus_master_begin_rpc, _trap, _reset_device 
+global _mib_buffer,_mib_packet,_slave_address
 
 ;API Functions
-_bus_master_rpc_sync equ (kFirstApplicationRow-1)*16 + 14
-_bus_slave_setreturn equ (kFirstApplicationRow-1)*16 + 15
+_reset_device			equ (kFirstApplicationRow-1)*16 + 11
+_trap					equ (kFirstApplicationRow-1)*16 + 12
+_bus_master_begin_rpc	equ (kFirstApplicationRow-1)*16 + 13
+_bus_master_send_rpc 	equ (kFirstApplicationRow-1)*16 + 14
+_bus_slave_setreturn 	equ (kFirstApplicationRow-1)*16 + 15
 
 ;API Data Structure
 psect mibstate class=BANK1,abs
 _mib_buffer equ 0xAA
 _mib_packet equ 0xA7
+_slave_address equ 0xA4

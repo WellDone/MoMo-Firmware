@@ -3,28 +3,12 @@
 #include "platform.h"
 #include "gsm_serial.h"
 #include "global_state.h"
-#include "gsm_strings.h"
 #include "mib12_api.h"
 #include "gsm_defines.h"
+#include "gsm_module.h"
+#include "gsm_strings.h"
+#include "timer1.h"
 #include <string.h>
-
-typedef union 
-{
-	struct
-	{
-		volatile uint8 open_module:1;
-		volatile uint8 close_module:1;
-		volatile uint8 send_command:1;
-		volatile uint8 module_open:1;
-		volatile uint8 last_response:1;
-		volatile uint8 wait_for_text: 1;
-		volatile uint8 unused:2;
-	};
-
-	volatile uint8 gsm_state;
-} ModuleState;
-
-extern ModuleState state;
 
 void enable_serial()
 {
@@ -68,7 +52,7 @@ uint8 open_gsm_module()
 	gsm_buffer[5] = 'E';
 	gsm_buffer[6] = 'E';
 	gsm_buffer[7] = '=';
-	gsm_buffer[8] = '0';
+	gsm_buffer[8] = '1';
 	gsm_buffer[9] = '\r';
 
 	buffer_len = 10;
@@ -95,60 +79,90 @@ uint8 open_gsm_module()
 	return 0;
 }
 
-void send_buffer()
+void start_timer()
+{
+	tmr1_config(pack_tmr1_config(kInstructionClock, kPrescaler1_8));
+	tmr1_load(kHalfSecondConstant);
+	tmr1_setstate(kEnabled_Sync);
+}
+
+bool send_buffer()
 {
 	uint8 i;
 
 	for (i=0; i<buffer_len; ++i)
 	{
-		while(TXIF == 0)
+		start_timer();	
+		while(TXIF == 0 && TMR1IF == 0)
 			;
+		if ( TMR1IF == 1 )
+			return false; // Report an error?
 
 		TXREG = gsm_buffer[i];
 
 		asm("nop");
 		asm("nop");
 	}
+	return true;
+}
+
+uint8 peek_rx_buffer_end()
+{
+	if ( rx_buffer_len == 0 )
+		return 0;
+	if ( rx_buffer_end == 0 )
+		return gsm_rx_buffer[RX_BUFFER_LENGTH-1];
+	else
+		return gsm_rx_buffer[rx_buffer_end-1];
+}
+
+uint8 gsm_receiveone()
+{
+	start_timer();
+	while( !RCIF && TMR1IF == 0 )
+		;
+
+	if ( TMR1IF == 1 )
+	{
+		return 1;
+	}
+
+	if ( rx_buffer_len < RX_BUFFER_LENGTH )
+	{
+		gsm_rx_buffer[rx_buffer_end++] = RCREG;
+		++rx_buffer_len;
+		if ( rx_buffer_end >= RX_BUFFER_LENGTH )
+			rx_buffer_end = 0;
+	}
+	else
+	{
+		gsm_rx_buffer[rx_buffer_start++] = RCREG;
+		rx_buffer_end = rx_buffer_start;
+		if ( rx_buffer_start >= RX_BUFFER_LENGTH )
+			rx_buffer_start = 0;
+	}
+	
+	return 0;
 }
 
 uint8 receive_response()
 {
-	RCREG;
-	RCREG;
-	buffer_len = 0;
-
 	if (OERR)
 	{
 		CREN = 0;
 		CREN = 1;
 	}
-
-	int16 counter;
-	while(1)
+	
+	reset_match_counters();
+	while( true )
 	{
-		counter = 2000;
-		while(!RCIF)
-		{
-			if ( --counter <= 0 )
-				return 4;
-		}
-
-		gsm_buffer[buffer_len++] = RCREG;
-
-		if (gsm_buffer[buffer_len-1] == '\n')
-		{
-			if (match_okay_response())
-			{
-				return 0;
-			}
-			else if (match_error_response())
-				return 1;
-		}
-
-		if (buffer_len == 32)
+		if ( ok_matched() )
+			return 0;
+		if ( err_matched() )
+			return 1;
+		if ( gsm_receiveone() != 0 )
 			return 2;
 	}
-
 	return 3;
 }
 
@@ -164,12 +178,17 @@ void copy_mib()
 
 uint8 copy_to_mib()
 {
-	uint8 i;
+	uint8 i = 0;
 
-	for (i=0;i<buffer_len; ++i)
-		mib_buffer[i] = gsm_buffer[i];
+	while ( rx_buffer_len > 0 && i < kBusMaxMessageSize )
+	{
+		mib_buffer[i++] = gsm_rx_buffer[rx_buffer_start++];
+		if ( rx_buffer_start == RX_BUFFER_LENGTH )
+			rx_buffer_start = 0;
+		--rx_buffer_len;
+	}
 
-	return buffer_len;
+	return i;
 }
 
 void append_carriage()

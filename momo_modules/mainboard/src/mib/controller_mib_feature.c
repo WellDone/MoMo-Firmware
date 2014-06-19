@@ -12,11 +12,13 @@
 #include "rtcc.h"
 #include "i2c.h"
 #include "bus.h"
+#include "module_manager.h"
+#include "system_log.h"
+#include "memory_manager.h"
 
-#define MODULE_BASE_ADDRESS 11
+#include "momo_config.h"
+#include "sensor_event_log.h"
 
-static momo_module_descriptor the_modules[MAX_MODULES];
-static unsigned int module_count = 0;
 static flash_block_info fb_info;
 
 static unsigned int _BOOTLOADER_VAR reflash __attribute__((persistent));
@@ -51,7 +53,8 @@ void con_reset_bus()
 	LAT(BUS_ENABLE) = 1;
 	DIR(BUS_ENABLE) = OUTPUT;
 
-	module_count = 0;
+	clear_modules();
+
 	DELAY_MS(50);
 
 	DIR(SCL) = INPUT;
@@ -65,35 +68,38 @@ void con_reset_bus()
 
 void get_module_count(void)
 {	
-	bus_slave_return_int16( module_count );
+	bus_slave_return_int16( module_count() );
 }
 
 void register_module(void)
 {
-	if ( module_count == MAX_MODULES 
-	     || plist_get_buffer_length() != sizeof( momo_module_descriptor ) )
+	if ( plist_get_buffer_length() != sizeof( momo_module_descriptor ) )
 	{
 		//TODO: Better error granularity
-		bus_slave_seterror( kCallbackError ); //TODO: User error
+		bus_slave_seterror( kCallbackError );
 		return;
 	}
-
-	memcpy( (void*)(&the_modules[module_count]), plist_get_buffer(0), sizeof( momo_module_descriptor ) );
-
-	bus_slave_return_int16( MODULE_BASE_ADDRESS + module_count );
-	++module_count;
+	uint8 addr = add_module( (momo_module_descriptor*)plist_get_buffer(0) );
+	if ( addr == 0 )
+	{
+		//TODO: Better error granularity
+		bus_slave_seterror( kCallbackError );
+		return;	
+	}
+	
+	bus_slave_return_int16( addr );
 }
 
 void describe_module(void)
 {
 	unsigned long index = plist_get_int16(0);
-	if ( index >= module_count )
+	if ( index >= module_count() )
 	{
 		bus_slave_seterror( kCallbackError ); //TODO: User error
 		return;
 	}
 	
-	bus_slave_return_buffer( (const char*)&the_modules[index], sizeof(momo_module_descriptor) );
+	bus_slave_return_buffer( (const char*)get_module(index), sizeof(momo_module_descriptor) );
 }
 
 void read_flash_rpc()
@@ -165,13 +171,25 @@ void test_fb_read()
 
 void reflash_self()
 {
+	CRITICAL_LOGL( "Performing controller firmware reflash..." );
+	FLUSH_LOG();
 	reflash = kReflashMagic;
 	asm volatile("reset");
 }
 
 void reset_self()
 {
+	CRITICAL_LOGL( "Reset command received, performing software reset." );
+	FLUSH_LOG();
 	asm volatile("reset");
+}
+
+void factory_reset()
+{
+	CRITICAL_LOGL( "Performing factory reset..." );
+	mem_clear_all();
+	flash_memory_init();
+	CRITICAL_LOGL( "Factory reset complete!" );
 }
 
 void current_time()
@@ -203,6 +221,62 @@ void set_sleep()
 		taskloop_set_flag(kTaskLoopSleepBit, 0);
 }
 
+void write_log()
+{
+	write_system_log( kRemoteLog, plist_get_buffer(0), plist_get_buffer_length() );
+}
+void log_count()
+{
+	bus_slave_return_int16( system_log_count() );
+}
+void read_log()
+{
+	LogEntry log_buffer;
+	if ( !read_system_log( plist_get_int16(0), &log_buffer ) )
+	{
+		bus_slave_seterror( kCallbackError );
+	}
+	else
+	{
+		uint16 offset = plist_get_int16(1);
+		uint8 length = 20;
+		if ( offset == 0 )
+		{
+			length = (log_buffer.data-(BYTE*)&log_buffer);
+		}
+		else if ( 20 * offset < log_buffer.length )
+		{
+			offset = (uint16)(log_buffer.data-(BYTE*)&log_buffer) + ( 20 * (offset-1) );
+			length = 20;
+		}
+		else if ( 20 * (offset-1) < log_buffer.length )
+		{
+			length = log_buffer.length - ( 20 * (offset-1) );
+			offset = (uint16)(log_buffer.data-(BYTE*)&log_buffer) + ( 20 * (offset-1) );
+		}
+		else
+		{
+			bus_slave_seterror( kCallbackError );
+		}
+
+		bus_slave_return_buffer( (BYTE*)(&log_buffer)+offset, length );
+	}
+}
+void clear_log()
+{
+	clear_system_log();
+}
+
+extern bool lazy_system_logging;
+void get_lazy_logging()
+{
+	bus_slave_return_int16( lazy_system_logging );
+}
+void set_lazy_logging()
+{
+	lazy_system_logging = (plist_get_int16(0)==0)?false:true;
+}
+
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x00, register_module, plist_spec(0,true) },
@@ -221,5 +295,13 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x0D, debug_value, plist_spec_empty()},
 	{0x0E, set_sleep, plist_spec(1, false)},
 	{0x0F, reset_self, plist_spec_empty()},
+	{0x10, factory_reset, plist_spec_empty()},
+
+	{0x20, write_log, plist_spec(0, true)},
+	{0x21, log_count, plist_spec_empty()},
+	{0x22, read_log, plist_spec(2, false)},
+	{0x23, clear_log, plist_spec_empty() },
+	{0x24, get_lazy_logging, plist_spec(0, false)},
+	{0x25, set_lazy_logging, plist_spec(1, false)},
 };
 DEFINE_MIB_FEATURE(controller);

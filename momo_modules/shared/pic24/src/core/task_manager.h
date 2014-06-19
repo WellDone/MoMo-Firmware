@@ -12,7 +12,7 @@
 #include "ringbuffer.h"
 #include "rtcc.h"
 
-#define kMAXTASKS 16 //NB Must be a power of 2 since it will be used for a ringbuffer
+#define kMAXTASKS 32 //NB Must be a power of 2 since it will be used for a ringbuffer
 
 typedef enum
 {
@@ -34,12 +34,13 @@ typedef enum
 } TaskManagerSleepStatus;
 
 //Callback Types
-typedef void (*task_callback)(void);
+typedef void (*task_callback)( void* );
 typedef TaskManagerSleepStatus (*sleep_callback)(TaskManagerCallbackReason);
 
 typedef struct
 {
 	task_callback callback;
+    void* argument;
 	bool critical;
 } task_item;
 
@@ -61,8 +62,8 @@ int taskloop_get_flag(TaskManagerFlag flag);
 
 void taskloop_set_sleephandler(sleep_callback handler);
 
-int taskloop_add(task_callback task);
-int taskloop_add_critical(task_callback task);
+int taskloop_add(task_callback task, void *argument);
+int taskloop_add_critical(task_callback task, void *argument);
 
 void taskloop_lock();
 void taskloop_unlock();

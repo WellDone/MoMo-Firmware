@@ -27,6 +27,7 @@ BEGINFUNCTION _begin_tests
 	movlw 10
 	asm_call_bus_init()	;enable mib slave mode
 
+	asm_call_bus_master_begin_rpc()
 	movlb 1
 	movlw 42
 	movwf BANKMASK(_mib_packet+0)
@@ -35,6 +36,6 @@ BEGINFUNCTION _begin_tests
 	movlw 0
 	movwf BANKMASK(_mib_packet+2)
 	movlw 8
-	asm_call_bus_master_rpc_sync()
+	asm_call_bus_master_send_rpc()
 	return
 ENDFUNCTION _begin_tests

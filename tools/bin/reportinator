@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+import reportinator
+import sys
+
+mt = reportinator.Reportinator()
+sys.exit(mt.main())

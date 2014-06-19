@@ -1,9 +1,10 @@
+#define MOMO_STATE_CONTROLLER
 #include "momo_config.h"
 #include "memory.h"
 #include "scheduler.h"
 #include "flashblock.h"
 
-MoMoState        current_momo_state;
+MoMoState               current_momo_state;
 static flash_block_info config_block;
 static ScheduledTask    flush_config_task;
 
@@ -22,7 +23,9 @@ void init_momo_config( unsigned int subsection_index )
 void reset_momo_state()
 {
   current_momo_state.registered = false;
+  init_report_config();
   config_state = kClean;
+  save_momo_state();
 }
 void load_momo_state()
 {
@@ -32,7 +35,7 @@ void load_momo_state()
     fb_read( &config_block, &current_momo_state );
 }
 
-void flush_config_to_memory()
+void flush_config_to_memory( void* arg )
 {
   //There could be a race condition here
   fb_write( &config_block, &current_momo_state );
@@ -42,6 +45,6 @@ void flush_config_to_memory()
 void save_momo_state()
 {
   if ( config_state == kClean )
-    scheduler_schedule_task( flush_config_to_memory, kEvery10Seconds, 1, &flush_config_task );
+    scheduler_schedule_task( flush_config_to_memory, kEveryHalfSecond, 1, &flush_config_task, NULL );
   config_state = kDirty;
 }
