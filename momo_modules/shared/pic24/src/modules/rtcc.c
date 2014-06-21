@@ -5,6 +5,9 @@
 
 alarm_callback the_alarm_callback = 0;
 volatile uint16 alarm_time = kEveryHalfSecond;
+static int callback_pending = 0;
+
+static void rtcc_callback(void *unused);
 
 void enable_rtcc()
 {
@@ -301,10 +304,21 @@ void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
             alarm_time = kEvery10Seconds;
     }
 
-    if (the_alarm_callback != 0)
-        taskloop_add(the_alarm_callback, NULL);
+    if (the_alarm_callback != 0 && !callback_pending)
+    {
+        callback_pending = 1;
+        taskloop_add(rtcc_callback, NULL);
+    }
 
     IFS3bits.RTCIF = 0;
+}
+
+static void rtcc_callback(void *arg)
+{
+    if (the_alarm_callback)
+        the_alarm_callback(arg);
+
+    callback_pending = 0;
 }
 
 uint16 last_alarm_frequency()
