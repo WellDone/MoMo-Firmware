@@ -199,3 +199,19 @@ void binary_to_hexbyte( BYTE b, char* out ) {
     out[0] = quad_to_hex( b&0xFF );
     out[1] = quad_to_hex( (b>>4)&0xFF );
 }
+
+uint32 logtable_lookup32(uint16 val, uint32 *table, uint16 num_bits)
+{
+    uint32 out;
+    uint16 i;
+
+    for (i=0; i<num_bits;++i)
+    {
+        if (val & 1)
+            out += table[i];
+
+        val >> 1;
+    }
+
+    return out;
+}

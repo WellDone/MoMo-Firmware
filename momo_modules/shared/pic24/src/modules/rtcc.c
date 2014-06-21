@@ -9,6 +9,27 @@ static int callback_pending = 0;
 
 static void rtcc_callback(void *unused);
 
+/*
+ * Timestamp conversion tables
+ *
+ * In order to convert from a HH:MM MM/DD/YYYY format to an absolute second offset requires in general a lot of multiplication.
+ * However, 32 multiplication is slow on the PIC24 so these tables encode the number of seconds in each power of two of the given
+ * unit.  
+ * So year_logtable stores the number of seconds in 1, 2, 4, 8, 16, 32 and 64 years.  The number of seconds in 75 years s(75) is 
+ * just given by s(64) + s(8) + s(2) + s(1).  At most 7 numbers must be added for any year between 2000 and 2127.  The same is true
+ * for days, hours and minutes.  
+ *
+ * The month table is stored in a linear fashion since months are not even units.  Leap years are added in separately since the
+ * number of leap years before a given year is just (year-1) / 4 between (2000,2100].  This allows for a very fast conversion from
+ * dates to timestamps. 
+ */
+
+const uint32    year_logtable[kNumYearBits]     = {31536000LL, 63072000LL, 126144000LL, 252288000LL, 504576000LL, 1009152000LL. 2018304000LL};
+const uint32    month_lintable[kNumMonths]      = {0LL, 2678400LL, 5097600LL, 7776000LL, 10368000LL, 13046400LL, 15638400LL, 18316800LL, 20995200LL, 23587200LL, 26265600LL, 28857600LL};
+const uint32    day_logtable[kNumDayBits]       = {86400LL, 172800LL, 345600LL, 691200LL, 1382400LL};
+const uint32    hour_logtable[kNumHourBits]     = {3600LL, 7200LL, 14400LL, 28800LL, 57600LL};
+const uint32    minute_logtable[kNumMinuteBits] = {60LL, 120LL, 240LL, 480LL, 960LL};
+
 void enable_rtcc()
 {
     if (!_RTCWREN)
@@ -100,14 +121,34 @@ void rtcc_get_timestamp(rtcc_timestamp* time)
     rtcc_get_time( &datetime );
     rtcc_create_timestamp( &datetime, time );
 }
-void rtcc_create_timestamp(const rtcc_datetime *source, rtcc_timestamp *dest)
+
+rtcc_timestamp rtcc_create_timestamp(const rtcc_datetime *source)
 {
-    dest->year = source->year;
-    dest->month = source->month;
-    dest->day = source->day;
-    dest->hours = source->hours;
-    dest->minutes = source->minutes;
-    dest->seconds = source->seconds;
+    rtcc_timestamp out = 0;
+
+    //Add in the year without accounting for leap years
+    out += logtable_lookup32(source->year, year_logtable, kNumYearBits);
+
+    //Add in one extra day for each leap year between 2000 and source->year
+    if (source->year > 0)
+        out += logtable_lookup32((source->year-1)>>2, day_logtable, kNumLeapYearBits);
+
+    //Add in the number of seconds in this year to the month
+    if (source->month > 0)
+        out += month_lintable[source->month]
+
+    //If we're currently in a leap year and after February, add in an extra day
+    if ((source->year%4 == 0) && (source->month > 2))
+        out += day_logtable[0];
+
+    if (source->day > 0)
+        out += logtable_lookup32(source->day-1, day_logtable, kNumDayBits)
+
+    out += logtable_lookup32(source->hours, hour_logtable, kNumHourBits);
+    out += logtable_lookup32(source->minutes, minute_logtable, kNumMinuteBits);
+    out += source->seconds;
+
+    return out;
 }
 
 uint16 rtcc_datetimes_equal(rtcc_datetime *time1, rtcc_datetime *time2)
@@ -126,72 +167,28 @@ uint16 rtcc_compare_times(rtcc_datetime *time1, rtcc_datetime *time2)
     return memcmp(time1, time2, kTimeCompareSize);
 }
 
-bool isLeapYear( uint8 year )
+/* 
+ * Return the absolute number of seconds between time1 and time2.  If time2 > time1, direction will be set
+ * to kPositiveDelta.  If time2 < time1, direction will be set to kNegativeDelta.  If time1 == time2, direction
+ * will be set to kZeroDelta.
+ */
+
+uint32 rtcc_timestamp_difference(rtcc_timestamp time1, rtcc_timestamp time2, TimeIntervalDirection *direction)
 {
-    if ( ( (year%4 == 0) && (year%100 != 0) ) || (year%400 == 0) )
-        return true;
-    else
-        return false;
-}
-
-int32 rtcc_timestamp_difference(rtcc_timestamp *time1, rtcc_timestamp *time2)
-{
-    int32 result = 0;
-    uint8 i;
-    result += time2->seconds - time1->seconds;
-    result += 60 * (time2->minutes - time1->minutes);
-    result += 3600L * (time2->hours - time1->hours);
-
-    uint8 start_counter, end_counter;
-    int8 polarity;
-    if ( time2->month == time1->month )
+    if (time1 == time2)
     {
-        result += 86400L * (time2->day - time1->day );
-    }
-    else
-    {
-        if ( time1->month < time2->month )
-        {
-            start_counter = time1->month;
-            end_counter = time2->month;
-            polarity = 1;
-        }
-        else
-        {
-            start_counter = time2->month;
-            end_counter = time1->month;
-            polarity = -1;
-        }
-        for ( i = start_counter; i < end_counter; ++i )
-        {
-            if ( i == 2 )
-                result += polarity * 86400L * (isLeapYear( time1->year )? 28 : 29);
-            else if ( i == 9 || i == 4 || i == 6 || i == 11 )
-                result += polarity * 86400L * 30;
-            else
-                result += polarity * 86400L * 31;
-        }
+        *direction = kZeroDelta;
+        return 0;
     }
 
-    if ( time1->year < time2->year )
+    if (time1 > time2)
     {
-        start_counter = time1->year;
-        end_counter = time2->year;
-        polarity = 1;
-    }
-    else 
-    {
-        start_counter = time2->year;
-        end_counter = time1->year;
-        polarity = -1;
-    }
-    
-    for ( i = start_counter; i < end_counter; ++i )
-    {
-        result += polarity * (isLeapYear( i )? 315360000L : 31449600); // Possible leap year double-counting
+        *direction = kNegativeDelta;
+        return time1 - time2;
     }
 
-    return result;
+    *direction = kPositiveDelta;
+    return time2 - time1;
 }
 
 void get_rtcc_datetime_unsafe(rtcc_datetime *time)

@@ -2,6 +2,7 @@
 #define __utilities_h__
 
 #include <stdarg.h>
+#include <stdint.h>
 #include "common_types.h"
 #include "bit_utilities.h"
 
@@ -17,5 +18,6 @@ void println( const char* msg );
 
 BYTE hexbyte_to_binary( char* ascii );
 void binary_to_hexbyte( BYTE b, char* out );
+uint32 logtable_lookup32(uint16 val, uint32 *table, uint16 num_bits);
 
 #endif
