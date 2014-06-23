@@ -15,18 +15,13 @@ typedef void(*alarm_callback)(void*);
 //Constants for converting between rtcc_datetime and rtcc_timestamp efficiently
 enum
 {
-    kNumYearBits = 7,
-    kNumLeapYearBits = 5, //There are <= 25 leap years between 2000 and 2100
-    kNumDayBits = 5,
-    kNumHourBits = 5,
-    kNumMinuteBits = 6,
     kNumMonths = 12
 };
 
 typedef enum
 {
     kPositiveDelta = 1,
-    kZeroDelta = 0;
+    kZeroDelta = 0,
     kNegativeDelta = -1
 } TimeIntervalDirection;
 
@@ -77,14 +72,14 @@ void configure_rtcc();
 
 unsigned int    rtcc_datetimes_equal(rtcc_datetime *time1, rtcc_datetime *time2);
 unsigned int    rtcc_compare_times(rtcc_datetime *time1, rtcc_datetime *time2);
-int32           rtcc_timestamp_difference(rtcc_timestamp *time1, rtcc_timestamp *time2); // In seconds
+uint32          rtcc_timestamp_difference(rtcc_timestamp time1, rtcc_timestamp time2, TimeIntervalDirection *direction);
 
 void rtcc_get_time(rtcc_datetime *time);
 void rtcc_set_time(rtcc_datetime *time);
 void rtcc_get_alarm(rtcc_datetime *alarm);
 
-void rtcc_get_timestamp(rtcc_timestamp* time);
-void rtcc_create_timestamp(const rtcc_datetime *source, rtcc_timestamp *dest);
+rtcc_timestamp rtcc_get_timestamp();
+rtcc_timestamp rtcc_create_timestamp(const rtcc_datetime *source);
 
 //Utility functions
 void get_rtcc_datetime_unsafe(rtcc_datetime *time);
@@ -94,7 +89,5 @@ uint8 to_bcd(uint8 val);
 void         set_recurring_task(AlarmRepeatTime repeat, alarm_callback routine);
 void         clear_recurring_task();
 unsigned int last_alarm_frequency();
-
-void wait_ms( uint32 milliseconds );
 
 #endif

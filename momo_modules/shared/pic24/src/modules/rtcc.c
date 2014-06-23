@@ -9,26 +9,10 @@ static int callback_pending = 0;
 
 static void rtcc_callback(void *unused);
 
-/*
- * Timestamp conversion tables
- *
- * In order to convert from a HH:MM MM/DD/YYYY format to an absolute second offset requires in general a lot of multiplication.
- * However, 32 multiplication is slow on the PIC24 so these tables encode the number of seconds in each power of two of the given
- * unit.  
- * So year_logtable stores the number of seconds in 1, 2, 4, 8, 16, 32 and 64 years.  The number of seconds in 75 years s(75) is 
- * just given by s(64) + s(8) + s(2) + s(1).  At most 7 numbers must be added for any year between 2000 and 2127.  The same is true
- * for days, hours and minutes.  
- *
- * The month table is stored in a linear fashion since months are not even units.  Leap years are added in separately since the
- * number of leap years before a given year is just (year-1) / 4 between (2000,2100].  This allows for a very fast conversion from
- * dates to timestamps. 
- */
-
-const uint32    year_logtable[kNumYearBits]     = {31536000LL, 63072000LL, 126144000LL, 252288000LL, 504576000LL, 1009152000LL. 2018304000LL};
+const uint32    year_seconds                    = 24LL*60LL*60LL*365LL;
+const uint16    halfday_seconds                 = 12LL*60LL*60LL;
+const uint32    day_seconds                     = 24LL*60LL*60LL;
 const uint32    month_lintable[kNumMonths]      = {0LL, 2678400LL, 5097600LL, 7776000LL, 10368000LL, 13046400LL, 15638400LL, 18316800LL, 20995200LL, 23587200LL, 26265600LL, 28857600LL};
-const uint32    day_logtable[kNumDayBits]       = {86400LL, 172800LL, 345600LL, 691200LL, 1382400LL};
-const uint32    hour_logtable[kNumHourBits]     = {3600LL, 7200LL, 14400LL, 28800LL, 57600LL};
-const uint32    minute_logtable[kNumMinuteBits] = {60LL, 120LL, 240LL, 480LL, 960LL};
 
 void enable_rtcc()
 {
@@ -115,11 +99,11 @@ void rtcc_get_time(rtcc_datetime *time)
     get_rtcc_datetime_unsafe(time);
 }
 
-void rtcc_get_timestamp(rtcc_timestamp* time)
+rtcc_timestamp rtcc_get_timestamp()
 {
     rtcc_datetime datetime;
-    rtcc_get_time( &datetime );
-    rtcc_create_timestamp( &datetime, time );
+    rtcc_get_time(&datetime);
+    return rtcc_create_timestamp(&datetime);
 }
 
 rtcc_timestamp rtcc_create_timestamp(const rtcc_datetime *source)
@@ -127,25 +111,27 @@ rtcc_timestamp rtcc_create_timestamp(const rtcc_datetime *source)
     rtcc_timestamp out = 0;
 
     //Add in the year without accounting for leap years
-    out += logtable_lookup32(source->year, year_logtable, kNumYearBits);
+    out += year_seconds*source->year;
 
     //Add in one extra day for each leap year between 2000 and source->year
+    //Remember that 2000 was a leap year
     if (source->year > 0)
-        out += logtable_lookup32((source->year-1)>>2, day_logtable, kNumLeapYearBits);
+        out += (((source->year-1)>>2) + 1)*source->year;
 
     //Add in the number of seconds in this year to the month
     if (source->month > 0)
-        out += month_lintable[source->month]
+        out += month_lintable[source->month];
 
     //If we're currently in a leap year and after February, add in an extra day
-    if ((source->year%4 == 0) && (source->month > 2))
-        out += day_logtable[0];
+    //This simplified rule 
+    if (((source->year%4) == 0) && (source->month > 2))
+        out += day_seconds;
 
     if (source->day > 0)
-        out += logtable_lookup32(source->day-1, day_logtable, kNumDayBits)
+        out += (source->day-1)*day_seconds;
 
-    out += logtable_lookup32(source->hours, hour_logtable, kNumHourBits);
-    out += logtable_lookup32(source->minutes, minute_logtable, kNumMinuteBits);
+    out += source->hours * 3600;
+    out += source->minutes * 60;
     out += source->seconds;
 
     return out;
@@ -170,25 +156,30 @@ uint16 rtcc_compare_times(rtcc_datetime *time1, rtcc_datetime *time2)
 /* 
  * Return the absolute number of seconds between time1 and time2.  If time2 > time1, direction will be set
  * to kPositiveDelta.  If time2 < time1, direction will be set to kNegativeDelta.  If time1 == time2, direction
- * will be set to kZeroDelta.
+ * will be set to kZeroDelta.  Note that an int32 will potentially overflow, which is why the sign bit is returned
+ * separately.
  */
 
 uint32 rtcc_timestamp_difference(rtcc_timestamp time1, rtcc_timestamp time2, TimeIntervalDirection *direction)
 {
-    if (time1 == time2)
-    {
-        *direction = kZeroDelta;
-        return 0;
-    }
+    TimeIntervalDirection   dir  = kZeroDelta;  
+    uint32                  diff = 0;
 
     if (time1 > time2)
     {
-        *direction = kNegativeDelta;
-        return time1 - time2;
+        dir = kNegativeDelta;
+        diff = time1 - time2;
+    }
+    else if (time1 < time2)
+    {
+        dir = kPositiveDelta;
+        diff = time2 - time1;
     }
 
-    *direction = kPositiveDelta;
-    return time2 - time1;
+    if (direction)
+            *direction = dir;
+
+    return diff;
 }
 
 void get_rtcc_datetime_unsafe(rtcc_datetime *time)
@@ -359,12 +350,4 @@ void clear_recurring_task()
     _ALRMEN = 0; //disable alarm
     the_alarm_callback = 0;
     uninterruptible_end();
-}
-
-void wait_ms( uint32 milliseconds )
-{
-    volatile uint32 tick = 0;
-    milliseconds = milliseconds * CLOCKSPEED/1000;
-    while ( tick!=milliseconds )
-        ++tick;
 }
