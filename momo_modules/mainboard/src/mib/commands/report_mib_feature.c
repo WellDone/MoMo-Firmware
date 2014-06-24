@@ -6,6 +6,11 @@
 #include "momo_config.h"
 #include <string.h>
 
+#define BASE64_REPORT_MAX_LENGTH  160 //( 4 * ( ( RAW_REPORT_MAX_LENGTH + 2 ) / 3) )
+
+extern char base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
+
+
 static void start_scheduled_reporting(void)
 {
 	start_report_scheduling();
@@ -60,6 +65,18 @@ static void get_reporting_aggregates(void)
 	bus_slave_setreturn( pack_return_status( kNoMIBError, 4 ) );
 }
 
+static void build_report()
+{
+	construct_report();
+}
+
+static void get_report()
+{
+	uint16 offset = plist_get_int16(0);
+	memcpy(plist_get_buffer(0), base64_report_buffer+offset, 20);
+	bus_slave_setreturn( pack_return_status(kNoMIBError, 20 ));
+}
+
 static void get_reporting_sequence(void)
 {
 	bus_slave_return_int16( current_momo_state.report_config.current_sequence );
@@ -77,6 +94,8 @@ DEFINE_MIB_FEATURE_COMMANDS(reporting) {
 	{ 0x08, get_reporting_flags, plist_spec(0, false) },
 	{ 0x09, set_reporting_aggregates, plist_spec(2, false) },
 	{ 0x0A, get_reporting_aggregates, plist_spec(0, false) },
-	{ 0x0B, get_reporting_sequence, plist_spec(0, false) }
+	{ 0x0B, get_reporting_sequence, plist_spec(0, false) },
+	{ 0x0C, build_report, plist_spec_empty() },
+	{ 0x0D, get_report, plist_spec(1, false) }
 };
 DEFINE_MIB_FEATURE(reporting);
