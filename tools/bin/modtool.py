@@ -429,7 +429,8 @@ class ModTool(cmdln.Cmdln):
 					res = con.rpc(42,0x22,index,0,result_type=(0,True))
 				except RPCException, e:
 					break
-				(stream, length, year, month, day, hours, minutes, seconds ) = struct.unpack('BBBBBBBB', res['buffer'])
+				
+				(stream, length, timestamp) = struct.unpack('<BBLxx', res['buffer'])
 				i = 1
 				msg = ""
 				while len(msg) < length:
@@ -444,7 +445,8 @@ class ModTool(cmdln.Cmdln):
 					stream = "Remote"
 				else:
 					stream = "Unknown (%d)" % stream
-				print "%s (%d:%d:%d) %s" % (stream, hours, minutes, seconds, msg)
+
+				print "%s (%d) %s" % (stream, timestamp, msg)
 				index += 1
 		elif command == "clear":
 			con.rpc(42,0x23)
