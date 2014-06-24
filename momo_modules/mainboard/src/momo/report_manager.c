@@ -9,6 +9,7 @@
 #include <string.h>
 #include "bus_master.h"
 #include "module_manager.h"
+#include "perf.h"
 #include "system_log.h"
 
 #define EVENT_BUFFER_SIZE         1
@@ -48,7 +49,7 @@ typedef struct
     uint8          interval_count;         //  Up to 256 'intervals' each aggregated individually
     
     // 102 bytes for data (56 two byte report values)
-    uint16         data[56];
+    uint16         data[NUM_BUCKETS];
 } sms_report;
 
 typedef struct 
@@ -61,7 +62,7 @@ typedef struct
 
 static sms_report     report;
 static ScheduledTask  report_task;
-static char           base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
+char           base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 static sensor_event   event_buffer[EVENT_BUFFER_SIZE];
 
 //TODO: Implement dynamic report routing based on an initial "registration" ping to the coordinator address
@@ -171,6 +172,7 @@ static uint8 finish_agg( agg_counters* agg, uint8 agg_set, uint8 index)
 
 bool construct_report()
 {
+  PROFILE_START(kConstructReport);
   agg_counters    bulk_agg;
   agg_counters    int_agg;
   rtcc_timestamp  now;
@@ -200,7 +202,8 @@ bool construct_report()
   now = rtcc_get_timestamp();
 
   //Zero out the report structure
-  memset(report.data, 102, 0);
+  for (i=0; i<NUM_BUCKETS; ++i)
+    report.data[i] = 0;
 
   do
   {
@@ -266,6 +269,8 @@ bool construct_report()
   i = base64_encode((const BYTE*)&report, RAW_REPORT_MAX_LENGTH, base64_report_buffer, BASE64_REPORT_MAX_LENGTH);
   
   base64_report_buffer[i] = '\0';
+  
+  PROFILE_END(kConstructReport);
   return true;
 }
 

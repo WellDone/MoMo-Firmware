@@ -45,7 +45,7 @@ typedef struct
 } ReportConfiguration;
 
 void init_report_config();
-void create_report();
+bool construct_report();
 void post_report( void* );
 void start_report_scheduling();
 void stop_report_scheduling();
