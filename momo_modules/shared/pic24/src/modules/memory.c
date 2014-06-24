@@ -1,12 +1,13 @@
 #include "memory.h"
 #include "ioport.h"
+#include "perf.h"
 #include "interrupts.h"
 
 #ifdef __PIC24FJ64GA306__
 #define ENABLE_MEMORY() LAT(CS) = 0
 #define DISABLE_MEMORY() LAT(CS) = 1
-#else
 
+#else
 #define SS_VALUE LATBbits.LATB15
 #define ENABLE_MEMORY() SS_VALUE = 0
 #define DISABLE_MEMORY() SS_VALUE = 1
@@ -46,7 +47,6 @@ static void configure_SPI();
 static void mem_wait_while_writing();
 
 
-
 #define spi_receive()   spi_transfer(0x00)
 
 #define WRITE_MODE_ENABLE() spi_transfer( WREN )
@@ -69,9 +69,11 @@ void configure_SPI()
   SPI1CON1bits.MSTEN = 1; //SPI is in master mode
   SPI1CON1bits.CKP = 1; //data is clocked out on high-low transition
   SPI1STATbits.SPIROV = 0; // Clear the overflow flag.
-  SPI1STATbits.SPIEN = 1; // Enable
+
   SPI1CON1bits.PPRE = 0b11; //Set spi clock to half of system clock (maximum possible speed)
   SPI1CON1bits.SPRE = 0b110;
+
+  SPI1STATbits.SPIEN = 1; // Enable
 
   //Configure pins for SPI use
 #ifndef __PIC24FJ64GA306__
@@ -105,6 +107,7 @@ void configure_SPI()
 
 void mem_ensure_powered(MemoryStartupTimer for_writing)
 {
+  PROFILE_START(kWaitForFlashMemory);
   if (status.enabled == 0)
   {
     configure_SPI();
@@ -129,6 +132,8 @@ void mem_ensure_powered(MemoryStartupTimer for_writing)
     DELAY_MS(12);
     status.write_wait = 0;
   }
+
+  PROFILE_END(kWaitForFlashMemory);
 }
 
 unsigned int mem_enabled()
@@ -144,7 +149,7 @@ void mem_remove_power()
     _RB7 = 0;
     _TRISB7 = 0;
 
-        //Drive all pins low to minimize power consumption
+    //Drive all pins low to minimize power consumption
     TRISBbits.TRISB15 = 0; // SS
     TRISBbits.TRISB14 = 0; // SDI (IO)
     AD1PCFGbits.PCFG14 = 1; // SDI (analog/digital)
@@ -252,6 +257,8 @@ static void mem_wait_while_writing()
  */
 void mem_write(uint32 addr, const BYTE* data, unsigned int length)
 {
+  PROFILE_START(kWriteFlashMemory);
+
   uint32 end_addr = addr+length;
   
   while (addr < end_addr)
@@ -269,6 +276,8 @@ void mem_write(uint32 addr, const BYTE* data, unsigned int length)
     addr += write_len;
     data += write_len;
   }
+
+  PROFILE_END(kWriteFlashMemory);
 }
 
 // Length is capped at 256, 1 page of flash memory.
@@ -280,6 +289,7 @@ void mem_write_aligned(const uint32 addr, const BYTE *data, unsigned int length)
 
   int old_level = disable_interrupts(); //After mem_ensure_powered since that can delay for a long time
   
+  PROFILE_START(kWriteFlashBits);
   mem_enable_write();
   ENABLE_MEMORY();
   PAGE_PROGRAM_MODE();
@@ -290,8 +300,11 @@ void mem_write_aligned(const uint32 addr, const BYTE *data, unsigned int length)
     spi_transfer(data[i]);
 
   DISABLE_MEMORY();
+  PROFILE_END(kWriteFlashBits);
 
+  PROFILE_START(kWaitForProgrammingCycle);
   mem_wait_while_writing();
+  PROFILE_END(kWaitForProgrammingCycle);
 
   enable_interrupts(old_level);
 }
@@ -303,6 +316,7 @@ void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes)
   int old_level = disable_interrupts();
   mem_ensure_powered(0);
 
+  PROFILE_START(kReadFlashMemory);
   ENABLE_MEMORY();
   READ_MODE();
 
@@ -312,6 +326,7 @@ void mem_read(uint32 addr, BYTE* buf, unsigned int numBytes)
     *buf++ = spi_receive();
 
   DISABLE_MEMORY();
+  PROFILE_END(kReadFlashMemory);
   enable_interrupts(old_level);
 }
 
