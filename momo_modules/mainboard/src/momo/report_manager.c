@@ -111,7 +111,7 @@ void update_interval_headers( sms_report* header, AlarmRepeatTime interval )
   }
 }
 
-int32 create_time_delta( const sms_report* header )
+uint32 create_time_delta( const sms_report* header )
 {
   //FIXME: is 0 a valid option for the caller of this function?
   switch ( header->interval_type )
@@ -207,6 +207,7 @@ bool construct_report()
 
   do
   {
+    PROFILE_START(kProcessEventCounter);
     c = read_sensor_events( event_buffer, EVENT_BUFFER_SIZE );
     for ( i = 0; i < c; ++i )
     {
@@ -230,7 +231,7 @@ bool construct_report()
         //Check if the event is too old and drop it
         //TODO: extend the report start backwards to pick up the dropped events?
         time_seconds = rtcc_timestamp_difference(event_buffer[i].timestamp, now, &delta);
-        if (time_seconds > time_delta)
+        if (time_seconds >= time_delta)
           continue;
 
         //Check if this event is somehow in the future
@@ -241,7 +242,7 @@ bool construct_report()
           break;
         }
 
-        event_interval = time_seconds/time_step;
+        event_interval = report.interval_count - time_seconds/time_step - 1; //time_seconds/time_step < report.interval_count since time_seconds < time_delta
 
         //Check if this event corresponds to a new interval, in which case zero out the intervening
         //intervals.
@@ -256,6 +257,7 @@ bool construct_report()
         update_agg(&int_agg, &event_buffer[i]);
       }
     }
+    PROFILE_END(kProcessEventCounter);
   }
   while (c > 0);
 
@@ -266,8 +268,9 @@ bool construct_report()
   if ( CONFIG.bulk_aggregates != kAggNone)
     finish_agg(&bulk_agg, CONFIG.bulk_aggregates, 0);
 
+  PROFILE_START(kEncodeReportCounter);
   i = base64_encode((const BYTE*)&report, RAW_REPORT_MAX_LENGTH, base64_report_buffer, BASE64_REPORT_MAX_LENGTH);
-  
+  PROFILE_END(kEncodeReportCounter);
   base64_report_buffer[i] = '\0';
   
   PROFILE_END(kConstructReport);
