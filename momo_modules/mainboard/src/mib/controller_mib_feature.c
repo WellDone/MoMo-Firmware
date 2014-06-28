@@ -295,12 +295,9 @@ void read_ram()
 void get_perf_counter()
 {
 	uint16 counter = plist_get_int16(0);
-	uint32 val = perf_get_counter((PerformanceCounter)counter);
+	const performance_counter *val = perf_get_counter((PerformanceCounter)counter);
 
-	plist_set_int16(0, val & 0xFFFF);
-	plist_set_int16(1, val >> 16);
-
-	bus_slave_setreturn(pack_return_status(kNoMIBError, 4));
+	bus_slave_return_buffer(val, 20);
 }
 
 
