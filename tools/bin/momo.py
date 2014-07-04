@@ -18,63 +18,67 @@ builtins = ['help', 'back', 'quit']
 class InitialContext(dict):
 	pass
 
-root = InitialContext()
-root.update(annotate.find_all(initialization))
-root.update(annotate.find_all(build))
-root['HexFile'] = HexFile
-root['Simulator'] = Simulator
+def run_momo():
+	root = InitialContext()
+	root.update(annotate.find_all(initialization))
+	root.update(annotate.find_all(build))
+	root['HexFile'] = HexFile
+	root['Simulator'] = Simulator
 
-line = sys.argv[1:]
-finished = False
-contexts = [root]
+	line = sys.argv[1:]
+	finished = False
+	contexts = [root]
 
-try:
-	while len(line) > 0:
-		line, finished = shell.invoke(contexts, line)
-except NotFoundError as e:
-	print "NotFoundError: %s" % str(e)
-except ValidationError as e:
-	print "ValidationError: %s" % str(e)
-except ArgumentError as e:
-	print "ArgumentError: %s" % str(e)
-except InternalError as e:
-	print "InternalError: %s" % str(e)
-
-#Setup file path and function name completion
-import readline, glob
-def complete(text, state):
-	buf = readline.get_line_buffer()
-	if buf.startswith('help ') or " " not in buf:
-		funcs = annotate.find_all(contexts[-1]).keys() + builtins
-		return filter(lambda x: x.startswith(text), funcs)[state]
-
-	return (glob.glob(os.path.expanduser(text)+'*')+[None])[state]
-
-readline.set_completer_delims(' \t\n;')
-readline.parse_and_bind("tab: complete")
-readline.set_completer(complete)
-
-#If we ended the initial command with a context, start a shell
-if not finished:
 	try:
-		while True:
-			linebuf = raw_input("(%s) " % annotate.context_name(contexts[-1]))
-			line = shlex.split(linebuf)
+		while len(line) > 0:
+			line, finished = shell.invoke(contexts, line)
+	except NotFoundError as e:
+		print "NotFoundError: %s" % str(e)
+	except ValidationError as e:
+		print "ValidationError: %s" % str(e)
+	except ArgumentError as e:
+		print "ArgumentError: %s" % str(e)
+	except InternalError as e:
+		print "InternalError: %s" % str(e)
 
-			try:
-				while len(line) > 0:
-						line, finished = shell.invoke(contexts, line)
-			except NotFoundError as e:
-				print "NotFoundError: %s" % str(e)
-			except ValidationError as e:
-				print "ValidationError: %s" % str(e)
-			except ArgumentError as e:
-				print "ArgumentError: %s" % str(e)
-			except InternalError as e:
-				print "InternalError: %s" % str(e)
+	#Setup file path and function name completion
+	import readline, glob
+	def complete(text, state):
+		buf = readline.get_line_buffer()
+		if buf.startswith('help ') or " " not in buf:
+			funcs = annotate.find_all(contexts[-1]).keys() + builtins
+			return filter(lambda x: x.startswith(text), funcs)[state]
 
-			if len(contexts) == 0:
-				sys.exit(0)
+		return (glob.glob(os.path.expanduser(text)+'*')+[None])[state]
 
-	except EOFError:
-		print ""
+	readline.set_completer_delims(' \t\n;')
+	readline.parse_and_bind("tab: complete")
+	readline.set_completer(complete)
+
+	#If we ended the initial command with a context, start a shell
+	if not finished:
+		try:
+			while True:
+				linebuf = raw_input("(%s) " % annotate.context_name(contexts[-1]))
+				line = shlex.split(linebuf)
+
+				try:
+					while len(line) > 0:
+							line, finished = shell.invoke(contexts, line)
+				except NotFoundError as e:
+					print "NotFoundError: %s" % str(e)
+				except ValidationError as e:
+					print "ValidationError: %s" % str(e)
+				except ArgumentError as e:
+					print "ArgumentError: %s" % str(e)
+				except InternalError as e:
+					print "InternalError: %s" % str(e)
+
+				if len(contexts) == 0:
+					sys.exit(0)
+
+		except EOFError:
+			print ""
+
+if __name__ == "__main__":
+	sys.exit(run_momo())
