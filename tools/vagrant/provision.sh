@@ -5,11 +5,18 @@ die() { echo "$@" 1>&2; exit 1; }
 apt-get update
 apt-get install -y python python-setuptools python-dev libc6:i386 lib32stdc++6
 
-easy_install cmdln ZODB3 colorama pyparsing intelhex BeautifulSoup4 Cheetah pyserial pytest
+easy_install cmdln ZODB3 colorama pyparsing intelhex BeautifulSoup4 Cheetah pyserial pytest decorator
 
 SCONSVERSION=2.3.1
-URL=http://sourceforge.net/projects/scons/files/scons/$SCONSVERSION/scons-$SCONSVERSION.tar.gz/download?use_mirror=hivelocity
-wget $URL -O - | tar -xvzf -
+if [ -e /vagrant/.cached_downloads/scons-$SCONSVERSION.tar.gz ]; then
+	echo "Found cached SCONS installer!"
+	URL=http://sourceforge.net/projects/scons/files/scons/$SCONSVERSION/scons-$SCONSVERSION.tar.gz/download?use_mirror=hivelocity
+	wget $URL
+	cp ./scons-$SCONSVERSION.tar.gz /vagrant/.cached_downloads
+else
+	cp /vagrant/.cached_downloads/scons-$SCONSVERSION.tar.gz .
+fi
+tar -xvzf scons-$SCONSVERSION.tar.gz
 
 cd scons-$SCONSVERSION
 python setup.py install
@@ -69,6 +76,19 @@ fi
 echo "PATH=\"\$PATH:/opt/microchip/xc16/v1.21/bin\"" >> /home/vagrant/.profile
 echo "DONE!"
 
+#echo "Downloading GPSIM..."
+#GPSIMVERSION=0.27.0
+#URL=http://downloads.sourceforge.net/project/gpsim/gpsim/$GPSIMVERSION/gpsim-$GPSIMVERSION.tar.gz
+#wget $URL -O - | tar -xvzf -
+
+#echo "Installing GPSIM..."
+#cd gpsim-$GPSIMVERSION
+#./configure
+#make
+#make install
+#cd ..
+#echo "DONE!"
+
 echo "Adding MoMo tool bin (/vagrant/tools/bin) to the path..."
 echo "PATH=\"\$PATH:/vagrant/tools/bin\"" >> /home/vagrant/.profile
 echo "DONE!"
@@ -76,3 +96,5 @@ echo "DONE!"
 echo "Adding user 'vagrant' to the group 'dialout' so it can access USB devices..."
 usermod vagrant -a -G dialout
 echo "DONE!"
+
+exit 0
