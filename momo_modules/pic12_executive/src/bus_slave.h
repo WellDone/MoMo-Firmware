@@ -9,7 +9,7 @@ void bus_slave_startcommand();
 
 //Defined in bus_slave_asm.as
 void bus_slave_setreturn(uint8 status);
-uint8 bus_slave_checkparamsize();
+void bus_slave_checkparamsize();
 uint8 bus_retval_size();
 
 #endif

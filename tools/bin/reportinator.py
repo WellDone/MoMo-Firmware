@@ -165,7 +165,7 @@ class Reportinator(cmdln.Cmdln):
 
 		if int_aggs != 0:
 			print "Interval Aggregates:"
-			values = struct.unpack( "H" * len(int_agg_names) * interval_count, report[16+len(bulk_agg_names)*2:] )
+			values = struct.unpack( "H" * len(int_agg_names) * interval_count, report[16+len(bulk_agg_names)*2:16+len(bulk_agg_names)*2+40] )
 			row_format ="{:>8}" * (len(int_agg_names) + 1)
 			print row_format.format("", *int_agg_names)
 			for row in chunk(values, len(int_agg_names)):

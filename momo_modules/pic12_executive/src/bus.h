@@ -5,25 +5,7 @@
 #include "mib_hal.h"
 #include "i2c.h"
 #include "protocol.h"
-
-//Offsets from mib_data to the three overlapping buffers that store
-//the command packet, return status and return value.
-#define kCommandOffset 0
-#define kReturnStatusOffset 1
-#define kReturnValueOffset 3
-
-//Bus error codes that can be returned
-enum
-{
-	kNoMIBError = 0,
-	kUnsupportedCommand = 1,
-	kWrongParameterType = 2,
-	kParameterTooLong = 3,
-	kChecksumError = 4,
-	kUnknownError = 6,
-	kCallbackError = 7,
-	kSlaveNotAvailable = 255
-};
+#include "bus_defines.h"
 
 //Takes 2 bits to store
 //Cannot change.  Referenced by mib_hal.as in pic12 code

@@ -19,8 +19,10 @@
 #define DIGITAL			0
 
 #ifdef __PIC24FJ64GA306__
+
 //Define all support peripheral input names
 #define SDI1_INPUT 		_SDI1R
+#define SCK1_INPUT		_SCK1R
 
 //Define all supported peripheral output names
 enum

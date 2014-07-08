@@ -45,7 +45,10 @@ static void callback( void* arg )
     RPCCallback *cb = (RPCCallback*) arg;
 
     if (BIT(cb->flags, kRPCInProgress))
+    {
+        DEBUG_LOGL("Scheduled RPC in Progress, skipping.");
         return;
+    }
 
     MIBUnified cmd;
     cmd.address = cb->address;

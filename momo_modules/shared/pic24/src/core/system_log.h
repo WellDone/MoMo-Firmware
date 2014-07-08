@@ -21,7 +21,8 @@ typedef struct
 {
 	uint8 stream; // LogStream
 	uint8 length;
-	rtcc_timestamp timestamp; //6
+	rtcc_timestamp timestamp; //4
+	uint16 reserved;
 	BYTE data[LOG_ENTRY_SIZE];
 } LogEntry;
 

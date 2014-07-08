@@ -16,6 +16,7 @@
 #define SDATRIS		TRISC1
 #define SCLTRIS		TRISC0
 #define ALARM		A2
+#define ALARMIOC	2
 
 #elif  __PIC12LF1822__
 #define SDAPIN		RA2	
@@ -27,6 +28,7 @@
 #define SDATRIS		TRISA2
 #define SCLTRIS		TRISA1
 #define ALARM		A5
+#define ALARMIOC	5
 
 #elif  __PIC16LF1847__
 #define SDAPIN		RB1

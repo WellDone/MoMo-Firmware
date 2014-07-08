@@ -5,6 +5,14 @@
 
 alarm_callback the_alarm_callback = 0;
 volatile uint16 alarm_time = kEveryHalfSecond;
+static int callback_pending = 0;
+
+static void rtcc_callback(void *unused);
+
+const uint32    year_seconds                    = 24LL*60LL*60LL*365LL;
+const uint16    halfday_seconds                 = 12LL*60LL*60LL;
+const uint32    day_seconds                     = 24LL*60LL*60LL;
+const uint32    month_lintable[kNumMonths]      = {0LL, 2678400LL, 5097600LL, 7776000LL, 10368000LL, 13046400LL, 15638400LL, 18316800LL, 20995200LL, 23587200LL, 26265600LL, 28857600LL};
 
 void enable_rtcc()
 {
@@ -28,15 +36,27 @@ uint16 rtcc_enabled()
 
 void configure_rtcc()
 {
+    rtcc_datetime date;
     _RTCCMD = 0; //Make sure power to the rtcc is enabled.
 
     if (!_RTCWREN)
         asm_enable_rtcon_write();
 
+    _RTCLK = 0b01;
     _CAL = 0; //Clear oscillator trimming
     _RTCOE = 0; //Don't output the clock signal
     _ALRMEN = 0; //Don't set an alarm
     _CHIME = 0; //Don't chime
+
+    date.year = 0;
+    date.month = 1;
+    date.day = 1;
+    date.hours = 0;
+    date.minutes = 0;
+    date.seconds = 0;
+    date.weekday = 0;
+
+    rtcc_set_time(&date);
 }
 
 /*
@@ -79,20 +99,42 @@ void rtcc_get_time(rtcc_datetime *time)
     get_rtcc_datetime_unsafe(time);
 }
 
-void rtcc_get_timestamp(rtcc_timestamp* time)
+rtcc_timestamp rtcc_get_timestamp()
 {
     rtcc_datetime datetime;
-    rtcc_get_time( &datetime );
-    rtcc_create_timestamp( &datetime, time );
+    rtcc_get_time(&datetime);
+    return rtcc_create_timestamp(&datetime);
 }
-void rtcc_create_timestamp(const rtcc_datetime *source, rtcc_timestamp *dest)
+
+rtcc_timestamp rtcc_create_timestamp(const rtcc_datetime *source)
 {
-    dest->year = source->year;
-    dest->month = source->month;
-    dest->day = source->day;
-    dest->hours = source->hours;
-    dest->minutes = source->minutes;
-    dest->seconds = source->seconds;
+    rtcc_timestamp out = 0;
+
+    //Add in the year without accounting for leap years
+    out += year_seconds*source->year;
+
+    //Add in one extra day for each leap year between 2000 and source->year
+    //Remember that 2000 was a leap year
+    if (source->year > 0)
+        out += (((source->year-1)>>2) + 1)*source->year;
+
+    //Add in the number of seconds in this year to the month
+    if (source->month > 0)
+        out += month_lintable[source->month];
+
+    //If we're currently in a leap year and after February, add in an extra day
+    //This simplified rule 
+    if (((source->year%4) == 0) && (source->month > 2))
+        out += day_seconds;
+
+    if (source->day > 0)
+        out += (source->day-1)*day_seconds;
+
+    out += source->hours * 3600;
+    out += source->minutes * 60;
+    out += source->seconds;
+
+    return out;
 }
 
 uint16 rtcc_datetimes_equal(rtcc_datetime *time1, rtcc_datetime *time2)
@@ -111,72 +153,33 @@ uint16 rtcc_compare_times(rtcc_datetime *time1, rtcc_datetime *time2)
     return memcmp(time1, time2, kTimeCompareSize);
 }
 
-bool isLeapYear( uint8 year )
+/* 
+ * Return the absolute number of seconds between time1 and time2.  If time2 > time1, direction will be set
+ * to kPositiveDelta.  If time2 < time1, direction will be set to kNegativeDelta.  If time1 == time2, direction
+ * will be set to kZeroDelta.  Note that an int32 will potentially overflow, which is why the sign bit is returned
+ * separately.
+ */
+
+uint32 rtcc_timestamp_difference(rtcc_timestamp time1, rtcc_timestamp time2, TimeIntervalDirection *direction)
 {
-    if ( ( (year%4 == 0) && (year%100 != 0) ) || (year%400 == 0) )
-        return true;
-    else
-        return false;
-}
+    TimeIntervalDirection   dir  = kZeroDelta;  
+    uint32                  diff = 0;
 
-int32 rtcc_timestamp_difference(rtcc_timestamp *time1, rtcc_timestamp *time2)
-{
-    int32 result = 0;
-    uint8 i;
-    result += time2->seconds - time1->seconds;
-    result += 60 * (time2->minutes - time1->minutes);
-    result += 3600L * (time2->hours - time1->hours);
-
-    uint8 start_counter, end_counter;
-    int8 polarity;
-    if ( time2->month == time1->month )
+    if (time1 > time2)
     {
-        result += 86400L * (time2->day - time1->day );
+        dir = kNegativeDelta;
+        diff = time1 - time2;
     }
-    else
+    else if (time1 < time2)
     {
-        if ( time1->month < time2->month )
-        {
-            start_counter = time1->month;
-            end_counter = time2->month;
-            polarity = 1;
-        }
-        else
-        {
-            start_counter = time2->month;
-            end_counter = time1->month;
-            polarity = -1;
-        }
-        for ( i = start_counter; i < end_counter; ++i )
-        {
-            if ( i == 2 )
-                result += polarity * 86400L * (isLeapYear( time1->year )? 28 : 29);
-            else if ( i == 9 || i == 4 || i == 6 || i == 11 )
-                result += polarity * 86400L * 30;
-            else
-                result += polarity * 86400L * 31;
-        }
+        dir = kPositiveDelta;
+        diff = time2 - time1;
     }
 
-    if ( time1->year < time2->year )
-    {
-        start_counter = time1->year;
-        end_counter = time2->year;
-        polarity = 1;
-    }
-    else 
-    {
-        start_counter = time2->year;
-        end_counter = time1->year;
-        polarity = -1;
-    }
-    
-    for ( i = start_counter; i < end_counter; ++i )
-    {
-        result += polarity * (isLeapYear( i )? 315360000L : 31449600); // Possible leap year double-counting
-    }
+    if (direction)
+            *direction = dir;
 
-    return result;
+    return diff;
 }
 
 void get_rtcc_datetime_unsafe(rtcc_datetime *time)
@@ -289,10 +292,21 @@ void __attribute__((interrupt,no_auto_psv)) _RTCCInterrupt()
             alarm_time = kEvery10Seconds;
     }
 
-    if (the_alarm_callback != 0)
-        taskloop_add(the_alarm_callback, NULL);
+    if (the_alarm_callback != 0 && !callback_pending)
+    {
+        callback_pending = 1;
+        taskloop_add(rtcc_callback, NULL);
+    }
 
     IFS3bits.RTCIF = 0;
+}
+
+static void rtcc_callback(void *arg)
+{
+    if (the_alarm_callback)
+        the_alarm_callback(arg);
+
+    callback_pending = 0;
 }
 
 uint16 last_alarm_frequency()
@@ -336,12 +350,4 @@ void clear_recurring_task()
     _ALRMEN = 0; //disable alarm
     the_alarm_callback = 0;
     uninterruptible_end();
-}
-
-void wait_ms( uint32 milliseconds )
-{
-    volatile uint32 tick = 0;
-    milliseconds = milliseconds * CLOCKSPEED/1000;
-    while ( tick!=milliseconds )
-        ++tick;
 }

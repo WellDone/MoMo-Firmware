@@ -12,9 +12,9 @@ static void log_sensor_event_mib(void)
 {
 	uint8 mib_addr = plist_get_int8(0); 
 	uint8 metadata = plist_get_int8(1);
-	uint32 *value = (uint32*)plist_get_buffer(2);
+	uint32 value = *(uint32*)plist_get_buffer(2);
 	
-	push_sensor_value( mib_addr, metadata, value );
+	push_sensor_value(mib_addr, metadata, value);
 
 	bus_slave_setreturn(pack_return_status(kNoMIBError, 0));
 }

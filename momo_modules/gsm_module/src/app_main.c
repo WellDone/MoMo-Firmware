@@ -39,7 +39,10 @@ void task(void)
 					;
 
 				gsm_off();
-				bus_master_rpc( 8, 42, 0x20, plist_with_buffer(0,copy_to_mib()) );
+
+				bus_master_begin_rpc();
+				bus_master_prepare_rpc(42, 0x20, plist_with_buffer(0, copy_to_mib()));
+				bus_master_send_rpc(8);
 			}
 		}
 	}

@@ -48,7 +48,7 @@ void write_system_log( LogStream stream, const BYTE* data, uint8 length )
 	LogEntry* staged_log_entry = (LogEntry*) ringbuffer_stage( &log_buffer );
 	staged_log_entry->stream = stream;
 	staged_log_entry->length = length;
-	rtcc_get_timestamp( &staged_log_entry->timestamp );
+	staged_log_entry->timestamp = rtcc_get_timestamp();
 	memcpy( &staged_log_entry->data, data, length );
 	ringbuffer_commit( &log_buffer );
 
