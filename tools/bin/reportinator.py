@@ -40,6 +40,20 @@ class Reportinator(cmdln.Cmdln):
 		con.stop_reporting()
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_state(self, subcmd, opts):
+		"""${cmd_name}: Get the current state of the autonomous reporting flag.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		con = self._get_controller( opts )
+		if con.get_reporting():
+			print "Enabled"
+		else:
+			print "Disabled"
+
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_send(self, subcmd, opts):
 		"""${cmd_name}: Send a single report
 

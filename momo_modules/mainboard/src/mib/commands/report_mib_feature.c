@@ -13,12 +13,19 @@ extern char base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 
 static void start_scheduled_reporting(void)
 {
+	set_momo_state_flag( kStateFlagReportingEnabled, true );
 	start_report_scheduling();
 }
 
 static void stop_scheduled_reporting(void)
 {
+	set_momo_state_flag( kStateFlagReportingEnabled, false );
 	stop_report_scheduling();
+}
+
+static void get_scheduled_reporting(void)
+{
+	bus_slave_return_int16( get_momo_state_flag( kStateFlagReportingEnabled ) );
 }
 
 static void send_report(void)
@@ -96,6 +103,7 @@ DEFINE_MIB_FEATURE_COMMANDS(reporting) {
 	{ 0x0A, get_reporting_aggregates, plist_spec(0, false) },
 	{ 0x0B, get_reporting_sequence, plist_spec(0, false) },
 	{ 0x0C, build_report, plist_spec_empty() },
-	{ 0x0D, get_report, plist_spec(1, false) }
+	{ 0x0D, get_report, plist_spec(1, false) },
+	{ 0x0E, get_scheduled_reporting, plist_spec_empty() }
 };
 DEFINE_MIB_FEATURE(reporting);

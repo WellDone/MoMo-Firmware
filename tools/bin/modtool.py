@@ -5,6 +5,7 @@ import os.path
 import os
 import intelhex
 from time import sleep
+import datetime
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -446,7 +447,8 @@ class ModTool(cmdln.Cmdln):
 				else:
 					stream = "Unknown (%d)" % stream
 
-				print "%s (%d) %s" % (stream, timestamp, msg)
+				timestamp = datetime.datetime.fromtimestamp(timestamp + 946684800)
+				print "%s (%s) %s" % (stream, timestamp, msg)
 				index += 1
 		elif command == "clear":
 			con.rpc(42,0x23)

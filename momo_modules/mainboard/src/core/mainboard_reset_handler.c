@@ -15,6 +15,7 @@
 #include "controller_mib_feature.h"
 #include "system_log.h"
 #include "perf.h"
+#include "momo_config.h"
 
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
@@ -56,7 +57,8 @@ void handle_all_resets_after(unsigned int type)
      */
 
     battery_init();
-    //start_report_scheduling();
+    if ( get_momo_state_flag( kStateFlagReportingEnabled ) )
+        start_report_scheduling();
 
     CRITICAL_LOGL( "Device initialized." );
 }
