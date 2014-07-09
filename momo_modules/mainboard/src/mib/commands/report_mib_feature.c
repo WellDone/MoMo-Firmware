@@ -90,7 +90,7 @@ static void get_reporting_sequence(void)
 }
 
 BYTE report_buffer[RAW_REPORT_MAX_LENGTH];
-static void read_report_log(void)
+static void read_report_log_mib(void)
 {
 	uint16 index = plist_get_int16(0);
 	uint16 offset = plist_get_int16(1);
@@ -99,9 +99,9 @@ static void read_report_log(void)
 		bus_slave_seterror( kCallbackError );
 		return;
 	}
-	read_report_log( index, (void*)&report_buffer, 1 );
+	uint8 length = read_report_log( index, (void*)&report_buffer, 1 );
 
-	bus_slave_return_buffer( report_buffer+offset, RAW_REPORT_MAX_LENGTH - offset );
+	bus_slave_return_buffer( report_buffer+offset, length );
 }
 
 DEFINE_MIB_FEATURE_COMMANDS(reporting) {
@@ -120,6 +120,6 @@ DEFINE_MIB_FEATURE_COMMANDS(reporting) {
 	{ 0x0C, build_report, plist_spec_empty() },
 	{ 0x0D, get_report, plist_spec(1, false) },
 	{ 0x0E, get_scheduled_reporting, plist_spec_empty() },
-	{ 0x0F, read_report_log, plist_spec(2, false) }
+	{ 0x0F, read_report_log_mib, plist_spec(2, false) }
 };
 DEFINE_MIB_FEATURE(reporting);
