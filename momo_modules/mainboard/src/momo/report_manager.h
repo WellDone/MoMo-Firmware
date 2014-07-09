@@ -6,6 +6,9 @@
 
 #define MOMO_REPORT_VERSION 2
 #define pack_report_interval(type, step)	(((step&0xF) << 4) | (type&0xF))
+#define RAW_REPORT_MAX_LENGTH     118
+#define BASE64_REPORT_MAX_LENGTH  160 //( 4 * ( ( RAW_REPORT_MAX_LENGTH + 2 ) / 3) )
+#define NUM_BUCKETS               56
 
 enum 
 {
@@ -20,6 +23,19 @@ enum
 	kReportIntervalMinute      = 1,
 	kReportIntervalHour        = 2,
 	kReportIntervalDay         = 3
+};
+
+enum
+{
+	kReportStatusNone            = 0,
+	kReportStatusConstructed     = 1,
+	kReportStatusOpeningStream   = 2,
+	kReportStatusStreaming       = 3,
+	kReportStatusClosingStream   = 4,
+	kReportStatusPending         = 5,
+	kReportStatusWaitingForRetry = 6,
+	kReportStatusFailed          = 0x0F,
+	kReportStatusSuccess         = 0xFF
 };
 
 enum 
@@ -44,6 +60,7 @@ typedef struct
 	uint8           interval_aggregates;
 } ReportConfiguration;
 
+void report_manager_start();
 void init_report_config();
 bool construct_report();
 void post_report( void* );

@@ -46,7 +46,6 @@ static void callback( void* arg )
 
     if (BIT(cb->flags, kRPCInProgress))
     {
-        DEBUG_LOGL("Scheduled RPC in Progress, skipping.");
         return;
     }
 

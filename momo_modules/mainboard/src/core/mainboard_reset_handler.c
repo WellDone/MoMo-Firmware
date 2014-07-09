@@ -57,8 +57,7 @@ void handle_all_resets_after(unsigned int type)
      */
 
     battery_init();
-    if ( get_momo_state_flag( kStateFlagReportingEnabled ) )
-        start_report_scheduling();
+    report_manager_start();
 
     CRITICAL_LOGL( "Device initialized." );
 }
