@@ -208,7 +208,7 @@ bool construct_report()
   report->bulk_aggregates = CONFIG.bulk_aggregates;
   report->interval_aggregates = CONFIG.interval_aggregates;
 
-  update_interval_headers(&report, CONFIG.report_interval);
+  update_interval_headers(report, CONFIG.report_interval);
 
   uint32 time_delta = create_time_delta(report);
   uint32 time_step = time_delta / report->interval_count;
@@ -329,7 +329,7 @@ void stream_to_gsm() {
   if ( current_report_status.stream_offset >= strlen(base64_report_buffer) )
   {
     DEBUG_LOGL( "Closing comm stream." );
-    current_report_status.status = kReportStatusClosingModule;
+    current_report_status.status = kReportStatusClosingStream;
     report_rpc( &cmd, 2, plist_empty() );
     return;
   }
@@ -348,7 +348,7 @@ void stream_to_gsm() {
 void receive_gsm_stream_response(unsigned char a) 
 {
   FLUSH_LOG();
-  if ( a != kNoMIBError || current_report_status.status == kReportStatusClosingModule ) {
+  if ( a != kNoMIBError || current_report_status.status == kReportStatusClosingStream ) {
     if ( a != kNoMIBError )
     {
       CRITICAL_LOGL( "Failed to send a message to a comm module!  Error: " );
