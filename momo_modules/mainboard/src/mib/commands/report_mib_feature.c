@@ -89,10 +89,19 @@ static void get_reporting_sequence(void)
 	bus_slave_return_int16( current_momo_state.report_config.current_sequence );
 }
 
+BYTE report_buffer[RAW_REPORT_MAX_LENGTH];
 static void read_report_log(void)
 {
-	uint16 index = 
-	bus_slave_return_int16( )
+	uint16 index = plist_get_int16(0);
+	uint16 offset = plist_get_int16(1);
+	if ( offset >= RAW_REPORT_MAX_LENGTH )
+	{
+		bus_slave_seterror( kCallbackError );
+		return;
+	}
+	read_report_log( index, (void*)&report_buffer, 1 );
+
+	bus_slave_return_buffer( report_buffer+offset, RAW_REPORT_MAX_LENGTH - offset );
 }
 
 DEFINE_MIB_FEATURE_COMMANDS(reporting) {
