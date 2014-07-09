@@ -18,5 +18,5 @@ void save_raw_report( BYTE* report )
 uint8 read_report_log( uint8 offset, void* output, uint8 max_report_count )
 {
 	flash_queue_walker walker = new_flash_queue_walker( &report_log_queue, offset );
-	return flash_queue_walk( walker, output, max_report_count );
+	return flash_queue_walk( &walker, output, max_report_count );
 }
