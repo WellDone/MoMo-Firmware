@@ -12,6 +12,7 @@ from pymomo.commander.meta import initialization
 from pymomo.hex.hexfile import HexFile
 from pymomo.sim.simulator import Simulator
 from pymomo.utilities import build
+from pymomo.utilities.printer import Printer
 builtins = ['help', 'back', 'quit']
 
 @annotate.context("root")
@@ -25,6 +26,8 @@ def run_momo():
 	root['HexFile'] = HexFile
 	root['Simulator'] = Simulator
 
+	out = Printer()
+
 	line = sys.argv[1:]
 	finished = False
 	contexts = [root]
@@ -32,14 +35,8 @@ def run_momo():
 	try:
 		while len(line) > 0:
 			line, finished = shell.invoke(contexts, line)
-	except NotFoundError as e:
-		print "NotFoundError: %s" % str(e)
-	except ValidationError as e:
-		print "ValidationError: %s" % str(e)
-	except ArgumentError as e:
-		print "ArgumentError: %s" % str(e)
-	except InternalError as e:
-		print "InternalError: %s" % str(e)
+	except MoMoException as e:
+		print e.format()
 
 	#Setup file path and function name completion
 	import readline, glob
@@ -62,22 +59,22 @@ def run_momo():
 				linebuf = raw_input("(%s) " % annotate.context_name(contexts[-1]))
 				line = shlex.split(linebuf)
 
+				#Catch exception outside the loop so we stop invoking submethods if a parent
+				#fails because then the context and results would be unpredictable
 				try:
 					while len(line) > 0:
-							line, finished = shell.invoke(contexts, line)
-				except NotFoundError as e:
-					print "NotFoundError: %s" % str(e)
-				except ValidationError as e:
-					print "ValidationError: %s" % str(e)
-				except ArgumentError as e:
-					print "ArgumentError: %s" % str(e)
-				except InternalError as e:
-					print "InternalError: %s" % str(e)
+						line, finished = shell.invoke(contexts, line)
+				except MoMoException as e:
+					print e.format()
 
 				if len(contexts) == 0:
 					sys.exit(0)
 
+		#Make sure to catch ^C and ^D so that we can cleanly dispose of subprocess resources if 
+		#there are any.
 		except EOFError:
+			print ""
+		except KeyboardInterrupt:
 			print ""
 
 if __name__ == "__main__":
