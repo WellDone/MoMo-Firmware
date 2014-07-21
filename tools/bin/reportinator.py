@@ -127,7 +127,30 @@ class Reportinator(cmdln.Cmdln):
 		sequence = con.rpc( 60, 0x0B, result_type=(1,False) );
 		print "%d" % sequence['ints'][0]
 
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_report_log(self,subcmd, opts):
+		"""${cmd_name}: Read the log of reports, succeeded and failed.
 
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		con = self._get_controller(opts)
+		index = 0, offset=0
+		while True:
+			report = ''
+			while offset < 118:
+				try:
+					res = con.rpc( 60, 0x0F, index, offset, result_type=(0,True) );
+				except RPCException as e:
+					if e.type != 7:
+						raise e
+					break
+				offset += len(res['buffer'])
+				report += res['buffer']
+			if len(report) == 0:
+				break
+			index += 1
 
 	def do_parse(self, subcmd, opts, report):
 		"""${cmd_name}: Parse a report in BASE64 format

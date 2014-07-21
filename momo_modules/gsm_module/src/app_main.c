@@ -29,29 +29,23 @@ void task(void)
 
 		if ( state.shutdown_pending )
 		{
-			if ( timeout_counter == 0 || cmgs_matched() )
+			if ( timeout_counter == 0 || cmgs_matched() || err_matched() )
 			{
-				gsm_off();
+				bool success = cmgs_matched();
+				if ( err_matched() )
+				{
+					while ( gsm_receiveone() == 0 )
+						;
+
+					bus_master_begin_rpc();
+					bus_master_prepare_rpc(42, 0x20, plist_with_buffer(0, copy_to_mib()));
+					bus_master_send_rpc(8);
+				}
+				gsm_off();		
 
 				bus_master_begin_rpc();
-				mib_buffer[0] = 0;
+				mib_buffer[0] = success ? 0 : 1;
 				bus_master_prepare_rpc(60, 0x10, plist_ints(1));
-				bus_master_send_rpc(8);
-			}
-			else if ( err_matched() )
-			{
-				while ( gsm_receiveone() == 0 )
-					;
-
-				gsm_off();
-
-				bus_master_begin_rpc();
-				mib_buffer[0] = 1;
-				bus_master_prepare_rpc(60, 0x10, plist_ints(1));
-				bus_master_send_rpc(8);
-
-				bus_master_begin_rpc();
-				bus_master_prepare_rpc(42, 0x20, plist_with_buffer(0, copy_to_mib()));
 				bus_master_send_rpc(8);
 			}
 		}

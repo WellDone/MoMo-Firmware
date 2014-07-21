@@ -6,6 +6,7 @@
 #include "momo_config.h"
 #include "report_log.h"
 #include "report_comm_stream.h"
+#include "system_log.h"
 #include <string.h>
 
 #define BASE64_REPORT_MAX_LENGTH  160 //( 4 * ( ( RAW_REPORT_MAX_LENGTH + 2 ) / 3) )
