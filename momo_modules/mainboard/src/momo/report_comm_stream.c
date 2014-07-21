@@ -112,6 +112,6 @@ void notify_report_failure()
 {
   DEBUG_LOGL( "Report failed.  Retrying." );
   // TODO: Save success or failure to the report log.
-  scheduler_schedule_task( post_report, CONFIG.report_interval - 1, 1, &retry_task, NULL ); // if we're reporting every day, retry every hour
+  scheduler_schedule_task( open_stream, CONFIG.report_interval - 1, 1, &retry_task, NULL ); // if we're reporting every day, retry every hour
   // TODO: This blocks streaming to any other module, which could be problematic
 }

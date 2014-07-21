@@ -275,7 +275,7 @@ bool construct_report()
   PROFILE_END(kEncodeReportCounter);
   base64_report_buffer[i] = '\0';
 
-  save_raw_report( (BYTE*)&report );
+  report_log_write( (BYTE*)&report );
   save_momo_state();
   
   PROFILE_END(kConstructReport);
