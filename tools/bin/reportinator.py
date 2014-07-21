@@ -151,6 +151,7 @@ class Reportinator(cmdln.Cmdln):
 				report += res['buffer']
 			if len(report) == 0:
 				break
+			print base64.b64encode(report)
 			index += 1
 
 	def do_parse(self, subcmd, opts, report):
