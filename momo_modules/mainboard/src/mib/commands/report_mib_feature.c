@@ -116,12 +116,15 @@ static void read_report_log_mib(void)
 	bus_slave_return_buffer( report_buffer+offset, length );
 }
 
-static void update_report_stream_status(void)
+static void handle_report_stream_success(void)
 {
-	if ( plist_get_int16(0) == 0 )
-		notify_report_success();
-	else
-		notify_report_failure();
+	notify_report_success();
+}
+
+static void handle_report_stream_failure(void)
+{
+	CRITICAL_LOG( plist_get_buffer(0), plist_get_buffer_length() );
+	notify_report_failure();
 }
 
 DEFINE_MIB_FEATURE_COMMANDS(reporting) {
@@ -141,6 +144,7 @@ DEFINE_MIB_FEATURE_COMMANDS(reporting) {
 	{ 0x0D, get_report, plist_spec(1, false) },
 	{ 0x0E, get_scheduled_reporting, plist_spec_empty() },
 	{ 0x0F, read_report_log_mib, plist_spec(2, false) },
-	{ 0x10, update_report_stream_status, plist_spec(1, false) }
+	{ 0x10, handle_report_stream_success, plist_spec(0, false) },
+	{ 0x10, handle_report_stream_failure, plist_spec(0, true) }
 };
 DEFINE_MIB_FEATURE(reporting);

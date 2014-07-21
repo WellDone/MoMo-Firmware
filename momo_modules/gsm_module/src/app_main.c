@@ -31,21 +31,22 @@ void task(void)
 		{
 			if ( timeout_counter == 0 || cmgs_matched() || err_matched() )
 			{
-				bool success = cmgs_matched();
+				bus_master_begin_rpc();
 				if ( err_matched() )
 				{
 					while ( gsm_receiveone() == 0 )
 						;
 
-					bus_master_begin_rpc();
-					bus_master_prepare_rpc(42, 0x20, plist_with_buffer(0, copy_to_mib()));
-					bus_master_send_rpc(8);
+					mib_packet.param_spec = plist_with_buffer(0, copy_to_mib());
 				}
-				gsm_off();		
+				else
+				{
+					mib_packet.param_spec = plist_empty();
+				}
+				gsm_off();
 
-				bus_master_begin_rpc();
-				mib_buffer[0] = success ? 0 : 1;
-				bus_master_prepare_rpc(60, 0x10, plist_ints(1));
+				mib_packet.feature = 60;
+				mib_packet.command = ( timeout_counter == 0 || err_matched() ) 0x10 : 0x10;
 				bus_master_send_rpc(8);
 			}
 		}
