@@ -31,8 +31,6 @@ void task(void)
 		{
 			if ( timeout_counter == 0 || cmgs_matched() || err_matched() )
 			{
-				gsm_off();
-				
 				bus_master_begin_rpc();
 				// if ( err_matched() )
 				// {
@@ -43,12 +41,14 @@ void task(void)
 				// }
 				// else
 				// {
-					mib_packet.param_spec = plist_empty();
+				mib_packet.param_spec = plist_empty();
 				// }
 
 				mib_packet.feature = 60;
 				mib_packet.command = ( timeout_counter == 0 || err_matched() )? 0x10 : 0x10;
 				bus_master_send_rpc(8);
+
+				gsm_off();
 			}
 		}
 	}
