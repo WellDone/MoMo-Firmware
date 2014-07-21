@@ -94,7 +94,7 @@ void initialize(void)
 	mib_buffer[2] = 8;
 	mib_buffer[3] = 20;
 
-	mib_buffer[4] = kEverySecond;
+	mib_buffer[4] = kEvery10Seconds;
 	mib_buffer[5] = 0;
 	bus_master_prepare_rpc(43, 0, plist_ints(3));
 
