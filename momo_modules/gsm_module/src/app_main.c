@@ -44,6 +44,11 @@ void task(void)
 				bus_master_prepare_rpc(42, 0x20, plist_with_buffer(0, copy_to_mib()));
 				bus_master_send_rpc(8);
 			}
+
+			bus_master_begin_rpc();
+			mib_buffer[0] = cmgs_matched()? 0 : 1;
+			bus_master_prepare_rpc(60, 0x10, plist_ints(1));
+			bus_master_send_rpc(8);
 		}
 	}
 }

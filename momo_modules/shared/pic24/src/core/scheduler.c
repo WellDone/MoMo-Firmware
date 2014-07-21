@@ -169,6 +169,9 @@ static void scheduler_call_task(void *task)
 {
 	ScheduledTask *curr = task;
 
+	if ( !BIT_TEST(curr->flags, kBeingScheduledBit) ) // Sanity check, in case the task was removed after this instance was queued
+		return;
+
 	//Call the function and then let it be rescheduled for callback
 	//if needed.  This is so if something is locking the taskloop
 	//for a long time we don't add the same callback N times in a row
