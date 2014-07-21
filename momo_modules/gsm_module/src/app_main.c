@@ -46,7 +46,7 @@ void task(void)
 				gsm_off();
 
 				mib_packet.feature = 60;
-				mib_packet.command = ( timeout_counter == 0 || err_matched() ) 0x10 : 0x10;
+				mib_packet.command = ( timeout_counter == 0 || err_matched() )? 0x10 : 0x10;
 				bus_master_send_rpc(8);
 			}
 		}
