@@ -136,7 +136,8 @@ class Reportinator(cmdln.Cmdln):
 		"""
 
 		con = self._get_controller(opts)
-		index = 0, offset=0
+		index = 0
+		offset = 0
 		while True:
 			report = ''
 			while offset < 118:
