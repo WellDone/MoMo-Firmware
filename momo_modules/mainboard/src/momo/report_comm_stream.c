@@ -9,12 +9,15 @@
 
 #define CONFIG current_momo_state.report_config
 
+#define RETRY_MAX 2
+
 static char* report_buffer;
 static uint8 report_stream_offset;
 ModuleIterator comm_module_iterator;
 bool current_stream_finished;
+uint8 retry_count = 0;
 
-ScheduledTask retry_task;
+ScheduledTask report_retry_task;
 
 void receive_gsm_stream_response(unsigned char a);
 void report_rpc( MIBUnified *cmd, uint8 command, uint8 spec )
@@ -92,13 +95,28 @@ void receive_gsm_stream_response(unsigned char a)
 
 void report_stream_abandon()
 {
-  scheduler_remove_task( &retry_task );
-  //TODO: Wait for the current stream (if any) to be closed.
+  if ( module_iter_get( &comm_module_iterator ) != NULL )
+  {
+    DEBUG_LOGL( "Abandoning current report stream." );
+    current_stream_finished = true;
+    
+    MIBUnified cmd;
+    cmd.address = module_iter_address( &comm_module_iterator );
+    cmd.bus_command.feature = 11;
+    cmd.bus_command.command = 3;
+    cmd.bus_command.param_spec = plist_empty();
+    bus_master_rpc_async(NULL, &cmd);
+
+    while ( module_iter_get( &comm_module_iterator ) != NULL )
+      module_iter_next( &comm_module_iterator );
+  }
+  scheduler_remove_task( &report_retry_task );
 }
 void report_stream_send( char* buffer )
 {
   report_buffer = buffer;
   comm_module_iterator = create_module_iterator( kMIBCommunicationType );
+  retry_count = 0;
   taskloop_add( next_comm_module, NULL ); 
 }
 
@@ -110,8 +128,16 @@ void notify_report_success()
 }
 void notify_report_failure()
 {
-  DEBUG_LOGL( "Report failed.  Retrying." );
   // TODO: Save success or failure to the report log.
-  scheduler_schedule_task( open_stream, CONFIG.report_interval - 1, 1, &retry_task, NULL ); // if we're reporting every day, retry every hour
-  // TODO: This blocks streaming to any other module, which could be problematic
+  if ( retry_count < RETRY_MAX )
+  {
+    ++retry_count;
+    DEBUG_LOGL( "Report failed.  Retrying." );
+    scheduler_schedule_task( open_stream, CONFIG.report_interval - 1, 1, &report_retry_task, NULL ); // if we're reporting every day, retry every hour
+    // TODO: This blocks streaming to any other module, which could be problematic
+  }
+  else
+  {
+    DEBUG_LOGL( "Retry count exceeded, abandoning report." );
+  }
 }
