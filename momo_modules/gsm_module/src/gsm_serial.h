@@ -21,4 +21,5 @@ void append_carriage();
 void gsm_openstream();
 void gsm_putstream();
 void gsm_closestream();
+void gsm_abandonstream();
 #endif

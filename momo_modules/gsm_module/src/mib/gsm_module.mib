@@ -23,3 +23,4 @@ feature 11
 0: _gsm_openstream(0, yes);
 1: _gsm_putstream(0, yes);
 2: _gsm_closestream(0, no);
+3: _gsm_abandonstream(0, no);
