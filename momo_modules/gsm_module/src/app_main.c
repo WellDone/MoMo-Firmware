@@ -29,7 +29,7 @@ static void capture_error(void)
 		;
 
 	bus_master_begin_rpc();
-	bus_master_prepare( 42, 0x20, plist_with_buffer( 0, copy_to_mib() ) );
+	bus_master_prepare_rpc( 42, 0x20, plist_with_buffer( 0, copy_to_mib() ) );
 	bus_master_send_rpc( 8 );
 }
 
