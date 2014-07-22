@@ -9,7 +9,7 @@
 
 #define CONFIG current_momo_state.report_config
 
-#define RETRY_MAX 2
+#define RETRY_MAX 5
 
 static char* report_buffer;
 static uint8 report_stream_offset;
