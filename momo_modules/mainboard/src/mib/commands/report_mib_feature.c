@@ -155,6 +155,6 @@ DEFINE_MIB_FEATURE_COMMANDS(reporting) {
 	{ 0x10, count_report_log_mib, plist_spec_empty() },
 	{ 0x11, clear_report_log_mib, plist_spec_empty() },
 	{ 0xF0, handle_report_stream_success, plist_spec(0, false) },
-	{ 0xF0, handle_report_stream_failure, plist_spec(0, true) }
+	{ 0xF1, handle_report_stream_failure, plist_spec(0, true) }
 };
 DEFINE_MIB_FEATURE(reporting);

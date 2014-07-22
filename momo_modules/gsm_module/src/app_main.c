@@ -13,6 +13,26 @@
 #include "timer1.h"
 
 #define SHUTDOWN_TIMEOUT 240 //One minute, in half seconds
+
+static void report_result(void)
+{
+	bus_master_begin_rpc();
+	// if ( err_matched() )
+	// {
+	// 	while ( gsm_receiveone() == 0 )
+	// 		;
+
+	// 	mib_packet.param_spec = plist_with_buffer(0, copy_to_mib());
+	// }
+	// else
+	// {
+	// }
+
+	mib_packet.param_spec = plist_empty();
+	mib_packet.feature = 60;
+	mib_packet.command = ( cmgs_matched() )? 0xF0 : 0xF1;
+	bus_master_send_rpc(8);
+}
 void task(void)
 {
 	wdt_disable();
@@ -31,23 +51,7 @@ void task(void)
 		{
 			if ( timeout_counter == 0 || cmgs_matched() || err_matched() )
 			{
-				bus_master_begin_rpc();
-				// if ( err_matched() )
-				// {
-				// 	while ( gsm_receiveone() == 0 )
-				// 		;
-
-				// 	mib_packet.param_spec = plist_with_buffer(0, copy_to_mib());
-				// }
-				// else
-				// {
-				mib_packet.param_spec = plist_empty();
-				// }
-
-				mib_packet.feature = 60;
-				mib_packet.command = ( timeout_counter == 0 || err_matched() )? 0x10 : 0x10;
-				bus_master_send_rpc(8);
-
+				report_result();
 				gsm_off();
 			}
 		}
