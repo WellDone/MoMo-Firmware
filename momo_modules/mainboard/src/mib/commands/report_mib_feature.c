@@ -6,6 +6,7 @@
 #include "momo_config.h"
 #include "report_log.h"
 #include "report_comm_stream.h"
+#include "system_log.h"
 #include <string.h>
 
 #define BASE64_REPORT_MAX_LENGTH  160 //( 4 * ( ( RAW_REPORT_MAX_LENGTH + 2 ) / 3) )
@@ -105,7 +106,7 @@ static void read_report_log_mib(void)
 	if ( length > kBusMaxMessageSize )
 		length = kBusMaxMessageSize;
 
-	if ( read_report_log( index, (void*)&report_buffer, 1 ) == 0 )
+	if ( report_log_read( index, (void*)&report_buffer, 1 ) == 0 )
 	{
 		// No more entries
 		bus_slave_seterror( kCallbackError );
@@ -114,13 +115,23 @@ static void read_report_log_mib(void)
 
 	bus_slave_return_buffer( report_buffer+offset, length );
 }
-
-static void update_report_stream_status(void)
+static void count_report_log_mib(void)
 {
-	if ( plist_get_int16(0) == 0 )
-		notify_report_success();
-	else
-		notify_report_failure();
+	bus_slave_return_int16( report_log_count() );
+}
+static void clear_report_log_mib(void)
+{
+	report_log_clear();
+}
+
+static void handle_report_stream_success(void)
+{
+	notify_report_success();
+}
+
+static void handle_report_stream_failure(void)
+{
+	notify_report_failure();
 }
 
 DEFINE_MIB_FEATURE_COMMANDS(reporting) {
@@ -140,6 +151,9 @@ DEFINE_MIB_FEATURE_COMMANDS(reporting) {
 	{ 0x0D, get_report, plist_spec(1, false) },
 	{ 0x0E, get_scheduled_reporting, plist_spec_empty() },
 	{ 0x0F, read_report_log_mib, plist_spec(2, false) },
-	{ 0x10, update_report_stream_status, plist_spec(1, false) }
+	{ 0x10, count_report_log_mib, plist_spec_empty() },
+	{ 0x11, clear_report_log_mib, plist_spec_empty() },
+	{ 0xF0, handle_report_stream_success, plist_spec(0, false) },
+	{ 0xF1, handle_report_stream_failure, plist_spec(0, false) }
 };
 DEFINE_MIB_FEATURE(reporting);

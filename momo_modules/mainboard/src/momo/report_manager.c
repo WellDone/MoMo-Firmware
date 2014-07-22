@@ -59,7 +59,7 @@ typedef struct
 
 static sms_report     report;
 static ScheduledTask  report_task;
-char           base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
+char                  base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 static sensor_event   event_buffer[EVENT_BUFFER_SIZE];
 
 //TODO: Implement dynamic report routing based on an initial "registration" ping to the coordinator address
@@ -275,7 +275,7 @@ bool construct_report()
   PROFILE_END(kEncodeReportCounter);
   base64_report_buffer[i] = '\0';
 
-  save_raw_report( (BYTE*)&report );
+  report_log_write( (BYTE*)&report );
   save_momo_state();
   
   PROFILE_END(kConstructReport);
