@@ -447,7 +447,7 @@ class ModTool(cmdln.Cmdln):
 				else:
 					stream = "Unknown (%d)" % stream
 
-				timestamp = datetime.datetime.fromtimestamp(timestamp + 946684800)
+				timestamp = datetime.datetime.fromtimestamp(timestamp + 946684800) # MoMo timestamps begin at 00:00 on January 1, 2000, so add 946684800 to get the actual unix timestamp
 				print "%s (%s) %s" % (stream, timestamp, msg)
 				index += 1
 		elif command == "clear":
