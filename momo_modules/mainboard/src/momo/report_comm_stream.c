@@ -133,6 +133,7 @@ void notify_report_failure()
   {
     ++retry_count;
     DEBUG_LOGL( "Report failed.  Retrying." );
+    reset_comm_stream();
     scheduler_schedule_task( open_stream, CONFIG.report_interval - 1, 1, &report_retry_task, NULL ); // if we're reporting every day, retry every hour
     // TODO: This blocks streaming to any other module, which could be problematic
   }
