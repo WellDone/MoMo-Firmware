@@ -45,6 +45,7 @@ void next_comm_module( void* arg )
 {
   module_iter_next( &comm_module_iterator );
   reset_comm_stream();
+  retry_count = 0;
   if ( module_iter_get( &comm_module_iterator ) != NULL )
   {
     open_stream();
@@ -79,10 +80,7 @@ void receive_gsm_stream_response(unsigned char a)
   FLUSH_LOG();
   if ( a != kNoMIBError )
   {
-    CRITICAL_LOGL( "Failed to send a message to a comm module!  Error: " );
-    char buf[4];
-    CRITICAL_LOG( buf, itoa_small( buf, 4, a ) );
-    // taskloop_add( next_comm_module, NULL );
+    write_system_logf( kCriticalLog, "Failed to send a message to a comm module!  Error: %d", a );
     notify_report_failure();
   }
   else if ( !current_stream_finished )
@@ -116,7 +114,6 @@ void report_stream_send( char* buffer )
 {
   report_buffer = buffer;
   comm_module_iterator = create_module_iterator( kMIBCommunicationType );
-  retry_count = 0;
   taskloop_add( next_comm_module, NULL ); 
 }
 
@@ -140,5 +137,6 @@ void notify_report_failure()
   else
   {
     DEBUG_LOGL( "Retry count exceeded, abandoning report." );
+    taskloop_add( next_comm_module, NULL );
   }
 }

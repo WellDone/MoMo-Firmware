@@ -292,8 +292,6 @@ void post_report( void* arg )
     return; //TODO: Recover
   }
   DEBUG_LOGL( "Report constructed:" );
-  DEBUG_LOG( base64_report_buffer, strlen( base64_report_buffer ) );
-
   report_stream_send( base64_report_buffer );
 }
 
