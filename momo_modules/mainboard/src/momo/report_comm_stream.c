@@ -35,10 +35,10 @@ void reset_comm_stream()
 }
 void open_stream()
 {
-  DEBUG_LOGL( "Opening comm stream..." );
+  write_system_logf( kDebugLog, "Opening comm stream (module: %d, route: %s)", module_iter_address( &comm_module_iterator ), CONFIG.report_server_address );
+
   MIBUnified cmd;
   memcpy( cmd.mib_buffer, CONFIG.report_server_address, strlen(CONFIG.report_server_address) );
-  DEBUG_LOG( cmd.mib_buffer, strlen(CONFIG.report_server_address) );
   report_rpc( &cmd, 0, plist_with_buffer(0,strlen(CONFIG.report_server_address)) );
 }
 void next_comm_module( void* arg )

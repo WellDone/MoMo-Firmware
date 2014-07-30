@@ -291,7 +291,7 @@ void post_report( void* arg )
     CRITICAL_LOGL( "Failed to construct report!" );
     return; //TODO: Recover
   }
-  DEBUG_LOGL( "Report constructed:" );
+  DEBUG_LOGL( "Report constructed." );
   report_stream_send( base64_report_buffer );
 }
 
