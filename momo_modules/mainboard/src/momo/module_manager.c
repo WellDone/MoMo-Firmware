@@ -46,7 +46,7 @@ uint8 module_iter_address( ModuleIterator* iter )
 }
 momo_module_descriptor* module_iter_get( ModuleIterator* iter )
 {
-	if ( iter->current_index == MAX_MODULES )
+	if ( !iter->started || iter->current_index == MAX_MODULES )
 		return NULL;
 	return &the_modules[iter->current_index];
 }
