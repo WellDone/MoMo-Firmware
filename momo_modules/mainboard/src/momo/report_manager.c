@@ -2,23 +2,20 @@
 #include "scheduler.h"
 #include "momo_config.h"
 #include "sensor_event_log.h"
+#include "report_comm_stream.h"
 #include "utilities.h"
 #include "uart.h"
 #include "base64.h"
-#include <stdlib.h>
-#include <string.h>
 #include "bus_master.h"
-#include "module_manager.h"
 #include "perf.h"
 #include "system_log.h"
+#include "report_log.h"
+#include <stdlib.h>
+#include <string.h>
 
 #define EVENT_BUFFER_SIZE         1
-#define RAW_REPORT_MAX_LENGTH     118
-#define BASE64_REPORT_MAX_LENGTH  160 //( 4 * ( ( RAW_REPORT_MAX_LENGTH + 2 ) / 3) )
-#define NUM_BUCKETS               56
 
 #define CONFIG current_momo_state.report_config
-
 
 //SMS Report structure, 118 bytes total
 typedef struct 
@@ -62,13 +59,18 @@ typedef struct
 
 static sms_report     report;
 static ScheduledTask  report_task;
-char           base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
+char                  base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 static sensor_event   event_buffer[EVENT_BUFFER_SIZE];
 
 //TODO: Implement dynamic report routing based on an initial "registration" ping to the coordinator address
 static const char   default_server_gsm_address[16] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0'};
 extern unsigned int last_battery_voltage;
 
+void report_manager_start()
+{
+  if ( get_momo_state_flag( kStateFlagReportingEnabled ) )
+    start_report_scheduling();
+}
 
 void init_report_config()
 {
@@ -272,81 +274,17 @@ bool construct_report()
   i = base64_encode((const BYTE*)&report, RAW_REPORT_MAX_LENGTH, base64_report_buffer, BASE64_REPORT_MAX_LENGTH);
   PROFILE_END(kEncodeReportCounter);
   base64_report_buffer[i] = '\0';
+
+  report_log_write( (BYTE*)&report );
+  save_momo_state();
   
   PROFILE_END(kConstructReport);
   return true;
 }
 
-
-static uint8 report_stream_offset;
-ModuleIterator comm_module_iterator;
-bool current_stream_finished;
-void receive_gsm_stream_response(unsigned char a);
-void report_rpc( MIBUnified *cmd, uint8 command, uint8 spec )
-{
-  cmd->address = module_iter_address( &comm_module_iterator );
-  cmd->bus_command.feature = 11;
-  cmd->bus_command.command = command;
-  cmd->bus_command.param_spec = spec;
-  bus_master_rpc_async(receive_gsm_stream_response, cmd); //TODO: Handle failure to send
-}
-void next_comm_module( void* arg )
-{
-  module_iter_next( &comm_module_iterator );
-  report_stream_offset = 0;
-  current_stream_finished = false;
-  if ( module_iter_get( &comm_module_iterator ) != NULL )
-  {
-    DEBUG_LOGL( "Opening comm stream..." );
-    MIBUnified cmd;
-    memcpy( cmd.mib_buffer, CONFIG.report_server_address, strlen(CONFIG.report_server_address) );
-    DEBUG_LOG( cmd.mib_buffer, strlen(CONFIG.report_server_address) );
-    report_rpc( &cmd, 0, plist_with_buffer(0,strlen(CONFIG.report_server_address)) );
-  }
-}
-
-void stream_to_gsm() {
-  MIBUnified cmd;
-  if ( report_stream_offset >= strlen(base64_report_buffer) )
-  {
-    DEBUG_LOGL( "Closing comm stream." );
-    current_stream_finished = true;
-    report_rpc( &cmd, 2, plist_empty() );
-    return;
-  }
-
-  DEBUG_LOGL( "Streaming data..." );
-  uint8 byte_count = strlen(base64_report_buffer)-report_stream_offset;
-  if ( byte_count > kBusMaxMessageSize )
-    byte_count = kBusMaxMessageSize;
-  memcpy( cmd.mib_buffer, base64_report_buffer+report_stream_offset, byte_count );
-  DEBUG_LOG( cmd.mib_buffer, byte_count );
-  report_stream_offset += byte_count;
-  report_rpc( &cmd, 1, plist_with_buffer( 0, byte_count ) );
-  save_momo_state();
-}
-void receive_gsm_stream_response(unsigned char a) 
-{
-  DEBUG_LOGL( "RETURNED" );
-  FLUSH_LOG();
-  if ( a != kNoMIBError || current_stream_finished ) {
-    if ( a != kNoMIBError )
-    {
-      CRITICAL_LOGL( "Failed to send a message to a comm module!  Error: " );
-      char buf[4];
-      CRITICAL_LOG( buf, itoa_small( buf, 4, a ) );
-    }
-    taskloop_add( next_comm_module, NULL );
-  }
-  else
-  {
-    taskloop_add( stream_to_gsm, NULL );
-  }
-  FLUSH_LOG();
-}
-
 void post_report( void* arg ) 
 {
+  report_stream_abandon();
   DEBUG_LOGL( "Constructing report..." );
   if (!construct_report( CONFIG.report_interval ))
   {
@@ -356,8 +294,7 @@ void post_report( void* arg )
   DEBUG_LOGL( "Report constructed:" );
   DEBUG_LOG( base64_report_buffer, strlen( base64_report_buffer ) );
 
-  comm_module_iterator = create_module_iterator( kMIBCommunicationType );
-  taskloop_add( next_comm_module, NULL );
+  report_stream_send( base64_report_buffer );
 }
 
 void start_report_scheduling() {

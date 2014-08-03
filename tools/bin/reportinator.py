@@ -40,6 +40,20 @@ class Reportinator(cmdln.Cmdln):
 		con.stop_reporting()
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_state(self, subcmd, opts):
+		"""${cmd_name}: Get the current state of the autonomous reporting flag.
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		con = self._get_controller( opts )
+		if con.get_reporting():
+			print "Enabled"
+		else:
+			print "Disabled"
+
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_send(self, subcmd, opts):
 		"""${cmd_name}: Send a single report
 
@@ -113,7 +127,52 @@ class Reportinator(cmdln.Cmdln):
 		sequence = con.rpc( 60, 0x0B, result_type=(1,False) );
 		print "%d" % sequence['ints'][0]
 
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_log(self,subcmd, opts, cmd, limit=None):
+		"""${cmd_name}: Manage the log of reports, succeeded and failed.
 
+		Subcommands:
+		- count - return the number of reports in the log
+		- read <limit> - read <limit> (or all if <limit> is omitted) reports from the log
+		- clear - clear the log (USE AT YOUR OWN RISK)
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		con = self._get_controller(opts)
+		if cmd == 'read':
+			index = 0
+			if limit != None:
+				count = con.rpc( 60, 0x10, result_type=(1,False) )['ints'][0]
+				limit = int(limit)
+				if limit > count:
+					limit = count
+				index = count - limit
+			while True:
+				offset = 0
+				report = ''
+				while offset < 118:
+					try:
+						res = con.rpc( 60, 0x0F, index, offset, result_type=(0,True) )
+					except RPCException as e:
+						if e.type != 7:
+							raise e
+						break
+					offset += len(res['buffer'])
+					report += res['buffer']
+				if len(report) == 0:
+					break
+				print base64.b64encode(report)
+				index += 1
+		elif cmd == 'count':
+			res = con.rpc( 60, 0x10, result_type=(1,False) )
+			print res['ints'][0]
+		elif cmd == 'clear':
+			res = con.rpc( 60, 0x11 )
+			print "All items cleared from the report log."
+		else:
+			print "Invalid subcommand passed to log command."
 
 	def do_parse(self, subcmd, opts, report):
 		"""${cmd_name}: Parse a report in BASE64 format

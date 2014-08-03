@@ -93,3 +93,9 @@
 
  	bus_slave_setreturn(pack_return_status(0,0));
  }
+
+ void gsm_abandonstream()
+ {
+ 	gsm_off();
+ 	bus_slave_setreturn(pack_return_status(0,0));
+ }
