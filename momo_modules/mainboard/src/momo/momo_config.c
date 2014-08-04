@@ -45,7 +45,7 @@ void flush_config_to_memory( void* arg )
 void save_momo_state()
 {
   if ( config_state == kClean )
-    scheduler_schedule_task( flush_config_to_memory, kEveryHalfSecond, 1, &flush_config_task, NULL );
+    scheduler_schedule_task( flush_config_to_memory, kEverySecond, 1, &flush_config_task, NULL );
   config_state = kDirty;
 }
 
