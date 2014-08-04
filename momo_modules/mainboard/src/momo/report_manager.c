@@ -83,6 +83,8 @@ void init_report_config()
 
   //Make sure we initialize this scheduled task.
   report_task.flags = 0;
+
+  init_comm_stream();
 }
 
 void update_interval_headers( sms_report* header, AlarmRepeatTime interval )
@@ -306,9 +308,11 @@ void stop_report_scheduling() {
 void set_report_scheduling_interval( AlarmRepeatTime interval ) {
   if ( interval >= kNumAlarmTimes )
     return;
+
   CONFIG.report_interval = interval;
   if ( BIT_TEST(report_task.flags, kBeingScheduledBit) )
     scheduler_schedule_task( post_report, CONFIG.report_interval, kScheduleForever, &report_task, NULL );
+  
   save_momo_state();
 }
 void set_report_server_address( const char* address, uint8 len )

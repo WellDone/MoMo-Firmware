@@ -20,6 +20,14 @@ uint8 retry_count = 0;
 ScheduledTask report_retry_task;
 
 void receive_gsm_stream_response(unsigned char a);
+
+void init_comm_stream()
+{
+  report_retry_task.flags = 0; //Make sure we initialize this to avoid corrupting the scheduler
+
+  comm_module_iterator = create_module_iterator( kMIBCommunicationType );
+}
+
 void report_rpc( MIBUnified *cmd, uint8 command, uint8 spec )
 {
   cmd->address = module_iter_address( &comm_module_iterator );
@@ -108,6 +116,7 @@ void report_stream_abandon()
     while ( module_iter_get( &comm_module_iterator ) != NULL )
       module_iter_next( &comm_module_iterator );
   }
+
   scheduler_remove_task( &report_retry_task );
 }
 void report_stream_send( char* buffer )
@@ -123,15 +132,20 @@ void notify_report_success()
   DEBUG_LOGL( "Report succeeded." );
   taskloop_add( next_comm_module, NULL );
 }
+
 void notify_report_failure()
 {
   // TODO: Save success or failure to the report log.
   if ( retry_count < RETRY_MAX )
   {
+    int retry_interval = CONFIG.report_interval -1;
+    if (retry_interval < 0)
+      retry_interval = 0;
+
     ++retry_count;
     DEBUG_LOGL( "Report failed.  Retrying." );
     reset_comm_stream();
-    scheduler_schedule_task( open_stream, CONFIG.report_interval - 1, 1, &report_retry_task, NULL ); // if we're reporting every day, retry every hour
+    scheduler_schedule_task( open_stream, retry_interval, 1, &report_retry_task, NULL ); // if we're reporting every day, retry every hour
     // TODO: This blocks streaming to any other module, which could be problematic
   }
   else
