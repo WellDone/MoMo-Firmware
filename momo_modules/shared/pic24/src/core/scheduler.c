@@ -53,8 +53,10 @@ void scheduler_schedule_task( task_callback func,
 
 void scheduler_remove_task(ScheduledTask *task)
 {
-	int list = task->flags & kScheduleFrequencyMask;
+	if (!BIT_TEST(task->flags, kBeingScheduledBit))
+		return;
 
+	int list = task->flags & kScheduleFrequencyMask;
 	scheduler_list_remove(&state.tasks[list], task);
 }
 
