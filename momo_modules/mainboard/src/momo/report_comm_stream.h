@@ -7,4 +7,6 @@ void report_stream_send( char* buffer );
 void notify_report_success();
 void notify_report_failure();
 
+void init_comm_stream();
+
 #endif

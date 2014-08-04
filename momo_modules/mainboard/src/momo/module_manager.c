@@ -17,8 +17,9 @@ uint8 module_count()
 }
 momo_module_descriptor* get_module( uint8 index )
 {
-	if ( index > the_module_count )
+	if ( index >= the_module_count )
 		return NULL;
+
 	return &the_modules[index];
 }
 uint8 get_module_address( uint8 index )
@@ -46,8 +47,9 @@ uint8 module_iter_address( ModuleIterator* iter )
 }
 momo_module_descriptor* module_iter_get( ModuleIterator* iter )
 {
-	if ( !iter->started || iter->current_index == MAX_MODULES )
+	if ( !iter->started || iter->current_index == the_module_count)
 		return NULL;
+	
 	return &the_modules[iter->current_index];
 }
 
@@ -57,11 +59,14 @@ momo_module_descriptor* module_iter_next( ModuleIterator* iter )
 		iter->started = true;
 	else
 		iter->current_index += 1;
-	while ( iter->current_index < MAX_MODULES && the_modules[iter->current_index].module_type != iter->module_type )
+
+	while ( iter->current_index < the_module_count && the_modules[iter->current_index].module_type != iter->module_type )
 	{
 		iter->current_index += 1;
 	}
-	if ( iter->current_index == MAX_MODULES )
+	
+	if ( iter->current_index == the_module_count)
 		return NULL;
+	
 	return &the_modules[iter->current_index];
 }
