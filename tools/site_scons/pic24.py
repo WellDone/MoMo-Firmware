@@ -63,3 +63,26 @@ def build_library(name, chip):
 
 	libfile = library_env.InstallAs(os.path.join(outdir, output_name), os.path.join(builddir, output_name))
 	return os.path.join(outdir, output_name)
+
+def build_moduletest(test, chip):
+	"""
+	Given a path to the source files, build a unit test including the unity test harness targeting
+	the given chip
+	"""
+
+	build_dirs = test.build_dirs(chip)
+	objdir = build_dirs['objects']
+
+	unit_env = Environment(tools=['xc16_compiler', 'xc16_assembler', 'xc16_linker'], ENV = os.environ)
+	unit_env['CHIP'] = chip
+	unit_env['OUTPUT'] = '%s.elf' % test.name
+
+	objs = []
+	for src in test.files:
+		target = os.path.join(objdir, basename(src))
+		objs.append(unit_env.xc16_gcc(src, '#' + target))
+
+#	for src in asfiles:
+#		objs.append(env.xc16_as(src))
+
+#	env.xc16_ld(env['OUTPUT'], objs)
