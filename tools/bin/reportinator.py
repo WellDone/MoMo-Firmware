@@ -12,6 +12,8 @@ import cmdln
 import struct
 import base64
 
+from random import randint
+
 def chunk(l, n):
     for i in xrange(0, len(l), n):
         yield l[i:i+n]
@@ -231,7 +233,32 @@ class Reportinator(cmdln.Cmdln):
 			for row in chunk(values, len(int_agg_names)):
 				print row_format.format("", *row)
 
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_test(self, subcmd, opts):
+		con = self._get_controller( opts )
+		
+		second = 0
+		minute = 0
+		hour = 0
+		day = 1
 
+		con.set_time( 14, 1, day, hour, minute, second )
+		while ( True ):
+			con.sensor_log( 0, 0, randint(1,1000) )
+			
+			second += 60
+			if ( second == 60 ):
+				second = 0
+				minute += 1
+				if ( minute == 60 ):
+					minute = 0
+					hour += 1
+					if hour == 24:
+						hour = 0
+						day += 1
+						break
+			print day, hour, minute, second
+			con.set_time( 14, 1, day, hour, minute, second )
 
 	def _get_controller(self,opts):
 		try:
