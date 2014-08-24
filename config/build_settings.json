@@ -200,14 +200,15 @@
 
 			"mainboard_bootloader":
 			{
-				"24fj64ga306":
+				"overlays":
 				{
-					"linker": "./linker/p24FJ64GA306.gld",
-					"libraries":
-					[
-						"pic24"
-					]
-				}
+					"24fj64ga306":
+					{
+						"linker": "./linker/p24FJ64GA306.gld"
+					}
+				},
+				
+				"libraries": ["pic24"]
 			},
 
 			"field_service_unit":
@@ -221,17 +222,18 @@
 							"field_service_unit/src/core",
 							"field_service_unit/src/debug",
 							"field_service_unit/src/diagnostics"
-						]
+						],
+
+						"linker": "p24F16KA101.gld"
 					}
 				},
 
-				"libraries": ["pic24"],
-				"linker": "p24F16KA101.gld"
+				"libraries": ["pic24"]
 			},
 
 			"libpic24":
 			{
-				
+
 			}
 		},
 
