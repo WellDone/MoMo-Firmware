@@ -2,6 +2,7 @@
 #SCons Builder Actions for the XC16 PIC assembler
 
 import SCons.Builder
+import SCons.Action
 import os.path
 import sys
 import utilities
@@ -15,22 +16,22 @@ def xc16_generator(source, target, env, for_signature):
 	the environment
 	"""
 
-	chip = env['CHIP']
+	arch = env['ARCH']
 
 	#Build up the command line
 	args = ['xc16-gcc']
-	args.extend(['-mcpu=%s' % chip.name.upper()])
+	args.extend(['-mcpu=%s' % arch.property('chip')])
 	args.extend([str(x) for x in source])
 	args.extend(['-o %s' % (str(target[0]))])
-	args.extend(utilities.build_libdirs(chip.property('libdirs', default=[])))
-	args.extend(utilities.build_staticlibs(chip.property('libraries', default=[]), chip))
-	args.extend(chip.property('ldflags', default=[]))
+	args.extend(utilities.build_libdirs(arch.property('libdirs', default=[])))
+	args.extend(utilities.build_staticlibs(arch.property('libraries', default=[]), arch))
+	args.extend(arch.property('ldflags', default=[]))
 
-	linker_script = chip.property('linker', default=None)
+	linker_script = arch.property('linker', default=None)
 	if linker_script is not None:
 		args.append('-T%s' % linker_script)
 
-	return " ".join(args)
+	return SCons.Action.Action(" ".join(args), "Linking %s" % str(target[0]))
 
 _xc16_obj = SCons.Builder.Builder(
 	generator = xc16_generator,

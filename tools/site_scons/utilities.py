@@ -88,7 +88,7 @@ def build_staticlibs(libs, chip):
 		libs = [libs]
 
 	#Append chip type and suffix
-	libs = ["%s_%s" % (x, chip.name) for x in libs]
+	libs = ["%s_%s" % (x, chip.arch_name()) for x in libs]
 
 	return ['-l%s' % x for x in libs]
 

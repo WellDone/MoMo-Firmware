@@ -31,4 +31,4 @@ for src in portfiles:
 for src in asfiles:
 	objs.append(library_env.xc16_as(src))
 
-library_env.Command(library_env['OUTPUT'], objs, 'xc16-ar -qc $TARGET $SOURCES')
+library_env.Command(library_env['OUTPUT'], objs, Action('xc16-ar -qc $TARGET $SOURCES','Linking $TARGET'))

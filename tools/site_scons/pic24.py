@@ -14,14 +14,14 @@ def build_module(module_name, chip):
 	"""
 
 	dirs = chip.build_dirs()
-	output_name = '%s_%s.elf' % (module_name, chip.name)
-	output_hex = '%s_%s.hex' % (module_name, chip.name)
+	output_name = '%s.elf' % (chip.output_name(),)
+	output_hex = '%s.hex' % (chip.output_name(),)
 
 	VariantDir(dirs['build'], 'src', duplicate=0)
 
 	env = Environment(tools=['xc16_compiler', 'xc16_assembler', 'xc16_linker'], ENV = os.environ)
 	env.AppendENVPath('PATH','../../tools/scripts')
-	env['CHIP'] = chip
+	env['ARCH'] = chip
 	env['OUTPUT'] = output_name
 	Export('env')
 
@@ -50,13 +50,13 @@ def build_library(name, chip):
 	builddir = os.path.join(libdir, dirs['build'])
 	outdir = os.path.join(libdir, dirs['output'])
 
-	output_name = '%s_%s.a' % (name, chip.name)
+	output_name = '%s.a' % (chip.output_name(),)
 
 	VariantDir(builddir, 'src', duplicate=0)
 
 	library_env = Environment(tools=['xc16_compiler', 'xc16_assembler', 'xc16_linker'], ENV = os.environ)
 	library_env.AppendENVPath('PATH','../../tools/scripts')
-	library_env['CHIP'] = chip
+	library_env['ARCH'] = chip
 	library_env['OUTPUT'] = output_name
 	
 	SConscript(os.path.join(builddir, 'SConscript'), exports='library_env')

@@ -2,6 +2,7 @@
 #SCons Builder Actions for the XC16 PIC assembler
 
 import SCons.Builder
+import SCons.Action
 import os.path
 import sys
 import utilities
@@ -15,19 +16,19 @@ def xc16_generator(source, target, env, for_signature):
 	the environment
 	"""
 
-	chip = env['CHIP']
+	arch = env['ARCH']
 
 	#Build up the command line
 	args = ['xc16-gcc']
-	args.extend(['-mcpu=%s' % chip.name.upper()])
+	args.extend(['-mcpu=%s' % arch.property('chip')])
 	args.extend(['-c'])
 	args.append(str(source[0]))
 	args.extend(['-o %s' % (str(target[0]))])
-	args.extend(utilities.build_includes(chip.includes()))
-	args.extend(utilities.build_defines(chip.property('defines', default={})))
-	args.extend(chip.property('asflags', default=[]))
+	args.extend(utilities.build_includes(arch.includes()))
+	args.extend(utilities.build_defines(arch.property('defines', default={})))
+	args.extend(arch.property('asflags', default=[]))
 
-	return " ".join(args)
+	return SCons.Action.Action(" ".join(args), 'Assembling %s' % str(source[0]))
 
 _xc16_obj = SCons.Builder.Builder(
 	generator = xc16_generator,
