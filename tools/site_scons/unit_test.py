@@ -4,10 +4,12 @@ import os.path
 import os
 from SCons.Environment import Environment
 import test_summary
+import fnmatch
 
 class UnitTest:
 	def __init__(self, files):
 		self.files = files
+		self.additional_sources = []
 		self.desc = ''
 		self.targets = None
 
@@ -29,6 +31,20 @@ class UnitTest:
 			print "Targets:", ", ".join(self.targets)
 		print "Status:", self.status
 		print self.desc
+
+	def build_dirs(self, chip):
+		"""
+		Return the appropriate build directories for this unit test.  The build hierarchy is:
+		- test: build/test/<CHIP>/<TEST>
+		- objects: build/test/<CHIP>/<TEST>/objects
+		"""
+
+		basedirs = chip.build_dirs()
+
+		testdir = os.path.join(dirs['test'], self.name, 'objects')
+		outdir = os.path.join(dirs['test'], self.name)
+
+		return {'test':outdir, 'objects': testdir}
 
 	def build_target(self, target, summary_env):
 		raise ValueError('The build_target method must be overriden by a UnitTest subclass')
@@ -136,8 +152,19 @@ class UnitTest:
 					self.desc = val
 				elif name == 'additional':
 					self._parse_additional(val)
+				elif name == 'sources':
+					self._parse_sources(val)
 				elif name == 'type':
 					self.type = val
+
+	def _parse_sources(self, value):
+		"""
+		Parse an additional source directory other than simply src
+		"""
+
+		basedir = os.path.dirname(self.files[0])
+		srcpath = os.path.normpath(os.path.join(basedir, value))
+		self.additional_sources.append(srcpath)
 
 	def _parse_additional(self, value):
 		"""
@@ -169,13 +196,35 @@ def find_units(parent, subclass):
 
 	files = [os.path.join(parent, f) for f in files]
 
-
 	tests = []
 
 	for f in files:
 		tests.append(subclass([f]))
 
 	return tests
+
+def find_sources(src_dir, patterns=('*.c', '*.as', '*.asm')):
+	"""
+	Given a source directory, recursively find all source and header files under that directory
+	"""
+
+	include_dirs = set()
+	src = {}
+	headers = {}
+
+	for root, dirnames, filenames in os.walk(src_dir):
+		dir_headers = fnmatch.filter(filenames, '*.h')
+		if len(dir_headers) > 0:
+			include_dirs.add(root)
+
+		headers.update({os.path.splitext(x)[0]: os.path.join(root, x) for x in dir_headers})
+
+		for s in patterns:
+			dir_srcs = fnmatch.filter(filenames, s)
+			src.update({os.path.splitext(x)[0]: os.path.join(root, x) for x in dir_srcs})
+
+	return include_dirs, src, headers
+
 
 def build_units(parent, targets, subclass):
 	tests = find_units(parent, subclass)
