@@ -24,17 +24,13 @@ def build_unittest(test_files, name, arch, type, summary_env, cmds=None):
 	#Configure for app module or exec
 	if type == "executive":
 		orig_name = 'mib12_executive_symbols'
-
-		test_arch = arch.arch_list().replace('exec', 'app')
-		env['ARCH'] = arch.family.find(test_arch, arch.module_name())
-
+		env['ARCH'] = arch.retarget(remove=['exec'], add=['app'])
 		pic12.configure_env_for_xc8(env, force_app=True)
 		test_harness = ['../test/pic12/exec_harness/mib12_exec_unittest.c', '../test/pic12/exec_harness/mib12_api.as', '../test/pic12/exec_harness/mib12_exec_unittest_startup.as', '../test/pic12/gpsim_logging/test_log.as', '../test/pic12/gpsim_logging/test_mib.as']
 	elif type == "application":
 		orig_name = "mib12_app_module_symbols"
 
-		test_arch = arch.arch_list().replace('app', 'exec')
-		env['ARCH'] = arch.family.find(test_arch, arch.module_name())
+		env['ARCH'] = arch.retarget(remove=['app'], add=['exec'])
 
 		pic12.configure_env_for_xc8(env, force_exec=True)
 		test_harness = ['../test/pic12/app_harness/mib12_app_unittest.c', '../test/pic12/app_harness/mib12_test_api.as', '../test/pic12/gpsim_logging/test_log.as']
