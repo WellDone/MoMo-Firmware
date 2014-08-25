@@ -12,7 +12,6 @@ from pymomo.commander.meta import initialization
 from pymomo.hex.hexfile import HexFile
 from pymomo.sim.simulator import Simulator
 from pymomo.utilities import build
-from pymomo.utilities.printer import Printer
 builtins = ['help', 'back', 'quit']
 
 @annotate.context("root")
@@ -25,8 +24,6 @@ def run_momo():
 	root.update(annotate.find_all(build))
 	root['HexFile'] = HexFile
 	root['Simulator'] = Simulator
-
-	out = Printer()
 
 	line = sys.argv[1:]
 	finished = False
