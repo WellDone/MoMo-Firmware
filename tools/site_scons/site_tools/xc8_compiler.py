@@ -8,21 +8,14 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from pymomo.utilities.paths import convert_path
 
-xc8_flags = []
-xc8_flags.append('-G')
-xc8_flags.append('--double=24')
-xc8_flags.append('--float=24')
-xc8_flags.append('--addrqual=require')
-xc8_flags.append('')
-
-args = " ".join(xc8_flags)
-
 
 def xc8_generator(source, target, env, for_signature):
 	"""
 	Create an XC8 command line using the parameter defined in 
 	the environment
 	"""
+
+	arch = env['ARCH']
 
 	incs = []
 
@@ -68,7 +61,7 @@ def xc8_emit_int_files(target, source, env):
 	return target, source
 
 def make_chip(env):
-	return ['--chip=%s' % env['CHIP'], '-D%s' % env['CHIPDEFINE'] ]
+	return ['--chip=%s' % env['ARCH'].property('xc8_target')]
 
 def make_rom(env):
 	romstart = 0

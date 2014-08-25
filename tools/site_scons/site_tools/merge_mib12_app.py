@@ -8,9 +8,7 @@ def merge_app(target, source, env):
 	being an application hex, merge the two into a complete application hex
 	"""
 
-	conf = utilities.MIB12Config()
-
-	chip = conf.get_chip(env['CHIPNAME'])
+	chip = env['CHIP']
 
 	exec_end = chip.exec_rom[1]*2
 

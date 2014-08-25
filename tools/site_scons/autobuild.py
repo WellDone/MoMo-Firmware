@@ -3,10 +3,10 @@
 
 import utilities
 import pic24
+import pic12
 import unit_test
 import unit_test12
 from SCons.Script import *
-from SCons.Environment import Environment
 
 def autobuild_pic12(module, test_dir='test'):
 	"""
@@ -16,10 +16,14 @@ def autobuild_pic12(module, test_dir='test'):
 	using their builtin metadata
 	"""
 	
-	targets = utilities.get_module_targets(module)
+	family = utilities.get_family('mib12')
+	family.for_all_targets(module, lambda x: pic12.build_module(module, x))
+	
+	unit_test.build_units(test_dir, family.targets(module), subclass=unit_test12.Pic12UnitTest)
 
-	utilities.for_all_targets(module, lambda x: utilities.build_app_for_chip(module, x))
-	unit_test.build_units(test_dir, targets, subclass=unit_test12.Pic12UnitTest)
+	Alias('release', os.path.join('build', 'output'))
+	Alias('test', os.path.join('build', 'test', 'output'))
+	Default('release')
 
 def autobuild_pic24(module, test_dir='test'):
 	"""

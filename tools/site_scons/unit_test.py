@@ -55,18 +55,19 @@ class UnitTest:
 		and the targets that the module it is targeted at is designed for.
 		"""
 
-		mod_targets = set(module_targets)
-		targets = set()
+		for mod_target in module_targets:
+			found = False
+			if self.targets is not None:
+				for target in self.targets:
+					target_archs = set(target.split('/'))
+					if target_archs <= mod_target.archs():
+						found = True
+						break
 
-		if self.targets is None:
-			targets = mod_targets
-		else:
-			for target in self.targets:
-				if target in mod_targets:
-					targets.add(target)
+				if found is False:
+					continue
 
-		for target in targets:
-			self.build_target(target, summary_env)
+			self.build_target(mod_target, summary_env)
 
 	def _check_files(self):
 		"""
