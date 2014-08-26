@@ -8,14 +8,13 @@ import json as json
 import sys
 import os.path
 from copy import deepcopy
+import utilities
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from pymomo.utilities import build
 from pymomo.mib.config12 import MIB12Processor
 
-def build_defines(defines):
-	return ['-D%s=%s' % (x,str(y)) for x,y in defines.iteritems()]
 
 def configure_env_for_xc8(env, **kwargs):
 	"""
@@ -73,7 +72,7 @@ def configure_env_for_xc8(env, **kwargs):
 		env['NO_STARTUP'] = True
 
 	env['XC8FLAGS'] = flags
-	env['XC8FLAGS'] += build_defines(defines)
+	env['XC8FLAGS'] += utilities.build_defines(defines)
 	env['INCLUDE'] = incs
 
 def build_module(name, arch):
