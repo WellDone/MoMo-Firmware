@@ -1,0 +1,57 @@
+Index: src/14bit-hexdecode.cc
+===================================================================
+--- src/14bit-hexdecode.cc	(revision 2269)
++++ src/14bit-hexdecode.cc	(working copy)
+@@ -77,9 +77,6 @@
+   { 0x3f00,  0x0400,  IORWF::construct },
+   { 0x3f00,  0x0800,  MOVF::construct },
+   { 0x3f00,  0x3000,  MOVLW::construct },
+-  { 0x3f00,  0x3100,  MOVLW::construct },
+-  { 0x3f00,  0x3200,  MOVLW::construct },
+-  { 0x3f00,  0x3300,  MOVLW::construct },
+   { 0x3f80,  0x0080,  MOVWF::construct },
+   { 0x3fff,  0x0000,  NOP::construct },
+   { 0x3fff,  0x0020,  NOP::construct },
+Index: src/14bit-instructions.h
+===================================================================
+--- src/14bit-instructions.h	(revision 2269)
++++ src/14bit-instructions.h	(working copy)
+@@ -94,7 +94,6 @@
+ class BRW : public instruction
+ {
+ public:
+-  int destination_index;
+   unsigned int absolute_destination_index;
+ 
+   BRW(Processor *new_cpu, unsigned int new_opcode, unsigned int address);
+Index: src/pic-instructions.cc
+===================================================================
+--- src/pic-instructions.cc	(revision 2269)
++++ src/pic-instructions.cc	(working copy)
+@@ -753,15 +753,14 @@
+ BRW::BRW (Processor *new_cpu, unsigned int new_opcode, unsigned int address)
+   : instruction(new_cpu, new_opcode, address)
+ {
+-  destination_index = cpu_pic->Wget();
+-  absolute_destination_index = address + destination_index;
++  absolute_destination_index = address;
+ 
+   new_name("brw");
+ }
+ 
+ void BRW::execute()
+ {
+-  cpu_pic->pc->jump(absolute_destination_index);
++  cpu_pic->pc->jump(absolute_destination_index + cpu_pic->Wget() + 1);
+ 
+ }
+ 
+@@ -772,7 +771,7 @@
+   sprintf(return_str,"%s\t$%c0x%x\t;(0x%05x)",
+ 	  gpsimObject::name().c_str(),
+ 	  (opcode & 0x100) ? '-' : '+', 
+-	  (destination_index & 0x1ff)<<1,
++	  (0 & 0x1ff)<<1,
+ 	  absolute_destination_index<<1);
+ 
+   return(return_str);
