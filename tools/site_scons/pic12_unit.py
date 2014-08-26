@@ -142,6 +142,8 @@ def build_unittest_script(target, source, env):
 		else:
 			f.write('run\n')
 
+		f.write('quit\n')
+
 def process_unittest_log(target, source, env):
 	"""
 	Source should be the unprocessed log file and the symbol file (stb) for assigning addresses to functions.

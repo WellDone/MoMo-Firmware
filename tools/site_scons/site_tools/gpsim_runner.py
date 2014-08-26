@@ -11,7 +11,7 @@ settings = config.ConfigFile('settings')
 gpsim_path = settings['external_tools/gpsim']
 
 run_gpsim = SCons.Builder.Builder(
-	action = '%s -e onbreak -c $SOURCE -i > /dev/null' % gpsim_path,
+	action = '%s -c $SOURCE -i > /dev/null' % gpsim_path,
 	)
 
 def generate(env):
