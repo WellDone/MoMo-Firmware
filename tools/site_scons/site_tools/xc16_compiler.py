@@ -22,7 +22,7 @@ def xc16_generator(source, target, env, for_signature):
 	args = ['xc16-gcc']
 	args.extend(['-mcpu=%s' % arch.property('chip')])
 	args.extend(['-c'])
-	args.append(str(source[0]))
+	args.append('"%s"' % str(source[0]))
 	args.extend(['-o %s' % (str(target[0]))])
 	args.extend(utilities.build_includes(arch.includes()))
 	args.extend(utilities.build_defines(arch.property('defines', default={})))

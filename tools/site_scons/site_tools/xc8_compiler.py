@@ -4,9 +4,10 @@
 import SCons.Builder
 import os.path
 import sys
+from utilities import build_includes
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from pymomo.utilities.paths import convert_path
+from pymomo.utilities.paths import convert_path	
 
 
 def xc8_generator(source, target, env, for_signature):
@@ -22,7 +23,7 @@ def xc8_generator(source, target, env, for_signature):
 	args = ['xc8']
 
 	if 'INCLUDE' in env:
-		incs = map(lambda x: '-I'+str(x), env['INCLUDE'])
+		incs = build_includes(env['INCLUDE'])
 
 	src = map(lambda x: convert_path(str(x)), source)
 	out = ['-o' + str(target[0])]
