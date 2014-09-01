@@ -1,3 +1,5 @@
+//Name: test_linkedlist
+//Type: module
 #include "unity.h"
 #include "linkedlist.h"
 

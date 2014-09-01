@@ -1,3 +1,5 @@
+//Name: test_rpc_queue
+//Type: module
 #include "unity.h"
 #include "rpc_queue.h"
 #include "task_manager.h"
