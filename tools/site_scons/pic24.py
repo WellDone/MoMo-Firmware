@@ -2,6 +2,7 @@ from SCons.Script import *
 from SCons.Environment import Environment
 import sys
 import os.path
+from utilities import BufferedSpawn
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pymomo.utilities.paths import MomoPaths
@@ -23,6 +24,10 @@ def build_module(module_name, chip):
 	env.AppendENVPath('PATH','../../tools/scripts')
 	env['ARCH'] = chip
 	env['OUTPUT'] = output_name
+
+	#spawn = BufferedSpawn(env, 'test.log')
+
+	#env['SPAWN'] = spawn.spawn
 	Export('env')
 
 	SConscript(os.path.join(dirs['build'], 'SConscript'))
@@ -64,25 +69,25 @@ def build_library(name, chip):
 	libfile = library_env.InstallAs(os.path.join(outdir, output_name), os.path.join(builddir, output_name))
 	return os.path.join(outdir, output_name)
 
-def build_moduletest(test, chip):
+def build_moduletest(test, arch):
 	"""
 	Given a path to the source files, build a unit test including the unity test harness targeting
-	the given chip
+	the given architecture.
 	"""
 
-	build_dirs = test.build_dirs(chip)
+	arch = arch.retarget(add=['test'])
+
+	build_dirs = test.build_dirs(arch)
 	objdir = build_dirs['objects']
 
 	unit_env = Environment(tools=['xc16_compiler', 'xc16_assembler', 'xc16_linker'], ENV = os.environ)
-	unit_env['CHIP'] = chip
+	unit_env['ARCH'] = arch
 	unit_env['OUTPUT'] = '%s.elf' % test.name
 
 	objs = []
-	for src in test.files:
-		target = os.path.join(objdir, basename(src))
-		objs.append(unit_env.xc16_gcc(src, '#' + target))
+	for src in test.files + arch.extra_sources():
+		name,ext = os.path.splitext(os.path.basename(src))
+		target = os.path.join(objdir, name + '.o')
+		objs.append(unit_env.xc16_gcc('#' + target, src))
 
-#	for src in asfiles:
-#		objs.append(env.xc16_as(src))
-
-#	env.xc16_ld(env['OUTPUT'], objs)
+	unit_env.xc16_ld('#' + build_dirs['test'] + unit_env['OUTPUT'], objs)

@@ -5,6 +5,9 @@ import os
 from SCons.Environment import Environment
 import test_summary
 import fnmatch
+from pymomo.utilities.typedargs.exceptions import *
+
+known_types = {}
 
 class UnitTest:
 	def __init__(self, files):
@@ -26,7 +29,7 @@ class UnitTest:
 		print self.name
 
 		if self.targets is None:
-			print "Targets: All"
+			print "Targets: All module targets"
 		else:
 			print "Targets:", ", ".join(self.targets)
 		print "Status:", self.status
@@ -41,8 +44,8 @@ class UnitTest:
 
 		basedirs = chip.build_dirs()
 
-		testdir = os.path.join(dirs['test'], self.name, 'objects')
-		outdir = os.path.join(dirs['test'], self.name)
+		testdir = os.path.join(basedirs['test'], self.name, 'objects')
+		outdir = os.path.join(basedirs['test'], self.name)
 
 		return {'test':outdir, 'objects': testdir}
 
@@ -158,6 +161,9 @@ class UnitTest:
 				elif name == 'type':
 					self.type = val
 
+	def _parse_target(self, value):
+		return value
+
 	def _parse_sources(self, value):
 		"""
 		Parse an additional source directory other than simply src
@@ -186,7 +192,7 @@ class UnitTest:
 			else:
 				raise ValueError("Unknown file extension in Additional header for test %s: %s" % (self.name, f))
 
-def find_units(parent, subclass):
+def find_units(parent):
 	files = [f for f in os.listdir(parent) if os.path.isfile(os.path.join(parent, f))]
 
 	#ignore hidden files
@@ -200,7 +206,12 @@ def find_units(parent, subclass):
 	tests = []
 
 	for f in files:
-		tests.append(subclass([f]))
+		unit = UnitTest([f])
+		
+		if unit.type not in known_types:
+			raise InternalError("Unknown test type (%s) in unit test: %s" % (unit.type, f))
+
+		tests.append(known_types[unit.type]([f]))
 
 	return tests
 
@@ -227,8 +238,8 @@ def find_sources(src_dir, patterns=('*.c', '*.as', '*.asm')):
 	return include_dirs, src, headers
 
 
-def build_units(parent, targets, subclass):
-	tests = find_units(parent, subclass)
+def build_units(parent, targets):
+	tests = find_units(parent)
 
 	summary_env = Environment()
 	summary_env['TESTS'] = []

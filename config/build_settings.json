@@ -152,7 +152,14 @@
 				"defines":
 				{
 					"__TEST__": 1
-				}
+				},
+
+				"test_includes":
+				[
+				"test/pic24/unity"
+				],
+
+				"test_sources": ["test/pic24/unity/unity.c"]
 			},
 
 			"24f16ka101":
