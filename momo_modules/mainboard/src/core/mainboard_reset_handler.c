@@ -14,12 +14,15 @@
 #include "memory_manager.h"
 #include "controller_mib_feature.h"
 #include "system_log.h"
+#include "perf.h"
+#include "momo_config.h"
 
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
 {
     //Add code here that should be called before all other reset code
     disable_unneeded_peripherals();
+    perf_enable_profiling();
     mem_init();
     mem_ensure_powered(1);
     configure_interrupts();
@@ -36,8 +39,9 @@ void handle_all_resets_before(unsigned int type)
     //The RTCC must be enabled for scheduling tasks, so ensure that happens.
     //All modules that need to schedule tasks MUST BE called after
     //rtcc is on and enabled. 
-    if (!rtcc_enabled())
+    if (!rtcc_enabled() || _RTCLK != 0b01)
     {
+        CRITICAL_LOGL( "RTCC Off, enabling.");
         configure_rtcc();
         enable_rtcc();
     }
@@ -53,7 +57,7 @@ void handle_all_resets_after(unsigned int type)
      */
 
     battery_init();
-    //start_report_scheduling();
+    report_manager_start();
 
     CRITICAL_LOGL( "Device initialized." );
 }

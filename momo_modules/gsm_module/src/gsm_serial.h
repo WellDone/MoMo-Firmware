@@ -7,7 +7,7 @@
 
 void enable_serial();
 
-void send_buffer();
+bool send_buffer();
 uint8 gsm_receiveone();
 uint8 peek_rx_buffer_end();
 uint8 receive_response();
@@ -21,4 +21,5 @@ void append_carriage();
 void gsm_openstream();
 void gsm_putstream();
 void gsm_closestream();
+void gsm_abandonstream();
 #endif

@@ -5,6 +5,7 @@ import os.path
 import os
 import intelhex
 from time import sleep
+import datetime
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -401,7 +402,7 @@ class ModTool(cmdln.Cmdln):
 			exit(1)
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-	def do_log(self, subcmd, opts, command, msg=None):
+	def do_log(self, subcmd, opts, command, arg=None):
 		"""${cmd_name}: Read and write system log entries
 
 		Possible subcommands are heartbeat, reset and attached.  
@@ -415,21 +416,28 @@ class ModTool(cmdln.Cmdln):
 
 		con = self._get_controller(opts)
 		if command == "write":
-			if msg==None:
+			if arg==None:
 				print "A message must be specified."
 				exit(1)
-			con.rpc(42,0x20,msg)
+			con.rpc(42,0x20,arg)
 		elif command == "count":
 			res = con.rpc(42,0x21,result_type=(1,False))
 			print res['ints'][0]
 		elif command == "read":
 			index = 0
+			if arg != None:
+				count = con.rpc(42,0x21,result_type=(1,False))['ints'][0]
+				arg = int(arg)
+				if arg > count:
+					arg = count
+				index = count - arg
 			while True:
 				try:
 					res = con.rpc(42,0x22,index,0,result_type=(0,True))
 				except RPCException, e:
 					break
-				(stream, length, year, month, day, hours, minutes, seconds ) = struct.unpack('BBBBBBBB', res['buffer'])
+				
+				(stream, length, timestamp) = struct.unpack('<BBLxx', res['buffer'])
 				i = 1
 				msg = ""
 				while len(msg) < length:
@@ -444,7 +452,9 @@ class ModTool(cmdln.Cmdln):
 					stream = "Remote"
 				else:
 					stream = "Unknown (%d)" % stream
-				print "%s (%d:%d:%d) %s" % (stream, hours, minutes, seconds, msg)
+
+				timestamp = datetime.datetime.fromtimestamp(timestamp + 946684800) # MoMo timestamps begin at 00:00 on January 1, 2000, so add 946684800 to get the actual unix timestamp
+				print "%s (%s) %s" % (stream, timestamp, msg)
 				index += 1
 		elif command == "clear":
 			con.rpc(42,0x23)

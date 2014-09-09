@@ -79,20 +79,31 @@ uint8 open_gsm_module()
 	return 0;
 }
 
-void send_buffer()
+void start_timer()
+{
+	tmr1_config(pack_tmr1_config(kInstructionClock, kPrescaler1_8));
+	tmr1_load(kHalfSecondConstant);
+	tmr1_setstate(kEnabled_Sync);
+}
+
+bool send_buffer()
 {
 	uint8 i;
 
 	for (i=0; i<buffer_len; ++i)
 	{
-		while(TXIF == 0)
+		start_timer();	
+		while(TXIF == 0 && TMR1IF == 0)
 			;
+		if ( TMR1IF == 1 )
+			return false; // Report an error?
 
 		TXREG = gsm_buffer[i];
 
 		asm("nop");
 		asm("nop");
 	}
+	return true;
 }
 
 uint8 peek_rx_buffer_end()
@@ -107,14 +118,14 @@ uint8 peek_rx_buffer_end()
 
 uint8 gsm_receiveone()
 {
-	tmr1_config(pack_tmr1_config(kInstructionClock, kPrescaler1_8));
-	tmr1_load(kHalfSecondConstant);
-	tmr1_setstate(kEnabled_Sync);
+	start_timer();
 	while( !RCIF && TMR1IF == 0 )
 		;
 
 	if ( TMR1IF == 1 )
+	{
 		return 1;
+	}
 
 	if ( rx_buffer_len < RX_BUFFER_LENGTH )
 	{

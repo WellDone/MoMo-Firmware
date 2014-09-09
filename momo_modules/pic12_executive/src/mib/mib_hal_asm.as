@@ -80,9 +80,8 @@ ENDFUNCTION _find_handler
 
 ;Given an index into the handler table in application code, call that handler
 ;if the command is handled by the executive, jump to the executive table
+;handler is passed in W register
 BEGINFUNCTION _call_handler
-	movlb 1
-	movf BANKMASK(slave_handler),w
 	movwf FSR1L
 	movlw kMIBExecutiveFeature
 	xorwf BANKMASK(bus_feature),w ;see if feature matches kMIBExecutiveFeature
@@ -111,15 +110,19 @@ BEGINFUNCTION _get_command
 	return 
 ENDFUNCTION _get_command
 
+;Given a valid handler index in W, return the parameter signature
+;for that handler
+;Uses: W, FSR1L
+;Returns: handler spec in W
 BEGINFUNCTION _get_param_spec
 	movwf FSR1L
 	movlb 1
 	movlw kMIBExecutiveFeature
 	xorwf BANKMASK(bus_feature),w ;see if feature matches kMIBExecutiveFeature
 	btfss ZERO
-	GOTO call_spec
+		goto call_spec
 	movf FSR1L,w
-	GOTO exec_spec_map
+	goto exec_spec_map
 	
 	call_spec:
 	movf FSR1L,w
@@ -170,17 +173,17 @@ BEGINFUNCTION _plist_param_length
 	return
 ENDFUNCTION _plist_param_length
 
-;Takes no argumenst
+;Takes no arguments
 ;validate that the params required by the slave_handler match the spec
+;Uses: W, FSR1L (via _get_param_spec)
+;Returns: Nothing
+;Side Effects: 	Zero flag is set if the parameter spec is valid
+;				Zero flag is clear otherwise
 BEGINFUNCTION _validate_param_spec
-	movlb 1
-	movf BANKMASK(slave_handler),w
 	call _get_param_spec		;handler spec in w
-	xorwf BANKMASK(bus_spec),w ;passed spec xor handler spec
-	andlw 0b11100000 				;only look at spec, ignore length
-	btfsc ZERO						;if they match w should be zero
-		retlw 1 
-	retlw 0
+	xorwf BANKMASK(bus_spec),w  ;passed spec xor handler spec
+	andlw 0b11100000 			;only look at spec, ignore length
+	return						;if they match w should be zero
 ENDFUNCTION _validate_param_spec
 
 

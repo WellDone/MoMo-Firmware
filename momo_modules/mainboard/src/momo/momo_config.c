@@ -22,7 +22,7 @@ void init_momo_config( unsigned int subsection_index )
 
 void reset_momo_state()
 {
-  current_momo_state.registered = false;
+  current_momo_state.state_flags = 0;
   init_report_config();
   config_state = kClean;
   save_momo_state();
@@ -45,6 +45,19 @@ void flush_config_to_memory( void* arg )
 void save_momo_state()
 {
   if ( config_state == kClean )
-    scheduler_schedule_task( flush_config_to_memory, kEveryHalfSecond, 1, &flush_config_task, NULL );
+    scheduler_schedule_task( flush_config_to_memory, kEverySecond, 1, &flush_config_task, NULL );
   config_state = kDirty;
+}
+
+bool get_momo_state_flag( MoMoStateFlag flag ) {
+  return BIT_TEST( current_momo_state.state_flags, flag );
+}
+
+void set_momo_state_flag( MoMoStateFlag flag, bool value ) {
+  if ( value ) {
+    SET_BIT( current_momo_state.state_flags, flag );
+  } else {
+    CLEAR_BIT( current_momo_state.state_flags, flag );
+  }
+  save_momo_state();
 }

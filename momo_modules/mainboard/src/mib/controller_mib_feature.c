@@ -15,6 +15,7 @@
 #include "module_manager.h"
 #include "system_log.h"
 #include "memory_manager.h"
+#include "perf.h"
 
 #include "momo_config.h"
 #include "sensor_event_log.h"
@@ -27,8 +28,8 @@ unsigned int debug_flag_value = 0;
 
 void con_init()
 {
-	DIR(BUS_ENABLE) = INPUT;
 	LAT(BUS_ENABLE) = 0;
+	DIR(BUS_ENABLE) = OUTPUT;
 
 	DIR(ALARM) = INPUT;
 	LAT(ALARM) = 1;
@@ -48,6 +49,12 @@ void con_reset_bus()
 	DIR(SDA) = OUTPUT;
 	DIR(ALARM) = OUTPUT;
 
+	//We need to wait for all of the modules to reset and disable
+	//any functionality on their boards that may parasitically
+	//power the bus when we cut power to it.  100 ms is tested to
+	//be long enough for the gsm_module.  10 ms is too short.
+	DELAY_MS(100);
+
 	//Bus disable FET is active high to remove power
 	//from the bus.
 	LAT(BUS_ENABLE) = 1;
@@ -61,7 +68,7 @@ void con_reset_bus()
 	DIR(SDA) = INPUT;
 	DIR(ALARM) = INPUT;
 
-	DIR(BUS_ENABLE) = INPUT;
+	LAT(BUS_ENABLE) = 0;
 
 	bus_init(kMIBControllerAddress);
 }
@@ -86,6 +93,8 @@ void register_module(void)
 		bus_slave_seterror( kCallbackError );
 		return;	
 	}
+
+	DEBUG_LOGL("Submodule asked for address.");
 	
 	bus_slave_return_int16( addr );
 }
@@ -277,6 +286,20 @@ void set_lazy_logging()
 	lazy_system_logging = (plist_get_int16(0)==0)?false:true;
 }
 
+void read_ram()
+{
+	unsigned char *val = (unsigned char *)(plist_get_int16(0));
+	bus_slave_return_buffer(val, 20);
+}
+
+void get_perf_counter()
+{
+	uint16 counter = plist_get_int16(0);
+	const performance_counter *val = perf_get_counter((PerformanceCounter)counter);
+
+	bus_slave_return_buffer(val, 20);
+}
+
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x00, register_module, plist_spec(0,true) },
@@ -296,6 +319,7 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x0E, set_sleep, plist_spec(1, false)},
 	{0x0F, reset_self, plist_spec_empty()},
 	{0x10, factory_reset, plist_spec_empty()},
+	{0x11, read_ram, plist_spec(1, false)},
 
 	{0x20, write_log, plist_spec(0, true)},
 	{0x21, log_count, plist_spec_empty()},
@@ -303,5 +327,6 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x23, clear_log, plist_spec_empty() },
 	{0x24, get_lazy_logging, plist_spec(0, false)},
 	{0x25, set_lazy_logging, plist_spec(1, false)},
+	{0x26, get_perf_counter, plist_spec(1, false)}
 };
 DEFINE_MIB_FEATURE(controller);

@@ -5,6 +5,7 @@
 #include "pic24.h"
 #include "memory.h"
 #include "bus_master.h"
+#include "system_log.h"
 
 task_list taskqueue;
 void taskloop_init()
@@ -46,8 +47,18 @@ int taskloop_add_impl(task_callback task, void* argument, bool critical )
     object.callback = task;
     object.argument = argument;
     object.critical = critical;
+
+    //If the taskloop is full, choke out a message and reset to a hopefully better future.
     if ( ringbuffer_full( &taskqueue.tasks ) )
-        return 0;
+    {
+        //Make sure nothing can interrupt us, this is the end...
+        disable_interrupts();
+
+        //Reset the PIC since this is an unrecoverable error.
+        disable_lazy_logging(); //disable lazing logging since that requires a working taskloop
+        CRITICAL_LOGL( "Taskloop full, resetting the PIC." );
+        asm_reset();
+    }
 
     ringbuffer_push( &taskqueue.tasks, &object );
 
@@ -66,10 +77,17 @@ int taskloop_add_critical(task_callback task, void* argument)
 
 void taskloop_lock()
 {
+    CRITICAL_LOGL( "Task loop locked!" );
+    FLUSH_LOG();
     SET_BIT(taskqueue.flags, kTaskLoopLockedBit);
 }
 void taskloop_unlock()
 {
+    if ( taskloop_locked() )
+    {
+        CRITICAL_LOGL( "Task loop unlocked!" );
+        FLUSH_LOG();
+    }
     CLEAR_BIT(taskqueue.flags, kTaskLoopLockedBit);
 }
 bool taskloop_locked()

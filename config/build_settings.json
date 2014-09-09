@@ -11,7 +11,7 @@
 
 			"defines":
 			{
-				"kExecutiveSerialNumber": 1
+				"kExecutiveSerialNumber": 2
 			},
 
 			"includes":
@@ -27,6 +27,7 @@
 
 			"test_includes": ["../test/pic12/gpsim_logging"],
 			"xc8_flags": ["-G", "--addrqual=require", "--summary=default,+psect,-class,+mem,-hex,-file", "--output=default,-inhx032", "--asmlist", "-P", "--mode=pro", "--opt=all,-asmfile" ]
+			}
 		},
 
 		"architectures" :

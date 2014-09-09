@@ -8,11 +8,13 @@
  *
  */
 
+#include <xc.h>
 #include "bootloader.h"
 #include "constants.h"
 #include "bus_master.h"
 #include "port.h"
 #include <string.h>
+#include "ioc.h"
 
 //The first N bytes of RAM in bank0 are used for reflashing, where N is 2*the flash row size for the uC.
 //they can also be used by the application since once we initiate a reflash
@@ -41,6 +43,10 @@ void enter_bootloader()
 	boot_count = kFirstApplicationRow-1;
 
 	//Let everyone know that we are reflashing
+	#ifndef __PIC16LF1847__
+	ioc_disable(); //make sure we don't reset ourselves when we take the bus down
+	#endif 
+
 	LATCH(ALARM) = 0;
 	PIN_DIR(ALARM, OUTPUT);
 
@@ -62,4 +68,8 @@ void enter_bootloader()
 	} while (boot_count != (kNumFlashRows-1));
 
 	PIN_DIR(ALARM, INPUT);
+	
+	#ifndef __PIC16LF1847__
+	ioc_disable(); //make sure we don't reset ourselves when we take the bus down
+	#endif 
 }

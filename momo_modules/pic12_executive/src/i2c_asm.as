@@ -22,6 +22,16 @@ BEGINFUNCTION _i2c_init_buffer
 	return
 ENDFUNCTION _i2c_init_buffer
 
+;Given an offset from the start of the buffer in W,
+;update the current location (curr_loc) to buffer_start + W 
+;calculate the checksum of the buffer and place it at 
+;curr_loc, incrementing curr_loc if doing so would not result in
+;an overflow. 
+BEGINFUNCTION _i2c_append_checksum_at_offset
+	call 	_i2c_setoffset
+	goto 	_i2c_append_checksum
+ENDFUNCTION _i2c_append_checksum_at_offset
+
 BEGINFUNCTION _i2c_setoffset
 	banksel _mib_state
 	addwf 	BANKMASK(buffer_start),w
@@ -44,6 +54,8 @@ ENDFUNCTION _i2c_append_checksum
 ;Calculate the checksum of the i2c buffer from buffer_start to curr_loc-1
 ;Uses:FSR0 and FSR1
 ;Returns:Buffer checksum in W
+;Side Effects: 	Z status is set if the buffer is nonempty and the
+;				checksum adds to zero (indicating no transmission error)
 BEGINFUNCTION _i2c_calculate_checksum
 	clrf  FSR1H
 	call _i2c_loadbuffer

@@ -4,6 +4,7 @@
 #include "sensor_event_log.h"
 #include "firmware_cache.h"
 #include "system_log.h"
+#include "report_log.h"
 
 void flash_memory_init()
 {
@@ -14,5 +15,5 @@ void flash_memory_init()
 
   init_sensor_event_log( MEMORY_SECTION_TO_SUB( kSensorDataSector ),  kSensorLogSubsectors );
   init_system_log( kSystemLogSubsector, 8 );
-  //init_report_log( kReportLogSubsector, 8 );
+  init_report_log( kReportLogSubsector, 8 );
 }

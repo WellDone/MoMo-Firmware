@@ -6,9 +6,15 @@
 #include "report_manager.h"
 
 typedef struct {
-  bool                registered;
+  uint16              state_flags;
   ReportConfiguration report_config;
 } MoMoState;
+
+typedef enum {
+	kStateFlagReportingEnabled = 0b0001
+} MoMoStateFlag;
+
+
 
 #ifndef MOMO_STATE_CONTROLLER
 extern MoMoState current_momo_state;
@@ -19,5 +25,8 @@ void reset_momo_state();
 void save_momo_state();
 void load_momo_state();
 void flush_config_to_memory( void* );
+
+bool get_momo_state_flag( MoMoStateFlag flag );
+void set_momo_state_flag( MoMoStateFlag flag, bool value );
 
 #endif

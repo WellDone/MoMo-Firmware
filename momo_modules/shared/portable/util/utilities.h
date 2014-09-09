@@ -2,6 +2,7 @@
 #define __utilities_h__
 
 #include <stdarg.h>
+#include <stdint.h>
 #include "common_types.h"
 #include "bit_utilities.h"
 

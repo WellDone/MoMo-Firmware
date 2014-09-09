@@ -40,7 +40,7 @@ void i2c_disable();
 void i2c_init_buffer(uint8 start);
 uint8 i2c_calculate_checksum();
 void i2c_append_checksum();
-void i2c_setoffset(uint8 offset);
+void i2c_append_checksum_at_offset(uint8 offset);
 void i2c_loadbuffer();
 void i2c_read();
 void i2c_write();

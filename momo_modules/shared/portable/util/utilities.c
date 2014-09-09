@@ -195,6 +195,7 @@ static char quad_to_hex( uint8 b )
     }
     return b;
 }
+
 void binary_to_hexbyte( BYTE b, char* out ) {
     out[0] = quad_to_hex( b&0xFF );
     out[1] = quad_to_hex( (b>>4)&0xFF );
