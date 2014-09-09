@@ -7,14 +7,14 @@ apt-get install -y python python-setuptools python-dev libc6:i386 lib32stdc++6
 
 easy_install cmdln ZODB3 colorama pyparsing intelhex BeautifulSoup4 Cheetah pyserial pytest decorator
 
-SCONSVERSION=2.3.1
+SCONSVERSION=2.3.2
 if [ -e /vagrant/.cached_downloads/scons-$SCONSVERSION.tar.gz ]; then
 	echo "Found cached SCONS installer!"
-	URL=http://sourceforge.net/projects/scons/files/scons/$SCONSVERSION/scons-$SCONSVERSION.tar.gz/download?use_mirror=hivelocity
+	cp /vagrant/.cached_downloads/scons-$SCONSVERSION.tar.gz .
+else
+	URL=http://downloads.sourceforge.net/project/scons/scons/$SCONSVERSION/scons-$SCONSVERSION.tar.gz
 	wget $URL
 	cp ./scons-$SCONSVERSION.tar.gz /vagrant/.cached_downloads
-else
-	cp /vagrant/.cached_downloads/scons-$SCONSVERSION.tar.gz .
 fi
 tar -xvzf scons-$SCONSVERSION.tar.gz
 
