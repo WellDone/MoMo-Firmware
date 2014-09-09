@@ -130,8 +130,8 @@ rtcc_timestamp rtcc_create_timestamp(const rtcc_datetime *source)
     if (source->day > 0)
         out += (source->day-1)*day_seconds;
 
-    out += source->hours * 3600;
-    out += source->minutes * 60;
+    out += 3600LL * source->hours;
+    out += 60LL * source->minutes;
     out += source->seconds;
 
     return out;

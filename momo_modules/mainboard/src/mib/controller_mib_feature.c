@@ -217,6 +217,13 @@ void current_time()
 	bus_slave_setreturn(pack_return_status(kNoMIBError, 12));
 }
 
+void set_time()
+{
+	if ( plist_get_buffer_length() != 8 )
+		return bus_slave_seterror( kCallbackError );
+	rtcc_set_time( (rtcc_datetime*)plist_get_buffer(0) );
+}
+
 void debug_value()
 {
 	bus_slave_return_int16(debug_flag_value);
@@ -320,6 +327,7 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x0F, reset_self, plist_spec_empty()},
 	{0x10, factory_reset, plist_spec_empty()},
 	{0x11, read_ram, plist_spec(1, false)},
+	{0x12, set_time, plist_spec(0, true)},
 
 	{0x20, write_log, plist_spec(0, true)},
 	{0x21, log_count, plist_spec_empty()},
