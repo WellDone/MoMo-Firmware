@@ -5,6 +5,8 @@
 ============================================================================ */
 
 #include "unity.h"
+#include <xc.h>
+#include <stdlib.h>
 
 #define UNITY_FAIL_AND_BAIL   { Unity.CurrentTestFailed  = 1; longjmp(Unity.AbortFrame, 1); }
 #define UNITY_IGNORE_AND_BAIL { Unity.CurrentTestIgnored = 1; longjmp(Unity.AbortFrame, 1); }
@@ -66,10 +68,8 @@ void UnityPrintOk(void);
 // Pretty Printers & Test Result Output Handlers
 //-----------------------------------------------
 
-void UnityPrint(const char* string)
+void UnityPrint(const char* pch)
 {
-    const char* pch = string;
-
     if (pch != NULL)
     {
         while (*pch)
@@ -1083,6 +1083,15 @@ UNITY_WEAK void tearDown(void) { }
 void setUp(void);
 void tearDown(void);
 #endif
+
+void UnityOutputChar(char c)
+{
+    U1TXREG = c;
+
+    while(!U1STAbits.TRMT)
+        ;
+}
+
 //-----------------------------------------------
 void UnityDefaultTestRun(UnityTestFunction Func, const char* FuncName, const int FuncLineNum)
 {

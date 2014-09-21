@@ -8,6 +8,8 @@
 #define UNITY_FRAMEWORK_H
 #define UNITY
 
+#define UNITY_OUTPUT_CHAR(c) 		UnityOutputChar(c)
+
 #include "unity_internals.h"
 
 //-------------------------------------------------------

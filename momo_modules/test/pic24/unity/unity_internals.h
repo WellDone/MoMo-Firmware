@@ -263,10 +263,10 @@ typedef UNITY_DOUBLE_TYPE _UD;
 #ifndef UNITY_OUTPUT_CHAR
 //Default to using putchar, which is defined in stdio.h
 #include <stdio.h>
-#define UNITY_OUTPUT_CHAR(a) putchar(a)
+#define UNITY_OUTPUT_CHAR(a)          UnityOutputChar(a)
 #else
 //If defined as something else, make sure we declare it here so it's ready for use
-extern int UNITY_OUTPUT_CHAR(int);
+extern void UNITY_OUTPUT_CHAR(char);
 #endif
 
 #ifndef UNITY_OUTPUT_START
