@@ -90,4 +90,4 @@ def build_moduletest(test, arch):
 		target = os.path.join(objdir, name + '.o')
 		objs.append(unit_env.xc16_gcc('#' + target, src))
 
-	unit_env.xc16_ld('#' + build_dirs['test'] + unit_env['OUTPUT'], objs)
+	unit_env.xc16_ld(os.path.join('#' + build_dirs['test'], unit_env['OUTPUT']), objs)
