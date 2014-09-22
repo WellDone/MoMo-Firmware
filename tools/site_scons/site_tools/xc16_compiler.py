@@ -28,7 +28,7 @@ def xc16_generator(source, target, env, for_signature):
 	args.extend(utilities.build_defines(arch.property('defines', default={})))
 	args.extend(arch.property('cflags', default=[]))
 
-	return SCons.Action.Action(" ".join(args))#, 'Compiling %s' % str(source[0]))
+	return SCons.Action.Action(" ".join(args), 'Compiling %s' % str(source[0]))
 
 _xc16_obj = SCons.Builder.Builder(
 	generator = xc16_generator,
