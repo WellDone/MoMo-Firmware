@@ -42,7 +42,10 @@ void configure_rtcc()
     if (!_RTCWREN)
         asm_enable_rtcon_write();
 
+//newer pic supports another register for extracting RTCC timer from 60hz power line
+#ifdef __PIC24FJ64GA306__
     _RTCLK = 0b01;
+#endif
     _CAL = 0; //Clear oscillator trimming
     _RTCOE = 0; //Don't output the clock signal
     _ALRMEN = 0; //Don't set an alarm
