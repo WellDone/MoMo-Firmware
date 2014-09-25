@@ -165,12 +165,14 @@
 				{
 					"24f16ka101":
 					{
-						"linker": "../../test/pic24/sim_24f16ka101.gld"
+						"linker": "../../test/pic24/sim_24f16ka101.gld",
+						"simulator_model": "pic24super"
 					},
 
 					"24fj64ga306":
 					{
-						"linker": "../../test/pic24/sim_24fj64ga306.gld"
+						"linker": "../../test/pic24/sim_24fj64ga306.gld",
+						"simulator_model": "pic24fpsuper"
 					}
 				}
 			},

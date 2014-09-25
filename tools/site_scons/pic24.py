@@ -6,6 +6,7 @@ from utilities import BufferedSpawn
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pymomo.utilities.paths import MomoPaths
+from pymomo.sim.simulator import Simulator
 
 all_envs = []
 
@@ -91,3 +92,21 @@ def build_moduletest(test, arch):
 		objs.append(unit_env.xc16_gcc('#' + target, src))
 
 	unit_env.xc16_ld(os.path.join('#' + build_dirs['test'], unit_env['OUTPUT']), objs)
+	#unit_env.Command(['#'])
+
+# def run_unit_test(test_elf, arch, logfile, statusfile):
+# 	sim = Simulator('pic24')
+# 	sim.set_param('model', arch['simulator_model'])
+# 	sim.load(test_elf)
+# 	sim.attach_log()
+# 	sim.execute()
+
+# 	try:
+# 		sim.wait(5)
+# 		sim.finish()
+# 		logdata = sim.get_log()
+# 	except TimeoutError:
+# 		logdata = 'Test timed out (5 second timeout)'
+
+# 	with open(logfile) as f:
+# 		f.write(logdata)

@@ -46,6 +46,8 @@ class UnitTest:
 
 		testdir = os.path.join(basedirs['test'], self.name, 'objects')
 		outdir = os.path.join(basedirs['test'], self.name)
+		finaldir = os.path.join(basedirs['test'], 'ouput')
+		logdir = os.path.join(finaldir, 'logs')
 
 		return {'test':outdir, 'objects': testdir}
 
