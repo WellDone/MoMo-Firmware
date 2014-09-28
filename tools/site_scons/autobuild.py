@@ -25,12 +25,12 @@ def autobuild_pic12(module, test_dir='test'):
 	Alias('test', os.path.join('build', 'test', 'output'))
 	Default('release')
 
-def autobuild_pic24(module, test_dir='test'):
+def autobuild_pic24(module, test_dir='test', modulefile=None):
 	"""
 	Build the given pic24 module for all targets.
 	"""
 
-	family = utilities.get_family('mib24')
+	family = utilities.get_family('mib24', modulefile)
 	family.for_all_targets(module, lambda x: pic24.build_module(module, x))
 
 	Alias('release', os.path.join('build', 'output'))

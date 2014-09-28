@@ -52,8 +52,8 @@ def build_staticlibs(libs, chip):
 def build_defines(defines):
 	return ['-D%s=%s' % (x,str(y)) for x,y in defines.iteritems()]
 
-def get_family(fam):
-	return build.ChipFamily(fam)
+def get_family(fam, modulefile=None):
+	return build.ChipFamily(fam, modulefile=modulefile)
 
 class BufferedSpawn:
 	def __init__(self, env, logfile):
