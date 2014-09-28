@@ -124,9 +124,9 @@
 	{
 		"default_settings":
 		{
-			"cflags": ["-Wall", "-O1", "-mlarge-code", "-mconst-in-code"],
+			"cflags": ["-Wall", "-O1"],
 			"asflags": ["-Wall", "--no-relax"],
-			"ldflags": ["-Wl","--check-sections","--data-init","--pack-data","--handles","--isr","--no-gc-sections","--fill-upper=0","--stackguard=16","--no-force-link","--smart-io","--report-mem"],
+			"ldflags": ["-Wl","--check-sections","--data-init","--pack-data","--handles","--isr","--gc-sections","--fill-upper=0","--stackguard=16","--no-force-link","--smart-io","--report-mem"],
 			"libdirs": ["../shared/pic24/build/output"],
 			"includes":
 			[
@@ -181,7 +181,9 @@
 			{
 				"defines":
 				{
-					"__PIC24F16KA101__": 1
+					"__PIC24F16KA101__": 1,
+					"__NO_PERF__": 1,
+					"__NO_FLASH__": 1
 				},
 
 				"chip": "24f16ka101"
@@ -196,77 +198,6 @@
 
 				"chip": "24fj64ga306"
 			}
-		},
-
-		"modules":
-		{
-			"mainboard":
-			{
-				"overlays":
-				{
-					"24fj64ga306":
-					{
-						"linker": "./linker/p24FJ64GA306.gld"
-					}
-				},
-
-				"libraries": ["pic24"],
-				"extra_includes":
-				[
-					"mainboard/src/core",
-					"mainboard/src/mib",
-					"mainboard/src/mib/commands",
-					"mainboard/src/modules",
-					"mainboard/src/momo",
-					"mainboard/src/util"
-				]
-			},
-
-			"mainboard_bootloader":
-			{
-				"overlays":
-				{
-					"24fj64ga306":
-					{
-						"linker": "./linker/p24FJ64GA306.gld"
-					}
-				},
-				
-				"libraries": ["pic24"]
-			},
-
-			"field_service_unit":
-			{
-				"overlays":
-				{
-					"24f16ka101":
-					{
-						"extra_includes":
-						[
-							"field_service_unit/src/core",
-							"field_service_unit/src/debug",
-							"field_service_unit/src/diagnostics"
-						],
-
-						"linker": "p24F16KA101.gld"
-					}
-				},
-
-				"libraries": ["pic24"]
-			},
-
-			"libpic24":
-			{
-
-			}
-		},
-
-		"module_targets" :
-		{
-			"mainboard": ["24fj64ga306"],
-			"mainboard_bootloader": ["24fj64ga306"],
-			"field_service_unit": ["24f16ka101"],
-			"libpic24": ["24f16ka101", "24fj64ga306"]
 		}
 	}
 }
