@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <xc.h>
 
+#ifndef __NO_PERF__
+
 profiler_data	profiler;
 
 void perf_enable_profiling()
@@ -101,3 +103,5 @@ const performance_counter * perf_get_counter(PerformanceCounter counter)
 {
 	return &profiler.counters[counter];
 }
+
+#endif

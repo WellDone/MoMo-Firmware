@@ -1,5 +1,7 @@
 #include "flashblock.h"
 
+#ifndef __NO_FLASH__
+
 FBStatus fb_init(flash_block_info *info, unsigned int subsector, unsigned char size)
 {
 	FBStatus status;
@@ -172,3 +174,5 @@ void fb_read(flash_block_info *info, void *data)
 
 	mem_read(addr, data, info->item_size);
 }
+
+#endif

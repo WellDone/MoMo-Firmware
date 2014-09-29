@@ -7,6 +7,8 @@
 
 #include "platform.h"
 
+#ifndef __NO_PERF__
+
 typedef enum
 {
 	kReadFlashMemory = 0,
@@ -56,5 +58,11 @@ uint32  perf_get_min(PerformanceCounter counter);
 uint32  perf_get_max(PerformanceCounter counter);
 
 const performance_counter * perf_get_counter(PerformanceCounter counter);
+
+#else
+#define PROFILE_START(counter)		
+#define PROFILE_END(counter)		
+
+#endif
 
 #endif

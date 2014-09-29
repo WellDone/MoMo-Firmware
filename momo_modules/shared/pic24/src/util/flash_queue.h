@@ -4,6 +4,8 @@
 #include "platform.h"
 #include "flashblock.h"
 
+#ifndef __NO_FLASH__
+
 /*
   Derivitave of ringbuffer.c, implemented as an in-flash ringbuffer.
   Overwrites oldest values when ringbuffer is full.
@@ -47,4 +49,5 @@ uint32 flash_queue_count( const flash_queue* queue );
 flash_queue_walker new_flash_queue_walker( const flash_queue* queue, uint32 offset );
 uint8 flash_queue_walk( flash_queue_walker* walker, void* data, uint8 batch_size );
 
+#endif
 #endif
