@@ -1,4 +1,4 @@
 import os
 from autobuild import autobuild_pic24
 
-autobuild_pic24('field_service_unit')
+autobuild_pic24('field_service_unit', modulefile='module_settings.json')
