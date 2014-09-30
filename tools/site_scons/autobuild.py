@@ -19,7 +19,7 @@ def autobuild_pic12(module, test_dir='test'):
 	family = utilities.get_family('mib12')
 	family.for_all_targets(module, lambda x: pic12.build_module(module, x))
 	
-	unit_test.build_units(test_dir, family.targets(module), subclass=unit_test12.Pic12UnitTest)
+	unit_test.build_units(test_dir, family.targets(module))
 
 	Alias('release', os.path.join('build', 'output'))
 	Alias('test', os.path.join('build', 'test', 'output'))
