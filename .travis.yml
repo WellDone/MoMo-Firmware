@@ -4,6 +4,7 @@ before_install:
 script: 
   - source $HOME/.profile
   - #cd $TRAVIS_BUILD_DIR/momo_modules/gsm_module && momo build
+  - #cd $TRAVIS_BUILD_DIR/momo_modules/pic12_executive && momo build
   - cd $TRAVIS_BUILD_DIR/momo_modules/multi_sensor_module && momo build
   - cd $TRAVIS_BUILD_DIR/momo_modules/shared/pic24 && momo build
   - cd $TRAVIS_BUILD_DIR/momo_modules/mainboard && momo build
