@@ -1,0 +1,11 @@
+language: c
+before_install:
+  - sudo ./tools/vagrant/provision.sh
+script: 
+  - source $HOME/.profile
+  - #cd $TRAVIS_BUILD_DIR/momo_modules/gsm_module && momo build
+  - cd $TRAVIS_BUILD_DIR/momo_modules/multi_sensor_module && momo build
+  - cd $TRAVIS_BUILD_DIR/momo_modules/shared/pic24 && momo build
+  - cd $TRAVIS_BUILD_DIR/momo_modules/mainboard && momo build
+  - cd $TRAVIS_BUILD_DIR/momo_modules/field_service_unit && momo build
+  - cd $TRAVIS_BUILD_DIR/momo_modules/mainboard_bootloader && momo build

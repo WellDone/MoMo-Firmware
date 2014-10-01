@@ -2,6 +2,8 @@
 
 A product of [WellDone.org](http://www.welldone.org).
 
+[![Build Status](https://travis-ci.org/amcgee/MoMo-Firmware.svg?branch=test-travis-ci)](https://travis-ci.org/amcgee/MoMo-Firmware)
+
 ## Directory structure breakdown ##
 
 * **config** - Configuration for locating tool dependencies
