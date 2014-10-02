@@ -7,21 +7,35 @@ apt-get install -y python python-setuptools python-dev libc6:i386 lib32stdc++6 g
 
 easy_install cmdln ZODB3 colorama pyparsing intelhex BeautifulSoup4 Cheetah pyserial pytest decorator
 
+if [ -n "$TRAVIS" ]; then
+	MOMOROOT=`pwd`
+	DOWNLOADCACHE="~/.cached_downloads"
+else # VAGRANT
+	MOMOROOT="/vagrant"
+	HOME="/home/vagrant"
+	DOWNLOADCACHE="/vagrant/.cached_downloads"
+
+	echo "Adding user 'vagrant' to the group 'dialout' so it can access USB devices..."
+	usermod vagrant -a -G dialout
+	echo "DONE!"
+fi
+echo "MOMOROOT=$MOMOROOT" >> $HOME/.profile
+mkdir -p $DOWNLOADCACHE
+
 download_file () {
 	NAME=$1
 	URL=$2
 	FILE=`basename $URL`
 	EXPECTEDSHA=$3
-  if [ -e /vagrant/.cached_downloads/$FILE ]; then
+  if [ -e $DOWNLOADCACHE/$FILE ]; then
 		echo "Found cached $NAME!"
-		cp /vagrant/.cached_downloads/$FILE .
+		cp $DOWNLOADCACHE/$FILE .
 	else
 		echo "Downloading $NAME"
 		wget $URL
 		SHA=`openssl sha256 ./$FILE`
 		if [ "$SHA" = "SHA256(./$FILE)= $EXPECTEDSHA" ]; then
-			mkdir -p /vagrant/.cached_downloads
-			cp ./$FILE /vagrant/.cached_downloads
+			cp ./$FILE $DOWNLOADCACHE
 		else
 			#rm -f ./$FILE
 			die "Invalid downloaded file hash, exiting!"
@@ -63,19 +77,8 @@ if [ $CODE -ne 0 ]; then
 fi
 echo "DONE!"
 
-MOMOROOT="/vagrant"
-if [ -n "$TRAVIS" ]; then
-	MOMOROOT=`pwd`
-fi
-
 echo "Adding MoMo tool bin ($MOMOROOT/tools/bin) to the path..."
 echo "PATH=\"\$PATH:$MOMOROOT/tools/bin\"" >> $HOME/.profile
 echo "DONE!"
-
-if [ -z "$TRAVIS" ]; then
-	echo "Adding user 'vagrant' to the group 'dialout' so it can access USB devices..."
-	usermod vagrant -a -G dialout
-	echo "DONE!"
-fi
 
 exit 0
