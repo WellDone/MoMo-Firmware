@@ -2,7 +2,7 @@
 
 A product of [WellDone.org](http://www.welldone.org).
 
-[![Build Status](https://travis-ci.org/welldone/MoMo-Firmware)](https://travis-ci.org/welldone/MoMo-Firmware)
+[![Build Status](https://travis-ci.org/WellDone/MoMo-Firmware)](https://travis-ci.org/WellDone/MoMo-Firmware)
 
 ## Directory structure breakdown ##
 
