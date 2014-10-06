@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include "pic24.h"
 
+#ifndef __NO_FLASH__
+
 #ifdef __PIC24FJ64GA306__
 #define RPSDO		21
 #define RPSCK		26
@@ -64,4 +66,5 @@ void mem_ensure_powered(MemoryStartupTimer for_writing);
 void mem_init();
 unsigned int mem_enabled();
 
+#endif
 #endif

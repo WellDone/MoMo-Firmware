@@ -1,0 +1,4 @@
+import os
+from autobuild import autobuild_pic24
+
+autobuild_pic24('mainboard', modulefile='module_settings.json')

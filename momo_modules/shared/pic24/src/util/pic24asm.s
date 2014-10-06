@@ -1,6 +1,14 @@
+#ifdef __PIC24FJ64GA306__
+#include <p24FJ64GA306.inc>
+#endif
+
+#ifdef __PIC24F16KA101__
 #include <p24F16KA101.inc>
+#endif
+
  .equiv SLEEP_MODE, 0x0000
  .equiv IDLE_MODE, 0x0001
+
 ;Magic incantation to allow writing to the rtcon
 _asm_enable_rtcon_write:
     PUSH w7

@@ -5,6 +5,8 @@
 #include "utilities.h"
 #include <string.h>
 
+#ifndef __NO_FLASH__
+
 #define LOG_BUFFER_SIZE 8
 
 static flash_queue log_queue;
@@ -111,3 +113,5 @@ uint16 system_log_count()
 {
 	return flash_queue_count( &log_queue );
 }
+
+#endif

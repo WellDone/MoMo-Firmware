@@ -3,6 +3,8 @@
 #include "perf.h"
 #include "interrupts.h"
 
+#ifndef __NO_FLASH__
+
 #ifdef __PIC24FJ64GA306__
 #define ENABLE_MEMORY() LAT(CS) = 0
 #define DISABLE_MEMORY() LAT(CS) = 1
@@ -385,3 +387,5 @@ void mem_clear_subsection(uint32 addr)
 
   enable_interrupts(old_level);
 }
+
+#endif

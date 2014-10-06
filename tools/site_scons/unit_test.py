@@ -4,10 +4,15 @@ import os.path
 import os
 from SCons.Environment import Environment
 import test_summary
+import fnmatch
+from pymomo.utilities.typedargs.exceptions import *
+
+known_types = {}
 
 class UnitTest:
 	def __init__(self, files):
 		self.files = files
+		self.additional_sources = []
 		self.desc = ''
 		self.targets = None
 
@@ -24,11 +29,27 @@ class UnitTest:
 		print self.name
 
 		if self.targets is None:
-			print "Targets: All"
+			print "Targets: All module targets"
 		else:
 			print "Targets:", ", ".join(self.targets)
 		print "Status:", self.status
 		print self.desc
+
+	def build_dirs(self, chip):
+		"""
+		Return the appropriate build directories for this unit test.  The build hierarchy is:
+		- test: build/test/<CHIP>/<TEST>
+		- objects: build/test/<CHIP>/<TEST>/objects
+		"""
+
+		basedirs = chip.build_dirs()
+
+		testdir = os.path.join(basedirs['test'], self.name, 'objects')
+		outdir = os.path.join(basedirs['test'], self.name)
+		finaldir = os.path.join(basedirs['test'], 'ouput')
+		logdir = os.path.join(finaldir, 'logs')
+
+		return {'test':outdir, 'objects': testdir}
 
 	def build_target(self, target, summary_env):
 		raise ValueError('The build_target method must be overriden by a UnitTest subclass')
@@ -39,18 +60,19 @@ class UnitTest:
 		and the targets that the module it is targeted at is designed for.
 		"""
 
-		mod_targets = set(module_targets)
-		targets = set()
+		for mod_target in module_targets:
+			found = False
+			if self.targets is not None:
+				for target in self.targets:
+					target_archs = set(target.split('/'))
+					if target_archs <= mod_target.archs():
+						found = True
+						break
 
-		if self.targets is None:
-			targets = mod_targets
-		else:
-			for target in self.targets:
-				if target in mod_targets:
-					targets.add(target)
+				if found is False:
+					continue
 
-		for target in targets:
-			self.build_target(target, summary_env)
+			self.build_target(mod_target, summary_env)
 
 	def _check_files(self):
 		"""
@@ -136,8 +158,22 @@ class UnitTest:
 					self.desc = val
 				elif name == 'additional':
 					self._parse_additional(val)
+				elif name == 'sources':
+					self._parse_sources(val)
 				elif name == 'type':
 					self.type = val
+
+	def _parse_target(self, value):
+		return value
+
+	def _parse_sources(self, value):
+		"""
+		Parse an additional source directory other than simply src
+		"""
+
+		basedir = os.path.dirname(self.files[0])
+		srcpath = os.path.normpath(os.path.join(basedir, value))
+		self.additional_sources.append(srcpath)
 
 	def _parse_additional(self, value):
 		"""
@@ -158,7 +194,7 @@ class UnitTest:
 			else:
 				raise ValueError("Unknown file extension in Additional header for test %s: %s" % (self.name, f))
 
-def find_units(parent, subclass):
+def find_units(parent):
 	files = [f for f in os.listdir(parent) if os.path.isfile(os.path.join(parent, f))]
 
 	#ignore hidden files
@@ -169,16 +205,43 @@ def find_units(parent, subclass):
 
 	files = [os.path.join(parent, f) for f in files]
 
-
 	tests = []
 
 	for f in files:
-		tests.append(subclass([f]))
+		unit = UnitTest([f])
+		
+		if unit.type not in known_types:
+			raise InternalError("Unknown test type (%s) in unit test: %s" % (unit.type, f))
+
+		tests.append(known_types[unit.type]([f]))
 
 	return tests
 
-def build_units(parent, targets, subclass):
-	tests = find_units(parent, subclass)
+def find_sources(src_dir, patterns=('*.c', '*.as', '*.asm')):
+	"""
+	Given a source directory, recursively find all source and header files under that directory
+	"""
+
+	include_dirs = set()
+	src = {}
+	headers = {}
+
+	for root, dirnames, filenames in os.walk(src_dir):
+		dir_headers = fnmatch.filter(filenames, '*.h')
+		if len(dir_headers) > 0:
+			include_dirs.add(root)
+
+		headers.update({os.path.splitext(x)[0]: os.path.join(root, x) for x in dir_headers})
+
+		for s in patterns:
+			dir_srcs = fnmatch.filter(filenames, s)
+			src.update({os.path.splitext(x)[0]: os.path.join(root, x) for x in dir_srcs})
+
+	return include_dirs, src, headers
+
+
+def build_units(parent, targets):
+	tests = find_units(parent)
 
 	summary_env = Environment()
 	summary_env['TESTS'] = []

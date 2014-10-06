@@ -1,6 +1,7 @@
 #ifndef __system_log_h__
 #define __system_log_h__
 
+#ifndef __NO_FLASH__
 /*
 	Debug is the only mode.
 */
@@ -45,4 +46,13 @@ void flush_log(void*);
 
 #define FLUSH_LOG() flush_log(NULL)
 
+#else
+#define CRITICAL_LOG( data, length ) 
+#define CRITICAL_LOGL( literal ) CRITICAL_LOG( literal, sizeof(literal) )
+#define DEBUG_LOG( data, length ) 
+#define DEBUG_LOGL( literal ) DEBUG_LOG( literal, sizeof(literal) )
+#define FLUSH_LOG() 
+#define disable_lazy_logging()	
+
+#endif
 #endif

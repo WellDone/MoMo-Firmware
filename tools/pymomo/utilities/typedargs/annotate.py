@@ -1,7 +1,7 @@
 #annotate.py
 
 from decorator import decorator
-from exceptions import ValidationError
+from exceptions import *
 import inspect
 import types
 from collections import namedtuple
@@ -25,7 +25,15 @@ def _check_and_execute(f, *args, **kwargs):
 	for key, val in kwargs:
 		convkw[key] = _process_arg(f, key, val)
 
-	return f(*convargs, **convkw)
+	#Ensure that only MoMoException subclasses are passed by the caller
+	try:
+		retval = f(*convargs, **convkw)
+	except MoMoException as e:
+		raise e
+	except Exception as unknown:
+		raise APIError(str(unknown.args))
+
+	return retval
 
 def _process_arg(f, arg, value):
 	"""
@@ -79,28 +87,45 @@ def _parse_validators(type, valids):
 	return outvals
 
 def get_spec(f):
+	if inspect.isclass(f):
+		f = f.__init__
+
 	spec = inspect.getargspec(f)
 
 	if spec.defaults is None:
-		numpos = len(spec.args)
+		numreq = len(spec.args)
 	else:
-		numpos = len(spec.args) - len(spec.defaults)
+		numreq = len(spec.args) - len(spec.defaults)
 
 	#If the first argument is self, don't return it
 	start = 0
-	if numpos > 0 and spec.args[0] == 'self':
+	if numreq > 0 and spec.args[0] == 'self':
 		start = 1
 
-	posargs = set(spec.args[1:numpos])
-	kwargs = set(spec.args[numpos:])
+	reqargs = spec.args[start:numreq]
+	optargs = set(spec.args[numreq:])
 
-	return posargs, kwargs
+	return reqargs, optargs
+
+def spec_filled(req, opt, pos, kw):
+	left = filter(lambda x: x not in kw, pos)
+	left = req[len(left):]
+
+	if len(left) == 0:
+		return True
+
+	return False
 
 def get_signature(f):
 	"""
 	Return the pretty signature for this function:
 	foobar(type arg, type arg=val, ...)
 	"""
+
+	name = f.__name__
+
+	if inspect.isclass(f):
+		f = f.__init__
 
 	spec = inspect.getargspec(f)
 	num_args = len(spec.args)
@@ -114,6 +139,9 @@ def get_signature(f):
 	args = []
 	for i in xrange(0, len(spec.args)):
 		typestr = ""
+		if i == 0 and spec.args[i] == 'self':
+			continue
+
 		if spec.args[i] in f.types:
 			typestr = "%s " % f.types[spec.args[i]]
 
@@ -126,7 +154,7 @@ def get_signature(f):
 		else:
 			args.append(typestr + str(spec.args[i]))
 
-	return "%s(%s)" % (f.__name__, ", ".join(args))
+	return "%s(%s)" % (name, ", ".join(args))
 
 def print_help(f):
 	sig = get_signature(f)
@@ -138,27 +166,49 @@ def print_help(f):
 	if doc is not None:
 		print doc
 
-	print "Arguments:"
-	#TODO: Finish printing arguments with descriptions
+	if inspect.isclass(f):
+		f = f.__init__
+
+	print "\nArguments:"
+	for key in f.params.iterkeys():
+		type = f.types[key]
+		desc = ""
+		if key in f.param_descs:
+			desc = f.param_descs[key]
+
+		print " - %s (%s): %s" % (key, type, desc)
 
 def print_retval(f, value):
-	if f.retval.printer[0] is not None:
+	if not hasattr(f, 'retval'):
+		print str(value)
+	elif f.retval.printer[0] is not None:
 		f.retval.printer[0](value)
 	elif f.retval.desc != "":
 		print "%s: %s" % (f.retval.desc, str(value))
 
 def find_all(container):
-	names = dir(container)
+	if isinstance(container, dict):
+		names = container.keys()
+	else:
+		names = dir(container)
+	
 	context = {}
 
 	for name in names:
-		obj = getattr(container, name)
+		#Ignore __ names
+		if name.startswith('__'):
+			continue
+
+		if isinstance(container, dict):
+			obj = container[name]
+		else:
+			obj = getattr(container, name)
 		if hasattr(obj, 'annotated'):
 			context[name] = obj
 
 	return context
 
-def returns_data(f):
+def check_returns_data(f):
 	if not hasattr(f, 'retval'):
 		return False
 
@@ -167,12 +217,7 @@ def returns_data(f):
 #Decorator
 def param(name, type, *validators, **kwargs):
 	def _param(f):
-		if not hasattr(f, 'params'):
-			f.params = {}
-		if not hasattr(f, 'valids'):
-			f.valids = {}
-		if not hasattr(f, 'types'):
-			f.types = {}
+		f = annotated(f)
 
 		if not hasattr(types, type):
 			raise AttributeError('Unknown parameter type: %s' % str(type))
@@ -180,7 +225,9 @@ def param(name, type, *validators, **kwargs):
 		f.params[name] = getattr(types, type)
 		f.types[name] = type
 		f.valids[name] = _parse_validators(f.params[name], validators)
-		f.annotated = True
+
+		if 'desc' in kwargs:
+			f.param_descs[name] = kwargs['desc']
 
 		return decorator(_check_and_execute, f)
 
@@ -188,23 +235,57 @@ def param(name, type, *validators, **kwargs):
 
 def returns(desc=None, printer=None, data=False):
 	def _returns(f):
+		annotated(f)
+
 		f.retval = namedtuple("ReturnValue", ["desc", "printer", "data"])
 		f.retval.desc = desc
 		f.retval.printer = (printer,)
 		f.retval.data = data
 
-		if not hasattr(f, 'params'):
-			f.params = {}
-		if not hasattr(f, 'valids'):
-			f.valids = {}
-		if not hasattr(f, 'types'):
-			f.types = {}
-
-		f.annotated = True
 		return f
 
 	return _returns
 
+def returns_data(desc=None, printer=None):
+	return returns(desc, printer, data=True)
+
+def context(name):
+	def _context(cls):
+		annotated(cls)
+		cls.context = True
+		cls._annotated_name = name
+		return cls
+
+	return _context
+
+def finalizer(f):
+	"""
+	Indicate that this function destroys the context in which it is invoked, such as a quit method
+	on a subprocess or a delete method on an object.
+	"""
+
+	f = annotated(f)
+	f.finalizer = True
+	return f
+
+def context_name(context):
+	"""
+	Given a context, return its proper name
+	"""
+
+	if hasattr(context, "_annotated_name"):
+		return context._annotated_name
+	elif inspect.isclass(context):
+		return context.__class__.__name__
+
+	return str(context)
+
+def takes_cmdline(f):
+	f = annotated(f)
+	f.takes_cmdline = True
+
+	return f
+	
 def annotated(f):
 	if not hasattr(f, 'params'):
 		f.params = {}
@@ -212,7 +293,11 @@ def annotated(f):
 		f.valids = {}
 	if not hasattr(f, 'types'):
 		f.types = {}
+	if not hasattr(f, 'param_descs'):
+		f.param_descs = {}
 
 	f.annotated = True
+	f.finalizer = False
+	f.takes_cmdline = False
 	return f
 

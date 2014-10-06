@@ -1,16 +1,14 @@
 #unit_test12.py
 
-from unit_test import UnitTest
-from utilities import MIB12Config
+import unit_test
 import pic12_unit
 
-class Pic12UnitTest (UnitTest):
+class Pic12UnitTest (unit_test.UnitTest):
 	def __init__(self, files):
-		self.conf = MIB12Config()		#must come before __init__ to superclass since that calls _parse_target
-		UnitTest.__init__(self, files)
+		unit_test.UnitTest.__init__(self, files)
 
 	def _parse_target(self, target):
-		return self.conf.get_chip_name(target)
+		return target
 
 	def build_target(self, target, summary_env):
 		cmdfile = None
@@ -19,3 +17,6 @@ class Pic12UnitTest (UnitTest):
 			cmdfile = self.cmdfile 
 			
 		pic12_unit.build_unittest(self.files, self.name, target, self.type, summary_env, cmds=cmdfile)
+
+unit_test.known_types['executive'] = Pic12UnitTest
+unit_test.known_types['application'] = Pic12UnitTest

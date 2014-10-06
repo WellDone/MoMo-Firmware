@@ -5,12 +5,13 @@ from SCons.Environment import Environment
 import os
 import os.path
 import utilities
+import pic12
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pymomo.gpysim import log
 from pymomo.hex8 import symbols
 
-def build_unittest(test_files, name, chip, type, summary_env, cmds=None):
+def build_unittest(test_files, name, arch, type, summary_env, cmds=None):
 	"""
 	Build a hex file from the source files test_files for the indicated chip
 	If cmds is passed, replace the generic run command to gpsim with the commands
@@ -18,16 +19,20 @@ def build_unittest(test_files, name, chip, type, summary_env, cmds=None):
 	"""
 
 	env = Environment(tools=['xc8_compiler', 'patch_mib12', 'merge_mib12_app', 'merge_mib12_sym', 'gpsim_runner'], ENV = os.environ)
-	mib12conf = utilities.MIB12Config()
+	env['ARCH'] = arch
 
 	#Configure for app module or exec
 	if type == "executive":
 		orig_name = 'mib12_executive_symbols'
-		mib12conf.config_env_for_app(env, chip)
+		env['ARCH'] = arch.retarget(remove=['exec'], add=['app'])
+		pic12.configure_env_for_xc8(env, force_app=True)
 		test_harness = ['../test/pic12/exec_harness/mib12_exec_unittest.c', '../test/pic12/exec_harness/mib12_api.as', '../test/pic12/exec_harness/mib12_exec_unittest_startup.as', '../test/pic12/gpsim_logging/test_log.as', '../test/pic12/gpsim_logging/test_mib.as']
 	elif type == "application":
 		orig_name = "mib12_app_module_symbols"
-		mib12conf.config_env_for_exec(env, chip)
+
+		env['ARCH'] = arch.retarget(remove=['app'], add=['exec'])
+
+		pic12.configure_env_for_xc8(env, force_exec=True)
 		test_harness = ['../test/pic12/app_harness/mib12_app_unittest.c', '../test/pic12/app_harness/mib12_test_api.as', '../test/pic12/gpsim_logging/test_log.as']
 	else:
 		raise ValueError("Invalid unit test type specified: %s.  Should be executive or application" % type)
@@ -35,7 +40,7 @@ def build_unittest(test_files, name, chip, type, summary_env, cmds=None):
 	orig_symfile = orig_name + '.h'
 	orig_symtab = orig_name + '.stb'
 
-	dirs = mib12conf.build_dirs(chip)
+	dirs = arch.build_dirs()
 
 	builddir = dirs['build']
 	testdir = os.path.join(dirs['test'], name, 'objects')
@@ -49,7 +54,7 @@ def build_unittest(test_files, name, chip, type, summary_env, cmds=None):
 	incs.append('src')
 	incs.append('src/mib')
 	incs.append(testdir)
-	incs.extend(mib12conf.conf["mib12"]["test"]["includes"])
+	incs.extend(arch.property('test_includes', []))
 
 	env['INCLUDE'] += incs
 
@@ -60,11 +65,11 @@ def build_unittest(test_files, name, chip, type, summary_env, cmds=None):
 	symtab = env.merge_mib12_symbols([os.path.join(outdir, 'symbols.stb')], [testee_symtab, os.path.join(testdir, name + '_unit.sym')])
 
 	#Load in all of the xc8 configuration from build_settings
-	sim = mib12conf.chip_def(chip, 'gpsim_proc')
+	sim = arch.property('gpsim_proc')
 
 	env['TESTCHIP'] = sim
 	env['TESTNAME'] = name
-	env['TESTAPPEND'] = mib12conf.get_chip_name(chip)
+	env['TESTAPPEND'] = arch.arch_name()
 	env['EXTRACMDS'] = cmds
 
 	#Must do this in 1 statement so we don't modify test_files
@@ -74,7 +79,7 @@ def build_unittest(test_files, name, chip, type, summary_env, cmds=None):
 	env.Depends(apphex[0], symfile)
 
 	if type == "executive":
-		app_start = env['CHIPINFO'].app_rom[0] + 2
+		app_start = env['CHIP'].app_rom[0] + 2
 		lowhex = env.Command(os.path.join(testdir, 'mib12_executive_local.hex'), os.path.join(builddir, 'mib12_executive_patched.hex'), action='python ../../tools/scripts/patch_start.py %d $SOURCE $TARGET' % app_start)
 		highhex = apphex[0]
 	else:
@@ -136,6 +141,8 @@ def build_unittest_script(target, source, env):
 				f.write(cmd)
 		else:
 			f.write('run\n')
+
+		f.write('quit\n')
 
 def process_unittest_log(target, source, env):
 	"""
