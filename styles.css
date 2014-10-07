@@ -1,0 +1,22 @@
+.content h1 {
+	font-size:1.5em;
+	padding-top:40px;
+}
+.content h1:before {
+	top:-20px;
+}
+.content h2 {
+	font-size:1.3em;
+	padding-top:30px;
+}
+.content h2:before {
+	content: none;
+}
+.content h3 {
+	font-size:1.1em !important;
+}
+.content h4 {
+	border-bottom: none !important;
+	padding-bottom:0px;
+	padding-top:10px;
+}
