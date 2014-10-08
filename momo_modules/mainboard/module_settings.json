@@ -20,7 +20,9 @@
 				"mainboard/src/modules",
 				"mainboard/src/momo",
 				"mainboard/src/util"
-			]
+			],
+
+			"hw_compatibility": "con_v3.1"
 		}
 	},
 

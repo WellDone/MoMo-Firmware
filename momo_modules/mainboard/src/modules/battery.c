@@ -45,7 +45,7 @@ void battery_callback( void* arg )
 		return;
 
 	adc_configure(&batt_adc_config);
-    adc_set_channel(2);
+    adc_set_channel(BATTERY_VOLTAGE_AN);
     last_battery_voltage = adc_convert_one();
 
     //Disable charging if battery voltage is greater than max charge level
@@ -68,7 +68,7 @@ void report_battery()
     unsigned int voltage;
 
     adc_configure(&batt_adc_config);
-    adc_set_channel(2);
+    adc_set_channel(BATTERY_VOLTAGE_AN);
     voltage = adc_convert_one();
 
     bus_slave_return_int16(voltage);

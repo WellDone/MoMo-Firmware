@@ -9,9 +9,10 @@ from pymomo.utilities.typedargs import shell
 from pymomo.utilities.typedargs.exceptions import *
 from pymomo.utilities.typedargs import annotate
 from pymomo.commander.meta import initialization
-from pymomo.hex.hexfile import HexFile
+from pymomo.hex import ControllerBlock, HexFile
 from pymomo.sim.simulator import Simulator
 from pymomo.utilities import build
+
 builtins = ['help', 'back', 'quit']
 
 @annotate.context("root")
@@ -22,6 +23,7 @@ def run_momo():
 	root = InitialContext()
 	root.update(annotate.find_all(initialization))
 	root.update(annotate.find_all(build))
+	root['ControllerBlock'] = ControllerBlock
 	root['HexFile'] = HexFile
 	root['Simulator'] = Simulator
 
