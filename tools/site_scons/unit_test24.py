@@ -18,30 +18,43 @@ class Pic24ModuleTest (UnitTest):
 		UnitTest.__init__(self, files)
 
 		self.includes = []
+		self.processed_dirs = set()
 
-		if self._find_module() == False:
-			found = False
-			for src in self.additional_sources:
-				found = self._find_module(src)
-				if found:
-					break
-
-			if not found:
-				raise InternalError("Could not find module for module unit test %s" % self.name)
-	
-	def _find_module(self, srcdir=None):
+		modname = self._build_module_name(files[0])
+		self._find_module(modname)
+		for name in self.extra_modules:
+			self._find_module(name)
+		
+	def _build_module_name(self, testfile):
 		testfile = os.path.basename(self.files[0])
 		if not testfile.startswith('test_'):
 			raise InternalError('Module unit test does not have an appropriate filename: %s' % testfile)
 
+		modname = os.path.splitext(testfile)[0][5:]
+		return modname
+	
+	def _find_module(self, modname):
+		if self._find_in_dir(modname) == False:
+			found = False
+			for src in self.additional_sources:
+				found = self._find_in_dir(modname, src)
+				if found:
+					break
+
+			if not found:
+				raise InternalError("Could not find module %s for module unit test %s" % (modname, self.name))
+
+	def _find_in_dir(self, modname, srcdir=None):
 		if srcdir is None:
 			testdir = os.path.dirname(self.files[0])
 			srcdir = os.path.abspath(os.path.join(testdir, '..', 'src'))
 
 		incdirs, sources, headers = find_sources(srcdir)
-		self.includes += incdirs
+		normsrc = os.path.normpath(srcdir)
 
-		modname = os.path.splitext(testfile)[0][5:]
+		if normsrc not in self.processed_dirs:
+			self.includes += incdirs
+			self.processed_dirs.add(normsrc)
 
 		if modname not in sources:
 			return False
@@ -53,6 +66,7 @@ class Pic24ModuleTest (UnitTest):
 		return target
 
 	def build_target(self, target, summary_env):
-		pic24.build_moduletest(self, target)
+		statusnode = pic24.build_moduletest(self, target)
+		summary_env['TESTS'].append(statusnode)
 			
 unit_test.known_types['module'] = Pic24ModuleTest

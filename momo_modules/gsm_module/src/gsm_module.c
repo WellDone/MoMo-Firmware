@@ -4,15 +4,16 @@
 #include "gsm_serial.h"
 #include "gsm_strings.h"
 #include "global_state.h"
+#include "port.h"
 #include <xc.h>
 
 void gsm_reset()
 {
-	MAKE_ANALOG(MODULEPOWERPIN);
-	SET_DIRECTION(GSMPOWERPIN, 1);
-	MAKE_ANALOG(GSMSTATUSPIN);
+	ANALOG_IF_POSSIBLE(MODULEPOWERPIN);
+	PIN_DIR(GSMPOWERPIN, 1);
+	ANALOG_IF_POSSIBLE(GSMSTATUSPIN);
 
-	MAKE_ANALOG(GSMRESETPIN);
+	ANALOG_IF_POSSIBLE(GSMRESETPIN);
 
 	state.module_on = 0;
 	state.shutdown_pending = 0;
@@ -30,13 +31,13 @@ void gsm_init()
 
 uint8 gsm_on()
 {
-	SET_DIRECTION(GSMSTATUSPIN, 1);
-	MAKE_DIGITAL(GSMSTATUSPIN);
-	MAKE_DIGITAL(GSMRESETPIN);
-	SET_DIRECTION(GSMRESETPIN, 1);
-	SET_LEVEL(GSMRESETPIN, 1);
+	PIN_DIR(GSMSTATUSPIN, 1);
+	ENSURE_DIGITAL(GSMSTATUSPIN);
+	ENSURE_DIGITAL(GSMRESETPIN);
+	PIN_DIR(GSMRESETPIN, 1);
+	PIN_SET(GSMRESETPIN, 1);
 
-	MAKE_DIGITAL(MODULEPOWERPIN);
+	ENSURE_DIGITAL(MODULEPOWERPIN);
 
 	//If power to the module has not been enabled, do so.
 	if (PIN(MODULEPOWERPIN) == 0)
@@ -52,7 +53,7 @@ uint8 gsm_on()
 
 		DRIVE_LOW(GSMPOWERPIN);
 		__delay_ms(1200);
-		SET_DIRECTION(GSMPOWERPIN, 1);
+		PIN_DIR(GSMPOWERPIN, 1);
 		__delay_ms(3000);
 
 		open_gsm_module();

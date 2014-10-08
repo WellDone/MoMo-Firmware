@@ -13,6 +13,7 @@
 #include "gsm_module.h"
 #include "global_state.h"
 #include "simcard.h"
+#include "port.h"
 
 #define _XTAL_FREQ			4000000
 

@@ -12,6 +12,11 @@
 
 void enable_serial()
 {
+	#ifdef ALTERNATE_SERIAL
+	RXDTSEL = 1;
+	TXCKSEL = 1;
+	#endif
+
 	TXEN = 1;
 	SYNC = 0;
 	SPEN = 1;

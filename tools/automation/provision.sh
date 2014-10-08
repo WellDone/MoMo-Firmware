@@ -5,7 +5,7 @@ die() { echo "$@" 1>&2; exit 1; }
 apt-get update
 apt-get install -y python python-setuptools python-dev libc6:i386 lib32stdc++6 gpsim
 
-easy_install cmdln ZODB3 colorama pyparsing intelhex BeautifulSoup4 Cheetah pyserial pytest decorator
+easy_install cmdln ZODB3 colorama pyparsing intelhex BeautifulSoup4 Cheetah pyserial pytest decorator pycparser
 
 if [ -n "$TRAVIS" ]; then
 	MOMOROOT=`pwd`

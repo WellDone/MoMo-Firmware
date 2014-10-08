@@ -6,6 +6,8 @@ def build_summary_cmd(target, source, env):
 	sources should point to an array of strings corresponding to .status files.
 	"""
 
+	some_failed = False
+
 	targets = {}
 
 	for node in source:
@@ -13,7 +15,7 @@ def build_summary_cmd(target, source, env):
 
 		name, targ, ext = parse_name(path)
 		if ext != '.status':
-			print "Ignore non-status file %s, this file should not be in this list" % path
+			print "Ignoring non-status file %s, this file should not be in this list" % path
 
 		if targ not in targets:
 			targets[targ] = []
@@ -33,12 +35,22 @@ def build_summary_cmd(target, source, env):
 
 			num_passed = len(passed)
 
+			if num_passed != num_tests:
+				some_failed = True
+
 			f.write("\n## Target %s ##\n" % targ)
 			f.write("%d/%d tests passed (%d%% pass rate)\n" % (num_passed, num_tests, (num_passed*100/num_tests)))
 
 			for fail in failed:
 				f.write("Test %s FAILED\n" % fail[0][0])
 
+	with open(str(target[0]), "r") as f:
+		for line in f.readlines():
+			print line.rstrip()
+
+	#Raise a build error if some tests failed
+	if some_failed:
+		return 1
 
 def test_passed(path):
 	with open(path, 'r') as f:
@@ -56,6 +68,6 @@ def parse_name(path):
 	base = os.path.basename(path)
 	(name, ext) = os.path.splitext(base)
 
-	(name, target) = name.rsplit('_', 1)
+	(name, target) = name.split('@', 1)
 
 	return (name, target, ext)
