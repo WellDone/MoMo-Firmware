@@ -1,0 +1,14 @@
+{
+	"modules":
+	{
+		"multi_sensor_module":
+		{
+
+		}
+	},
+
+	"module_targets":
+	{
+		"multi_sensor_module" : ["16lf1847/app"]
+	}
+}

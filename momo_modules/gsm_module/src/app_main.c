@@ -11,6 +11,7 @@
 #include "global_state.h"
 #include "gsm_strings.h"
 #include "timer1.h"
+#include "port.h"
 
 #define SHUTDOWN_TIMEOUT 240 //One minute, in half seconds
 
@@ -89,14 +90,14 @@ void gsm_module_off()
 
 void gsm_power_on()
 {
-	MAKE_DIGITAL(MODULEPOWERPIN);
+	ENSURE_DIGITAL(MODULEPOWERPIN);
 	DRIVE_HI(MODULEPOWERPIN);
 	bus_slave_setreturn(pack_return_status(0,0));
 }
 
 void gsm_power_off()
 {
-	MAKE_DIGITAL(MODULEPOWERPIN);
+	ENSURE_DIGITAL(MODULEPOWERPIN);
 	DRIVE_LOW(MODULEPOWERPIN);
 	bus_slave_setreturn(pack_return_status(0,0));	
 }

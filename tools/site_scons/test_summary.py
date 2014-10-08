@@ -13,7 +13,7 @@ def build_summary_cmd(target, source, env):
 
 		name, targ, ext = parse_name(path)
 		if ext != '.status':
-			print "Ignore non-status file %s, this file should not be in this list" % path
+			print "Ignoring non-status file %s, this file should not be in this list" % path
 
 		if targ not in targets:
 			targets[targ] = []
@@ -56,6 +56,6 @@ def parse_name(path):
 	base = os.path.basename(path)
 	(name, ext) = os.path.splitext(base)
 
-	(name, target) = name.rsplit('_', 1)
+	(name, target) = name.split('@', 1)
 
 	return (name, target, ext)

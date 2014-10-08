@@ -8,7 +8,7 @@ import unit_test
 import unit_test12
 from SCons.Script import *
 
-def autobuild_pic12(module, test_dir='test'):
+def autobuild_pic12(module, test_dir='test', modulefile=None):
 	"""
 	Build the given module for all targets and build all unit tests.
 	targets are determined from /config/build_settings.json using
@@ -16,7 +16,7 @@ def autobuild_pic12(module, test_dir='test'):
 	using their builtin metadata
 	"""
 	
-	family = utilities.get_family('mib12')
+	family = utilities.get_family('mib12', modulefile=modulefile)
 	family.for_all_targets(module, lambda x: pic12.build_module(module, x))
 	
 	unit_test.build_units(test_dir, family.targets(module))
@@ -30,7 +30,7 @@ def autobuild_pic24(module, test_dir='test', modulefile=None):
 	Build the given pic24 module for all targets.
 	"""
 
-	family = utilities.get_family('mib24', modulefile)
+	family = utilities.get_family('mib24', modulefile=modulefile)
 	family.for_all_targets(module, lambda x: pic24.build_module(module, x))
 
 	Alias('release', os.path.join('build', 'output'))

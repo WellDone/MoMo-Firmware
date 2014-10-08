@@ -3,38 +3,38 @@
 #ifndef __gsm_defines_h__
 #define __gsm_defines_h__
 
+#include "port.h"
+
 #define _XTAL_FREQ			4000000
 
-#define MODULEPOWERPIN 	A4
+#ifndef MODULEPOWERPIN
+#error You must define MODULEPOWERPIN in moudle_settings.json
+#endif
 
-#define GSMPOWERPIN		A5
+#ifndef GSMPOWERPIN
+#error You must define GSMPOWERPIN in moudle_settings.json
+#endif
 
-#define GSMRESETPIN		C3
+#ifndef GSMRESETPIN
+#error You must define GSMRESETPIN in moudle_settings.json
+#endif
 
-#define GSMSTATUSPIN	C2
+#ifndef GSMSTATUSPIN
+#error You must define GSMSTATUSPIN in moudle_settings.json
+#endif
 
-#define SIMDET_POW		A1
+#ifndef SIMDET_POW
+#error You must define SIMDET_POW in moudle_settings.json
+#endif
 
-#define SIMDET_SENSE	A0
-
+#ifndef SIMDET_SENSE
+#error You must define SIMDET_SENSE in moudle_settings.json
+#endif
 
 #define set_powerpin(v)	POWERPIN=v
 
-//Useful Macros
-#define MAKE_ANALOGR(pin)	{ANS##pin = 1; TRIS##pin = 1;}
-#define MAKE_DIGITALR(pin)	ANS##pin = 0
-#define SET_DIRECTIONR(pin, val) TRIS##pin = val
-#define SET_LEVELR(pin, val)	 LAT##pin = val
-#define PINR(pin)			 R##pin
-
-#define DRIVE_LOWR(pin)		{SET_LEVEL(pin, 0); SET_DIRECTION(pin, 0);}
-#define DRIVE_HIR(pin)		{SET_LEVEL(pin, 1); SET_DIRECTION(pin, 0);}
-
-#define MAKE_ANALOG(pin)	MAKE_ANALOGR(pin)
-#define MAKE_DIGITAL(pin)	MAKE_DIGITALR(pin)
-#define SET_DIRECTION(pin, val) SET_DIRECTIONR(pin, val)
-#define SET_LEVEL(pin, val)	 SET_LEVELR(pin, val)
-#define PIN(pin)			 PINR(pin)
+#define DRIVE_LOWR(pin)		{PIN_SET(pin, 0); PIN_DIR(pin, 0);}
+#define DRIVE_HIR(pin)		{PIN_SET(pin, 1); PIN_DIR(pin, 0);}
 
 #define DRIVE_LOW(pin)		DRIVE_LOWR(pin)
 #define DRIVE_HI(pin)		DRIVE_HIR(pin)

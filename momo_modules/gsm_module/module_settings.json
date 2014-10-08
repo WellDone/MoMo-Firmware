@@ -1,0 +1,41 @@
+{
+	"module_targets":
+	{
+		"gsm_module": ["16lf1823/app/v4", "16lf1847/app/v5"]
+	},
+
+	"architectures":
+	{
+		"v4":
+		{
+			"defines":
+			{
+				"MODULEPOWERPIN": "A4",
+				"GSMPOWERPIN": "A5",
+				"GSMRESETPIN": "C3",
+				"GSMSTATUSPIN": "C2",
+				"SIMDET_POW": "A1",
+				"SIMDET_SENSE": "A0"
+			}
+		},
+
+		"v5":
+		{
+			"defines":
+			{
+				"MODULEPOWERPIN": "A4",
+				"GSMPOWERPIN": "A3",
+				"GSMRESETPIN": "B3",
+				"GSMSTATUSPIN": "A7",
+				"SIMDET_POW": "A0",
+				"SIMDET_SENSE": "A1",
+				"ALTERNATE_SERIAL": 1
+			}
+		}
+	},
+
+	"modules":
+	{
+		"gsm_module": {}
+	}
+}
