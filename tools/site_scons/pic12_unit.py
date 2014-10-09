@@ -118,7 +118,7 @@ def build_unittest_script(target, source, env):
 	Build a gpsim script to execute this unit test
 	"""
 
-	logfile = env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.raw'
+	logfile = env['TESTNAME'] + '@' + env['TESTAPPEND'] + '.raw'
 
 	sim = env['TESTCHIP']
 	name = env['TESTNAME']
@@ -157,11 +157,11 @@ def build_summary_name():
 	return os.path.join('build', 'test', 'output', 'results.txt')
 
 def build_logfile_name(env):
-	return env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.raw'
+	return env['TESTNAME'] + '@' + env['TESTAPPEND'] + '.raw'
 
 def build_formatted_log_name(env):
-	return os.path.join('build', 'test', 'output', 'logs', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.log')
+	return os.path.join('build', 'test', 'output', 'logs', env['TESTNAME'] + '@' + env['TESTAPPEND'] + '.log')
 
 def build_status_name(env):
-	return os.path.join('build', 'test', 'output', 'logs', env['TESTNAME'] + '_' + env['TESTAPPEND'] + '.status')
+	return os.path.join('build', 'test', 'output', 'logs', env['TESTNAME'] + '@' + env['TESTAPPEND'] + '.status')
 

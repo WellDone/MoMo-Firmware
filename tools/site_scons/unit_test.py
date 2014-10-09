@@ -255,4 +255,4 @@ def build_summary_name():
 	return os.path.join('build', 'test', 'output', 'results.txt')
 
 def build_summary(env):
-	env.Command([build_summary_name()], env['TESTS'], action=test_summary.build_summary_cmd)
+	env.Command([build_summary_name()], env['TESTS'], action=env.Action(test_summary.build_summary_cmd, "Creating test summary"))
