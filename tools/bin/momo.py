@@ -26,6 +26,10 @@ def run_momo():
 	root['Simulator'] = Simulator
 
 	line = sys.argv[1:]
+	interactive = False
+	if len(line) > 0 and ( line[0] == '-i' or line[0] == '--interactive' ):
+		interactive = True
+		line = line[1:]
 	finished = False
 	contexts = [root]
 
@@ -33,6 +37,7 @@ def run_momo():
 		while len(line) > 0:
 			line, finished = shell.invoke(contexts, line)
 	except MoMoException as e:
+		finished = True
 		print e.format()
 
 	#Setup file path and function name completion
@@ -49,8 +54,12 @@ def run_momo():
 	readline.parse_and_bind("tab: complete")
 	readline.set_completer(complete)
 
-	#If we ended the initial command with a context, start a shell
+	#If we're in "interactive" mode and ended the initial command with a context, start a shell
 	if not finished:
+		if not interactive:
+			shell.invoke(contexts, ['help'])
+			return 1
+
 		try:
 			while True:
 				linebuf = raw_input("(%s) " % annotate.context_name(contexts[-1]))
@@ -65,7 +74,7 @@ def run_momo():
 					print e.format()
 
 				if len(contexts) == 0:
-					sys.exit(0)
+					return 0
 
 		#Make sure to catch ^C and ^D so that we can cleanly dispose of subprocess resources if 
 		#there are any.
