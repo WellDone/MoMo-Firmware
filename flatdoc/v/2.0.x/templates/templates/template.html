@@ -22,13 +22,12 @@
 
   <!-- Flatdoc -->
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script src='flatdoc/v/2.0.x/legacy.js'></script>
-  <script src='flatdoc/v/2.0.x/flatdoc.js'></script>
+  <script src='http://rstacruz.github.io/flatdoc/v/0.8.6/legacy.js'></script>
+  <script src='http://rstacruz.github.io/flatdoc/v/0.8.6/flatdoc.js'></script>
 
   <!-- Flatdoc theme -->
-  <link  href='flatdoc/v/2.0.x/theme-white/style.css' rel='stylesheet'>
-  <link  href='styles.css' rel='stylesheet'>
-  <script src='flatdoc/v/2.0.x/theme-white/script.js'></script>
+  <link  href='http://rstacruz.github.io/flatdoc/v/0.8.6/theme-white/style.css' rel='stylesheet'>
+  <script src='http://rstacruz.github.io/flatdoc/v/0.8.6/theme-white/script.js'></script>
 
   <!-- Meta -->
   <meta content="Your Project" property="og:title">
@@ -37,32 +36,23 @@
   <!-- Initializer -->
   <script>
     Flatdoc.run({
-      fetcher: Flatdoc.github('WellDone/MoMo-Firmware', 'doc')
-      // fetcher: Flatdoc.file([
-      //   'doc/00-intro.md',
-      //   'doc/01-core.md',
-      //   'doc/02-modules.md',
-      //   'doc/20-Tutorials.md',
-      //   'doc/21-DeviceConnection.md',
-      //   'doc/90-Contributing.md',
-      //   'doc/99-license.md'
-      //   ])
+      fetcher: Flatdoc.github('USER/REPO')
     });
   </script>
 </head>
-<body role='flatdoc' class='no-literate large-brief'>
+<body role='flatdoc'>
 
   <div class='header'>
     <div class='left'>
-      <h1>WellDone Mobile Monitor</h1>
+      <h1>Your Project</h1>
       <ul>
-        <li><a href='https://github.com/WellDone/MoMo-Firmware'>View on GitHub</a></li>
-        <li><a href='https://github.com/WellDone/MoMo-Firmware/issues'>Issues</a></li>
+        <li><a href='https://github.com/USER/REPO'>View on GitHub</a></li>
+        <li><a href='https://github.com/USER/REPO/issues'>Issues</a></li>
       </ul>
     </div>
     <div class='right'>
       <!-- GitHub buttons: see http://ghbtns.com -->
-      <iframe src="http://ghbtns.com/github-btn.html?user=WellDone&amp;repo=MoMo-Firmware&amp;type=watch&amp;count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>
+      <iframe src="http://ghbtns.com/github-btn.html?user=USER&amp;repo=REPO&amp;type=watch&amp;count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>
     </div>
   </div>
 

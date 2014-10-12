@@ -808,6 +808,7 @@ a.big.button:hover:visited {
 }
 .menu a.level-2 {
   font-weight: normal;
+  padding-left: 10px;
 }
 .menu a.level-3 {
   font-weight: normal;
