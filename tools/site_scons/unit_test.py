@@ -13,6 +13,7 @@ class UnitTest:
 	def __init__(self, files):
 		self.files = files
 		self.additional_sources = []
+		self.extra_modules = []
 		self.desc = ''
 		self.targets = None
 
@@ -46,10 +47,35 @@ class UnitTest:
 
 		testdir = os.path.join(basedirs['test'], self.name, 'objects')
 		outdir = os.path.join(basedirs['test'], self.name)
-		finaldir = os.path.join(basedirs['test'], 'ouput')
+		finaldir = os.path.join('build', 'test', 'output')
 		logdir = os.path.join(finaldir, 'logs')
 
-		return {'test':outdir, 'objects': testdir}
+		return {'test':outdir, 'objects': testdir, 'logs': logdir}
+
+	def get_path(self, obj, chip):
+		"""
+		Get the canonical path for various build products of the unit test.  Currently understands:
+		- rawlog: the raw output from the simulator run
+		- log: the processed version of rawlog into a standard format
+		"""
+
+		dirs = self.build_dirs(chip)
+
+		if obj == 'rawlog':
+			name = self.name + '@' + chip.arch_name() + '.raw'
+			return os.path.join(dirs['objects'], name)
+		elif obj == 'log':
+			name = self.name + '@' + chip.arch_name() + '.log'
+			return os.path.join(dirs['logs'], name)
+		elif obj == 'status':
+			name = self.name + '@' + chip.arch_name() + '.status'
+			return os.path.join(dirs['logs'], name)
+		elif obj == 'elf':
+			name = self.name + '.elf'
+			return os.path.join(dirs['objects'], name)
+		else:
+			raise BuildError("Path to unknown build product asked for", unit_test=self.name, object=obj, arch=chip.name)
+
 
 	def build_target(self, target, summary_env):
 		raise ValueError('The build_target method must be overriden by a UnitTest subclass')
@@ -162,6 +188,14 @@ class UnitTest:
 					self._parse_sources(val)
 				elif name == 'type':
 					self.type = val
+				elif name == 'modules':
+					self._parse_modules(val)
+
+		#Make sure that all of the right information has been found
+		required_attributes = ['name', 'type']
+		for attr in required_attributes:
+			if not hasattr(self, attr):
+				raise BuildError("test does not have a complete header", file=file, missing_attribute=attr)
 
 	def _parse_target(self, value):
 		return value
@@ -174,6 +208,16 @@ class UnitTest:
 		basedir = os.path.dirname(self.files[0])
 		srcpath = os.path.normpath(os.path.join(basedir, value))
 		self.additional_sources.append(srcpath)
+
+	def _parse_modules(self, value):
+		"""
+		For module unit tests where the test just compiles one or several modules, allow
+		the user to specify extra modules that need to be compiled in.
+		"""
+
+		parsed = value.split(',')
+		files = map(lambda x: x.rstrip().lstrip(), parsed)
+		self.extra_modules = files
 
 	def _parse_additional(self, value):
 		"""
@@ -255,4 +299,4 @@ def build_summary_name():
 	return os.path.join('build', 'test', 'output', 'results.txt')
 
 def build_summary(env):
-	env.Command([build_summary_name()], env['TESTS'], action=test_summary.build_summary_cmd)
+	env.Command([build_summary_name()], env['TESTS'], action=env.Action(test_summary.build_summary_cmd, "Creating test summary"))

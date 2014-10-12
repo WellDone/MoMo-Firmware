@@ -19,7 +19,7 @@ def xc16_generator(source, target, env, for_signature):
 	arch = env['ARCH']
 
 	#Build up the command line
-	args = ['xc16-gcc --verbose']
+	args = ['xc16-gcc']
 	args.extend(['-mcpu=%s' % arch.property('chip')])
 	args.extend([str(x) for x in source])
 	args.extend(['-o %s' % (str(target[0]))])

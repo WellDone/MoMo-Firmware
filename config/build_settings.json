@@ -84,22 +84,6 @@
 			}
 		},
 
-		"modules":
-		{
-			"gsm_module": {},
-			"pv_module": {},
-			"multi_sensor_module": {},
-			"pic12_executive": {}
-		},
-
-		"module_targets" :
-		{
-			"gsm_module": ["16lf1823/app"],
-			"pv_module": ["16lf1847/app"],
-			"multi_sensor_module": ["16lf1847/app"],
-			"pic12_executive": ["16lf1847/exec", "16lf1823/exec", "12lf1822/exec"]
-		},
-
 		"mib" :
 		{
 			"current_version": 1,
@@ -126,7 +110,7 @@
 		{
 			"cflags": ["-Wall", "-O1"],
 			"asflags": ["-Wall", "--no-relax"],
-			"ldflags": ["-Wl","--check-sections","--data-init","--pack-data","--handles","--isr","--gc-sections","--fill-upper=0","--stackguard=16","--no-force-link","--smart-io","--report-mem"],
+			"ldflags": ["-Wl","--check-sections","--data-init","--pack-data","--handles","--isr","--gc-sections","--fill-upper=0","--stackguard=16","--no-force-link","--smart-io"],
 			"libdirs": ["../shared/pic24/build/output"],
 			"includes":
 			[
@@ -151,7 +135,10 @@
 			{
 				"defines":
 				{
-					"__TEST__": 1
+					"__TEST__": 1,
+					"__NO_FLASH__": 1,
+					"UNITY_POINTER_WIDTH": 16,
+					"UNITY_INT_WIDTH": 16
 				},
 
 				"test_includes":

@@ -3,6 +3,7 @@ from SCons.Environment import Environment
 import sys
 import os.path
 from utilities import BufferedSpawn
+from cfileparser import ParsedCFile
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pymomo.utilities.paths import MomoPaths
@@ -76,37 +77,100 @@ def build_moduletest(test, arch):
 	the given architecture.
 	"""
 
-	arch = arch.retarget(add=['test'])
+	rawlog = '#' + test.get_path('rawlog', arch)
+	outlog = '#' + test.get_path('log', arch)
+	statusfile = '#' + test.get_path('status', arch)
+	elffile = '#' + test.get_path('elf', arch)
 
 	build_dirs = test.build_dirs(arch)
 	objdir = build_dirs['objects']
 
+	arch = arch.retarget(add=['test'])
+
 	unit_env = Environment(tools=['xc16_compiler', 'xc16_assembler', 'xc16_linker'], ENV = os.environ)
+	tester_env = Environment(tools=['xc16_compiler' ], ENV = os.environ)
 	unit_env['ARCH'] = arch
+	tester_env['ARCH'] = arch
 	unit_env['OUTPUT'] = '%s.elf' % test.name
 
 	objs = []
 	for src in test.files + arch.extra_sources():
 		name,ext = os.path.splitext(os.path.basename(src))
 		target = os.path.join(objdir, name + '.o')
-		objs.append(unit_env.xc16_gcc('#' + target, src))
 
-	unit_env.xc16_ld(os.path.join('#' + build_dirs['test'], unit_env['OUTPUT']), objs)
-	#unit_env.Command(['#'])
+		if src == test.files[0]:
+			objs.append(tester_env.xc16_gcc('#' + target, src))
+		else:
+			objs.append(unit_env.xc16_gcc('#' + target, src))
 
-# def run_unit_test(test_elf, arch, logfile, statusfile):
-# 	sim = Simulator('pic24')
-# 	sim.set_param('model', arch['simulator_model'])
-# 	sim.load(test_elf)
-# 	sim.attach_log()
-# 	sim.execute()
+	#Generate main.c programmatically to run the test
+	main_src = '#' + os.path.join(objdir, 'main.c')
+	main_target = '#' + os.path.join(objdir, 'main.o')
+	unit_env.Command(main_src, test.files[0], action=unit_env.Action(build_moduletest_main, "Creating test runner"))
+	objs.append(unit_env.xc16_gcc(main_target, main_src))
 
-# 	try:
-# 		sim.wait(5)
-# 		sim.finish()
-# 		logdata = sim.get_log()
-# 	except TimeoutError:
-# 		logdata = 'Test timed out (5 second timeout)'
+	#Link the test, run it and build a status file
+	unit_env.xc16_ld(elffile, objs)
+	unit_env.Command(outlog, elffile, action=unit_env.Action(r"picunit %s '%s' '%s'" % (arch.property('simulator_model'), elffile[1:], outlog[1:]), "Running unit test")) 
+	unit_env.Command(statusfile, outlog, action=unit_env.Action(process_log, 'Processing log file'))
 
-# 	with open(logfile) as f:
-# 		f.write(logdata)
+	return statusfile
+
+mainscript = """
+int main(void)
+{
+	U1MODEbits.UARTEN = 1; //Enable the uart
+	U1STAbits.UTXEN = 1; //Enable transmission
+
+	UnityBegin("test/TESTNAME");
+
+	if (TEST_PROTECT())
+	{
+TESTCALLS
+	}
+
+	UnityEnd();
+
+	return 0;
+}
+"""
+
+def build_moduletest_main(target, source, env):
+	"""
+	Given a module test file, parse it using pycparser, extract all function definitions
+	that begin with test_ and then build a main.c file at target containing a test runner
+	that calls those functions.
+	"""
+
+	name = os.path.basename(str(source[0]))
+
+	srcpath = str(source[0])
+	parsed = ParsedCFile(srcpath, env['ARCH'])
+	funcs = parsed.defined_functions(criterion=lambda x: x.startswith('test_'))
+
+	testcalls = ""
+	testprotos = ""
+	for func in funcs:
+		testprotos += 'void %s(void);\n' % func
+		testcalls += "\t\tRUN_TEST(%s);\n" % func
+
+	with open(str(target[0]), "w")as f:
+		f.write('#include "unity.h"\n')
+		f.write('#include <xc.h>\n\n')
+		f.write(testprotos)
+
+		script = mainscript.replace('TESTNAME', name).replace('TESTCALLS', testcalls)
+		f.write(script)
+
+def process_log(target, source, env):
+	with open(str(source[0]), "r") as log:
+		log.seek(-3, os.SEEK_END)
+		status = log.read(2)
+	
+	with open(str(target[0]), "w") as statfile:
+		msg = "FAILED"
+		if status == "OK":
+			msg = 'PASSED'
+
+		statfile.write(msg)
+

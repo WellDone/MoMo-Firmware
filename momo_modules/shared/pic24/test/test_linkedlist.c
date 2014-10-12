@@ -1,5 +1,6 @@
 //Name: test_linkedlist
 //Type: module
+
 #include "unity.h"
 #include "linkedlist.h"
 #include <xc.h>
@@ -34,22 +35,4 @@ void test_linkedlist()
 	TEST_ASSERT_EQUAL_PTR(list_pop(&head, linked_t), &item3);
 	TEST_ASSERT_NULL(list_pop(&head, linked_t));
 	TEST_ASSERT_NULL(head);
-}
-
-int main(void)
-{
-  U1MODEbits.UARTEN = 1; //Enable the uart
-  U1STAbits.UTXEN = 1; //Enable transmission
-
-  UnityBegin("test/test_linkedlist.c");
-
-  if (TEST_PROTECT() == 0)
-  {
-  	// RUN_TEST calls runTest
-  	RUN_TEST(test_linkedlist);
-  }
-  
-  UnityEnd();
-
-  return 0;
 }

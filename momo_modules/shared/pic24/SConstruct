@@ -7,14 +7,17 @@ import unit_test
 module_name = 'libpic24'
 family_name = 'mib24'
 
+try:
+	#Build for all targets
+	family = utilities.get_family(family_name, 'module_settings.json')
+	family.for_all_targets(module_name, lambda x: pic24.build_library(module_name, x))
 
-#Build for all targets
-family = utilities.get_family(family_name, 'module_settings.json')
-family.for_all_targets(module_name, lambda x: pic24.build_library(module_name, x))
+	#Build all unit tests
+	unit_test.build_units('test', family.targets(module_name))
 
-#Build all unit tests
-unit_test.build_units('test', family.targets(module_name))
-
-Alias('release', os.path.join('build', 'output'))
-Alias('test', os.path.join('build', 'test', 'output'))
-Default('release')
+	Alias('release', os.path.join('build', 'output'))
+	Alias('test', os.path.join('build', 'test', 'output'))
+	Default(['release', 'test'])
+except unit_test.MoMoException as e:
+	print e.format()
+	Exit(1)

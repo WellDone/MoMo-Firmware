@@ -1,7 +1,6 @@
 #ifndef __system_log_h__
 #define __system_log_h__
 
-#ifndef __NO_FLASH__
 /*
 	Debug is the only mode.
 */
@@ -27,6 +26,8 @@ typedef struct
 	uint16 reserved;
 	BYTE data[LOG_ENTRY_SIZE];
 } LogEntry;
+
+#ifndef __NO_FLASH__
 
 void init_system_log( uint8 start_subsection, uint8 subsection_count );
 void write_system_log( LogStream stream, const BYTE* data, uint8 length );
