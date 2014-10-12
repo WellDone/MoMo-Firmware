@@ -1,3 +1,0 @@
-import autobuild
-
-autobuild.autobuild_pic12('pv_module', test_dir='test')
