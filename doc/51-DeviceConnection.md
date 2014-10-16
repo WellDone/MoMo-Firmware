@@ -83,5 +83,4 @@ modtool list -p PORT
 ```
 
 ### Step 4 - Read up on how to use all of the tools
-There is documentation for all of the support tools that help you use MoMo.  Read about them:
-* [[modtool|modtool]]
+There is documentation for all of the support tools that help you use MoMo.  Read about them in the [tools section](#tools)
