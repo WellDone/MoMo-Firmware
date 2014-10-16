@@ -12,7 +12,7 @@ This is the brain of any MoMo unit, and is the only module that is absolutely re
 
 Version 5 of the controller hardware, currently the top of the line, is pictured below.
 
-[A MoMo Controller board](http://welldone.org/wp-content/uploads/2013/12/momo_proto_nosensor.jpg)
+(image needed)
 
 In this picture, the white connector on the left is for the battery and the port on the right is (optionally) for the charging source.
 
