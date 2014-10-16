@@ -27,6 +27,7 @@ def build_module(module_name, chip, postprocess_hex):
 	env.AppendENVPath('PATH','../../tools/scripts')
 	env['ARCH'] = chip
 	env['OUTPUT'] = output_name
+	env['OUTPUT_DIR'] = dirs['build']
 
 	Export('env')
 
@@ -96,6 +97,7 @@ def build_moduletest(test, arch):
 	tester_env = Environment(tools=['xc16_compiler' ], ENV = os.environ)
 	unit_env['ARCH'] = arch
 	tester_env['ARCH'] = arch
+	unit_env['OUTPUT_DIR'] = build_dirs['test']
 	unit_env['OUTPUT'] = '%s.elf' % test.name
 
 	objs = []
