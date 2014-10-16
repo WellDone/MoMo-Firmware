@@ -1,3 +1,4 @@
+set -e
 source $HOME/.profile
 #cd $MOMOROOT/momo_modules/gsm_module && momo build
 #cd $MOMOROOT/momo_modules/pic12_executive && momo build
