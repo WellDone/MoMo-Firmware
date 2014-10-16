@@ -12,6 +12,7 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pymomo.utilities.typedargs.exceptions import *
+import pymomo
 
 def autobuild_pic12(module, test_dir='test', modulefile=None):
 	"""
@@ -34,14 +35,14 @@ def autobuild_pic12(module, test_dir='test', modulefile=None):
 		print e.format()
 		sys.exit(1)
 
-def autobuild_pic24(module, test_dir='test', modulefile=None):
+def autobuild_pic24(module, test_dir='test', modulefile=None, postprocess_hex=None):
 	"""
 	Build the given pic24 module for all targets.
 	"""
 
 	try:
 		family = utilities.get_family('mib24', modulefile=modulefile)
-		family.for_all_targets(module, lambda x: pic24.build_module(module, x))
+		family.for_all_targets(module, lambda x: pic24.build_module(module, x, postprocess_hex=postprocess_hex))
 
 		Alias('release', os.path.join('build', 'output'))
 		Alias('test', os.path.join('build', 'test', 'output'))

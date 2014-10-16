@@ -45,15 +45,19 @@
 
 unsigned int _BOOTLOADER_VAR reflash __attribute__((persistent));
 
+void _BOOTLOADER_CODE flash_alarm(unsigned int length);
+
 int _BOOTLOADER_CODE main(void)
 {
+	ValidationResult metadata_status;
+
 	DIR(ALARM) = INPUT;
 
 	//Allow 100 ms for someone to assert the alarm pin in case this is a
 	//power on reset.
 	DELAY_MS(100);
 
-	//If alarm pin and data pin are low for 400 ms, load backup firmware
+	//If alarm pin is low for 400 ms, load backup firmware
 	if (PIN(ALARM) == 0)
 	{
 		DELAY_MS(400);
@@ -86,20 +90,42 @@ int _BOOTLOADER_CODE main(void)
 		DIR(ALARM) = INPUT;
 	}
 
-	//TODO: this only works if I jump directly to the start of the code, rather than the
-	//goto instruction stored at 0x100.  It is unclear why but it also happens when I 
-	//directly program the chip to jump to 0x100 on reset with a goto instruction at 0x100
-	//that points to 0x200
-	
-	if (valid_instruction(0x100))
-		goto_address(0x200);
+	metadata_status = validate_metadata();
+	if (metadata_status == kValidMetadata)
+		goto_address(kMetadataResetVector);
 
+	/*
+	 * Firmware was invalid or not loaded, signal our displeasure.
+	 * Users with a logic analyzer or other tool can decipher what went wrong
+	 * using the period of the output pulses.
+	 */
+	flash_alarm(metadata_status);
+
+	return 0;
+}
+
+void _BOOTLOADER_CODE flash_alarm(unsigned int length)
+{
+	unsigned int i;
 	while(true)
 	{
 		LAT(ALARM) = 0;
 		DIR(ALARM) = ~ DIR(ALARM);
-		DELAY_MS(250)
+		
+		for (i=0; i<length; ++i)
+			DELAY_MS(50);
 	}
+}
 
-	return 0;
+/*
+ *   Since the bootloader has to access flash using the table read instructions, it can
+ *   fall afoul of poorly documented address error issues with certain portions of the 
+ *	 flash not being implemented and causing problems.  Trap those errors here so that 
+ *	 we can debug them.
+ */
+void _BOOTLOADER_CODE __attribute__((interrupt,no_auto_psv)) _AddressError()
+{
+	INTCON1bits.ADDRERR = 0;
+
+	flash_alarm(kAddressError);
 }

@@ -9,7 +9,7 @@
 #define kMainFirmwareAddress		MEMORY_SECTION_ADDR(kMainFirmwareSector)
 #define kBackupFirmwareAddress		MEMORY_SECTION_ADDR(kBackupFirmwareSector)
 
-#define kBootloaderSize				512		//Instructions
+#define kBootloaderSize				1024		//Instructions
 
 #ifdef __PIC24FJ64GA306__
 #define kNumFlashInstructions 		22016
@@ -18,6 +18,8 @@
 
 #define ALARM 						D3
 #define DATA						G3
+
+#define kHardwareString				"con_v3.1"
 
 #else
 #error "Unsupported chip type"

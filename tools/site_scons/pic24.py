@@ -11,7 +11,7 @@ from pymomo.sim.simulator import Simulator
 
 all_envs = []
 
-def build_module(module_name, chip):
+def build_module(module_name, chip, postprocess_hex):
 	"""
 	Configure Scons to build a hex module for the pic24 chip listed in the argument.
 	"""
@@ -19,6 +19,7 @@ def build_module(module_name, chip):
 	dirs = chip.build_dirs()
 	output_name = '%s.elf' % (chip.output_name(),)
 	output_hex = '%s.hex' % (chip.output_name(),)
+	postproc_hex = '%s_postprocessed.hex' % (chip.output_name(),)
 
 	VariantDir(dirs['build'], 'src', duplicate=0)
 
@@ -27,9 +28,6 @@ def build_module(module_name, chip):
 	env['ARCH'] = chip
 	env['OUTPUT'] = output_name
 
-	#spawn = BufferedSpawn(env, 'test.log')
-
-	#env['SPAWN'] = spawn.spawn
 	Export('env')
 
 	SConscript(os.path.join(dirs['build'], 'SConscript'))
@@ -38,8 +36,15 @@ def build_module(module_name, chip):
 	hexfile = os.path.join(dirs['build'], output_hex)
 
 	env.Command(hexfile, elffile, 'xc16-bin2hex %s' % elffile)
-	
-	output = env.InstallAs(os.path.join(dirs['output'], output_hex), hexfile)
+
+	if postprocess_hex is not None:
+		finalhex = os.path.join(dirs['build'], postproc_hex)
+
+		env.Command(finalhex, hexfile, action=env.Action(postprocess_hex, 'Postprocessing hex file'))
+	else:
+		finalhex = hexfile
+
+	output = env.InstallAs(os.path.join(dirs['output'], output_hex), finalhex)
 	return [output]
 
 def build_library(name, chip):

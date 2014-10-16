@@ -1,7 +1,7 @@
 .include "p24FJ64GA306.inc"
 
 .global _flash_operation, ___delay32
-.section .bootloader,code
+.section .textflash,code
 	
 _flash_operation:	;W0=NVMCON - no return values
 	disi #6

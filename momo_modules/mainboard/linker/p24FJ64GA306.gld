@@ -13,16 +13,17 @@ OPTIONAL(-lpPIC24Fxxx)
 */
 MEMORY
 {
-  data  (a!xr)   : ORIGIN = 0x800,         LENGTH = 0x2000
-  reset          : ORIGIN = 0x0,           LENGTH = 0x4
-  ivt            : ORIGIN = 0x4,           LENGTH = 0xFC
-  _reserved      : ORIGIN = 0x100,         LENGTH = 0x4
-  aivt           : ORIGIN = 0x104,         LENGTH = 0xFC
-  program (xr)   : ORIGIN = 0x200,         LENGTH = 0xA600
-  CONFIG4        : ORIGIN = 0xABF8,        LENGTH = 0x2
-  CONFIG3        : ORIGIN = 0xABFA,        LENGTH = 0x2
-  CONFIG2        : ORIGIN = 0xABFC,        LENGTH = 0x2
-  CONFIG1        : ORIGIN = 0xABFE,        LENGTH = 0x2
+  data  (a!xr)    : ORIGIN = 0x800,         LENGTH = 0x2000
+  reset           : ORIGIN = 0x0,           LENGTH = 0x4
+  ivt             : ORIGIN = 0x4,           LENGTH = 0xFC
+  _reserved       : ORIGIN = 0x100,         LENGTH = 0x4
+  aivt            : ORIGIN = 0x104,         LENGTH = 0xFC
+  program (xr)    : ORIGIN = 0x200 + 32,    LENGTH = 0xA600 - 32
+  controlblock(xr): ORIGIN = 0x200,         LENGTH = 32
+  CONFIG4         : ORIGIN = 0xABF8,        LENGTH = 0x2
+  CONFIG3         : ORIGIN = 0xABFA,        LENGTH = 0x2
+  CONFIG2         : ORIGIN = 0xABFC,        LENGTH = 0x2
+  CONFIG1         : ORIGIN = 0xABFE,        LENGTH = 0x2
 }
 
 __CONFIG4 = 0xABF8;
@@ -38,6 +39,7 @@ __DATA_BASE = 0x800;
 __DATA_LENGTH = 0x2000;
 __CODE_BASE = 0x200;
 __CODE_LENGTH = 0xA9F8;
+__HIGHEST_FIRMWARE = 0xA600; /* MUST BE CHANGED IF THE BOOTLOADER IS MOVED */
 
 
 /*
@@ -60,6 +62,32 @@ SECTIONS
         SHORT((ABSOLUTE(__reset) >> 16) & 0x7F);
         SHORT(0);
   } >reset
+
+  .controlblock :
+  {
+        SHORT(0xBAAD);
+        SHORT(0);
+        SHORT(0xDAAD);
+        SHORT(0);
+        /*
+         * Add a goto to the reset vector
+         */
+        SHORT(ABSOLUTE(__reset));
+        SHORT(0x04);
+        SHORT((ABSOLUTE(__reset) >> 16) & 0x7F);
+        SHORT(0);
+
+        /*
+         * Highest firmware address + 1 for this image
+         */
+
+        SHORT(__HIGHEST_FIRMWARE);
+        SHORT(0);
+
+        /*
+         * The rest of the control block is filled in programmatically by the build system
+         */
+  } > controlblock
 
 
   /*

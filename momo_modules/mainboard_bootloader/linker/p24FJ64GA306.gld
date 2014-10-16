@@ -18,8 +18,7 @@ MEMORY
   ivt            : ORIGIN = 0x4,           LENGTH = 0xFC
   _reserved      : ORIGIN = 0x100,         LENGTH = 0x4
   aivt           : ORIGIN = 0x104,         LENGTH = 0xFC
-  program (xr)   : ORIGIN = 0x200,         LENGTH = 0xA600
-  bootloader (xr): ORIGIN = 0xa800,        LENGTH = 0x3f8
+  program (xr)   : ORIGIN = 0xa800,        LENGTH = 0x3f8
   CONFIG4        : ORIGIN = 0xABF8,        LENGTH = 0x2
   CONFIG3        : ORIGIN = 0xABFA,        LENGTH = 0x2
   CONFIG2        : ORIGIN = 0xABFC,        LENGTH = 0x2
@@ -72,16 +71,6 @@ SECTIONS
   */
 
   /*
-  ** Place any bootloader sections in the bootloader part of program memory
-  **
-  */
-  .bootloader :
-  {
-        *(*.bootloader*); 
-  } > bootloader
-
-
-  /*
   ** User Code and Library Code
   **
   ** This section must not be assigned to __CODE_BASE,
@@ -99,8 +88,7 @@ SECTIONS
         KEEP (*(.isr*));
         *(.libc) *(.libm) *(.libdsp);  /* keep together in this order */
         *(.lib*);
-  } > bootloader
-
+  } > program
 
   /*
   ** User-Defined Section in Program Memory
@@ -116,7 +104,7 @@ SECTIONS
   usercode :
   {
         *(usercode);
-  } > bootloader
+  } > program
 
 
   /*

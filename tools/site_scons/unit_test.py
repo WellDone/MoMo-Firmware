@@ -197,6 +197,12 @@ class UnitTest:
 			if not hasattr(self, attr):
 				raise BuildError("test does not have a complete header", file=file, missing_attribute=attr)
 
+		#Make sure that all of the right information has been found
+		required_attributes = ['name', 'type']
+		for attr in required_attributes:
+			if not hasattr(self, attr):
+				raise BuildError("test does not have a complete header", file=file, missing_attribute=attr)
+
 	def _parse_target(self, value):
 		return value
 
