@@ -120,4 +120,4 @@ Note that on Mac OS X you will have to use sudo to install the packages as root.
 
 ### Simulator Support
 
-Unit tests are run using Microchip's SIM30 simulator (installed with XC16) for PIC24 modules, and using the open-source [GPSIM](http://gpsim.sourceforge.net).  You can often install GPSIM using your Operating System's built-in package manage (on Ubuntu just run `sudo apt-get update && sudo apt-get install gpsim`, otherwise follow the instructions on their website.  When you've finished, make sure `gpsim` is in your PATH so the build tools can find it by running `which gpsim` and making sure it finds something.
+Unit tests are run using Microchip's SIM30 simulator (installed with XC16) for PIC24 modules, and using the open-source [GPSIM](http://gpsim.sourceforge.net).  You can often install GPSIM using your Operating System's built-in package manage (on Ubuntu just run `sudo apt-get update && sudo apt-get install gpsim`), otherwise follow the instructions on their website.  When you've finished, make sure `gpsim` is in your PATH so the build tools can find it by running `which gpsim` and making sure it finds something.
