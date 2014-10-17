@@ -12,7 +12,7 @@ Next, clone the repository by running `git clone https://github.com/WellDone/MoM
 
 ## Developing with Vagrant
 
-This is the recommended development method as it ensures compliance with the automated build system.  It's also very easy to set up and tear down, but does have drawbacks because you have to run a virtual machine and download some large files (~500MB) when first setting up the environment.
+This is the recommended development method as it ensures compliance with the automated build system.  It's also very easy to set up and tear down, but does have drawbacks because you have to run a virtual machine and download some large files (~500MB) when first setting up the environment.  If this scares you, install the [Local Development Dependencies](#contributing-local-development-dependencies) before proceeding.
 
 To develop with Vagrant:
 
