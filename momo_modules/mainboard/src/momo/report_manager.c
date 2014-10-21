@@ -64,7 +64,10 @@ char                  base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 static sensor_event   event_buffer[EVENT_BUFFER_SIZE];
 
 //TODO: Implement dynamic report routing based on an initial "registration" ping to the coordinator address
-static const char   default_server_gsm_address[16] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0'};
+static const char   default_web_route[31] = {'h','t','t','p',':','/','/','r','e','q','u','e','s','t','b','.','i','n','/','r','d','6','s','e','v','r','d','\0'};
+static const char   default_sms_route[13] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0'};
+#define DEFAULT_GPRS_APN "wap.cingular"
+#define DEFAULT_GPRS_APN_LEN 12
 extern unsigned int last_battery_voltage;
 
 void report_manager_start()
@@ -75,12 +78,15 @@ void report_manager_start()
 
 void init_report_config()
 {
-  memcpy( CONFIG.report_server_address, default_server_gsm_address, 16 );
+  memcpy( CONFIG.route_primary, default_web_route, sizeof(default_web_route) );
+  memcpy( CONFIG.route_secondary, default_sms_route, sizeof(default_sms_route) );
+  memcpy( CONFIG.gprs_apn, DEFAULT_GPRS_APN, DEFAULT_GPRS_APN_LEN+1 );
   CONFIG.current_sequence          = 0;
   CONFIG.report_interval           = kEveryDay;
   CONFIG.report_flags              = kReportFlagDefault;
   CONFIG.bulk_aggregates           = kAggCount | kAggMin | kAggMax;
   CONFIG.interval_aggregates       = kAggCount | kAggMean;
+  CONFIG.retry_limit               = 3;
 
   //Make sure we initialize this scheduled task.
   report_task.flags = 0;
@@ -317,11 +323,19 @@ void set_report_scheduling_interval( AlarmRepeatTime interval ) {
   
   save_momo_state();
 }
-void set_report_server_address( const char* address, uint8 len )
+void set_report_route_primary( const char* route, uint8 len )
 {
-  if ( len >= sizeof(CONFIG.report_server_address) )
+  if ( len >= sizeof(CONFIG.route_primary) )
     return;
-  memcpy( CONFIG.report_server_address, address, len );
-  CONFIG.report_server_address[len] = '\0';
+  memcpy( CONFIG.route_primary, route, len );
+  CONFIG.route_primary[len] = '\0';
+  save_momo_state();
+}
+void set_report_route_secondary( const char* route, uint8 len )
+{
+  if ( len >= sizeof(CONFIG.route_secondary) )
+    return;
+  memcpy( CONFIG.route_secondary, route, len );
+  CONFIG.route_secondary[len] = '\0';
   save_momo_state();
 }

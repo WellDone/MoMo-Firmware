@@ -45,13 +45,27 @@ static void get_reporting_interval(void)
 	bus_slave_return_int16( current_momo_state.report_config.report_interval );
 }
 
-static void set_reporting_gsm_address(void)
+static void set_reporting_route_primary(void)
 {
-	set_report_server_address( (const char*)plist_get_buffer(0), plist_get_buffer_length() );
+	set_report_route_primary( (const char*)plist_get_buffer(0), plist_get_buffer_length() );
 }
-static void get_reporting_gsm_address(void)
+static void get_reporting_route_primary(void)
 {
-	bus_slave_return_buffer( current_momo_state.report_config.report_server_address, strlen( current_momo_state.report_config.report_server_address ) );
+	uint8 len = strlen( current_momo_state.report_config.route_primary );
+	if ( len > kBusMaxMessageSize )
+		len = kBusMaxMessageSize;
+	bus_slave_return_buffer( current_momo_state.report_config.route_primary, len );
+}
+static void set_reporting_route_secondary(void)
+{
+	set_report_route_secondary( (const char*)plist_get_buffer(0), plist_get_buffer_length() );
+}
+static void get_reporting_route_secondary(void)
+{
+	uint8 len = strlen( current_momo_state.report_config.route_secondary );
+	if ( len > kBusMaxMessageSize )
+		len = kBusMaxMessageSize;
+	bus_slave_return_buffer( current_momo_state.report_config.route_secondary, len );
 }
 
 static void set_reporting_flags(void)
@@ -139,21 +153,24 @@ DEFINE_MIB_FEATURE_COMMANDS(reporting) {
 	{ 0x01, start_scheduled_reporting, plist_spec_empty() },
 	{ 0x02, stop_scheduled_reporting, plist_spec_empty() },
 	{ 0x03, set_reporting_interval, plist_spec(1, false) },
-	{ 0x04, get_reporting_interval, plist_spec(0, false) },
-	{ 0x05, set_reporting_gsm_address, plist_spec(0, true) },
-	{ 0x06, get_reporting_gsm_address, plist_spec(0, false) },
+	{ 0x04, get_reporting_interval, plist_spec_empty() },
+	{ 0x05, set_reporting_route_primary, plist_spec(0, true) },
+	{ 0x06, get_reporting_route_primary, plist_spec_empty() },
 	{ 0x07, set_reporting_flags, plist_spec(1, false) },
-	{ 0x08, get_reporting_flags, plist_spec(0, false) },
+	{ 0x08, get_reporting_flags, plist_spec_empty() },
 	{ 0x09, set_reporting_aggregates, plist_spec(2, false) },
-	{ 0x0A, get_reporting_aggregates, plist_spec(0, false) },
-	{ 0x0B, get_reporting_sequence, plist_spec(0, false) },
+	{ 0x0A, get_reporting_aggregates, plist_spec_empty() },
+	{ 0x0B, get_reporting_sequence, plist_spec_empty() },
 	{ 0x0C, build_report, plist_spec_empty() },
 	{ 0x0D, get_report, plist_spec(1, false) },
 	{ 0x0E, get_scheduled_reporting, plist_spec_empty() },
 	{ 0x0F, read_report_log_mib, plist_spec(2, false) },
 	{ 0x10, count_report_log_mib, plist_spec_empty() },
 	{ 0x11, clear_report_log_mib, plist_spec_empty() },
-	{ 0xF0, handle_report_stream_success, plist_spec(0, false) },
-	{ 0xF1, handle_report_stream_failure, plist_spec(0, false) }
+	{ 0x12, set_reporting_route_secondary, plist_spec(0, true) },
+	{ 0x13, get_reporting_route_secondary, plist_spec_empty() },
+	{ 0x14, init_report_config, plist_spec_empty() },
+	{ 0xF0, handle_report_stream_success, plist_spec_empty() },
+	{ 0xF1, handle_report_stream_failure, plist_spec_empty() }
 };
 DEFINE_MIB_FEATURE(reporting);

@@ -10,9 +10,9 @@
 
 #define CONFIG current_momo_state.report_config
 
-#define RETRY_MAX 5
-
 static char* report_buffer;
+static char* report_route;
+static uint8 report_route_counter;
 static uint8 report_stream_offset;
 ModuleIterator comm_module_iterator;
 bool current_stream_finished;
@@ -35,7 +35,7 @@ void report_rpc( MIBUnified *cmd, uint8 command, uint8 spec )
   cmd->bus_command.feature = 11;
   cmd->bus_command.command = command;
   cmd->bus_command.param_spec = spec;
-  bus_master_rpc_async(receive_gsm_stream_response, cmd); //TODO: Handle failure to send
+  bus_master_rpc_async(receive_gsm_stream_response, cmd);
 }
 void reset_comm_stream()
 {
@@ -44,13 +44,61 @@ void reset_comm_stream()
 }
 void open_stream()
 {
+  MIBUnified cmd;
+  *((uint16*)cmd.mib_buffer) = strlen(report_buffer);
+  
   LOG_DEBUG(kOpenedCommStreamNotice);
   LOG_INT(module_iter_address(&comm_module_iterator));
-  LOG_STRING(CONFIG.report_server_address);
+  LOG_INT(*((uint16*)cmd.mib_buffer));
+
+  report_rpc( &cmd, 0, plist_ints(1) );
+}
+void set_comm_destination(unsigned char a)
+{
+  if ( report_route_counter >= strlen(report_route) )
+  {
+    open_stream();
+    return;
+  }
 
   MIBUnified cmd;
-  memcpy( cmd.mib_buffer, CONFIG.report_server_address, strlen(CONFIG.report_server_address) );
-  report_rpc( &cmd, 0, plist_with_buffer(0,strlen(CONFIG.report_server_address)) );
+
+  uint8 len = kBusMaxMessageSize - 2; // Leave room for the start integer
+  if ( strlen(report_route) - report_route_counter < len )
+    len = strlen(report_route) - report_route_counter;
+  *((uint16*)cmd.mib_buffer) = report_route_counter;
+
+  LOG_DEBUG(kSetCommDestinationNotice);
+  LOG_INT(report_route_counter);
+  LOG_INT(len);
+  LOG_STRING(report_route+report_route_counter);
+
+  memcpy( cmd.mib_buffer+2, report_route+report_route_counter, len );
+
+  report_route_counter += len;
+
+  cmd.address = module_iter_address( &comm_module_iterator );
+  cmd.bus_command.feature = 11;
+  cmd.bus_command.command = 4;
+  cmd.bus_command.param_spec = plist_with_buffer(1,len);
+  
+  bus_master_rpc_async(set_comm_destination, &cmd);
+}
+void set_apn() //TODO: Support non-GSM comm boards
+{
+  report_route_counter = 0;
+
+  LOG_DEBUG(kSetAPNNotice);
+  LOG_STRING(CONFIG.gprs_apn);
+
+  MIBUnified cmd;
+  cmd.address = module_iter_address( &comm_module_iterator );
+  cmd.bus_command.feature = 10;
+  cmd.bus_command.command = 9;
+  cmd.bus_command.param_spec = plist_with_buffer(0,strlen(CONFIG.gprs_apn));
+  memcpy( cmd.mib_buffer, CONFIG.gprs_apn, strlen(CONFIG.gprs_apn) );
+  
+  bus_master_rpc_async(set_comm_destination, &cmd);
 }
 
 void next_comm_module( void* arg )
@@ -58,9 +106,10 @@ void next_comm_module( void* arg )
   module_iter_next( &comm_module_iterator );
   reset_comm_stream();
   retry_count = 0;
+  report_route = CONFIG.route_primary;
   if ( module_iter_get( &comm_module_iterator ) != NULL )
   {
-    open_stream();
+    set_apn();
   }
   else
     LOG_DEBUG(kFinishedReportStreamingNotice);
@@ -139,19 +188,31 @@ void notify_report_success()
 
 void notify_report_failure()
 {
+  if ( !comm_module_iterator.started )
+    return; // Something else triggered a report, there's nothing to retry
+
   // TODO: Save success or failure to the report log.
-  if ( retry_count < RETRY_MAX )
+  if ( retry_count < CONFIG.retry_limit )
   {
     int retry_interval = CONFIG.report_interval -1;
     if (retry_interval < 0)
       retry_interval = 0;
 
     ++retry_count;
-    LOG_DEBUG(kReportFailedNotice);
+    LOG_DEBUG(kReportFailedRetryNotice);
     LOG_INT(retry_count);
     reset_comm_stream();
     scheduler_schedule_task( open_stream, retry_interval, 1, &report_retry_task, NULL ); // if we're reporting every day, retry every hour
     // TODO: This blocks streaming to any other module, which could be problematic
+  }
+  else if ( report_route == CONFIG.route_primary && CONFIG.route_secondary[0] != '\0' )
+  {
+    LOG_DEBUG(kReportFailedRerouteNotice);
+    LOG_STRING(CONFIG.route_secondary);
+    retry_count = 0;
+    report_route = CONFIG.route_secondary;
+    reset_comm_stream();
+    taskloop_add( open_stream, NULL );
   }
   else
   {
