@@ -1,5 +1,9 @@
 language: c
 before_install:
-  - sudo ./tools/automation/provision.sh
-script: 
-  - ./tools/automation/build_all.sh
+- sudo ./tools/automation/provision.sh
+script:
+- ./tools/automation/build_all.sh
+notifications:
+  hipchat:
+    rooms:
+      secure: OZ0Q1IUmoYQ14ZATWPreB2OhuKjLY5PHAIeWxGJvY6YGS8IYSg6nBZYggA/qRxXhlHr5HPRdPcsU32rnpQFTimtB4znbrmN9qilarKHeuVW/EHZs7dlgT24Kqc4cRwMHZJlByxerd0eT/5jAwX31IQu7xwtAeTauFRrw8Z2bVxs=
