@@ -129,7 +129,7 @@ How frequently a report should be sent.  `reportinator interval` to read and `re
 
 Interact with the report log stored in flash on the MoMo controller.  Possible sub-commands:
 
-- `reportinator log read [<n>]` - Read the last <n> entries from the log.  If <n> is not specified, read all entries.
+- `reportinator log read [<n>]` - Read the last `<n>` entries from the log.  If `<n>` is not specified, read all entries.
 - `reportinator log count` - Get the total number of entries in the log
 - `reportinator log clear` - Erase the log completely (use with caution)
 
