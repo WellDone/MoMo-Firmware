@@ -102,11 +102,11 @@ Here's an overview of the different settings and commands available:
 
 The aggregation / reduce functions to run over each time step, as well as over the entire reporting interval.  Use `reportinator aggregates` to read the current settings, and `reportinator aggregates <step_agg> <bulk_agg>` to set them.  Aggregates are reported and set as integer numbers, but internally they are a bitset with the following possible values:
 
-- Count    = 0b00000001
-- Sum      = 0b00000010
-- Mean     = 0b00000100
-- Min      = 0b00100000
-- Max      = 0b01000000
+- 0b00000001 = Count
+- 0b00000010 = Sum
+- 0b00000100 = Mean
+- 0b00100000 = Min
+- 0b01000000 = Max
 
 Therefore, an aggregate value of 1 reports only the count, a value of 4 reports only the mean, while a value of 99 reports Max, Min, Sum, and Count (that's 64 + 32 + 2 + 1).
 
@@ -118,12 +118,12 @@ These will probably go unused, but can be set to include static values in every 
 
 How frequently a report should be sent.  `reportinator interval` to read and `reportinator interval <value>` to set. Possible values are:
 
-- Every Second = 1
-- Every 10 Seconds = 2
-- Every Minute = 3
-- Every 10 Minutes = 4
-- Every Hour = 5
-- Every Day = 6 (default)
+- 1 = Every Second
+- 2 = Every 10 Seconds
+- 3 = Every Minute
+- 4 = Every 10 Minutes
+- 5 = Every Hour
+- 6 = Every Day (default)
 
 #### Log
 
