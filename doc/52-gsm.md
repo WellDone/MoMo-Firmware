@@ -198,7 +198,7 @@ Start sending reports automatically at the designated interval.
 
 #### State
 
-Read whether or not the MoMo is currently generating regular reports (possible results: `started` or `stopped`)
+Read whether or not the MoMo is currently generating regular reports (possible results: `Enabled` or `Disabled`)
 
 #### Stop
 
