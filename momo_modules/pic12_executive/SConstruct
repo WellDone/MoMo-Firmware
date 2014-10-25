@@ -4,6 +4,7 @@ import unit_test12
 import unit_test
 import utilities
 import pic12
+from autobuild import *
 
 module_name = 'pic12_executive'
 
@@ -37,13 +38,17 @@ def build_exec_for_chip(arch):
 	
 	return [hexfile, symheader, symtable]
 
-#Build for all targets
-family = utilities.get_family('mib12', modulefile='module_settings.json')
-family.for_all_targets(module_name, build_exec_for_chip)
+try:
+	#Build for all targets
+	family = utilities.get_family('mib12', modulefile='module_settings.json')
+	family.for_all_targets(module_name, build_exec_for_chip)
 
-#Build all unit tests
-unit_test.build_units('test', family.targets(module_name))
+	#Build all unit tests
+	unit_test.build_units('test', family.targets(module_name))
 
-Alias('release', os.path.join('build', 'output'))
-Alias('test', os.path.join('build', 'test', 'output'))
-Default(['release', 'test'])
+	Alias('release', os.path.join('build', 'output'))
+	Alias('test', os.path.join('build', 'test', 'output'))
+	Default(['release', 'test'])
+except MoMoException as e:
+		print e.format()
+		sys.exit(1)

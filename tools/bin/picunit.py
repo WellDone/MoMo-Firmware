@@ -8,7 +8,7 @@ import os.path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from pymomo.sim import Simulator
-from pymomo.utilities.typedargs.exceptions import *
+from pymomo.exceptions import *
 
 def main():
 	if len(sys.argv) != 4:

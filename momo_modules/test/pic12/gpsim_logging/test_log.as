@@ -13,8 +13,9 @@
 #define LOGSTRING	0x02
 #define LOGCALLER 	0x03
 #define ASSERTFAIL 	0x04
+#define CHECKPOINT  0x05
 
-global _loghex, _finish_tests, _assertv
+global _loghex, _finish_tests, _assertv, _checkpoint, _checkpoint_value
 
 ;These must be in common ram since we cannot switch banks
 ;while accessing them
@@ -99,6 +100,34 @@ _assertv:
 
 	goto _finish_tests
 
+;_checkpoint_value
+;Log that a certain function was called and the value of W at that point
+_checkpoint_value:
+	call _savestate
+	call logcaller
+	
+	movlw CHECKPOINT
+	call _emit_control
+
+	movf regsave,w
+	call _emit_data
+
+
+	goto _restorestate
+
+;Log that a certain function was called but do not log the value of W
+;in case it is unpredictable and not important.
+_checkpoint:
+	call _savestate
+	call logcaller
+	
+	movlw CHECKPOINT
+	call _emit_control
+
+	movlw 0
+	call _emit_data
+
+	goto _restorestate
 
 ;Log the value of the w register into the unit test logging register
 ;Uses: WREG

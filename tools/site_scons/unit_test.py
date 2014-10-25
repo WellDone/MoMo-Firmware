@@ -5,18 +5,20 @@ import os
 from SCons.Environment import Environment
 import test_summary
 import fnmatch
-from pymomo.utilities.typedargs.exceptions import *
+from pymomo.exceptions import *
 
 known_types = {}
 
-class UnitTest:
-	def __init__(self, files):
+class UnitTest (object):
+	def __init__(self, files, ignore_extra_attributes=False):
 		self.files = files
-		self.additional_sources = []
+		self.additional_intermediates = []
 		self.extra_modules = []
 		self.desc = ''
 		self.targets = None
+		self.patch = {}
 
+		self.ignore_extra_attributes = ignore_extra_attributes
 		self.basedir = os.path.dirname(files[0])
 
 		self._check_files()
@@ -76,9 +78,25 @@ class UnitTest:
 		else:
 			raise BuildError("Path to unknown build product asked for", unit_test=self.name, object=obj, arch=chip.name)
 
-
 	def build_target(self, target, summary_env):
-		raise ValueError('The build_target method must be overriden by a UnitTest subclass')
+		raise BuildError('The build_target method must be overriden by a UnitTest subclass', unit_test=self.name, type=str(self.__class__))
+
+	def check_output(self, chip, log):
+		"""
+		If unit tests have additional things to check about the unit test's output,
+		they should override this function and return False if the test fails these
+		additional checks. They may also choose to open log for appending and log the
+		reason for this failure. 
+		"""
+
+		return True
+
+	def save_status(self, path, passed):
+		with open(path, "w") as f:
+			if passed :
+				f.write('PASSED')
+			else:
+				f.write('FAILED')
 
 	def build(self, module_targets, summary_env):
 		"""
@@ -111,9 +129,9 @@ class UnitTest:
 			ext = os.path.splitext(file)[1]
 
 			if not os.path.exists(file):
-				raise ValueError('Test source file does not exist: %s' % file)
+				raise BuildError('Test source file does not exist', file=file)
 			if ext not in valid:
-				raise ValueError('Test source file does not has .c,.as or .asm extension: %s' % os.path.basename(file))
+				raise BuildError('Test source file does not has .c,.as or .asm extension', file=os.path.basename(file))
 
 		return True
 
@@ -176,26 +194,27 @@ class UnitTest:
 				val = val.strip()
 
 				name = name.lower()
+				
+				#Check if we support this attribute natives
 				if name == 'name':
 					self.name = val
-				elif name == 'targets':
-					self._parse_targets(val)
-				elif name == 'description':
-					self.desc = val
-				elif name == 'additional':
-					self._parse_additional(val)
-				elif name == 'sources':
-					self._parse_sources(val)
 				elif name == 'type':
 					self.type = val
-				elif name == 'modules':
-					self._parse_modules(val)
+				elif name == 'description':
+					self.desc = val
+				else:
+					#All other attributes are parsed by handlers that either
+					#we or a subclass provide, so check if the attribute has
+					#a handler or fail
 
-		#Make sure that all of the right information has been found
-		required_attributes = ['name', 'type']
-		for attr in required_attributes:
-			if not hasattr(self, attr):
-				raise BuildError("test does not have a complete header", file=file, missing_attribute=attr)
+					name = name.replace(' ', '_') #make sure this is a valid python identifier name
+
+					handlern = '_parse_%s' % name
+					if hasattr(self, handlern):
+						handler = getattr(self, handlern)
+						handler(val)
+					elif not self.ignore_extra_attributes: 
+						raise BuildError("Unknown attribute encountered with no handler", file=file, attribute=name, value=val, type=str(self.__class__))
 
 		#Make sure that all of the right information has been found
 		required_attributes = ['name', 'type']
@@ -206,43 +225,42 @@ class UnitTest:
 	def _parse_target(self, value):
 		return value
 
-	def _parse_sources(self, value):
+	def _parse_patches(self, value):
 		"""
-		Parse an additional source directory other than simply src
-		"""
-
-		basedir = os.path.dirname(self.files[0])
-		srcpath = os.path.normpath(os.path.join(basedir, value))
-		self.additional_sources.append(srcpath)
-
-	def _parse_modules(self, value):
-		"""
-		For module unit tests where the test just compiles one or several modules, allow
-		the user to specify extra modules that need to be compiled in.
+		Parse a list of symbols that need to be patched in the test. Each specific architecture
+		can choose to do what it wants with this list.
 		"""
 
 		parsed = value.split(',')
-		files = map(lambda x: x.rstrip().lstrip(), parsed)
-		self.extra_modules = files
+		pairs = [x.rstrip().lstrip().split('->') for x in parsed]
+		mapper = {name: value for name,value in pairs}
+		self.patch = mapper
 
-	def _parse_additional(self, value):
+	def add_intermediate(self, file, folder=None):
 		"""
-		Parse an Additional:<file1>,<fileN>
-		header line, taking the appropriate action
+		Add a file to the list of intermediate build products produced by this unit test.
+		This is important for letting SCons know about the file so that it can clean it up
+		properly.  If folder is specified, is should be one of the values returned by
+		build_dirs() and it will be replaced with the appropriate build directory for the
+		target being built.
 		"""
 
-		parsed = value.split(',')
-		files = map(lambda x: x.rstrip().lstrip(), parsed)
+		self.additional_intermediates.append((folder, file))
 
-		for f in files:
-			base, ext = os.path.splitext(f)
+	def get_intermediates(self, chip):
+		dirs = self.build_dirs(chip)
 
-			if ext == '.as':
-				self.files += (os.path.join(self.basedir, f), )
-			elif ext == '.cmd':
-				self.cmdfile = os.path.join(self.basedir, f)
-			else:
-				raise ValueError("Unknown file extension in Additional header for test %s: %s" % (self.name, f))
+		paths = []
+
+		for folder, p in self.additional_intermediates:
+			if folder is None:
+				paths.append(p)
+			 	continue
+
+			basepath = dirs[folder]
+			paths.append(os.path.join(basepath, p))
+
+		return paths
 
 def find_units(parent):
 	files = [f for f in os.listdir(parent) if os.path.isfile(os.path.join(parent, f))]
@@ -258,12 +276,13 @@ def find_units(parent):
 	tests = []
 
 	for f in files:
-		unit = UnitTest([f])
+		unit = UnitTest([f], ignore_extra_attributes=True)
 		
 		if unit.type not in known_types:
-			raise InternalError("Unknown test type (%s) in unit test: %s" % (unit.type, f))
+			raise BuildError("Unknown test type in unit test", name=unit.name, type=unit.type)
 
-		tests.append(known_types[unit.type]([f]))
+		test = known_types[unit.type]([f])
+		tests.append(test)
 
 	return tests
 

@@ -37,7 +37,7 @@
 				"flash_row_words": 32,
 				"total_rom": 8192,
 				"xc8_target": "16F1847",
-				"gpsim_proc": "p16f1823",
+				"gpsim_proc": "p16f1847",
 
 				"defines":
 				{

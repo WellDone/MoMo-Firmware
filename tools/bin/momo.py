@@ -6,7 +6,7 @@ import shlex
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from pymomo.utilities.typedargs import shell
-from pymomo.utilities.typedargs.exceptions import *
+from pymomo.exceptions import *
 from pymomo.utilities.typedargs import annotate
 from pymomo.commander.meta import initialization
 from pymomo.hex import ControllerBlock, HexFile

@@ -10,16 +10,23 @@ import pic12
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from pymomo.gpysim import log
 from pymomo.hex8 import symbols
+from pymomo.exceptions import *
 
-def build_unittest(test_files, name, arch, type, summary_env, cmds=None):
+def build_unittest(test, arch, summary_env, cmds=None):
 	"""
 	Build a hex file from the source files test_files for the indicated chip
 	If cmds is passed, replace the generic run command to gpsim with the commands
 	listed in the passed file
 	"""
 
+	#Extract information from test
+	test_files = test.files
+	name = test.name
+	type = test.type
+
 	env = Environment(tools=['xc8_compiler', 'patch_mib12', 'merge_mib12_app', 'merge_mib12_sym', 'gpsim_runner'], ENV = os.environ)
-	env['ARCH'] = arch
+	env['ORIGINAL_ARCH'] = arch
+	env['TEST'] = test
 
 	#Configure for app module or exec
 	if type == "executive":
@@ -35,7 +42,7 @@ def build_unittest(test_files, name, arch, type, summary_env, cmds=None):
 		pic12.configure_env_for_xc8(env, force_exec=True)
 		test_harness = ['../test/pic12/app_harness/mib12_app_unittest.c', '../test/pic12/app_harness/mib12_test_api.as', '../test/pic12/gpsim_logging/test_log.as']
 	else:
-		raise ValueError("Invalid unit test type specified: %s.  Should be executive or application" % type)
+		raise BuildError("Invalid unit test type specified. Should be executive or application.", type=type)
 
 	orig_symfile = orig_name + '.h'
 	orig_symtab = orig_name + '.stb'
@@ -88,19 +95,26 @@ def build_unittest(test_files, name, arch, type, summary_env, cmds=None):
 	
 	outhex = env.merge_mib12_app(os.path.join(outdir, name + '.hex'), [lowhex, highhex])
 
-	outscript = env.Command([os.path.join(outdir, 'test.stc')], [outhex], action=build_unittest_script)
+	outscript = env.Command([os.path.join(outdir, 'test.stc')], [outhex], action=env.Action(build_unittest_script, "Building test script"))
 
 	raw_log_path = os.path.join(outdir, build_logfile_name(env))
 
 	raw_results = env.gpsim_run(raw_log_path, [outscript, outhex]) #include outhex so that scons knows to rerun this command when the hex changes
-	formatted_log = env.Command([build_formatted_log_name(env), build_status_name(env)], [raw_results, symtab], action=process_unittest_log)
+	formatted_log = env.Command([build_formatted_log_name(env), build_status_name(env)], [raw_results, symtab], action=env.Action(process_unittest_log, 
+		"Processing test log"))
 
 	#Add this unit test to the unit test summary command
 	summary_env['TESTS'].append(build_status_name(env))
 
-	#Also remember to remove the test directory when cleaning
+	#Remember to remove the test directory when cleaning
+	#Also add any extra intermediate files that the unit test defines so that 
+	#those are cleaned up as well
 	env.Clean(outscript, testdir)
 	env.Clean(outscript, outdir)
+	additional_files = test.get_intermediates(arch)
+	for file in additional_files:
+		print file
+		#env.Clean(outscript, file)
 
 def build_exec_unittest(test_files, name, chip):
 	"""
@@ -148,10 +162,16 @@ def process_unittest_log(target, source, env):
 	"""
 	Source should be the unprocessed log file and the symbol file (stb) for assigning addresses to functions.
 	"""
+	test = env['TEST']
 	symtab = symbols.XC8SymbolTable(str(source[1]))
 	lf = log.LogFile(str(source[0]), symtab=symtab)
 	lf.save(str(target[0]))
-	lf.save_status(str(target[1]))
+
+	passed = lf.test_passed(test)
+	if passed:
+		passed = test.check_output(env['ORIGINAL_ARCH'], str(target[0]))
+
+	test.save_status(str(target[1]), passed)
 
 def build_summary_name():
 	return os.path.join('build', 'test', 'output', 'results.txt')

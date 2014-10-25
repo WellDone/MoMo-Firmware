@@ -2,6 +2,7 @@
 ;Targets: 12lf1822
 ;Type: executive
 ;Additional:support_bus_master.cmd
+;I2C Capture: S, 0x08/WN, 0x2a/N, 0x00/N, 0x00/N, 0xD6/N, RS, 0x08/RN, 0xFF/A, 0xFF/N, P
 ;Description:Test to ensure tha mib bus master is working correctly. Test by
 ;sending an rpc and seeing if it sends correctly, i.e. the master rpc logic
 ;does not loop forever

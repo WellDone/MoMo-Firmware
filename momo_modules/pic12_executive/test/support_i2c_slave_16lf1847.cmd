@@ -183,6 +183,6 @@ start_cycle 1000
 name sda_seq
 end
 
-attach scl porta1 scl_seq
-attach sda porta2 sda_seq
+attach scl portb4 scl_seq
+attach sda portb1 sda_seq
 run

@@ -2,6 +2,7 @@
 ;Targets: all
 ;Type: executive
 ;Additional: support_no_appmodule.as
+;Checkpoints: _begin_tests=0xAA, _begin_tests=0
 ;Description: Test to ensure that the basic unit testing framework is working
 ;and that this test can be compile, run and interpreted.  
 
@@ -9,9 +10,10 @@
 #include "asm_macros.inc"
 #include "symbols.h"
 #include "test_macros.inc"
+#include "test_asserts.inc"
 
 global _begin_tests
-global _loghex, _finish_tests, _assertv
+global _loghex, _finish_tests, _assertv, _checkpoint
 global _mib_buffer, _mib_packet
 
 PSECT text_unittest,local,class=CODE,delta=2
@@ -26,6 +28,9 @@ BEGINFUNCTION _begin_tests
 	call _loghex
 	movf BANKMASK(_mib_packet+2),w
 	call _loghex
+
+	checkpointl 0xAA
+	checkpoint
 
 	;asm_call_find_handler()
 	;call _loghex
