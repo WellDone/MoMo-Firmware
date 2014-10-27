@@ -21,30 +21,18 @@ config  doc  momo_modules  pcb  README.md  tools
 ```
 
 A brief overview of what is what:
-* config - reference information about pcb layouts and build constants.  Templates for module skeleton code is stored here as well
-* doc - assorted datasheets and reference information.  Not terribly well organized currently
-* momo_modules - all module firmware is stored under these directories.  momo_modules/shared contains shared library code.  Other directories correspond to a single firmware image each.
-* pcb - all circuit board
-* tools - all of the support infrastructure is stored in the tools directory.  You should add tools/bin to your PATH for easy access to the support tools.  Most of the build system is implemented as a python package pymomo which lives in tools
+
+- config - reference information about pcb layouts and build constants.  Templates for module skeleton code is stored here as well
+- doc - assorted datasheets and reference information.  Not terribly well organized currently
+- momo_modules - all module firmware is stored under these directories.  momo_modules/shared contains shared library code.  Other directories correspond to a single firmware image each.
+- pcb - all circuit board
+- tools - all of the support infrastructure is stored in the tools directory.  You should add tools/bin to your PATH for easy access to the support tools.  Most of the build system is implemented as a python package pymomo which lives in tools
 
 ### Step 3 - Required Configuration
-This is only required if you want to use pcbtool to automate processing of circuit board designs.  You must edit the file config/settings.local.json to contain the path to your local copy of EAGLE.
-
-```shell
-> cat config/settings.local.json 
-{
-	"external_tools":
-	{
-		"eagle": "<INSERT PATH TO EAGLE HERE>",
-		"gpsim": "/opt/pic/bin/gpsim"
-	}
-}
-```
-
-In order to use the unit testing infrastructure for pic12 code, you must also configure the gpsim path but this is not yet supported since we require a modified version of gpsim (to fix many bugs in the main codebase that we hit).  Our internal gpsim version will be released soon and then unit testing will be available for everyone.
+Make sure `gpsim` and `sim30` are in your PATH (run `which gpsim` and `which sim30`).  If you need to use the pcbtool hardware support program, you'll also need `eagle` ([Eagle Cad](http://www.cadsoftusa.com/)), but if not it isn't required.
 
 ### Checking that Everything Works
-Assuming that you added tools/bin to your PATH variable, you can use the modtool program to talk to a connected MoMo unit.  Plug in your MoMo FSU into a USB port and plug the other side into a MoMo unit.  Power the MoMo unit and you should see two green lights illuminate.  Usually modtool will be able to guess which port your MoMo is plugged into, if not you will need to know the device or com port that corresponds to the MoMo FSU.  
+Assuming that you added tools/bin to your PATH variable, you can use the modtool program to talk to a connected MoMo unit.  Plug in your MoMo FSU into a USB port and plug the other side into a MoMo unit.  Power the MoMo unit and you should see a green light illuminate on the FSU.  Usually the momo tools will be able to guess which port your MoMo is plugged into, if not you will need to know the device or com port that corresponds to the MoMo FSU.  
 
 On linux it is probably:
 ```shell
