@@ -26,11 +26,11 @@
  		return;
  	}
 
- 	if (simdet_detect() == 0)
- 	{
- 		bus_slave_setreturn(pack_return_status(6,0));
- 		return;
- 	}
+ 	// if (simdet_detect() == 0)
+ 	// {
+ 	// 	bus_slave_setreturn(pack_return_status(6,0));
+ 	// 	return;
+ 	// }
 
  	if ( state.stream_in_progress )
  	{
