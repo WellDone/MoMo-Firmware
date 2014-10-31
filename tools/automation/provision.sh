@@ -50,7 +50,7 @@ download_file "SCONS Installer" http://downloads.sourceforge.net/project/scons/s
 tar -xvzf scons-$SCONSVERSION.tar.gz
 cd scons-$SCONSVERSION
 python setup.py install
-echo "PYTHONPATH=\".:/usr/local/lib/scons-$SCONSVERSION\"" >> $HOME/.profile
+echo "export PYTHONPATH=\".:/usr/local/lib/scons-$SCONSVERSION\"" >> $HOME/.profile
 cd ..
 
 XC8INSTALLER='xc8-v1.30-linux.run'
@@ -59,7 +59,7 @@ tar -xvf $XC8INSTALLER.tar
 echo "Installing xc8 compiler..."
 ./$XC8INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc8/v1.30"
 CODE=$?
-echo "PATH=\"\$PATH:/opt/microchip/xc8/v1.30/bin\"" >> $HOME/.profile
+echo "export PATH=\"\$PATH:/opt/microchip/xc8/v1.30/bin\"" >> $HOME/.profile
 rm -f ./$XC8INSTALLER $XC8INSTALLER.tar
 if [ $CODE -ne 0 ]; then
 	die "Failed to install xc8, exiting!"
@@ -72,7 +72,7 @@ tar -xvf $XC16INSTALLER.tar
 echo "Installing xc16 compiler..."
 ./$XC16INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc16/v1.21"
 CODE=$?
-echo "PATH=\"\$PATH:/opt/microchip/xc16/v1.21/bin\"" >> $HOME/.profile
+echo "export PATH=\"\$PATH:/opt/microchip/xc16/v1.21/bin\"" >> $HOME/.profile
 rm -f ./$XC16INSTALLER ./$XC16INSTALLER.tar
 if [ $CODE -ne 0 ]; then
 	die "Failed to install xc16, exiting!"
@@ -80,7 +80,7 @@ fi
 echo "DONE!"
 
 echo "Adding MoMo tool bin ($MOMOROOT/tools/bin) to the path..."
-echo "PATH=\"\$PATH:$MOMOROOT/tools/bin\"" >> $HOME/.profile
+echo "export PATH=\"\$PATH:$MOMOROOT/tools/bin\"" >> $HOME/.profile
 echo "DONE!"
 
 exit 0
