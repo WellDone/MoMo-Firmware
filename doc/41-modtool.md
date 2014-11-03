@@ -69,7 +69,7 @@ $ modtool list
 To get more information about a given module use:
 ```shell
 $ modtool info <INDEX>
-````
+```
 where INDEX is the index for the module given in the result of the 'modtool list' command.
 
 ### Reflashing a Module
