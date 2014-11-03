@@ -46,13 +46,13 @@ Commands:
   
   To test that the module is set up and working properly, follow these steps. *NOTE* this assumes that the GSM module is at address 11, replace 11 with the address of the module according to the output of `momo controller enumerate_modules`.
   
-  1. Turn on the module `gsmtool -a 11 on`, this may take a few seconds.
-  2. Check that the module turned on with `gsmtool -a 11 debug`, the output should include `module_on: True`
-  3. Run an AT command to check that the SIM card is installed correctly: `gsmtool -a 11 cmd AT+CPIN?`, output should be `+CPIN: READY`
-  4. Run another AT command to check that the module was able to connect to the network: `gsmtool -a 11 cmd AT+CREG?`.  If the output is `+CREG: 0,2` then the module is still searching for the network, if it is `+CREG: 0,1` then it has successfully registered.  Anything else probably indicates lack of signal (see below) or a bad SIM card.
-  5. Run `gsmtool -a 11 cmd AT+CSQ` to check the signal strength.  A sample ouput is `+CSQ: 31,0` - The second number should always be 0, higher is better for the first number (31 is a strong signal).
-  6. Finally, run `gsmtool -a 11 <number> "<message>"` to send an SMS containing the text <message> to <number>.  For example: `gsmtool -a 11 +14155551234 "This is a test of the emergency alert system."`
-  7. Check that the message was sent by running `gsmtool -a 11 dump` and noticing that there are no errors, then running `gsmtool -a 11 debug` and noticing that the module turned itself off.
+  1. Turn on the module `gsmtool on -a 11`, this may take a few seconds.
+  2. Check that the module turned on with `gsmtool debug -a 11`, the output should include `module_on: True`
+  3. Run an AT command to check that the SIM card is installed correctly: `gsmtool cmd -a 11 AT+CPIN?`, output should be `+CPIN: READY`
+  4. Run another AT command to check that the module was able to connect to the network: `gsmtool cmd -a 11 AT+CREG?`.  If the output is `+CREG: 0,2` then the module is still searching for the network, if it is `+CREG: 0,1` then it has successfully registered.  Anything else probably indicates lack of signal (see below) or a bad SIM card.
+  5. Run `gsmtool cmd -a 11 AT+CSQ` to check the signal strength.  A sample ouput is `+CSQ: 31,0` - The second number should always be 0, higher is better for the first number (31 is a strong signal).
+  6. Finally, run `gsmtool msg -a 11 <number> "<message>"` to send an SMS containing the text <message> to <number>.  For example: `gsmtool msg -a 11 +14155551234 "This is a test of the emergency alert system."`
+  7. Check that the message was sent by running `gsmtool dump -a 11` and noticing that there are no errors, then running `gsmtool debug -a 11` and noticing that the module turned itself off.
 
 ### Setting up autonomous reporting
 
