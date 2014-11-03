@@ -1,4 +1,4 @@
-#modtool - Working with MoMo hardware modules
+##modtool - Working with MoMo hardware modules
 
 modtool is a program that sends commands to MoMo hardware modules and allows you to test them, debug them and program them.
 It is written in python and all of its functionality is built on top of the pymomo.commander library.  If you are comfortable
@@ -6,7 +6,7 @@ in Python and looking to script your MoMo module, you should jump directly to us
 you are looking for a command line application to simplify common MoMo related tasks, modtool is right for you.  Modtool
 runs equally well on Mac OS X, Linux and Windows provided that you have installed all of its library dependencies.
 
-## Introduction
+### Introduction
 modtool can do the following things:
  * Reprogram any MoMo module with new firmware
  * Run premade hardware testing scripts on any MoMo module
@@ -15,7 +15,7 @@ modtool can do the following things:
  * Debug MoMo modules
  * Dump MoMo sensor or system logs
 
-## Using Modtool
+### Using Modtool
 modtool is a command line program that lives in tools/bin.  If you have added tools/bin to your $PATH, you can run modtool
 by executing:
 
@@ -29,7 +29,7 @@ All of the modtool commands are documented in the internal help system, which ca
 $ modtool help subcommand
 ```
 
-## Connecting Your Hardware
+### Connecting Your Hardware
 Using modtool requires that you connect your MoMo device to your computer using a bridge between your computer
 and the MoMo bus (MIB).  This could be done using a MoMo Field Service Unit (FSU) that connects to the MoMo and
 to the USB port of your computer, or it could be done over bluetooth.  In either case, your fsu will show up as a
@@ -57,9 +57,9 @@ $ modtool list -p COM3
 You will need to replace those port identifiers with the correct ones for your system.  Once you have verified connectivity, 
 you can use all of modtool's features to interact with your MoMo device.
 
-## Modtool Commands
+### Modtool Commands
 
-### Listing and Describing MoMo modules
+#### Listing and Describing MoMo modules
 Each MoMo unit is composed of various boards that all perform specific tasks.  You can see what boards are attached to your 
 MoMo controller unit by using:
 ```shell
