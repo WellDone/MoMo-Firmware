@@ -120,4 +120,49 @@ Note that on Mac OS X you will have to use sudo to install the packages as root.
 
 ### Simulator Support
 
-Unit tests are run using Microchip's SIM30 simulator (installed with XC16) for PIC24 modules, and using the open-source [GPSIM](http://gpsim.sourceforge.net).  You can often install GPSIM using your Operating System's built-in package manage (on Ubuntu just run `sudo apt-get update && sudo apt-get install gpsim`), otherwise follow the instructions on their website.  When you've finished, make sure `gpsim` is in your PATH so the build tools can find it by running `which gpsim` and making sure it finds something.
+Unit tests are run using Microchip's SIM30 simulator (installed with XC16) for PIC24 modules, and using the open-source [GPSIM](http://gpsim.sourceforge.net).  You can often install GPSIM using your Operating System's built-in package manager (on Ubuntu just run `sudo apt-get update && sudo apt-get install gpsim`), otherwise follow the instructions on their website.  When you've finished, make sure `gpsim` is in your PATH so the build tools can find it by running `which gpsim` and making sure it finds something.
+
+#### Patching GPSIM (since we need a customized version)
+You need to download and patch gpsim from svn.  This section assumes that you are checking out gpsim into the parent directory containing MoMo-Firmware.  If this is not the case you will need to modify the path to gpsim_16lf1847_support.patch based on your system.
+
+```shell
+$ mkdir gpsim
+$ cd gpsim
+$ svn checkout svn://svn.code.sf.net/p/gpsim/code/trunk -r 2281 .
+<Lots of text>
+$ patch -p0 -i ../MoMo-Firmware/support/gpsim_16lf1847_support.patch
+patching file src/14bit-hexdecode.cc
+patching file src/14bit-instructions.h
+patching file src/Makefile.am
+patching file src/makefile.mingw
+patching file src/p16f1847.cc
+patching file src/p16f1847.h
+patching file src/p1xf1xxx.cc
+patching file src/p1xf1xxx.h
+patching file src/pic-instructions.cc
+patching file src/pic-processor.cc
+patching file src/pic-processor.h
+```
+
+Now you need to follow the [instructions](http://gpsim.sourceforge.net/gpsim_svn.html) to build and install gpsim.  For reference, the current required commands are:
+
+```shell
+$ libtoolize --force
+$ aclocal
+$ autoheader
+$ automake --force-missing --add-missing
+$ autoconf
+$ ./configure
+$ make
+$ sudo make install
+```
+
+Make sure you install gpsim into your $PATH correctly and you should be able to build pic12 unit tests.  As a test, navigate to the pic12_executive directory
+and make sure you can build the tests:
+```shell
+$ cd MoMo-Firmware/momo_modules/pic12_executive
+$ momo build test -c
+$ momo build test
+```
+
+You need to have the pro mode compiler currently to build the pic12_executive. 

@@ -11,7 +11,7 @@ import os.path
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from pymomo.utilities.typedargs.exceptions import *
+from pymomo.exceptions import *
 import pymomo
 
 def autobuild_pic12(module, test_dir='test', modulefile=None):

@@ -5,7 +5,7 @@ import sys
 import unit_test
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from pymomo.utilities.typedargs.exceptions import *
+from pymomo.exceptions import *
 from pymomo.utilities import paths
 
 class Pic24ModuleTest (UnitTest):
@@ -14,10 +14,12 @@ class Pic24ModuleTest (UnitTest):
 	providing mocks for any other modules that the module under test (MUT) references.
 	"""
 
-	def __init__(self, files):
-		UnitTest.__init__(self, files)
-
+	def __init__(self, files, **kwargs):
 		self.includes = []
+		self.additional_sources = []
+
+		UnitTest.__init__(self, files, **kwargs)
+
 		self.processed_dirs = set()
 
 		modname = self._build_module_name(files[0])
@@ -64,6 +66,25 @@ class Pic24ModuleTest (UnitTest):
 
 	def _parse_target(self, target):
 		return target
+
+	def _parse_sources(self, value):
+		"""
+		Parse an additional source directory other than simply src
+		"""
+
+		basedir = os.path.dirname(self.files[0])
+		srcpath = os.path.normpath(os.path.join(basedir, value))
+		self.additional_sources.append(srcpath)
+
+	def _parse_modules(self, value):
+		"""
+		For module unit tests where the test just compiles one or several modules, allow
+		the user to specify extra modules that need to be compiled in.
+		"""
+
+		parsed = value.split(',')
+		files = map(lambda x: x.rstrip().lstrip(), parsed)
+		self.extra_modules = files
 
 	def build_target(self, target, summary_env):
 		statusnode = pic24.build_moduletest(self, target)
