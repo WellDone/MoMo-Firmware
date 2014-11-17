@@ -1,20 +1,23 @@
 //mib_state.h
 //Should not be included directly, only for use in bus.h
 
+//4 byte return value header
 typedef struct
 {
-	unsigned char 			reserved;
-	MIBReturnValueHeader	bus_returnstatus;
-	unsigned char			status_checksum;
+	unsigned char			status;
+	unsigned char			checksum;
+	unsigned char			reversed; //must be 0
+	unsigned char			length;
+
 } MIBReturnStatus;
 
-//24 Bytes
+//25 Bytes
 typedef struct
 {
 	union
 	{
-		MIBCommandPacket 	bus_command;	//3 bytes
-		MIBReturnStatus		return_status;	//3 bytes
+		MIBCommandPacket 	bus_command;	//4 bytes
+		MIBReturnStatus		return_status;	//4 bytes
 	};
 	unsigned char 			buffer[kBusMaxMessageSize]; //20 bytes
 	unsigned char			checksum;

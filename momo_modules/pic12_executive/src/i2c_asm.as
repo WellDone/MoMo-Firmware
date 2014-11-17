@@ -85,12 +85,10 @@ ENDFUNCTION _i2c_calculate_checksum
 
 ;Load the FSR0 register with the information
 ;from the i2c buffer pointer.
-;Postcondition: FSR0 contains address of next byte
-;of i2c buffer to be sent or received.
+;Postcondition: FSR0 contains address
 BEGINFUNCTION _i2c_loadbuffer
-	banksel _mib_state
 	clrf 	FSR0H
-	movf 	BANKMASK(curr_loc),w
+	movlw	_mib_data
 	movwf  	FSR0L
 	return
 ENDFUNCTION _i2c_loadbuffer

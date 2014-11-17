@@ -22,6 +22,7 @@ typedef struct
 	unsigned char feature;
 	unsigned char command;
 	unsigned char param_spec;
+	unsigned char sender;
 } MIBCommandPacket;
 
 typedef struct 

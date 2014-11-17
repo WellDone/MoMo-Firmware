@@ -17,14 +17,6 @@ typedef enum
 	kMIBProtocolError = 3,
 } MIBSlaveState;
 
-//Need these because XC8 is really bad at optimizing bit operations
-#define shift_master_state(state)		(state << 4)
-#define set_master_state(state)			{mib_state.combined_state &= 0b10001111; mib_state.combined_state |= shift_master_state(state);}
-#define shift_slave_state(state)		(state << 2)
-#define set_slave_state(state)			{mib_state.combined_state &= 0b111110011; mib_state.combined_state |= shift_slave_state(state);}
-#define bus_has_returnvalue()			(mib_state.bus_returnstatus.len != 0)
-#define bus_get_returnvalue_length()	(mib_state.bus_returnstatus.len)
-
 //Define macros for manipulating the mib_buffer
 #define plist_set_int16(n, val)			((int*)mib_data.buffer)[n] = val
 #define plist_set_int32(n, val)			((uint16*)mib_data.buffer)[n>>1] = val
@@ -34,27 +26,15 @@ typedef enum
 #define plist_get_buffer(n)				(mib_data.buffer + (n << 1))
 #define plist_get_buffer_length()		(mib_data.bus_command.param_spec & 0b00011111)
 
-//7 bytes long
+//3 bytes long
 typedef struct 
 {
-	//Shared Buffers
-	union 
-	{
-		uint8	slave_handler;	
-		uint8	send_address; 
-	}; //1 byte
+	//Master variables
+	uint8   slave_address;
+	uint8	send_address; 
 
-	uint8 		buffer_start;
-	uint8 		curr_loc;
-	uint8 		buffer_end;
-
-	uint8       slave_address;
-
-	//Master needs to save off these two variables
-	//in case there is a bus error and they're overwritten with garbage
-	//see bus_master.c
-	uint8		save_command;
-	uint8		save_spec; 
+	//Slave variables
+	uint8 	curr_loc;
 } MIBState;
 
 /*

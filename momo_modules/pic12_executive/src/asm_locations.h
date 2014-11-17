@@ -23,12 +23,9 @@
 #define mib_buffer		(_mib_data + 3)
 
 //Variables inside MIBState
-#define slave_handler	(_mib_state + 0)
-#define send_address	(_mib_state + 0)
-#define buffer_start	(_mib_state + 1)
+#define slave_address	(_mib_state + 0)
+#define send_address	(_mib_state + 1)
 #define curr_loc		(_mib_state + 2)
-#define buffer_end		(_mib_state + 3)
-#define slave_address	(_mib_state + 4)
 
 //Variables inside of ExecutiveStatus
 #define WatchdogBit		0
