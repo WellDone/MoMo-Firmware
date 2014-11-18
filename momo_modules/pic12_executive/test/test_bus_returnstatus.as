@@ -15,14 +15,21 @@ global _mib_buffer, _mib_packet
 
 PSECT text_unittest,local,class=CODE,delta=2
 BEGINFUNCTION _begin_tests
+	
 	movlw 4
 	asm_call_bus_slave_setreturn()
+	banksel _mib_packet
+	movf BANKMASK(_mib_packet+0),w
+	assertlw 4
+	movf BANKMASK(_mib_packet+1),w
+	assertlw (~4)+1
 
-	movlw 1
-	asm_call_i2c_init_buffer()
-	asm_call_i2c_incptr()
-	asm_call_i2c_append_checksum()
+	movlw 0xAA
+	movwf BANKMASK(_mib_packet+4)
+	movlw 0xBB
+	movwf BANKMASK(_mib_packet+5)
+
 	asm_call_i2c_calculate_checksum()
-	assertlw 0
+	assertlw ~(0xAA + 0xBB) + 1
 	return
 ENDFUNCTION _begin_tests

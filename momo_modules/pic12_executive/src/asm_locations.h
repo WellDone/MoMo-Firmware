@@ -19,8 +19,12 @@
 #define bus_feature		(_mib_data + 0)
 #define bus_command 	(_mib_data + 1)
 #define bus_spec		(_mib_data + 2)
-#define bus_retstatus	(_mib_data + 1)
-#define mib_buffer		(_mib_data + 3)
+#define bus_sender		(_mib_data + 3)
+
+#define bus_status		(_mib_data + 0)
+#define bus_statuscheck (_mib_data + 1)
+#define bus_length		(_mib_data + 3)
+#define mib_buffer		(_mib_data + 4)
 
 //Variables inside MIBState
 #define slave_address	(_mib_state + 0)

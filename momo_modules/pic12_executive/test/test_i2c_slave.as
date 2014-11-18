@@ -62,32 +62,19 @@ BEGINFUNCTION _begin_tests
 	;This is our basic test that the slave module is clocking in
 	;bytes correctly and writing them where it should
 	;Our message was 1,2,0, 0xfd
-	movlw 0
-	asm_call_i2c_init_buffer()
 	asm_call_i2c_loadbuffer()
-	movf INDF0,w
+	moviw [0]FSR0
 	assertlw 1
 
-	movlw 1
-	asm_call_i2c_setoffset()
-	asm_call_i2c_loadbuffer()
-	movf INDF0,w
+	moviw [1]FSR0
 	assertlw 2
 
-	movlw 2
-	asm_call_i2c_setoffset()
-	asm_call_i2c_loadbuffer()
-	movf INDF0,w
+	moviw [2]FSR0
 	assertlw 0
 
-	movlw 3
-	asm_call_i2c_setoffset()
-	asm_call_i2c_loadbuffer()
-	movf INDF0,w
+	moviw [3]FSR0
 	assertlw 0xfd
 
-	movlw 4
-	asm_call_i2c_setoffset()
 	asm_call_i2c_calculate_checksum()
 	assertlw 0x00
 	return

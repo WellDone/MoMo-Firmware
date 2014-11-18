@@ -23,6 +23,6 @@ BEGINFUNCTION _bus_init
 	banksel _mib_state
 	bsf BANKMASK(_status), FirstReadBit
 	movlw kInvalidMIBIndex
-	movwf BANKMASK(slave_handler)
+;	movwf BANKMASK(slave_handler) FIXME
 	return
 ENDFUNCTION _bus_init

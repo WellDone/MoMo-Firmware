@@ -7,9 +7,12 @@
 #include "i2c_defines.h"
 #include "asm_locations.h"
 #include "asm_branches.inc"
+#include "bus_defines.h"
 
 ASM_INCLUDE_GLOBALS()
 
+global _i2c_loadbuffer
+global _i2c_calculate_checksum
 
 PSECT i2c_master,local,class=CODE,delta=2
 
@@ -95,9 +98,7 @@ BEGINFUNCTION _i2c_master_send_message
 	;Use FSR0 as the indirect register holding the data we want to send
 	;We always send a complete buffer (4 byte header + 20 byte packet + 1 byte checksum)
 	;so transmission is done once we have sent 25 bytes
-	clrf FSR0H
-	movlw _mib_data
-	movwf FSR0L
+	call _i2c_loadbuffer
 
 	sendloop:
 	banksel SSP1BUF
@@ -112,7 +113,7 @@ BEGINFUNCTION _i2c_master_send_message
 		goto sendloop
 
 	return
-ENDFUNCTION
+ENDFUNCTION _i2c_master_send_message
 
 ;Receive one byte from i2c as a master and return it in W
 ;If CARRY is set, acknowledge the byte, otherwise send a NACK 
@@ -146,21 +147,21 @@ ENDFUNCTION _i2c_master_receivebyte
 ;Side Effects: 	If the command needs to be resent, DC is set.  
 ; 				If the response needs to be reread, C is set. 			
 BEGINFUNCTION _i2c_master_receive_message
+	;Start a receive packet (address in W + read indication in CARRY bit)
 	bsf CARRY
 	call _i2c_master_start_address
 	btfsc DC
 		return
 
-	clrf FSR0H
-	movlw _mib_data
-	movwf FSR0L
+	;Setup FSR0 with _mibdata
+	call _i2c_loadbuffer	
 
 	;save off first two bytes of packet since those will be overwritten
 	;and may need to be restored if the slave response is that our command
 	;was corrupted in transmission.
-	moviw FSR0[0]
+	moviw [0]FSR0
 	movwf FSR1L
-	moviw FSR0[1]
+	moviw [1]FSR0
 	movwf FSR1H
 
 	;Attempt to read 25 bytes
@@ -190,11 +191,27 @@ BEGINFUNCTION _i2c_master_receive_message
 	btfsc ZERO
 		goto done_reading
 
+	goto readloop
+
 	;Check to make sure the first two bytes are twos complements of each other
 	;and that the return status is not checksum error
 	;FSR0[-2] has the return status
 	;FSR0[-1] has the checksum
 	check_status:
+	;Check if the response was just 0xFF, 0xFF indicating the slave was
+	;nonexistant.  If both werre 0xFF, then goto finished_call otherwise
+	;continue the read loop
+	moviw [-2]FSR0
+	xorlw 0xFF
+	btfss ZERO
+		goto verify_status_checksum
+	moviw [-1]FSR0
+	xorlw 0xFF
+	btfss ZERO
+		goto verify_status_checksum
+	goto finished_call
+
+	verify_status_checksum:
 	addfsr FSR0, -2
 	moviw FSR0++
 	addwf INDF0,w
@@ -202,16 +219,28 @@ BEGINFUNCTION _i2c_master_receive_message
 	btfss ZERO
 		goto checksum_error
 
-	moviw FSR0[-1] ;get the return status
+	moviw [-1]FSR0 ;get the return status
 	xorlw kChecksumError
 	btfsc ZERO
 		goto resend_command_error
+
 	;move the pointer back to the next byte location and continue the loop
 	addfsr FSR0, 1
 	goto readloop
 
+	;We've read 25 bytes wothout error, make sure the checksum is valid
 	done_reading:
-	;Finished reading this packet successfully
+	call _i2c_loadbuffer
+	movlw 25
+	call _i2c_calculate_checksum
+	btfss ZERO
+		goto checksum_error
+	
+	finished_call:
+	;We were successful, so clear the status bits and return
+	bcf DC
+	bcf CARRY
+	return
 
 	;The slave has indicated a checksum error receiving the command packet
 	;We need to send one more read with a nack to clear the bus and then
@@ -227,9 +256,13 @@ BEGINFUNCTION _i2c_master_receive_message
 	call _i2c_master_receivebyte
 	bsf CARRY
 
-	;Restore the packet here
-
-
+	;Restore the packet portion that was overwritten
+	call _i2c_loadbuffer
+	movf FSR1L,w
+	movwi [0]FSR0
+	movwf FSR1H
+	moviw [1]FSR0
+	return
 ENDFUNCTION _i2c_master_receive_message
 
 ;Synchronously send a stop condition on the bus.

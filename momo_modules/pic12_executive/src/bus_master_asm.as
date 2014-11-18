@@ -9,39 +9,55 @@
 
 ASM_INCLUDE_GLOBALS()
 
-global _i2c_master_receive_message, _i2c_append_checksum, _i2c_master_send_message
-
+global _i2c_master_receive_message, _i2c_master_send_message, _i2c_loadbuffer
+global _bus_is_idle, _i2c_finish_transmission, _i2c_set_master_mode
 PSECT text_bus_master,local,class=CODE,delta=2
 
-;Given a length in W, prepare the buffer to _bus_master_receive
-;that many bytes and call i2c routine to start sending
-BEGINFUNCTION _bus_master_receive
-	banksel _mib_state
-	addwf BANKMASK(buffer_start),w
-	movwf BANKMASK(buffer_end)
-	goto _i2c_master_receive_message
-ENDFUNCTION _bus_master_receive
+BEGINFUNCTION _bus_master_tryrpc
+	;FIXME load in address to W	
+	call _i2c_master_send_message
+	
+	;Keep attempting to read until we either are successful or have to stop
+	;because of a collision or invalid sent packet 
+	attempt_read:
+	call _i2c_master_receive_message
+	btfsc DC
+		return
+	btfsc CARRY
+		goto attempt_read
 
+	return
+ENDFUNCTION _bus_master_tryrpc
 
-BEGINFUNCTION _bus_master_send
-	banksel _mib_state
-	addwf BANKMASK(buffer_start),w
-	movwf BANKMASK(curr_loc)
-	call _i2c_append_checksum
+;Send a master RPC to the address specified in W.  Keep trying until successful
+;Uses: FSR0, FSR1, W
+;Modifies: DC,C,Z
+;Side Effects: 
+;Returns: Status code from the call in W
+BEGINFUNCTION _bus_master_send_rpc
+	;FIXME insert addreses and checksum here
+	wait_and_start:
+	banksel PIR1
+	bcf BCL1IF
+	
+	;Wait for the bus to not be idle
+	call _bus_is_idle
+	xorlw 0
+	btfsc ZERO
+		goto wait_and_start
 
-	movf BANKMASK(curr_loc),w
-	movwf BANKMASK(buffer_end)
+	call _bus_master_tryrpc
+	btfsc DC
+		goto wait_and_start
 
-	movf BANKMASK(buffer_start),w
-	movwf BANKMASK(curr_loc)
-
-	goto _i2c_master_send_message
-ENDFUNCTION _bus_master_send
+	call _i2c_finish_transmission
+	movlw 0
+	call _i2c_set_master_mode
+	goto _get_mib_result
+ENDFUNCTION _bus_master_send_rpc
 
 BEGINFUNCTION _get_mib_result
-	movlb	1	; select bank1
-	swapf	BANKMASK(bus_retstatus),w
-  	rrf		WREG,f
-  	andlw	7
-  	return
+	banksel bus_status	
+	movf 	BANKMASK(bus_status), w
+  	return 
 ENDFUNCTION _get_mib_result

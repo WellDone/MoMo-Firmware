@@ -16,7 +16,7 @@ void bus_slave_startcommand()
 	//Initialize all the state
 	status.first_read = 1;
 
-	i2c_init_buffer(kCommandOffset);	//Initialize buffer to read in command + parameters
+	i2c_init_location();	//Initialize buffer to read in command + parameters
 	i2c_release_clock();
 }
 
@@ -27,12 +27,7 @@ void bus_slave_read_callback()
 		bus_slave_callcommand();
 		status.first_read = 0;
 
-		//Prepare the return value response
-		i2c_init_buffer(kReturnStatusOffset);
-		i2c_append_checksum_at_offset(1);
-		
-		i2c_init_buffer(kReturnStatusOffset);
-		i2c_append_checksum_at_offset(bus_retval_size() + 2);	//Second checksum includes return status + first checksum byte + return value
+		i2c_append_checksum();
 	}
 
 	/*
@@ -42,8 +37,8 @@ void bus_slave_read_callback()
 	 * will also have a valid checksum.
 	 */
 
-	i2c_init_buffer(kReturnStatusOffset); //Set up buffer pointer to point to return status + return value
-
+	//Set up buffer pointer to point to return status + return value
+	i2c_init_location(); 
 	i2c_loadbuffer();
 	i2c_write(); //Initialize first byte for immediate reading
 	i2c_release_clock();

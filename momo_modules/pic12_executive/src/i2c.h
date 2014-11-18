@@ -37,11 +37,10 @@ void i2c_enable(unsigned char slave_address);
 void i2c_disable();
 
 //Buffer Setup/Validation Functions
-void i2c_init_buffer(uint8 start);
 uint8 i2c_calculate_checksum();
 void i2c_append_checksum();
-void i2c_append_checksum_at_offset(uint8 offset);
 void i2c_loadbuffer();
+void i2c_init_location();
 void i2c_read();
 void i2c_write();
 
