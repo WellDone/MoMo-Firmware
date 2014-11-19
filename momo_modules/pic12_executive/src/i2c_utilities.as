@@ -9,7 +9,7 @@
 
 ASM_INCLUDE_GLOBALS()
 
-GLOBAL _i2c_enable, _i2c_loadbuffer, _i2c_incptr
+GLOBAL _i2c_enable, _i2c_loadbuffer, _i2c_incptr, _i2c_disable
 
 PSECT text_i2c_utils,local,class=CODE,delta=2
 
@@ -42,11 +42,12 @@ BEGINFUNCTION _i2c_set_master_mode
 		movlw kI2CSlaveMode
 	movwf BANKMASK(SSP1CON1)
 
-	BANKSEL slave_address
-	movf 	BANKMASK(slave_address),w
+	;Load in the slavea addressa and left shift it since it's a 7-bit address
+	banksel slave_address
+	lslf BANKMASK(slave_address),w
 	movlb 	4
 	btfsc FSR1H,0
-	movlw  0x09	 	;in master mode set baud to 100 khz
+		movlw  0x09	 	;in master mode set baud to 100 khz
 
 	movwf BANKMASK(SSP1ADD)
 
@@ -61,13 +62,12 @@ ENDFUNCTION _i2c_set_master_mode
 ;Enable the i2c interface and configure it for mib use
 ;put it in slave mode
 BEGINFUNCTION _i2c_enable
-	lslf WREG,w
+	banksel slave_address
+	movwf BANKMASK(slave_address)
+
 	movlb 1
 	bsf SDATRIS
 	bsf SCLTRIS
-
-	BANKSEL slave_address
-	movwf BANKMASK(slave_address)
 
 	movlb 4
 	movlw 0xff & kI2CFlagMask
@@ -79,3 +79,15 @@ BEGINFUNCTION _i2c_enable
 	movf BANKMASK(SSP1BUF),w
 	return
 ENDFUNCTION _i2c_enable
+
+;Disable the I2C interface and disable any inturrupts that
+;it has enabled
+BEGINFUNCTION _i2c_disable
+	banksel PIE1
+	bcf SSP1IE
+
+	banksel SSP1CON2
+	bcf BANKMASK(SSP1CON2), SSP1CON2_GCEN_POSN
+	bcf BANKMASK(SSP1CON1), SSP1CON1_SSPEN_POSN
+	return
+ENDFUNCTION _i2c_disable

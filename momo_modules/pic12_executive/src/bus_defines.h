@@ -21,4 +21,7 @@
 #define kInvalidMIBIndex			255
 #define kBusMaxMessageSize 			20
 
+#define kBusHeaderSize				4
+#define kBusPacketSize				(kBusHeaderSize + kBusMaxMessageSize)
+
 #endif

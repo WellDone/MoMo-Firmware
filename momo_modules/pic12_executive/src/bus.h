@@ -31,7 +31,7 @@ typedef struct
 {
 	//Master variables
 	uint8   slave_address;
-	uint8	send_address; 
+	uint8	send_address;
 
 	//Slave variables
 	uint8 	curr_loc;

@@ -12,13 +12,13 @@
 ASM_INCLUDE_GLOBALS()
 
 global _i2c_loadbuffer
-global _i2c_calculate_checksum
+global _i2c_calculate_checksum, _i2c_verify_checksum
 
 PSECT i2c_master,local,class=CODE,delta=2
 
 ;Wait synchronously for a master i2c operation to complete by polling SSP1IF
-;If a bus collision occurs, return with Digit Carry flag set, otherwise return with
-;DC flag clear
+;If a bus collision occurs, return with Digit Carry flag set, otherwise return 
+;with DC flag clear
 ;Uses: None
 ;Modifies: DC, bank0
 ;Side Effects: 	DC flag set if bus collision occurred, DC flag clear if bus collision
@@ -108,7 +108,7 @@ BEGINFUNCTION _i2c_master_send_message
 	btfsc DC
 		return
 	movf FSR0L,w
-	xorlw _mib_data + 25
+	xorlw _mib_data + kBusPacketSize + 1
 	btfss ZERO
 		goto sendloop
 
@@ -130,9 +130,11 @@ BEGINFUNCTION _i2c_master_receivebyte
 	movf BANKMASK(SSP1BUF),w
 
 	;If carry is set, ACK the byte, otherwise NACK
-	bcf BANKMASK(SSP1CON2), 5
+	;SSP1CON2,5 is active low
+	bsf BANKMASK(SSP1CON2), 5
 	btfsc CARRY
-		bsf BANKMASK(SSP1CON2), 5
+		bcf BANKMASK(SSP1CON2), 5
+
 	bsf BANKMASK(SSP1CON2), 4 		;send the ACK/NACK
 	goto _i2c_wait_flag
 ENDFUNCTION _i2c_master_receivebyte
@@ -169,7 +171,7 @@ BEGINFUNCTION _i2c_master_receive_message
 
 	;Acknowledge bytes 0-23 and do no acknowledge last byte 
 	bsf CARRY
-	movlw _mib_data + 24
+	movlw _mib_data + kBusPacketSize
 	xorwf FSR0L,w
 	btfsc ZERO
 		bcf CARRY
@@ -180,13 +182,13 @@ BEGINFUNCTION _i2c_master_receive_message
 		goto resend_command_error
 
 	;After receiving 2 bytes, check to make sure we should keep reading
-	movlw _mib_data + 3
+	movlw _mib_data + 2
 	xorwf FSR0L,w
 	btfsc ZERO
 		goto check_status
 
 	;If we have read 25 bytes, we're done
-	movlw _mib_data + 25
+	movlw _mib_data + kBusPacketSize + 1
 	xorwf FSR0L,w
 	btfsc ZERO
 		goto done_reading
@@ -198,9 +200,7 @@ BEGINFUNCTION _i2c_master_receive_message
 	;FSR0[-2] has the return status
 	;FSR0[-1] has the checksum
 	check_status:
-	;Check if the response was just 0xFF, 0xFF indicating the slave was
-	;nonexistant.  If both werre 0xFF, then goto finished_call otherwise
-	;continue the read loop
+	;Check if the response was just 0xFF, 0xFF indicating the slave was nonexistant.
 	moviw [-2]FSR0
 	xorlw 0xFF
 	btfss ZERO
@@ -209,6 +209,11 @@ BEGINFUNCTION _i2c_master_receive_message
 	xorlw 0xFF
 	btfss ZERO
 		goto verify_status_checksum
+
+	;The slave is not there, the bus is just giving us 0xFF, 0xFF
+	;Initiate one more read with a NACK to follow i2c spec
+	bcf CARRY
+	call _i2c_master_receivebyte
 	goto finished_call
 
 	verify_status_checksum:
@@ -231,13 +236,12 @@ BEGINFUNCTION _i2c_master_receive_message
 	;We've read 25 bytes wothout error, make sure the checksum is valid
 	done_reading:
 	call _i2c_loadbuffer
-	movlw 25
-	call _i2c_calculate_checksum
+	call _i2c_verify_checksum
 	btfss ZERO
 		goto checksum_error
-	
+
+	;We were successful, so clear the status bits and return	
 	finished_call:
-	;We were successful, so clear the status bits and return
 	bcf DC
 	bcf CARRY
 	return

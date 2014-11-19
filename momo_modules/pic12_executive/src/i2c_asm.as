@@ -4,6 +4,7 @@
 
 #include <xc.inc>
 #include "i2c_defines.h"
+#include "bus_defines.h"
 #include "asm_locations.h"
 
 ASM_INCLUDE_GLOBALS()
@@ -11,7 +12,7 @@ ASM_INCLUDE_GLOBALS()
 PSECT text_i2c_asm,local,class=CODE,delta=2
 
 ;For the current i2c buffer, calculate its checksum and append the result
-;to the buffer.  curr_loc will increase by one if there is space.
+;to the buffer.
 ;Uses:FSR0,FSR1
 ;Returns:Nothing
 BEGINFUNCTION _i2c_append_checksum
@@ -28,7 +29,7 @@ ENDFUNCTION _i2c_append_checksum
 ;Side Effets: Z set if checksum is valid, Z clear otherwise
 BEGINFUNCTION _i2c_verify_checksum
 	call _i2c_calculate_checksum
-	addwf INDF0
+	addwf INDF0,w
 	return
 ENDFUNCTION _i2c_verify_checksum
 
@@ -46,14 +47,15 @@ BEGINFUNCTION _i2c_calculate_checksum
 	validate_loop:
 	movf FSR0H,w
 	clrf FSR0H
-	addwf INDF0,w
-	incf FSR0L
 
+	addwf INDF0,w
 	;store W in FSR0H, which must be 0 since we're in bank1
 	movwf FSR0H
+
+	incf FSR0L,f
 	movf FSR0L,w
-	xorlw _mib_data + 25
-	btfsc ZERO
+	xorlw _mib_data + kBusPacketSize
+	btfss ZERO
 		goto validate_loop
 
 	comf FSR0H,f
@@ -84,7 +86,7 @@ ENDFUNCTION _i2c_init_location
 ;FIXME: Add an overflow bit so that we don't keep sending checksum errors
 BEGINFUNCTION _i2c_incptr
 	banksel _mib_state
-	movlw 	(_mib_data + 24)
+	movlw 	(_mib_data + kBusPacketSize)
 	xorwf	BANKMASK(curr_loc),w
 	btfsc 	ZERO
 		return 			;if buffer is full, do not increment

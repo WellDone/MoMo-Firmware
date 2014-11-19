@@ -21,17 +21,17 @@ typedef union
 {
 	struct
 	{
-		uint8 reserved1 	: 1; //cannot change position (referenced by watchdog.as)
-		uint8 valid_app 	: 1;
-		uint8 bootload_mode : 1;
-		uint8 registered	: 1;
-		uint8 dirty_reset 	: 1; //cannot change, referenced in watchdog.as
-		uint8 slave_active 	: 1; //cannot change, referenced in i2c_utilities.as
-		uint8 first_read	: 1;
-		uint8 trapped		: 1; 
+		uint16 reserved1 		: 1; //cannot change position (referenced by watchdog_asm.as)
+		uint16 valid_app 		: 1;
+		uint16 bootload_mode 	: 1;
+		uint16 registered		: 1;
+		uint16 dirty_reset 		: 1; //cannot change, referenced in watchdog_asm.as
+		uint16 slave_active 	: 1; //cannot change, referenced in i2c_utilities.as
+		uint16 first_read		: 1;
+		uint16 trapped			: 1;
 	};
 
-	uint8 status;
+	uint16 status;
 } MIBExecutiveStatus;
 
 #endif

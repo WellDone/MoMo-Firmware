@@ -11,7 +11,6 @@
 #define SCLPIN		RC0
 
 #define I2CPORT		PORTC
-#define I2CMASK 	0b00000011
 
 #define SDATRIS		TRISC1
 #define SCLTRIS		TRISC0
@@ -23,7 +22,6 @@
 #define SCLPIN		RA1
 
 #define I2CPORT		PORTA
-#define I2CMASK 	0b00000110
 
 #define SDATRIS		TRISA2
 #define SCLTRIS		TRISA1
@@ -35,11 +33,11 @@
 #define SCLPIN		RB4
 
 #define I2CPORT		PORTB
-#define I2CMASK 	0b00010010
 
 #define SDATRIS 	TRISB1
 #define SCLTRIS		TRISB4
 #define ALARM		B0
+ 
 #else
 #error Unsupported Platform, need to know i2c pin locations.
 #endif
