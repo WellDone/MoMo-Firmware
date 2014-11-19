@@ -66,12 +66,15 @@ BEGINFUNCTION _begin_tests
 	moviw [0]FSR0
 	assertlw 1
 
+	asm_call_i2c_loadbuffer()
 	moviw [1]FSR0
 	assertlw 2
 
+	asm_call_i2c_loadbuffer()
 	moviw [2]FSR0
 	assertlw 0
 
+	asm_call_i2c_loadbuffer()
 	moviw [3]FSR0
 	assertlw 0xfd
 

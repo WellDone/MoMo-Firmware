@@ -34,5 +34,28 @@ BEGINFUNCTION _begin_tests
 	movf FSR1H,w
 	assertlw 0xBB
 
+	asm_call_i2c_loadbuffer()
+	movlw 0x1
+	movwi [0]FSR0
+	movlw 0x2
+	movwi [1]FSR0
+	movlw 0x3
+	movwi [2]FSR0
+
+	;Make sure the buffer pointer is in the right spot
+	asm_call_i2c_calculate_checksum()
+	movf FSR0L,w
+	assertlw _mib_packet+24
+	movf FSR0H,w
+	assertlw 0
+
+	asm_call_i2c_calculate_checksum()
+	assertlw 250
+
+	asm_call_i2c_append_checksum()
+	asm_call_i2c_loadbuffer()
+	moviw [24]FSR0
+	assertlw 250
+
 	return
 ENDFUNCTION _begin_tests
