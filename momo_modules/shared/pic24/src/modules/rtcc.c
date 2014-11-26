@@ -1,5 +1,6 @@
 #include "rtcc.h"
 #include "pic24.h"
+#include "oscillator.h"
 #include "task_manager.h"
 #include <string.h>
 
@@ -34,7 +35,7 @@ uint16 rtcc_enabled()
     return _RTCEN;
 }
 
-void configure_rtcc()
+void configure_rtcc(RTCCClockSource source)
 {
     rtcc_datetime date;
     _RTCCMD = 0; //Make sure power to the rtcc is enabled.
@@ -44,7 +45,10 @@ void configure_rtcc()
 
 //newer pic supports another register for extracting RTCC timer from 60hz power line
 #ifdef __PIC24FJ64GA306__
-    _RTCLK = 0b01;
+    if (source == kRTCCSoscSource)
+        set_sosc_status(1);
+
+    _RTCLK = source;
 #endif
     _CAL = 0; //Clear oscillator trimming
     _RTCOE = 0; //Don't output the clock signal

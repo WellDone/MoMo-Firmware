@@ -88,3 +88,43 @@ ReportSchedulingStartedNotice
 
 ReportSchedulingStoppedNotice
 "Report scheduling stopped"
+
+
+CouldNotAdvertise
+"Could not start bluetooth module advertisements"
+
+BTModuleInitializedCorrectly
+"Correctly initialized the BTLE module"
+
+BTAdvertisementSuccessful
+"Succesfully started bluetooth advertisement"
+
+BTErrorSendingCommand
+"Error sending bluetooth command"
+- "Send Buffer" as string
+- "Receive Buffer" as string
+
+BTTimeout
+"Timeout talking to BT module"
+
+BTNoWakeup
+"Could not wake RN4020 BTLE Module."
+
+BTNoShutdown
+"Could not put BTLE module to sleep"
+
+BTCouldNotCommunicate
+"Could not enable BTLE module, trying a higher baud rate"
+- "Error Code" as integer, format unsigned
+
+BTCouldNotTalkAt115200
+"Attempted to communicate with the BTLE module at 115200 baud and could not"
+- "Error Code" as integer, format unsigned
+
+BTResetBaud
+"Sucessfully set the baud rate of the BTLE module down to 38400"
+
+BTCouldNotResetBaud
+"Could not reset the baud rate of the BTLE module"
+- "Error Code" as integer, format unsigned
+- "Receive Buffer" as string

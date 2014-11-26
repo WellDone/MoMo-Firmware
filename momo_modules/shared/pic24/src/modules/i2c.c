@@ -26,7 +26,7 @@ void i2c_configure(const I2CConfig *config)
 	I2C1MSK = 0x00; //All address bits are significant
 	I2C1ADD = config->address;
 
-	I2C1BRG = 0x27; //Set baud rate to 100 khz for a 4 mhz instruction freq (F_osc/2)
+	I2C1BRG = kI2CBaud; //Set baud rate to 100 khz (actual value varies by platform b/c of clock speed.  See build_settings.json)
 
 	//Set priority
 	_SI2C1P = config->priority;
