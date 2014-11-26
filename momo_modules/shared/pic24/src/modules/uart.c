@@ -244,6 +244,9 @@ void process_RX_char(UART_STATUS* stat, char data)
         stat->rx_callback(data);
 }
 
+//Allow people who link against this library to not use the default interrupt handler
+//implementations in case they want to override them.
+#ifndef NO_UART_INTERRUPTS
 //Interrupt Handlers
 void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 {
@@ -282,6 +285,7 @@ void __attribute__((interrupt,no_auto_psv)) _U2TXInterrupt()
     }
     IFS1bits.U2TXIF = 0; //Clear IFS flag
 }
+#endif
 
 void transmit_one( UARTPort port ) {
     UART_STATUS* stat = STAT( port );

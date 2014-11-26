@@ -9,6 +9,17 @@
 
 	"module_targets" :
 	{
-		"libpic24": ["24f16ka101", "24fj64ga306"]
+		"libpic24": ["24f16ka101", "24fj64ga306/no_uart"]
+	},
+
+	"architectures":
+	{
+		"no_uart":
+		{
+			"defines":
+			{
+				"NO_UART_INTERRUPTS": 1
+			}
+		}
 	}
 }
