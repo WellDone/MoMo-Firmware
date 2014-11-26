@@ -23,12 +23,17 @@
 //Define all support peripheral input names
 #define SDI1_INPUT 		_SDI1R
 #define SCK1_INPUT		_SCK1R
+#define UART1_RX		_U1RXR
+#define UART1_CTS 		_U1CTSR
 
 //Define all supported peripheral output names
 enum
 {
 	SDO1_OUTPUT	= 7,
-	SCK1_OUTPUT = 8
+	SCK1_OUTPUT = 8,
+
+	UART1_RTS = 4,
+	UART1_TX = 3
 };
 
 #define MAP_PERIPHERAL_OUT_R(pin, output)	_RP##pin##R = (output)
