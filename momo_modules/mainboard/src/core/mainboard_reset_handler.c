@@ -16,6 +16,7 @@
 #include "system_log.h"
 #include "perf.h"
 #include "momo_config.h"
+#include "rn4020.h"
 
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
@@ -57,7 +58,8 @@ void handle_all_resets_after(unsigned int type)
      */
 
     battery_init();
-    report_manager_start();
+    bt_init();
+    //report_manager_start();
 
     CRITICAL_LOGL( "Device initialized." );
 }

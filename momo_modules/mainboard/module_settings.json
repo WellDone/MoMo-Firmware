@@ -22,7 +22,19 @@
 				"mainboard/src/util"
 			],
 
-			"hw_compatibility": "con_v3.1"
+			"hw_compatibility": "con_v3.1",
+			"defines":
+			{
+				"BT_TXRP": "25",
+				"BT_RXRP": "20",
+				"BT_CTSRP": "12",
+				"BT_RTSRP": "4",
+				"BT_SOFTWAKEPIN": "D3",
+				"BT_HARDWAKEPIN": "D10",
+				"BT_CMDPIN": "D2",
+				"BT_UART": 1,
+				"BT_TIMER": 1
+			}
 		}
 	},
 

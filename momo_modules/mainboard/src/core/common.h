@@ -16,7 +16,7 @@
 
 #define SCL						G2
 #define SDA						G3
-#define ALARM					D3
+#define ALARM					B5
 
 
 //Clock configuration and delays
