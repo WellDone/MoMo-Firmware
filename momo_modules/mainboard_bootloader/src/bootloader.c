@@ -62,7 +62,15 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
 
 			//Patch the reset vector with a jump to us.
 			if (row == 0)
-				patch_reset_vector(row_buffer, reset_vector);
+			{
+				row_buffer[0] = reset_vector & 0xFF;
+				row_buffer[1] = (reset_vector >> 8) & 0xFF;
+				row_buffer[2] = 0x04;
+
+				row_buffer[3] = 0;
+				row_buffer[4] = 0;
+				row_buffer[5] = 0;
+			}
 
 			write_row(row, row_buffer);
 			++row;
@@ -143,17 +151,6 @@ uint16_t _BOOTLOADER_CODE extract_reset_vector()
 {
 	TBLPAG = 0;
 	return __builtin_tblrdl(0);
-}
-
-void _BOOTLOADER_CODE patch_reset_vector(unsigned char *row_buffer, uint16_t vector)
-{
-	row_buffer[0] = vector & 0xFF;
-	row_buffer[1] = (vector >> 8) & 0xFF;
-	row_buffer[2] = 0x04;
-
-	row_buffer[3] = 0;
-	row_buffer[4] = 0;
-	row_buffer[5] = 0;
 }
 
 void _BOOTLOADER_CODE goto_address(unsigned int addr)

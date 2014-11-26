@@ -9,9 +9,7 @@
 				{
 					"linker": "./linker/p24FJ64GA306.gld"
 				}
-			},
-			
-			"libraries": ["pic24"]
+			}
 		}
 	},
 
