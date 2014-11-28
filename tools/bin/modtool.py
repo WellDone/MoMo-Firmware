@@ -55,6 +55,22 @@ class ModTool(cmdln.Cmdln):
 		if opts.voltage:
 			print "Battery Voltage: %.2fV" % con.battery_status()
 
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_bootloader(self, subcmd, opts):
+		"""${cmd_name}: Check if there was an error bootloading the application
+		firmware on the controller module. 
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+
+		con = self._get_controller(opts)
+
+		print "Checking bootloader status (this will take 4s)"
+
+		probes = con.bootloader_status()
+		print probes
+
 	def do_test(self, subcmd, opts, *tests):
 		"""${cmd_name}: Run hardware tests on attached MoMo device
 
