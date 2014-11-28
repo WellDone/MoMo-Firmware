@@ -22,7 +22,7 @@
 #pragma config IOL1WAY = OFF            // IOLOCK One-Way Set Enable bit (The IOLOCK bit can be set and cleared using the unlock sequence)
 #pragma config OSCIOFCN = ON            // OSCO Pin Configuration (OSCO/CLKO/RC15 functions as port I/O (RC15))
 #pragma config FCKSM = CSDCMD           // Clock Switching and Fail-Safe Clock Monitor Configuration bits (Clock switching and Fail-Safe Clock Monitor are disabled)
-#pragma config FNOSC = FRC              // Initial Oscillator Select (Fast RC Oscillator (FRC))
+#pragma config FNOSC = FRCPLL           // Initial Oscillator Select (Fast RC Oscillator with 4xPLL (FRCPLL))
 #pragma config ALTVREF = DLT_AV_DLT_CV  // Alternate VREF/CVREF Pins Selection bit (Voltage reference input, ADC =RA9/RA10 Comparator =RA9,RA10)
 #pragma config IESO = OFF               // Internal External Switchover (Disabled)
 
@@ -51,7 +51,12 @@ int _BOOTLOADER_CODE main(void)
 {
 	ValidationResult metadata_status;
 
+	//Speed up clock to 32 Mhz.
+	_RCDIV = 000;
+
 	DIR(ALARM) = INPUT;
+	ENSURE_DIGITAL(ALARM);
+	
 
 	//Allow 100 ms for someone to assert the alarm pin in case this is a
 	//power on reset.

@@ -5,7 +5,10 @@
 #include "ioport.h"
 #include "constants.h"
 
-const char *hw_version = kHardwareString;
+#define HARDWARE_STRING_R(str)		#str
+#define HARDWARE_STRING(str)		HARDWARE_STRING_R(str)
+
+const char *hw_version = HARDWARE_STRING(kHardwareVersion);
 
 void _BOOTLOADER_CODE write_row(unsigned int row, unsigned char *row_buffer)
 {
@@ -44,8 +47,8 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
 	reset_vector = extract_reset_vector();
 
 	//Enable the Memory Module
-    LAT(E5) = 1;
-    DIR(E5) = OUTPUT;
+    LAT(MEM_POWER) = 1;
+    DIR(MEM_POWER) = OUTPUT;
 	configure_SPI();
 
 	//Give the flash memory time to warm up. (it needs at least 30 us after VCC reaches min value)

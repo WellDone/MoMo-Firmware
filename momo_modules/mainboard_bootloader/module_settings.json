@@ -13,8 +13,38 @@
 		}
 	},
 
+	"architectures":
+	{
+		"v40":
+		{
+			"defines":
+			{
+				"SCL": "G2",
+				"SDA": "G3",
+				"ALARM": "B1",
+				"MEM_POWER": "E5",
+
+				"BUS_ENABLE": "F3",
+				"CHARGE_ENABLE": "B0",
+				"BATTERY_VOLTAGE_AN": "3",
+				"BATTERY_VOLTAGE": "B3",
+
+				"kHardwareVersion": "con_v4.0",
+
+				"MEM_POWER": 	"E5",
+				"CS":			"G8",
+				"SCK":			"G7",
+				"SDO":			"G6",
+				"SDI":			"G9",
+				"RPSDO":		"21",
+				"RPSCK":		"26",
+				"RPSDI":		"27"
+			}
+		}
+	},
+
 	"module_targets" :
 	{
-		"mainboard_bootloader": ["24fj64ga306"]
+		"mainboard_bootloader": ["24fj64ga306/v40"]
 	}
 }

@@ -9,6 +9,7 @@
 #include <string.h>
 #include "system_log.h"
 #include <xc.h>
+#include "bus_slave.h"
 
 rn4020_info bt_data;
 
@@ -16,7 +17,10 @@ rn4020_info bt_data;
 static BluetoothResult	bt_cmd_sync(const char *cmd);
 static BluetoothResult 	bt_rcv_sync();
 static void 			bt_start_transmission();
+static void 			bt_prepare_rcv_buffer();
+
 static BluetoothResult 	bt_enable_module();
+static BluetoothResult 	bt_disable_module();
 
 
 void bt_init()
@@ -63,8 +67,8 @@ void bt_init()
 	BT_UMODE.PDSEL = 0x00; //8-bits no parity
 	BT_UMODE.STSEL = 0; //1 stop bit
 
-	BT_UMODE.BRGH = 0; //Low speed
-	BT_UBRG = 8; //actual speed 111,111 baud 3.5% low
+	BT_UMODE.BRGH = 1; //High speed
+	BT_UBRG = 34; //actual speed 114285 baud 0.8% low
 
 	//Initialize the buffer information
 	bt_data.send_cursor = 0;
@@ -95,41 +99,41 @@ void bt_init()
 	BT_UMODE.UARTEN = 1;
 	BT_USTA.UTXEN = 1;
 
-	bt_data.flags.initialized = 1;
+	
 
-	bt_enable_module();
+	//Make sure we can talk to the module
+	if (bt_enable_module() == kBT_NoError)
+	{
+		bt_data.flags.initialized = 1;
+		bt_disable_module();
+	}
 }
 
 //FIXME: Change interrupt name to match BT UART name
 void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 {
-	if (bt_data.flags.initialized)
+	while(BT_USTA.URXDA == 1)
 	{
-		while(U1STAbits.URXDA == 1)
+		if (bt_data.receive_cursor >= MAX_RN4020_MSG_SIZE)
 		{
-			if (bt_data.receive_cursor >= MAX_RN4020_MSG_SIZE)
+			bt_data.flags.receive_overflow = 1;
+			//FIXME: Log an error here
+		}
+		else
+		{
+			unsigned char data = BT_URX;
+
+			//Check if we've received the end of a command
+			if (data == '\n' && bt_data.receive_buffer[bt_data.receive_cursor-1] == '\r')
 			{
-				bt_data.flags.receive_overflow = 1;
-				//FIXME: Log an error here
+				bt_data.receive_buffer[bt_data.receive_cursor-1] = '\0';
+				bt_data.flags.resp_received = 1;
+
+				if (!bt_data.flags.cmd_sync)
+					; //FIXME: schedule callback to handle event if it's not synchronous
 			}
 			else
-			{
-				unsigned char data = BT_URX;
-
-				//Check if we've received the end of a command
-				if (data == '\n' && bt_data.receive_buffer[bt_data.receive_cursor-1] == '\r')
-				{
-					--bt_data.receive_cursor;
-
-					bt_data.receive_buffer[bt_data.receive_cursor++] = '\0';
-					bt_data.flags.resp_received = 1;
-
-					if (!bt_data.flags.cmd_sync)
-						; //FIXME: schedule callback to handle event if it's not synchronous
-				}
-				else
-					bt_data.receive_buffer[bt_data.receive_cursor++] = data;
-			}
+				bt_data.receive_buffer[bt_data.receive_cursor++] = data;
 		}
 	}
 
@@ -138,11 +142,8 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 
 void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt()
 {
-	if (bt_data.flags.initialized)
-	{
-		while ( BT_USTA.UTXBF == 0 && bt_data.transmitted_cursor != bt_data.send_cursor) 
-			BT_UTX = bt_data.send_buffer[bt_data.transmitted_cursor++];
-	}
+	while ( BT_USTA.UTXBF == 0 && bt_data.transmitted_cursor != bt_data.send_cursor) 
+		BT_UTX = bt_data.send_buffer[bt_data.transmitted_cursor++];
 
 	BT_TX_IF = 0; //Clear IFS flag
 }
@@ -211,16 +212,20 @@ BluetoothResult bt_enable_module()
 	if (bt_data.flags.awake)
 		return kBT_NoError;
 
+	bt_prepare_rcv_buffer();
 	LAT(BT_SOFTWAKEPIN) = 1;
 	result = bt_rcv_sync();
 
 	if (result != kBT_NoError)
+	{
+		DEBUG_LOGL("Timeout receiving response from BTLE module.");
 		return result;
+	}
 
 	if (strcmp("CMD", bt_data.receive_buffer) != 0)
 	{
 		DEBUG_LOGL("Could not initialize RN4020 BTLE Module.");
-		return kBT_CouldNotInitialize;
+		return kBT_InvalidResponse;
 	}
 
 	bt_data.flags.awake = 1;
@@ -228,10 +233,48 @@ BluetoothResult bt_enable_module()
 	return kBT_NoError;
 }
 
+BluetoothResult bt_disable_module()
+{
+	BluetoothResult result;
+
+	if (!bt_data.flags.awake)
+		return kBT_NoError;
+
+	bt_prepare_rcv_buffer();
+	LAT(BT_SOFTWAKEPIN) = 0;
+	result = bt_rcv_sync();
+
+	if (result != kBT_NoError)
+	{
+		DEBUG_LOGL("Timeout receiving response from BTLE module.");
+		return result;
+	}
+
+	if (strcmp("END", bt_data.receive_buffer) != 0)
+	{
+		DEBUG_LOGL("Could not turn off RN4020 BTLE Module.");
+		return kBT_InvalidResponse;
+	}
+
+	bt_data.flags.awake = 0;
+	return kBT_NoError;
+}
+
+void bt_prepare_rcv_buffer()
+{
+	bt_data.flags.resp_received = 0;
+	bt_data.receive_cursor = 0;
+}
+
 void bt_start_transmission()
 {
 	bt_data.transmitted_cursor = 1;
-	bt_data.flags.resp_received = 0;
+	bt_prepare_rcv_buffer();
 
 	BT_UTX = bt_data.send_buffer[0];
+}
+
+void bt_debug_buffer()
+{
+	bus_slave_return_buffer(bt_data.receive_buffer, 20);
 }

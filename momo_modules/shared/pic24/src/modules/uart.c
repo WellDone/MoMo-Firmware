@@ -5,9 +5,9 @@
 #include <string.h>
 #include <stdarg.h>
 
-#define CALC_BAUDHI(baud)     (unsigned int)((CLOCKSPEED/(4*baud))-1)    //Assumes hi speed
-#define CALC_BAUDLO(baud)     (unsigned int)((CLOCKSPEED/(16*baud))-1)    //Assumes low speed
-#define HIBAUDMIN             CLOCKSPEED/(16L*65536L)
+#define CALC_BAUDHI(baud)     (unsigned int)((kClockspeed/(4*baud))-1)    //Assumes hi speed
+#define CALC_BAUDLO(baud)     (unsigned int)((kClockspeed/(16*baud))-1)    //Assumes low speed
+#define HIBAUDMIN             kClockspeed/(16L*65536L)
 #define CALC_BAUD(baud)       ( baud > HIBAUDMIN )?CALC_BAUDHI:CALC_BAUDLO
 
 UART_STATUS __attribute__((space(data))) uart_stats[2];

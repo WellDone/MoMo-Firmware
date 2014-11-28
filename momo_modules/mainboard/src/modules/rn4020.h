@@ -19,7 +19,7 @@
 #define __rn4020_h__
 
 #define MAX_RN4020_MSG_SIZE		100
-#define RN4020_TIMEROUT_PERIOD	63 		//4 ms on an 8mhz crystal
+#define RN4020_TIMEROUT_PERIOD	800 		//50 ms on an 8mhz crystal
 
 #define build_register_r(prefix, middle, postfix)  	prefix ## middle ## postfix
 #define build_register(prefix, middle, postfix)  	build_register_r(prefix, middle, postfix)
@@ -78,11 +78,12 @@ typedef enum
 	kBT_Timeout = 1,
 	kBT_SendOverflow = 2,
 	kBT_ReceiveOverflow = 3,
-	kBT_CouldNotInitialize = 4
+	kBT_InvalidResponse = 4
 } BluetoothResult;
 
 //Module API
 void 			bt_init();
+void 			bt_debug_buffer();
 
 //FIXME: Add error statements for all bt required pins
 //Make sure all of the appropriate pins are defined

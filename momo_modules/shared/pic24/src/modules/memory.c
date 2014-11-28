@@ -5,18 +5,11 @@
 
 #ifndef __NO_FLASH__
 
-#ifdef __PIC24FJ64GA306__
 #define ENABLE_MEMORY() LAT(CS) = 0
 #define DISABLE_MEMORY() LAT(CS) = 1
 
-#else
-#define SS_VALUE LATBbits.LATB15
-#define ENABLE_MEMORY() SS_VALUE = 0
-#define DISABLE_MEMORY() SS_VALUE = 1
-#endif
-
 //Clock configuration and delays
-#define FCY   4000000L  //define your instruction frequency, FCY = FOSC/2
+#define FCY   kClockspeed  //define your instruction frequency, FCY = FOSC/2
   
 #define CYCLES_PER_MS ((unsigned long long)(FCY * 0.001))        //instruction cycles per millisecond
 #define CYCLES_PER_US ((unsigned long long)(FCY * 0.000001))   //instruction cycles per microsecond
@@ -119,8 +112,8 @@ void mem_ensure_powered(MemoryStartupTimer for_writing)
     _RB7 = 1;
     _TRISB7 = 0;
 #else
-    LAT(MEMPOWER) = 1;
-    DIR(MEMPOWER) = OUTPUT;
+    LAT(MEM_POWER) = 1;
+    DIR(MEM_POWER) = OUTPUT;
 #endif
 
     status.enabled = 1;
@@ -148,40 +141,24 @@ void mem_remove_power()
 {
   SPI1STATbits.SPIEN = 0;
 
-#ifndef __PIC24FJ64GA306__
-    _RB7 = 0;
-    _TRISB7 = 0;
+  LAT(MEM_POWER) = 0;
+  DIR(MEM_POWER) = OUTPUT;
 
-    //Drive all pins low to minimize power consumption
-    TRISBbits.TRISB15 = 0; // SS
-    TRISBbits.TRISB14 = 0; // SDI (IO)
-    AD1PCFGbits.PCFG14 = 1; // SDI (analog/digital)
-    TRISBbits.TRISB13 = 0; // SDO
-    TRISBbits.TRISB12 = 0; // SDCK
-    _LATB15 = 0;
-    _LATB14 = 0;
-    _LATB13 = 0;
-    _LATB12 = 0;
-#else
-    LAT(MEMPOWER) = 0;
-    DIR(MEMPOWER) = OUTPUT;
+  DIR(CS) = OUTPUT;
+  LAT(CS) = 0;
+  TYPE(CS) = DIGITAL;
 
-    DIR(CS) = OUTPUT;
-    LAT(CS) = 0;
-    TYPE(CS) = DIGITAL;
-  
-    DIR(SDI) = OUTPUT;
-    LAT(SDI) = 0;
-    TYPE(SDI) = DIGITAL;
+  DIR(SDI) = OUTPUT;
+  LAT(SDI) = 0;
+  TYPE(SDI) = DIGITAL;
 
-    DIR(SDO) = OUTPUT;
-    LAT(SDO) = 0;
-    TYPE(SDO)= DIGITAL;
-  
-    DIR(SCK) = OUTPUT;
-    LAT(SDO) = 0;
-    TYPE(SCK) = DIGITAL;
-#endif
+  DIR(SDO) = OUTPUT;
+  LAT(SDO) = 0;
+  TYPE(SDO)= DIGITAL;
+
+  DIR(SCK) = OUTPUT;
+  LAT(SDO) = 0;
+  TYPE(SCK) = DIGITAL;
 
   status.enabled = 0;
 }
