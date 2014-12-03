@@ -78,12 +78,20 @@ typedef enum
 	kBT_Timeout = 1,
 	kBT_SendOverflow = 2,
 	kBT_ReceiveOverflow = 3,
-	kBT_InvalidResponse = 4
+	kBT_InvalidResponse = 4,
+	kBT_InvalidResponseLength = 5,
+	kBT_ErrorResponseReceived = 6
 } BluetoothResult;
+
+typedef enum
+{
+	kBT_ParseResponse = 1 << 0
+} BluetoothCommandFlags;
 
 //Module API
 void 			bt_init();
 void 			bt_debug_buffer();
+BluetoothResult	bt_advertise();
 
 //FIXME: Add error statements for all bt required pins
 //Make sure all of the appropriate pins are defined

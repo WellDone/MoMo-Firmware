@@ -54,6 +54,7 @@ def build_staticlibs(libs, chip):
 		else:
 			#Append chip type and suffix
 			proclib = "%s_%s" % (lib, chip.arch_name())
+			processed.append(proclib)
 
 	return ['-l%s' % x for x in processed]
 

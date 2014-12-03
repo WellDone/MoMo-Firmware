@@ -14,7 +14,7 @@
 rn4020_info bt_data;
 
 //Internal functions that should not called outside of this module
-static BluetoothResult	bt_cmd_sync(const char *cmd);
+static BluetoothResult	bt_cmd_sync(const char *cmd, unsigned int flags);
 static BluetoothResult 	bt_rcv_sync();
 static void 			bt_start_transmission();
 static void 			bt_prepare_rcv_buffer();
@@ -28,21 +28,15 @@ void bt_init()
 	//Setup pin directions for control signals between RN4020 and PIC
 	LAT(BT_SOFTWAKEPIN) = 0;
 	DIR(BT_SOFTWAKEPIN) = OUTPUT;
-#if TYPE_R(BT_SOFTWAKEPIN)
-	TYPE(BT_SOFTWAKEPIN) = DIGITAL;
-#endif
+	ENSURE_DIGITAL(BT_SOFTWAKEPIN);
 
 	LAT(BT_HARDWAKEPIN) = 0;
 	DIR(BT_HARDWAKEPIN) = OUTPUT;
-#if TYPE_R(BT_HARDWAKEPIN)
-	TYPE(BT_HARDWAKEPIN) = DIGITAL;
-#endif
+	ENSURE_DIGITAL(BT_HARDWAKEPIN);
 
 	LAT(BT_CMDPIN) = 0;
 	DIR(BT_CMDPIN) = OUTPUT;
-#if TYPE_R(BT_CMDPIN)
-	TYPE(BT_CMDPIN) = DIGITAL;
-#endif
+	ENSURE_DIGITAL(BT_CMDPIN);
 
 	//Setup the reprogrammable pins
 	MAP_PERIPHERAL_IN(BT_RXRP, BT_RX_NAME);
@@ -106,6 +100,11 @@ void bt_init()
 	{
 		bt_data.flags.initialized = 1;
 		bt_disable_module();
+
+		if (bt_advertise() != kBT_NoError)
+			DEBUG_LOGL("Could not advertise module");
+		else
+			DEBUG_LOGL("Module advertised sucessfully");
 	}
 }
 
@@ -126,7 +125,7 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 			//Check if we've received the end of a command
 			if (data == '\n' && bt_data.receive_buffer[bt_data.receive_cursor-1] == '\r')
 			{
-				bt_data.receive_buffer[bt_data.receive_cursor-1] = '\0';
+				bt_data.receive_buffer[--bt_data.receive_cursor] = '\0';
 				bt_data.flags.resp_received = 1;
 
 				if (!bt_data.flags.cmd_sync)
@@ -154,12 +153,11 @@ void __attribute__((interrupt,no_auto_psv)) _T1Interrupt()
 	timer_int_flag(BT_TIMER) = 0;
 }
 
-BluetoothResult bt_cmd_sync(const char *cmd)
+BluetoothResult bt_cmd_sync(const char *cmd, unsigned int flags)
 {
 	BluetoothResult result;
 
 	bt_data.send_cursor = 0;
-
 	while(cmd[bt_data.send_cursor] != 0)
 	{
 		if (bt_data.send_cursor >= MAX_RN4020_MSG_SIZE)
@@ -181,9 +179,29 @@ BluetoothResult bt_cmd_sync(const char *cmd)
 
 	result = bt_rcv_sync();
 	if (result != kBT_NoError)
+	{
+		DEBUG_LOGL("Error sending command");
+		DEBUG_LOG(bt_data.send_buffer, bt_data.send_cursor);
+		DEBUG_LOG(bt_data.receive_buffer, bt_data.receive_cursor);
 		return result;
+	}
 
-	return kBT_NoError;
+	//Check if we should parse the response as AOK or ERR
+	if (!(flags & kBT_ParseResponse))
+		return kBT_NoError;
+
+	//Valid responses to commands should be AOK or ERR so check to
+	//see what we got.
+	if (bt_data.receive_cursor != 3)
+		return kBT_InvalidResponseLength;
+
+	if (bt_data.receive_buffer[0] == 'A' && bt_data.receive_buffer[1] == 'O' && bt_data.receive_buffer[2] == 'K')
+		return kBT_NoError;
+
+	if (bt_data.receive_buffer[0] == 'E' && bt_data.receive_buffer[1] == 'R' && bt_data.receive_buffer[2] == 'R')
+		return kBT_ErrorResponseReceived;
+
+	return kBT_InvalidResponse;
 }
 
 BluetoothResult bt_rcv_sync()
@@ -224,12 +242,11 @@ BluetoothResult bt_enable_module()
 
 	if (strcmp("CMD", bt_data.receive_buffer) != 0)
 	{
-		DEBUG_LOGL("Could not initialize RN4020 BTLE Module.");
+		DEBUG_LOGL("Could not wake RN4020 BTLE Module.");
 		return kBT_InvalidResponse;
 	}
 
 	bt_data.flags.awake = 1;
-	DEBUG_LOGL("Properly initialized RN4020 BTLE Module.");
 	return kBT_NoError;
 }
 
@@ -277,4 +294,35 @@ void bt_start_transmission()
 void bt_debug_buffer()
 {
 	bus_slave_return_buffer(bt_data.receive_buffer, 20);
+}
+
+//FIXME: Finish this function
+void bt_encode(unsigned int number, char *output)
+{
+	int i;
+
+	for (i=0; i<4; ++i)
+	{
+		char hex;
+		unsigned int val = (number >> (i*4)) & 0xF;
+	}
+}
+
+BluetoothResult bt_advertise()
+{
+	BluetoothResult result;
+
+	result = bt_enable_module();
+	if (result != kBT_NoError)
+		return result;
+
+	result = bt_cmd_sync("A", kBT_ParseResponse);
+	if (result != kBT_NoError)
+	{
+		bt_disable_module();
+		return result;
+	}
+
+	result = bt_disable_module();
+	return result;
 }
