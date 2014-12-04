@@ -4,6 +4,7 @@
 #include <p24Fxxxx.h>
 #include "common_types.h"
 #include "pic24asm.h"
+
 #define CLOCKSPEED      8000000L //F_osc / 2 (the instruction clock frequency)
 
 //NB: These routines only work for up to ~15000 instructions

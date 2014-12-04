@@ -10,6 +10,7 @@
 #include "perf.h"
 #include "system_log.h"
 #include "report_log.h"
+#include "log_definitions.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -287,22 +288,23 @@ bool construct_report()
 void post_report( void* arg ) 
 {
   report_stream_abandon();
-  DEBUG_LOGL( "Constructing report..." );
+  LOG_DEBUG(kConstructingReportNotice);
   if (!construct_report( CONFIG.report_interval ))
   {
-    CRITICAL_LOGL( "Failed to construct report!" );
+    LOG_CRITICAL(kFailedToConstructReportError);
     return; //TODO: Recover
   }
-  DEBUG_LOGL( "Report constructed." );
+
+  LOG_DEBUG(kReportConstructedNotice);
   report_stream_send( base64_report_buffer );
 }
 
 void start_report_scheduling() {
-  DEBUG_LOGL( "Report scheduling started." );
+  LOG_DEBUG(kReportSchedulingStartedNotice);
   scheduler_schedule_task( post_report, CONFIG.report_interval, kScheduleForever, &report_task, NULL );
 }
 void stop_report_scheduling() {
-  DEBUG_LOGL( "Report scheduling stopped." );
+  LOG_DEBUG(kReportSchedulingStoppedNotice);
   scheduler_remove_task( &report_task );
 }
 void set_report_scheduling_interval( AlarmRepeatTime interval ) {

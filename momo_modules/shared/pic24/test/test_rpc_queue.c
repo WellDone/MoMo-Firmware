@@ -8,6 +8,7 @@
 #include "task_manager.h"
 #include "system_log.h"
 #include "ringbuffer.h"
+#include "scheduler.h"
 #include <string.h>
 
 //Mocked functions
@@ -42,6 +43,15 @@ unsigned int memory_enabled()
 }
 
 void flush_log(void *arg)
+{
+
+}
+
+void scheduler_schedule_task( task_callback func,
+                              AlarmRepeatTime freq,
+                              unsigned char numtimes,
+                              ScheduledTask /*out*/ *saved_task,
+                              void *argument )
 {
 
 }

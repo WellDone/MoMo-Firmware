@@ -5,36 +5,38 @@ import shlex
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from pymomo.utilities.typedargs import shell
+from pymomo.utilities.typedargs.shell import HierarchicalShell, posix_lex
 from pymomo.exceptions import *
 from pymomo.utilities.typedargs import annotate
 from pymomo.commander.meta import initialization
 from pymomo.hex import ControllerBlock, HexFile
 from pymomo.sim.simulator import Simulator
 from pymomo.utilities import build
-
-builtins = ['help', 'back', 'quit']
-
-@annotate.context("root")
-class InitialContext(dict):
-	pass
+import pymomo.syslog
 
 def run_momo():
-	root = InitialContext()
-	root.update(annotate.find_all(initialization))
-	root.update(annotate.find_all(build))
-	root['ControllerBlock'] = ControllerBlock
-	root['HexFile'] = HexFile
-	root['Simulator'] = Simulator
-
 	line = sys.argv[1:]
+
+	norc=False
+	if len(line) > 0 and line[0] == '--norc':
+		norc = True
+		line = line[1:]
+
+	shell = HierarchicalShell('momo', no_rc=norc)
+	shell.root_update(annotate.find_all(initialization))
+	shell.root_update(annotate.find_all(build))
+	
+	name,con = annotate.context_from_module(pymomo.syslog)
+	shell.root_add(name, con)
+	shell.root_add('ControllerBlock', ControllerBlock)
+	shell.root_add('HexFile', HexFile)
+	shell.root_add('Simulator', Simulator)
+
 	finished = False
-	contexts = [root]
 
 	try:
 		while len(line) > 0:
-			line, finished = shell.invoke(contexts, line)
-			first_cmd = False
+			line, finished = shell.invoke(line)
 	except MoMoException as e:
 		print e.format()
 
@@ -47,7 +49,7 @@ def run_momo():
 	def complete(text, state):
 		buf = readline.get_line_buffer()
 		if buf.startswith('help ') or " " not in buf:
-			funcs = annotate.find_all(contexts[-1]).keys() + builtins
+			funcs = shell.valid_identifiers()
 			return filter(lambda x: x.startswith(text), funcs)[state]
 
 		return (glob.glob(os.path.expanduser(text)+'*')+[None])[state]
@@ -60,18 +62,18 @@ def run_momo():
 	if not finished:
 		try:
 			while True:
-				linebuf = raw_input("(%s) " % annotate.context_name(contexts[-1]))
-				line = shlex.split(linebuf)
+				linebuf = raw_input("(%s) " % shell.context_name())
+				line = shlex.split(linebuf, posix=posix_lex)
 
 				#Catch exception outside the loop so we stop invoking submethods if a parent
 				#fails because then the context and results would be unpredictable
 				try:
 					while len(line) > 0:
-						line, finished = shell.invoke(contexts, line)
+						line, finished = shell.invoke(line)
 				except MoMoException as e:
 					print e.format()
 
-				if len(contexts) == 0:
+				if shell.finished():
 					sys.exit(0)
 
 		#Make sure to catch ^C and ^D so that we can cleanly dispose of subprocess resources if 

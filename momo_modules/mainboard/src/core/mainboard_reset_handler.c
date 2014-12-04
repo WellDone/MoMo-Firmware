@@ -16,38 +16,51 @@
 #include "system_log.h"
 #include "perf.h"
 #include "momo_config.h"
+#include "log_definitions.h"
 
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
 {
+    int rtcc_disabled = 0;
     //Add code here that should be called before all other reset code
-    disable_unneeded_peripherals();
-    perf_enable_profiling();
+
+    //mem_init must be called before any logging statements in order to ensure
+    //that the system log is properly initialized.  
     mem_init();
     mem_ensure_powered(1);
+
+    
+    //The RTCC must be enabled for scheduling tasks, so ensure that happens.
+    //All modules that need to schedule tasks MUST BE called after
+    //rtcc is on and enabled. 
+    if (!rtcc_enabled() || _RTCLK != 0b01)
+    {
+        configure_rtcc();
+        enable_rtcc();
+        rtcc_disabled = 1;
+    }
+    
+    disable_unneeded_peripherals();
+    perf_enable_profiling();
+
     configure_interrupts();
 
+    scheduler_init(); //must come before taskloop and any logging calls since the taskloop and log calls add a scheduled task
     taskloop_init();
     taskloop_set_flag(kTaskLoopSleepBit, 1);
-    scheduler_init();
+
+    //Do the logging now since we need both the scheduler and taskloop to be intialized for logging to work
+    if (rtcc_disabled)
+        LOG_CRITICAL(kRTCCOffNotice); //log after enabling rtcc so that the timestamp makes sense
+
     
     con_init();
 
     init_mainboard_mib();
     flash_memory_init();
 
-    //The RTCC must be enabled for scheduling tasks, so ensure that happens.
-    //All modules that need to schedule tasks MUST BE called after
-    //rtcc is on and enabled. 
-    if (!rtcc_enabled() || _RTCLK != 0b01)
-    {
-        CRITICAL_LOGL( "RTCC Off, enabling.");
-        configure_rtcc();
-        enable_rtcc();
-    }
-
     mclr_triggered = false;
-    CRITICAL_LOGL( "Device reset.");
+    LOG_CRITICAL(kDeviceResetNotice);
 }
 
 void handle_all_resets_after(unsigned int type)
@@ -59,17 +72,17 @@ void handle_all_resets_after(unsigned int type)
     battery_init();
     report_manager_start();
 
-    CRITICAL_LOGL( "Device initialized." );
+    LOG_CRITICAL(kDeviceInitializedNotice);
 }
 
 void handle_poweron_reset(unsigned int type)
 {
-    CRITICAL_LOGL( "Device powered on." );
+    LOG_CRITICAL(kPowerOnNotice);
 }
 
 void handle_mclr_reset(unsigned int type)
 {
-    CRITICAL_LOGL( "MCLR triggered." );
+    LOG_CRITICAL(kMCLRTriggeredNotice);
     mclr_triggered = true;
 }
 

@@ -3,6 +3,7 @@
 #include "utilities.h"
 #include "pic24.h"
 #include "system_log.h"
+#include "log_definitions.h"
 
 static SchedulerState state;
 
@@ -156,7 +157,8 @@ static void scheduler_callback()
 		{
 			if (BIT_TEST(curr->flags, kCallbackPendingBit))
 			{
-				CRITICAL_LOGL("Scheduled callback period came and went without callback being called.");
+				LOG_CRITICAL(kScheduledCallbackSlowError);
+				LOG_ARRAY(curr, sizeof(ScheduledTask));
 				continue;
 			}
 

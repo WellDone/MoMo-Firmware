@@ -5,23 +5,29 @@
 #include "utilities.h"
 #include <string.h>
 
+//Global variables for the system_log module
 #ifndef __NO_FLASH__
-
-#define LOG_BUFFER_SIZE 8
-
 static flash_queue log_queue;
+#endif
+
 static ringbuffer log_buffer;
-LogEntry log_buffer_data[LOG_BUFFER_SIZE];
+
+static GenericLogEntry log_buffer_data[LOG_BUFFER_SIZE];
 
 static bool flush_task_pending = false;
-bool lazy_system_logging = true;
+static bool lazy_system_logging = true;
+
+//Private functions
+static void ensure_log_space();
+static void commit_log_entry();
 
 void init_system_log( uint8 start_subsection, uint8 subsection_count )
 {
-	ringbuffer_create( &log_buffer, log_buffer_data, sizeof( LogEntry ), LOG_BUFFER_SIZE );
-  flash_queue_create( &log_queue, start_subsection,
-                      sizeof(LogEntry), 
-                      subsection_count );
+	ringbuffer_create( &log_buffer, log_buffer_data, sizeof(GenericLogEntry), LOG_BUFFER_SIZE );
+
+	#ifndef __NO_FLASH__
+	flash_queue_create( &log_queue, start_subsection, sizeof(GenericLogEntry), subsection_count );
+	#endif
 }
 
 void disable_lazy_logging()
@@ -29,81 +35,106 @@ void disable_lazy_logging()
 	lazy_system_logging = 0;
 }
 
-void flush_log( void* arg )
+void log_start(LogStream stream, uint32 hash)
 {
-	flush_task_pending = false;
-	while ( !ringbuffer_empty( &log_buffer ) )
-	{
-		flash_queue_queue( &log_queue, ringbuffer_peek( &log_buffer ) );
-		ringbuffer_pop( &log_buffer, NULL );
-	}
-}
-void commit_log_entry()
-{
-	// NB: There will be garbage after the end of the data buffer, but it's not worth zeroing out
+	ensure_log_space();
 
-	if ( lazy_system_logging && !flush_task_pending )
-	{
-		flush_task_pending = true;
-		taskloop_add( flush_log, NULL );
-	}
-	else if ( !lazy_system_logging )
-	{
-		flush_log( NULL );
-	}
-}
-void write_system_log( LogStream stream, const BYTE* data, uint8 length )
-{
-	uninterruptible_start();
+	TypedLogEntry entry;
+	entry.stream = stream;
+	entry.message_hash = hash;
+	entry.timestamp = rtcc_get_timestamp();
 
-	if ( length > LOG_ENTRY_SIZE )
-		length = LOG_ENTRY_SIZE;
+	entry.header.type = kNewLogEntryType;
+	entry.header.length = 15;
+	entry.remote_source = 0;
+	entry.remote_sequence = 0;
 
-	if ( ringbuffer_full( &log_buffer ) )
-		flush_log( NULL ); // This will lock things up but we need to make sure we save off the log entries
-
-	LogEntry* staged_log_entry = (LogEntry*) ringbuffer_stage( &log_buffer );
-	staged_log_entry->stream = stream;
-	staged_log_entry->length = length;
-	staged_log_entry->timestamp = rtcc_get_timestamp();
-	memcpy( &staged_log_entry->data, data, length );
-	ringbuffer_commit( &log_buffer );
-
+	ringbuffer_push(&log_buffer, &entry);
 	commit_log_entry();
-	
-	uninterruptible_end();
 }
-void write_system_logf( LogStream stream, const char* fmt, ... )
+
+/*
+ * Log an integer to go with the last log entry that has been started.  To make optimal
+ * use of space, integers are always packed and logged in lists since the size of each
+ * log entry is fixed at 16 bytes.  So, first check if there's an existing open LogEntry
+ * and if so add the integer to that one.  Otherwise, create a new one
+ *
+ */
+void log_integer(unsigned int value)
 {
-	uninterruptible_start();
+	GenericLogEntry *entry = NULL;
+	GenericLogEntry new_entry;
 
-	if ( ringbuffer_full( &log_buffer ) )
-		flush_log( NULL ); // This will lock things up but we need to make sure we save off the log entries
+	//Check if there is an existing integer list we can append to
+	if (!ringbuffer_empty(&log_buffer))
+	{
+		entry = (GenericLogEntry*)ringbuffer_peeklast(&log_buffer);
+		if (entry->header.type == kIntegerListType && entry->header.length < (LOG_DATA_SIZE -2))
+		{
+			entry->data[entry->header.length++] = value & 0xFF;
+			entry->data[entry->header.length++] = value >> 8;
+			return;
+		}
+	}
 
-	LogEntry* staged_log_entry = (LogEntry*) ringbuffer_stage( &log_buffer );
-	staged_log_entry->stream = stream;
-	staged_log_entry->timestamp = rtcc_get_timestamp();
-	
-	va_list argp;
-	va_start( argp, fmt );
-	staged_log_entry->length = sprintf_small( (char*)&staged_log_entry->data, LOG_ENTRY_SIZE, fmt, argp );
-	va_end( argp );
+	//Otherwise, start a new one
+	ensure_log_space();
+	new_entry.header.type = kIntegerListType;
+	new_entry.header.length = 2;
 
-	ringbuffer_commit( &log_buffer );
-
+	new_entry.data[0] = value & 0xFF;
+	new_entry.data[1] = value >> 8;
+	ringbuffer_push(&log_buffer, &new_entry);
 	commit_log_entry();
-	
-	uninterruptible_end();
 }
 
-bool read_system_log( uint16 index, LogEntry *out )
+void log_array(LogEntryType type, const unsigned char *data, unsigned int length)
 {
-	flash_queue_walker walker = new_flash_queue_walker( &log_queue, index );
-	if ( flash_queue_walk( &walker, (void*)out, 1 ) == 0 )
+	unsigned int i;
+	GenericLogEntry entry;
+
+	for (i=0; i<length; i += LOG_DATA_SIZE)
+	{
+		ensure_log_space();
+		if (i == 0)
+			entry.header.type = type;
+		else
+			entry.header.type = kContinuationType;
+
+		entry.header.length = (length - i) < LOG_DATA_SIZE ? (length - i) : LOG_DATA_SIZE;
+		memcpy(entry.data, data+i, entry.header.length);
+		ringbuffer_push(&log_buffer, &entry);
+		commit_log_entry();
+	}
+}
+
+void log_string(const char *string)
+{
+	log_array(kStringType, (const unsigned char *)string, strlen(string) + 1);
+}
+
+void ensure_log_space()
+{
+	if (ringbuffer_full(&log_buffer))
+		flush_log(NULL); // This will lock things up but we need to make sure we save off the log entries
+}
+
+/*
+ * Routines for reading the log back after its been written.
+ */
+
+
+#ifndef __NO_FLASH__
+
+bool read_system_log( uint16 index, GenericLogEntry *out)
+{
+	flash_queue_walker walker = new_flash_queue_walker(&log_queue, index);
+	if (flash_queue_walk( &walker, (void*)out, 1) == 0)
 		return false;
 	else
 		return true;
 }
+
 void clear_system_log()
 {
 	flash_queue_reset( &log_queue );
@@ -112,6 +143,53 @@ void clear_system_log()
 uint16 system_log_count()
 {
 	return flash_queue_count( &log_queue );
+}
+
+void flush_log(void* arg)
+{
+	flush_task_pending = false;
+	while ( !ringbuffer_empty( &log_buffer ) )
+	{
+		flash_queue_queue(&log_queue, ringbuffer_peek( &log_buffer ));
+		ringbuffer_pop(&log_buffer, NULL);
+	}
+}
+void commit_log_entry()
+{
+	if (lazy_system_logging && !flush_task_pending)
+	{
+		flush_task_pending = true;
+		taskloop_add(flush_log, NULL);
+	}
+	else if (!lazy_system_logging)
+	{
+		flush_log(NULL);
+	}
+}
+
+#else
+
+bool read_system_log( uint16 index, GenericLogEntry *out)
+{
+	return false;
+}
+void clear_system_log()
+{
+	ringbuffer_reset(&log_buffer);
+}
+
+uint16 system_log_count()
+{
+	return 0;
+}
+
+void flush_log(void* arg)
+{
+
+}
+void commit_log_entry()
+{
+
 }
 
 #endif

@@ -6,6 +6,7 @@
 #include "system_log.h"
 #include "utilities.h"
 #include <string.h>
+#include "log_definitions.h"
 
 #define CONFIG current_momo_state.report_config
 
@@ -43,12 +44,15 @@ void reset_comm_stream()
 }
 void open_stream()
 {
-  write_system_logf( kDebugLog, "Opening comm stream (module: %d, route: %s)", module_iter_address( &comm_module_iterator ), CONFIG.report_server_address );
+  LOG_DEBUG(kOpenedCommStreamNotice);
+  LOG_INT(module_iter_address(&comm_module_iterator));
+  LOG_STRING(CONFIG.report_server_address);
 
   MIBUnified cmd;
   memcpy( cmd.mib_buffer, CONFIG.report_server_address, strlen(CONFIG.report_server_address) );
   report_rpc( &cmd, 0, plist_with_buffer(0,strlen(CONFIG.report_server_address)) );
 }
+
 void next_comm_module( void* arg )
 {
   module_iter_next( &comm_module_iterator );
@@ -59,36 +63,36 @@ void next_comm_module( void* arg )
     open_stream();
   }
   else
-  {
-    DEBUG_LOGL( "Finished streaming report to all comm modules." );
-  }
+    LOG_DEBUG(kFinishedReportStreamingNotice);
 }
 
 void stream_to_gsm() {
   MIBUnified cmd;
   if ( report_stream_offset >= strlen(report_buffer) )
   {
-    DEBUG_LOGL( "Closing comm stream." );
+    LOG_DEBUG(kClosingCommStreamNotice);
     current_stream_finished = true;
     report_rpc( &cmd, 2, plist_empty() );
     return;
   }
 
-  DEBUG_LOGL( "Streaming data..." );
+  LOG_DEBUG(kStreamingCommDataNotice);
   uint8 byte_count = strlen(report_buffer)-report_stream_offset;
   if ( byte_count > kBusMaxMessageSize )
     byte_count = kBusMaxMessageSize;
   memcpy( cmd.mib_buffer, report_buffer+report_stream_offset, byte_count );
-  DEBUG_LOG( cmd.mib_buffer, byte_count );
+
+  LOG_ARRAY(cmd.mib_buffer, byte_count);
   report_stream_offset += byte_count;
   report_rpc( &cmd, 1, plist_with_buffer( 0, byte_count ) );
 }
 void receive_gsm_stream_response(unsigned char a) 
 {
-  FLUSH_LOG();
+  LOG_FLUSH();
   if ( a != kNoMIBError )
   {
-    write_system_logf( kCriticalLog, "Failed to send a message to a comm module!  Error: %d", a );
+    LOG_CRITICAL(kFailedMessageToCommModuleNotice);
+    LOG_INT(a);
     notify_report_failure();
   }
   else if ( !current_stream_finished )
@@ -96,14 +100,14 @@ void receive_gsm_stream_response(unsigned char a)
     taskloop_add( stream_to_gsm, NULL );
   }
   // else wait for success/failure notification
-  FLUSH_LOG();
+  LOG_FLUSH();
 }
 
 void report_stream_abandon()
 {
   if ( module_iter_get( &comm_module_iterator ) != NULL )
   {
-    DEBUG_LOGL( "Abandoning current report stream." );
+    LOG_DEBUG(kAbandoningCommStreamNotice);
     current_stream_finished = true;
     
     MIBUnified cmd;
@@ -129,8 +133,8 @@ void report_stream_send( char* buffer )
 void notify_report_success()
 {
   // TODO: Save success or failure to the report log.
-  DEBUG_LOGL( "Report succeeded." );
-  taskloop_add( next_comm_module, NULL );
+  LOG_DEBUG(kReportSucceededNotice);
+  taskloop_add(next_comm_module, NULL);
 }
 
 void notify_report_failure()
@@ -143,14 +147,15 @@ void notify_report_failure()
       retry_interval = 0;
 
     ++retry_count;
-    DEBUG_LOGL( "Report failed.  Retrying." );
+    LOG_DEBUG(kReportFailedNotice);
+    LOG_INT(retry_count);
     reset_comm_stream();
     scheduler_schedule_task( open_stream, retry_interval, 1, &report_retry_task, NULL ); // if we're reporting every day, retry every hour
     // TODO: This blocks streaming to any other module, which could be problematic
   }
   else
   {
-    DEBUG_LOGL( "Retry count exceeded, abandoning report." );
+    LOG_DEBUG(kReportAbandonedNotice);
     taskloop_add( next_comm_module, NULL );
   }
 }

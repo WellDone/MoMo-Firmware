@@ -32,7 +32,8 @@ def xc16_generator(source, target, env, for_signature):
 
 _xc16_obj = SCons.Builder.Builder(
 	generator = xc16_generator,
-	suffix='.o')
+	suffix='.o',
+	source_scanner = SCons.Scanner.C.CScanner())
 
 def generate(env):
 	env['BUILDERS']['xc16_gcc'] = _xc16_obj

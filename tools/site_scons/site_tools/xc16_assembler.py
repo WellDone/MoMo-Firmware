@@ -3,6 +3,7 @@
 
 import SCons.Builder
 import SCons.Action
+import SCons.Scanner
 import os.path
 import sys
 import utilities
@@ -32,7 +33,8 @@ def xc16_generator(source, target, env, for_signature):
 
 _xc16_obj = SCons.Builder.Builder(
 	generator = xc16_generator,
-	suffix='.o')
+	suffix='.o'
+	)
 
 def generate(env):
 	env['BUILDERS']['xc16_as'] = _xc16_obj

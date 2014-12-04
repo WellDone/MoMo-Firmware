@@ -346,7 +346,7 @@ void sendf(UARTPort port, const char *fmt, ...)
 
     // This is a hack, but it works.
     ringbuffer_reset( &stat->send_buffer );
-    stat->send_buffer.end += sprintf_small((char*)stat->send_buffer_data, UART_BUFFER_SIZE, fmt, argp);
+    stat->send_buffer.count += sprintf_small((char*)stat->send_buffer_data, UART_BUFFER_SIZE, fmt, argp);
 
     va_end(argp);
 
