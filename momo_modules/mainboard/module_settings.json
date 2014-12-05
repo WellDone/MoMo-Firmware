@@ -51,11 +51,39 @@
 			},
 
 			"libraries": ["#pic24_24fj64ga306_no_uart_v40"]
+		},
+
+		"v41":
+		{
+			"hw_compatibility": "con_v4.1",
+
+			"defines":
+			{
+				"BT_TXRP": "25",
+				"BT_RXRP": "20",
+				"BT_CTSRP": "12",
+				"BT_RTSRP": "4",
+				"BT_SOFTWAKEPIN": "D3",
+				"BT_HARDWAKEPIN": "D10",
+				"BT_CMDPIN": "D2",
+				"BT_UART": 1,
+				"BT_TIMER": 1,
+
+				"SCL":					"G2",
+				"BUS_ENABLE":			"F3",
+				"ALARM":				"B5",
+				"SDA":					"G3",
+				"CHARGE_ENABLE":		"B2",
+				"BATTERY_VOLTAGE":		"B3",
+				"BATTERY_VOLTAGE_AN":	"3"	
+			},
+
+			"libraries": ["#pic24_24fj64ga306_no_uart_v40"]
 		}
 	},
 
 	"module_targets" :
 	{
-		"mainboard": ["24fj64ga306/v40"]
+		"mainboard": ["24fj64ga306/v40", "24fj64ga306/v41"]
 	}
 }
