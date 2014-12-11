@@ -1,0 +1,33 @@
+{
+	"modules":
+	{
+		"mainboard":
+		{
+			"overlays":
+			{
+				"24fj64ga306":
+				{
+					"linker": "./linker/p24FJ64GA306.gld"
+				}
+			},
+
+			"libraries": ["pic24"],
+			"extra_includes":
+			[
+				"mainboard/src/core",
+				"mainboard/src/mib",
+				"mainboard/src/mib/commands",
+				"mainboard/src/modules",
+				"mainboard/src/momo",
+				"mainboard/src/util"
+			],
+
+			"hw_compatibility": "con_v3.1"
+		}
+	},
+
+	"module_targets" :
+	{
+		"mainboard": ["24fj64ga306"]
+	}
+}

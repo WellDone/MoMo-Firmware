@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-unsigned char get_2byte_number(char *input)
+unsigned char get_2byte_number(const char *input)
 {
     char temp[3];
 
@@ -126,20 +126,77 @@ int itoa_small(char *buf, unsigned int len, int num)
     return 9-i-1;
 }
 
-bool atoi_small(const char* buf, int* out)
+bool atoi_small(const char* buf, int16* out)
 {
     *out = 0x0;
-    int i;
-    unsigned int *uout = (unsigned int*) out;
-    for ( i=0; i<strlen(buf); ++i ) {
-        if ( buf[i] == '-' && i==0 ) {
-            *uout &= 0x80000000; // -0
-        } else if ( buf[i] >= '0' && buf[i] <= '9' ) {
-            *uout = *uout * 10;
-            *uout += buf[i]-'0';
+    bool negative = false;
+    int16 tmp = 0;
+
+    if ( *buf == '-' ) {
+        negative = true;
+        ++buf;
+    }
+    while ( *buf != '\0' ) {
+        if ( *buf >= '0' && *buf <= '9' ) {
+            if ( tmp >= 0x10000/10 )
+                return false;
+            tmp *= 10;
+            tmp += *(buf++) -'0';
         } else {
             return false;
         }
     }
+    *out = (negative)?-tmp:tmp;
     return true;
+}
+
+char to_upper_case( char c ) {
+    if ( 'a' <= c && c <= 'z' )
+        return ( c - 'a' ) + 'A';
+    else
+        return c;
+}
+
+BYTE hexbyte_to_binary( char* hex ) {
+    uint8 i;
+    uint8 ret = 0;
+    uint8 ch;
+    
+    for (i=0; i < 2; i++)
+    {
+        /* take care of HEX files where lower case letters are used */
+        ch = to_upper_case(*hex);
+        
+        /* convert character to integer value */
+        if (ch >= 'A')
+        {
+            ch = ch - 'A' + 10;
+        }
+        else
+        {
+            ch = ch - '0';
+        }
+        ret = (ret << 4) | ch;
+        hex++;
+    }
+    
+    return (ret);
+}
+
+static char quad_to_hex( uint8 b )
+{
+    if (b >= 10)
+    {
+        b += 'A' - 10;
+    }
+    else
+    {
+        b += '0';
+    }
+    return b;
+}
+
+void binary_to_hexbyte( BYTE b, char* out ) {
+    out[0] = quad_to_hex( b&0xFF );
+    out[1] = quad_to_hex( (b>>4)&0xFF );
 }

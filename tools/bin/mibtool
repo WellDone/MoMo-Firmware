@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+import mibtool
+import sys
+
+mt = mibtool.MIBTool()
+sys.exit(mt.main())

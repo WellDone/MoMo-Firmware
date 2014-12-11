@@ -1,0 +1,14 @@
+{
+	"modules":
+	{
+		"libpic24":
+		{
+
+		}
+	},
+
+	"module_targets" :
+	{
+		"libpic24": ["24f16ka101", "24fj64ga306"]
+	}
+}

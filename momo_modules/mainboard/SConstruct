@@ -1,0 +1,20 @@
+import os
+import autobuild
+
+def add_metadata(target, source, env):
+	"""
+	Add the proper metadata segment into the hex file to ensure that it can only
+	be loaded on the correct hardware.
+	"""
+
+	block = autobuild.pymomo.hex.ControllerBlock(str(source[0]))
+	block.set_hw_version(env['ARCH'].property('hw_compatibility'))
+	block.update_checksums()
+
+	info = block.validate()
+	if not info['valid']:
+		raise autobuild.BuildError("Could not add metadata block", **info)
+
+	block.save(str(target[0]))
+
+autobuild.autobuild_pic24('mainboard', modulefile='module_settings.json', postprocess_hex=add_metadata)

@@ -1,0 +1,15 @@
+import os
+
+Import('env')
+
+asfiles = Glob('./*.s')
+srcfiles = Glob('./*.c')
+
+objs = []
+for src in srcfiles:
+	objs.append(env.xc16_gcc(src))
+
+for src in asfiles:
+	objs.append(env.xc16_as(src))
+
+env.xc16_ld(env['OUTPUT'], objs)

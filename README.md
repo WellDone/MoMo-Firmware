@@ -1,14 +1,13 @@
-# WellDone MoMo Firmware
+# WellDone MoMo Hardware and Firmware
 
 A product of [WellDone.org](http://www.welldone.org).
 
-Before contributing, study the enforced Git branching model on the [Wiki](http://github.com/WellDone/MoMo-Firmware/wiki).
+[![Build Status](https://travis-ci.org/WellDone/MoMo-Firmware.svg?branch=dev)](https://travis-ci.org/WellDone/MoMo-Firmware)
 
-For the most cutting-edge content, head on over to the [Dev Branch](http://github.com/WellDone/MoMo-Firmware/tree/dev).
+Documentation available at http://welldone.github.io/MoMo-Firmware
 
-## Directory structure breakdown ##
+## License ##
 
-* **doc** - Documentation on the status
-* **[momo_modules](./momo_modules)** - This is where the firmware code for individual modules (devices implementing the [MIB](http://github.com/WellDone/MoMo-Firmware/wiki/Module-Interconnect-Bus-(MIB\)) protocol over I2C) lives
-* **pcb** - This is where the PCB board schematics and other miscellaneous hardware information lives.
-* **tools** - Various tools that are useful for building and interacting with a MoMo
+MoMo designs are released under the [CERN Open Hardware License v.1.2](http://www.ohwr.org/attachments/2388/cern_ohl_v_1_2.txt)
+
+MoMo firmware and software tools are released under the [MIT license](http://opensource.org/licenses/MIT)
