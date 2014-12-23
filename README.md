@@ -4,7 +4,7 @@ A product of [WellDone.org](http://www.welldone.org).
 
 [![Build Status](https://travis-ci.org/WellDone/MoMo-Firmware.svg?branch=dev)](https://travis-ci.org/WellDone/MoMo-Firmware)
 
-Documentation available at http://welldone.github.io/MoMo-Firmware
+Introduction and documentation available at https://momo.welldone.org
 
 ## License ##
 
