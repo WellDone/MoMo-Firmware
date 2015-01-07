@@ -16,7 +16,7 @@
 #include "system_log.h"
 #include "memory_manager.h"
 #include "perf.h"
-
+#include "log_definitions.h"
 #include "momo_config.h"
 #include "sensor_event_log.h"
 
@@ -94,7 +94,7 @@ void register_module(void)
 		return;	
 	}
 
-	DEBUG_LOGL("Submodule asked for address.");
+	LOG_DEBUG(kSubmoduleAddressRequestNotice);
 	
 	bus_slave_return_int16( addr );
 }
@@ -180,25 +180,24 @@ void test_fb_read()
 
 void reflash_self()
 {
-	CRITICAL_LOGL( "Performing controller firmware reflash..." );
-	FLUSH_LOG();
+	LOG_CRITICAL(kControllerReflashNotice);
+	LOG_FLUSH();
 	reflash = kReflashMagic;
 	asm volatile("reset");
 }
 
 void reset_self()
 {
-	CRITICAL_LOGL( "Reset command received, performing software reset." );
-	FLUSH_LOG();
+	LOG_CRITICAL(kControllerResetNotice);
+	LOG_FLUSH();
 	asm volatile("reset");
 }
 
 void factory_reset()
 {
-	CRITICAL_LOGL( "Performing factory reset..." );
+	LOG_CRITICAL(kControllerFactoryResetNotice);
 	mem_clear_all();
 	flash_memory_init();
-	CRITICAL_LOGL( "Factory reset complete!" );
 }
 
 void current_time()
@@ -239,58 +238,25 @@ void set_sleep()
 
 void write_log()
 {
-	write_system_log( kRemoteLog, plist_get_buffer(0), plist_get_buffer_length() );
+	//FIXME: Re-enable remote logging
+	//write_system_log( kRemoteLog, plist_get_buffer(0), plist_get_buffer_length() );
 }
+
 void log_count()
 {
 	bus_slave_return_int16( system_log_count() );
 }
 void read_log()
 {
-	LogEntry log_buffer;
-	if ( !read_system_log( plist_get_int16(0), &log_buffer ) )
-	{
-		bus_slave_seterror( kCallbackError );
-	}
+	GenericLogEntry log_buffer;
+	if (!read_system_log( plist_get_int16(0), &log_buffer ))
+		bus_slave_seterror(kCallbackError);
 	else
-	{
-		uint16 offset = plist_get_int16(1);
-		uint8 length = 20;
-		if ( offset == 0 )
-		{
-			length = (log_buffer.data-(BYTE*)&log_buffer);
-		}
-		else if ( 20 * offset < log_buffer.length )
-		{
-			offset = (uint16)(log_buffer.data-(BYTE*)&log_buffer) + ( 20 * (offset-1) );
-			length = 20;
-		}
-		else if ( 20 * (offset-1) < log_buffer.length )
-		{
-			length = log_buffer.length - ( 20 * (offset-1) );
-			offset = (uint16)(log_buffer.data-(BYTE*)&log_buffer) + ( 20 * (offset-1) );
-		}
-		else
-		{
-			bus_slave_seterror( kCallbackError );
-		}
-
-		bus_slave_return_buffer( (BYTE*)(&log_buffer)+offset, length );
-	}
+		bus_slave_return_buffer((BYTE*)(&log_buffer), sizeof(GenericLogEntry));
 }
 void clear_log()
 {
 	clear_system_log();
-}
-
-extern bool lazy_system_logging;
-void get_lazy_logging()
-{
-	bus_slave_return_int16( lazy_system_logging );
-}
-void set_lazy_logging()
-{
-	lazy_system_logging = (plist_get_int16(0)==0)?false:true;
 }
 
 void read_ram()
@@ -333,8 +299,6 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x21, log_count, plist_spec_empty()},
 	{0x22, read_log, plist_spec(2, false)},
 	{0x23, clear_log, plist_spec_empty() },
-	{0x24, get_lazy_logging, plist_spec(0, false)},
-	{0x25, set_lazy_logging, plist_spec(1, false)},
 	{0x26, get_perf_counter, plist_spec(1, false)}
 };
 DEFINE_MIB_FEATURE(controller);

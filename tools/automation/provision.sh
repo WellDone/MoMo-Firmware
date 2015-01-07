@@ -7,7 +7,8 @@ apt-get install -y python python-setuptools python-dev libc6:i386 lib32stdc++6 g
 
 easy_install pip
 easy_install intelhex # This doesn't work with PIP for some reason
-pip install cmdln ZODB3 colorama pyparsing BeautifulSoup4 Cheetah pyserial pytest decorator pycparser
+pip install cmdln ZODB3 colorama pyparsing BeautifulSoup4 Cheetah pyserial pytest decorator pycparser nose
+pip install --allow-external dirspec --allow-unverified dirspec dirspec
 
 if [ -n "$TRAVIS" ]; then
 	MOMOROOT=`pwd`

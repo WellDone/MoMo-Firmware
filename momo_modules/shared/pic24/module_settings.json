@@ -3,7 +3,7 @@
 	{
 		"libpic24":
 		{
-
+			"type_package": "python/firmware_types"
 		}
 	},
 

@@ -11,11 +11,22 @@ srcfiles =    Glob('./core/*.c') \
 			+ Glob('./momo/*.c') \
 			+ Glob('./*.c')
 
+ldffiles =    Glob('./core/*.ldf') \
+			+ Glob('./diagnostics/*.ldf') \
+			+ Glob('./mib/*.ldf') \
+			+ Glob('./mib/commands/*.ldf') \
+			+ Glob('./modules/*.ldf') \
+			+ Glob('./momo/*.ldf') \
+			+ Glob('./*.ldf')
+
 objs = []
 for src in srcfiles:
 	objs.append(env.xc16_gcc(src))
 
 for src in asfiles:
 	objs.append(env.xc16_as(src))
+
+for ldf in ldffiles:
+	env.ldf_compiler(ldf)
 
 env.xc16_ld(env['OUTPUT'], objs)
