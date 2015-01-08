@@ -190,12 +190,16 @@ add_ldf /home/timburke/Projects/MoMo-Firmware/momo_modules/mainboard/src/log_def
 add_ldf /home/timburke/Projects/MoMo-Firmware/momo_modules/shared/pic24/src/log_definitions.ldf
 ```
 
-The file should be called momo_config.txt and stored under the .config directory in your home folder on unix and in %APPDATA% on windows.  On Windows 7 it should be located in:
-```C:\Users\<User Name>\AppData\Local\momo_config.txt```
-  
-**TODO, where is the file on Mac OS X?**
+The file should be called momo_config.txt and stored under the .config directory in your home folder on unix and in %APPDATA% on windows.  To Find where the config file should be stored on your system just run:
 
-It consists of a list of context patterns in brackets followed by initialization commands.  Whenever a context matching the pattern is created, the initialization commands are run.  A context pattern can be either a single context name like root for the root context or a hierarchy of contexts separated by dots.  For example, above we want to run a few add_ldf commands everytime a SystemLog is created by a MIBController.  If the SystemLog is instead created by another context, we don't want to modify it.
+```
+> momo --rcdir
+/Users/timburke/Library/Preferences/momo_config.txt
+```
+
+The example shows the directory location on a Mac OS X system.
+
+On all systems, the format of the momo_config file is the same.  It consists of a list of context patterns in brackets followed by initialization commands.  Whenever a context matching the pattern is created, the initialization commands are run.  A context pattern can be either a single context name like root for the root context or a hierarchy of contexts separated by dots.  For example, above we want to run a few add_ldf commands everytime a SystemLog is created by a MIBController.  If the SystemLog is instead created by another context, we don't want to modify it.
 
 Adding commands under the root context will cause them to always be run when you invokve the ```momo``` tool.
 
