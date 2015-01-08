@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.5.0">
+<eagle version="7.1.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -3388,7 +3388,7 @@ wide body 7.5 mm/JEDEC MS-013AA</description>
 <rectangle x1="0.3048" y1="1.016" x2="0.7112" y2="1.6002" layer="21"/>
 <rectangle x1="-0.7112" y1="1.016" x2="-0.3048" y2="1.6002" layer="21"/>
 <rectangle x1="-1.778" y1="0.762" x2="1.778" y2="8.382" layer="43"/>
-<smd name="NC-CAN" x="0" y="5.08" dx="2.032" dy="6.35" layer="1"/>
+<smd name="NC-CAN" x="0" y="3.81" dx="1.27" dy="3.81" layer="1"/>
 </package>
 <package name="MOLEX-MICROSIM-0787270001">
 <description>PCB Footprint for a molex 0787270001 Microsim card holder with push-pull insersion/removal and 1 pin insertion detection</description>
@@ -4390,14 +4390,14 @@ INFINEON, www.infineon.com/cmc_upload/0/000/010/257/eh_db_5b.pdf</description>
 <pin name="AVDD" x="-2.54" y="38.1" visible="pin" length="middle" rot="R270"/>
 <pin name="PGEC2" x="-50.8" y="22.86" visible="pin" length="middle"/>
 <pin name="PGED2" x="-50.8" y="20.32" visible="pin" length="middle"/>
-<pin name="RD0" x="17.78" y="5.08" visible="pin" length="middle" rot="R180"/>
-<pin name="RD1" x="17.78" y="2.54" visible="pin" length="middle" rot="R180"/>
-<pin name="RD2" x="17.78" y="0" visible="pin" length="middle" rot="R180"/>
-<pin name="RD3" x="17.78" y="-2.54" visible="pin" length="middle" rot="R180"/>
-<pin name="RD4" x="17.78" y="-5.08" visible="pin" length="middle" rot="R180"/>
-<pin name="RD5" x="17.78" y="-7.62" visible="pin" length="middle" rot="R180"/>
-<pin name="RD6" x="17.78" y="-10.16" visible="pin" length="middle" rot="R180"/>
-<pin name="RD7" x="17.78" y="-12.7" visible="pin" length="middle" rot="R180"/>
+<pin name="RD0" x="17.78" y="7.62" visible="pin" length="middle" rot="R180"/>
+<pin name="RD1" x="17.78" y="5.08" visible="pin" length="middle" rot="R180"/>
+<pin name="RD2" x="17.78" y="2.54" visible="pin" length="middle" rot="R180"/>
+<pin name="RD3" x="17.78" y="0" visible="pin" length="middle" rot="R180"/>
+<pin name="RD4" x="17.78" y="-2.54" visible="pin" length="middle" rot="R180"/>
+<pin name="RD5" x="17.78" y="-5.08" visible="pin" length="middle" rot="R180"/>
+<pin name="RD6" x="17.78" y="-7.62" visible="pin" length="middle" rot="R180"/>
+<pin name="RD7" x="17.78" y="-10.16" visible="pin" length="middle" rot="R180"/>
 <wire x1="-45.72" y1="33.02" x2="-45.72" y2="-30.48" width="0.254" layer="94"/>
 <wire x1="-45.72" y1="-30.48" x2="12.7" y2="-30.48" width="0.254" layer="94"/>
 <wire x1="12.7" y1="-30.48" x2="12.7" y2="33.02" width="0.254" layer="94"/>
@@ -4413,6 +4413,9 @@ INFINEON, www.infineon.com/cmc_upload/0/000/010/257/eh_db_5b.pdf</description>
 <pin name="RF3" x="17.78" y="-25.4" length="middle" rot="R180"/>
 <pin name="AN15" x="-30.48" y="-35.56" visible="pin" length="middle" rot="R90"/>
 <pin name="AN14" x="-27.94" y="-35.56" visible="pin" length="middle" rot="R90"/>
+<pin name="RF2" x="17.78" y="-27.94" length="middle" rot="R180"/>
+<pin name="INT0" x="-50.8" y="10.16" length="middle"/>
+<pin name="RE4" x="17.78" y="-15.24" length="middle" rot="R180"/>
 </symbol>
 <symbol name="MOMO-PWR-HOUSED">
 </symbol>
@@ -6767,6 +6770,7 @@ INFINEON, www.infineon.com/cmc_upload/0/000/010/257/eh_db_5b.pdf</description>
 <connect gate="G$1" pin="AN5" pad="11"/>
 <connect gate="G$1" pin="AVDD" pad="19"/>
 <connect gate="G$1" pin="AVSS" pad="20"/>
+<connect gate="G$1" pin="INT0" pad="35"/>
 <connect gate="G$1" pin="MCLR" pad="7"/>
 <connect gate="G$1" pin="PGEC2" pad="17"/>
 <connect gate="G$1" pin="PGED2" pad="18"/>
@@ -6779,7 +6783,9 @@ INFINEON, www.infineon.com/cmc_upload/0/000/010/257/eh_db_5b.pdf</description>
 <connect gate="G$1" pin="RD5" pad="53"/>
 <connect gate="G$1" pin="RD6" pad="54"/>
 <connect gate="G$1" pin="RD7" pad="55"/>
+<connect gate="G$1" pin="RE4" pad="64"/>
 <connect gate="G$1" pin="RE5" pad="1"/>
+<connect gate="G$1" pin="RF2" pad="34"/>
 <connect gate="G$1" pin="RF3" pad="33"/>
 <connect gate="G$1" pin="RP1" pad="15"/>
 <connect gate="G$1" pin="RP12" pad="45"/>

@@ -1,0 +1,25 @@
+ScheduledCallbackSlowError
+"Scheduled callback period came and went without callback being called."
+
+- "Scheduled Call" as fw_scheduled_task
+
+TaskLoopFullError
+"The taskloop was completely full and a new task was added"
+
+- "Tasks" as list of fw_task
+
+TaskLoopLockedNotice
+"The taskloop has been locked"
+
+TaskLoopUnlockedNotice
+"The taskloop has been unlocked"
+
+RPCQueueFullError
+"Someone attempted to send an RPC but the queue was full so it was dropped"
+
+SleepTimeMessage
+"Periodic log of how often the microprocessor is asleep"
+- "Total Ticks" as integer, format unsigned
+- "Sleeping Ticks" as integer, format unsigned 
+- "Number of prevented sleeps" as integer, format unsigned
+- "Tasks" as list of fw_task, format address

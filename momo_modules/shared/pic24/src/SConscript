@@ -19,6 +19,8 @@ portfiles =   Glob('../../../portable/core/*.c') \
 			+ Glob('../../../portable/mib/*.c') \
 			+ Glob('../../../portable/util/*.c')
 
+ldffiles = ['log_definitions.ldf']
+
 objs = []
 for src in srcfiles:
 	objs.append(library_env.xc16_gcc(src))
@@ -30,5 +32,8 @@ for src in portfiles:
 
 for src in asfiles:
 	objs.append(library_env.xc16_as(src))
+
+for ldf in ldffiles:
+	library_env.ldf_compiler(ldf)
 
 library_env.Command(library_env['OUTPUT'], objs, Action('xc16-ar -qc $TARGET $SOURCES','Linking $TARGET'))

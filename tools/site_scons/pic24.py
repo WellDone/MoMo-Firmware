@@ -23,10 +23,11 @@ def build_module(module_name, chip, postprocess_hex):
 
 	VariantDir(dirs['build'], 'src', duplicate=0)
 
-	env = Environment(tools=['xc16_compiler', 'xc16_assembler', 'xc16_linker'], ENV = os.environ)
+	env = Environment(tools=['xc16_compiler', 'xc16_assembler', 'xc16_linker', 'ldf_compiler'], ENV = os.environ)
 	env.AppendENVPath('PATH','../../tools/scripts')
 	env['ARCH'] = chip
 	env['OUTPUT'] = output_name
+	env['CPPPATH'] = chip.includes()
 
 	Export('env')
 
@@ -66,10 +67,11 @@ def build_library(name, chip):
 
 	VariantDir(builddir, 'src', duplicate=0)
 
-	library_env = Environment(tools=['xc16_compiler', 'xc16_assembler', 'xc16_linker'], ENV = os.environ)
+	library_env = Environment(tools=['xc16_compiler', 'xc16_assembler', 'xc16_linker', 'ldf_compiler'], ENV = os.environ)
 	library_env.AppendENVPath('PATH','../../tools/scripts')
 	library_env['ARCH'] = chip
 	library_env['OUTPUT'] = output_name
+	library_env['CPPPATH'] = chip.includes()
 	
 	SConscript(os.path.join(builddir, 'SConscript'), exports='library_env')
 
