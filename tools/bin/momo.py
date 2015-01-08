@@ -1,6 +1,5 @@
 import sys
 import os
-import readline
 import shlex
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -12,6 +11,7 @@ from pymomo.commander.meta import initialization
 from pymomo.hex import ControllerBlock, HexFile
 from pymomo.sim.simulator import Simulator
 from pymomo.utilities import build
+from pymomo.utilities.rcfile import RCFile
 import pymomo.syslog
 
 def run_momo():
@@ -21,6 +21,11 @@ def run_momo():
 	if len(line) > 0 and line[0] == '--norc':
 		norc = True
 		line = line[1:]
+
+	if len(line) > 0 and line[0] == '--rcdir':
+		rc = RCFile('momo')
+		print rc.path
+		sys.exit(0)
 
 	shell = HierarchicalShell('momo', no_rc=norc)
 	shell.root_update(annotate.find_all(initialization))
@@ -45,7 +50,14 @@ def run_momo():
 		sys.exit(1)
 
 	#Setup file path and function name completion
-	import readline, glob
+	#Handle special case of importing pyreadline on Windows
+	#See: http://stackoverflow.com/questions/6024952/readline-functionality-on-windows-with-python-2-7
+	import glob
+	try:
+		import readline
+	except ImportError:
+		import pyreadline as readline
+
 	def complete(text, state):
 		buf = readline.get_line_buffer()
 		if buf.startswith('help ') or " " not in buf:
@@ -55,7 +67,13 @@ def run_momo():
 		return (glob.glob(os.path.expanduser(text)+'*')+[None])[state]
 
 	readline.set_completer_delims(' \t\n;')
-	readline.parse_and_bind("tab: complete")
+	#Handle Mac OS X special libedit based readline
+	#See: http://stackoverflow.com/questions/7116038/python-tab-completion-mac-osx-10-7-lion
+	if 'libedit' in readline.__doc__:
+		readline.parse_and_bind("bind ^I rl_complete")
+	else:
+		readline.parse_and_bind("tab: complete")
+
 	readline.set_completer(complete)
 
 	#If we ended the initial command with a context, start a shell
