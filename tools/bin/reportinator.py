@@ -22,6 +22,16 @@ class Reportinator(cmdln.Cmdln):
 	name = 'reportinator'
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	def do_reset(self, subcmd, opts):
+		"""${cmd_name}: Reset report configuration
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		con = self._get_controller( opts )
+		con.reset_reporting_config()
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_start(self, subcmd, opts):
 		"""${cmd_name}: Start reporting
 
@@ -66,17 +76,22 @@ class Reportinator(cmdln.Cmdln):
 		con.send_report();
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
-	def do_route(self, subcmd, opts, addr=None):
+	def do_routes(self, subcmd, opts, primary=None, secondary=None):
 		"""${cmd_name}: Get or set the destination address for reporting.
 
 		${cmd_usage}
 		${cmd_option_list}
 		"""
 		con = self._get_controller( opts )
-		if ( addr != None ):
-			con.set_report_address( addr )
-		route = con.get_report_address();
-		print "(%d) %s" % (len(route), route)
+		if primary != None:
+			con.set_report_route_primary(primary)
+			if secondary != None:
+				con.set_report_route_secondary(secondary)
+
+		primary = con.get_report_route_primary();
+		secondary = con.get_report_route_secondary();
+		print "primary:   %s" % (primary)
+		print "secondary: %s" % (secondary)
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	def do_interval(self, subcmd, opts, interval=None):

@@ -22,7 +22,10 @@ class GSMTool(cmdln.Cmdln):
 		${cmd_option_list}
 		"""
 		gsm = self._create_proxy( opts )
-		gsm.module_on()
+		if gsm.module_on(): 
+			print "OK"
+		else:
+			print "ERROR"
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
@@ -45,9 +48,7 @@ class GSMTool(cmdln.Cmdln):
 		"""
 		gsm = self._create_proxy( opts )
 		res = gsm.dump_buffer()
-		print "buffer (%d): %s" % (len(res), res)
-		for i in range( 0, len(res) ):
-			print ord(res[i])
+		print "(%d): %s" % (len(res), res)
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
@@ -63,7 +64,7 @@ class GSMTool(cmdln.Cmdln):
 		print "shutdown_pending: %s" % bool(ord(res[1]))
 		print "rx_buffer_start: %d" % ord(res[2])
 		print "rx_buffer_end: %d" % ord(res[3])
-		print "rx_buffer_len: %d" % ord(res[4])
+		print "debug_val: %d" % ord(res[4])
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
@@ -89,6 +90,42 @@ class GSMTool(cmdln.Cmdln):
 		#gsm.module_on();
 		res = gsm.send_text( dest, text );
 		#gsm.module_off();
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
+	def do_apn(self, subcmd, opts, apn ):
+		"""${cmd_name}: Set the GPRS APN
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		gsm = self._create_proxy( opts )
+		gsm.set_apn(apn);
+		print "OK"
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
+	def do_gprs(self, subcmd, opts ):
+		"""${cmd_name}: Test GPRS functionality
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		gsm = self._create_proxy( opts )
+		res = gsm.test_gprs();
+		print res
+
+	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
+	@cmdln.option('-a', '--address', help='The MIB address of the GSM module' )
+	def do_simtest(self, subcmd, opts ):
+		"""${cmd_name}: Test that a SIM card is inserted
+
+		${cmd_usage}
+		${cmd_option_list}
+		"""
+		gsm = self._create_proxy( opts )
+		res = gsm.rpc(10,3,result_type=(1, False));
+		print res['ints'][0] != 0
 
 	def _create_proxy(self,opts):
 		try:

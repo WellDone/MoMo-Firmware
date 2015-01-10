@@ -27,11 +27,20 @@ ControllerFactoryResetNotice
 SubmoduleAddressRequestNotice
 "A submodule asked for an address"
 
+SetAPNNotice
+"Setting GPRS APN"
+- "APN" as string
+
+SetCommDestinationNotice
+"Setting comm module stream destination"
+- "Start Index" as integer, format unsigned
+- "Length" as integer, format unsigned
+- "Buffer" as string
 
 OpenedCommStreamNotice
 "Opening a communication stream"
 - "Comm Module Address" as integer, format unsigned
-- "Report Route" as string
+- "Report Length" as integer, format unsigned
 
 FinishedReportStreamingNotice
 "Finished streaming report to all comm modules"
@@ -49,9 +58,13 @@ AbandoningCommStreamNotice
 ReportSucceededNotice
 "Report succeeded"
 
-ReportFailedNotice
+ReportFailedRetryNotice
 "Report failed, retrying"
 - "Retry Count" as integer, format unsigned
+
+ReportFailedRerouteNotice
+"Report failed, switching to secondary route"
+- "New Route" as string
 
 ReportAbandonedNotice
 "Retry count exceeded, abandoning report"

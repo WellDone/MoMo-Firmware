@@ -17,18 +17,23 @@ bool compress_intel_hex16( intel_hex16_ascii* in, intel_hex16* out, uint8 in_len
 	
 	char* in_ptr = in->data;
 	uint8* out_ptr = out->body.data;
+	uint8 sum = 0;
 	while ( in_ptr < in->data+(2*out->data_length) )
 	{
-		*out_ptr++ = hexbyte_to_binary(in_ptr);
+		*out_ptr = hexbyte_to_binary(in_ptr);
+		sum += *out_ptr;
+		out_ptr++;
 		in_ptr += 2;
 	}
 	out->checksum = hexbyte_to_binary(in->checksum);
+	if ( out->checksum != ~sum + 1 )
+		return false;
 	return true;
 }
 
-bool uncompress_intel_hex16( intel_hex16* in, intel_hex16_ascii* out, uint8 in_len )
+bool uncompress_intel_hex16( intel_hex16* in, intel_hex16_ascii* out, uint8 out_len )
 {
-	if ( in_len < 5 || in_len < in->data_length + 5 )
+	if ( out_len < 5 || out_len < in->data_length + 5 )
 		return false;
 	binary_to_hexbyte( in->data_length, out->data_length );
 	binary_to_hexbyte( in->body.address >> 8, out->address );
