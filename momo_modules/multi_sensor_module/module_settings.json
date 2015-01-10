@@ -7,8 +7,31 @@
 		}
 	},
 
+	"architectures":
+	{
+		"v2":
+		{
+			"defines":
+			{
+				"VOLT1": "A2",
+				"VOLT1AN": "kADCChannelAN2",
+				"VOLT2": "A3",
+				"VOLT2AN": "kADCChannelAN3",
+
+				"AN_INVERT": "A7",
+				"AN_SELECT": "A0",
+				"AN_POWER": "A6",
+				"AN_PROG": "A1",
+				"AN_VOLTAGE": "A4",
+
+				"PULSE_IN": "B3",
+				"PULSE_IOC": "3"
+			}
+		}
+	},
+
 	"module_targets":
 	{
-		"multi_sensor_module" : ["16lf1847/app"]
+		"multi_sensor_module" : ["16lf1847/app/v2"]
 	}
 }

@@ -30,12 +30,13 @@ enum
 
 #define kHalfSecondConstant 3036UL
 
-#define tmr1_load( value) \
-	TMR1L = value & 0xFF; \
-	TMR1H = (value >> 8);
+#define tmr1_load( value) {	\
+	TMR1L = value & 0xFF; 	\
+	TMR1H = (value >> 8);}
+
+#define tmr1_get() ((((uint16_t)TMR1H) << 8) | TMR1L)
 
 void tmr1_config(uint8_t config);
-//void tmr1_load(uint8_t high, uint8_t low);
 void tmr1_setstate(PeripheralState state);
 
 #endif

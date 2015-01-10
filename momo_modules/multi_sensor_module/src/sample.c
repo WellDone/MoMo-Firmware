@@ -3,7 +3,6 @@
 #include "mib12_api.h"
 #include "adc.h"
 #include "port.h"
-#include "sensor_defines.h"
 
 #define _XTAL_FREQ			4000000
 
@@ -11,7 +10,7 @@ void sample_v1()
 {
 	adc_configure(ADCBuildConfig(kADCRightJustified, kFRC, kADCVSSNegRef, kADCVDDPosRef));
 	adc_setenabled(1);
-	adc_setchannel(kADCChannelAN2);
+	adc_setchannel(VOLT1AN);
 
 	adc_average(1);
 
@@ -22,18 +21,7 @@ void sample_v2()
 {
 	adc_configure(ADCBuildConfig(kADCRightJustified, kFRC, kADCVSSNegRef, kADCVDDPosRef));
 	adc_setenabled(1);
-	adc_setchannel(kADCChannelAN3);
-
-	adc_average(1);
-
-	adc_setenabled(0);
-}
-
-void sample_v3()
-{
-	adc_configure(ADCBuildConfig(kADCRightJustified, kFRC, kADCVSSNegRef, kADCVDDPosRef));
-	adc_setenabled(1);
-	adc_setchannel(kADCChannelAN9);
+	adc_setchannel(VOLT2AN);
 
 	adc_average(1);
 

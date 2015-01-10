@@ -2,7 +2,6 @@
 
 #include "platform.h"
 #include "watchdog.h"
-#include "sensor_defines.h"
 #include "port.h"
 #include "sample.h"
 #include "mib12_api.h"
@@ -58,29 +57,26 @@ void initialize(void)
 	PIN_DIR(VOLT2, INPUT);
 	PIN_TYPE(VOLT2, ANALOG);
 	
-	PIN_DIR(VOLT3, INPUT);
-	PIN_TYPE(VOLT3, ANALOG);
-	
+	ENSURE_DIGITAL(AN_POWER);
 	LATCH(AN_POWER) = 0;
-	//PIN_TYPE(AN_POWER, DIGITAL); AN_POWER is digital only (A6)
 	PIN_DIR(AN_POWER, OUTPUT);
 
+	ENSURE_DIGITAL(AN_SELECT);
 	LATCH(AN_SELECT) = 0;
 	PIN_DIR(AN_SELECT, OUTPUT);
-	PIN_TYPE(AN_SELECT, DIGITAL);
 
+	ENSURE_DIGITAL(AN_INVERT);
 	LATCH(AN_INVERT) = 0;
 	PIN_DIR(AN_INVERT, OUTPUT);
-	PIN_TYPE(AN_INVERT, DIGITAL);
 
+	ENSURE_DIGITAL(AN_PROG);
 	LATCH(AN_PROG) = 0;
 	PIN_DIR(AN_PROG, OUTPUT);
-	PIN_TYPE(AN_PROG, DIGITAL);
 
 	PIN_TYPE(AN_VOLTAGE, ANALOG);
 	PIN_DIR(AN_VOLTAGE, INPUT);
 
-	//PIN_TYPE(PULSE_IN, DIGITAL); A7 is digital only
+	ENSURE_DIGITAL(PULSE_IN);
 	PIN_DIR(PULSE_IN, INPUT);
 
 	damp_init();
@@ -119,16 +115,6 @@ void check_v1()
 void check_v2()
 {
 	sample_v2();
-
-	mib_buffer[0] = (adc_result & 0xFF);
-	mib_buffer[1] = (adc_result >> 8) & 0xFF;
-
-	bus_slave_setreturn(pack_return_status(0, 2));
-}
-
-void check_v3()
-{
-	sample_v3();
 
 	mib_buffer[0] = (adc_result & 0xFF);
 	mib_buffer[1] = (adc_result >> 8) & 0xFF;

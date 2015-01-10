@@ -6,12 +6,6 @@ void tmr1_config(uint8_t config)
 	T1CON = config;
 }
 
-// void tmr1_load(uint16_t value)
-// {
-// 	TMR1L = value & 0xFF;
-// 	TMR1H = (value >> 8);
-// }
-
 void tmr1_setstate(PeripheralState state)
 {
 	TMR1IE = 0;
