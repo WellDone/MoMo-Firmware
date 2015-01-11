@@ -26,9 +26,10 @@ enum
 #define ccp_off(n)					ccp_config(n, kCCPOff)
 #define ccp_getlow(n)				ccp_reglow_r(n)				
 #define ccp_gethigh(n)				ccp_reghigh_r(n)
-#define ccp_get(n)					((((uint16)ccp_gethigh(n)) << 8) | ccp_getlow(n))
+#define ccp_get(n)					((((uint16_t)ccp_gethigh(n)) << 8) | ccp_getlow(n))
 
 #define ccp_set_ie(n, val)			ccp_ie_r(n) = val
 #define ccp_set_if(n, val)			ccp_if_r(n) = val
+#define ccp_if(n)					ccp_if_r(n)
 
 #endif
