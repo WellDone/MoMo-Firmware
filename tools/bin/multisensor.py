@@ -67,11 +67,9 @@ class SensorTool(cmdln.Cmdln):
 		sens = self._create_proxy(opts)
 
 		while True:
-			sens.acquire_pulses()
-			sleep(0.6)
 			val = sens.read_pulses()
-			print "Pulse Count: %d (%d per second)" % (val, 2*val)
-
+			print "Pulse Count: %d (%d per second)" % (val, 10*val)
+			
 			if not opts.continuous:
 				break
 
