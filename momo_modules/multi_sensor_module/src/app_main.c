@@ -8,45 +8,69 @@
 #include "log.h"
 #include "digital_amp.h"
 #include "watchdog.h"
+#include "ioc.h"
 #include "state.h"
 #include "pulse.h" 
 #include "alarm_repeat_times.h"
 
 MultiSensorState state;
+
 extern unsigned int adc_result;
+extern uint16_t counter;
+extern uint16_t periods;
 
 void task(void)
 {
-	while (state.acquire_pulse)
-	{
+	wdt_disable();
+
+	//If we slept for an increment, sample the number of pulses
+	if (nTO==0)
 		pulse_sample();
-		state.acquire_pulse = 0;
 
-		if ( state.push_pending )
-		{
-			state.push_pending = 0;
+	if (state.push_pending)
+	{
+		uint16_t correction_factor = 1;
+		state.push_pending = 0;
 
-			bus_master_begin_rpc();
-			mib_buffer[0] = mib_address;
-			mib_buffer[1] = 0;
+		/*
+		 * We report data every minute, and we sample for 0.1 seconds
+		 * per time.  So we need to correct our sampled counter for the
+		 * ratio between the period of time that we are covering (60 seconds)
+		 * and the amount of time we were sampling for (periods*0.1 seconds)
+		 */
 
-			mib_buffer[2] = 0;
-			mib_buffer[3] = 0; //metadata
+		if (periods > 0)
+			correction_factor = 600/periods;
 
-			mib_buffer[4] = pulse_count() & 0xFF;
-			mib_buffer[5] = (pulse_count() >> 8) & 0xFF;
-			mib_buffer[6] = 0;
-			mib_buffer[7] = 0;
+		counter *= correction_factor;
 
-			bus_master_prepare_rpc(70, 0, plist_with_buffer(2, 4));
-			bus_master_send_rpc(8);
-		}
+		bus_master_begin_rpc();
+		mib_buffer[0] = mib_address;
+		mib_buffer[1] = 0;
+
+		mib_buffer[2] = 0;
+		mib_buffer[3] = 0; //metadata
+
+		mib_buffer[4] = counter & 0xFF;
+		mib_buffer[5] = counter & 0xFF;
+		mib_buffer[6] = 0;
+		mib_buffer[7] = 0;
+
+		bus_master_prepare_rpc(70, 0, plist_with_buffer(2, 4));
+		bus_master_send_rpc(8);
 	}
+
+	WDTCON = k4SecondTimeout;
+	wdt_enable();
 }
 
 void interrupt_handler(void)
 {
-
+	if (ioc_flag_b(PULSE_IOC))
+	{
+		counter += 1;
+		ioc_flag_b(PULSE_IOC) = 0;
+	}
 }
 
 void initialize(void)
@@ -77,11 +101,22 @@ void initialize(void)
 	PIN_DIR(AN_VOLTAGE, INPUT);
 
 	ENSURE_DIGITAL(PULSE_IN);
-	PIN_DIR(PULSE_IN, INPUT);
+	LATCH(PULSE_IN) = 0;
+	PIN_DIR(PULSE_IN, OUTPUT);
+
+	//Setup serial port
+	ENSURE_DIGITAL(SERIAL_TX);
+	LATCH(SERIAL_TX) = 1;
+	PIN_DIR(SERIAL_TX, OUTPUT);
+
+	ENSURE_DIGITAL(SERIAL_RX);
 
 	damp_init();
 	state.combined_state = 0;
 
+	ioc_enable_b();
+	counter = 0;
+	
 	bus_master_begin_rpc();
 
 	mib_buffer[0] = mib_address;
@@ -90,7 +125,7 @@ void initialize(void)
 	mib_buffer[2] = 8;
 	mib_buffer[3] = 20;
 
-	mib_buffer[4] = kEvery10Seconds;
+	mib_buffer[4] = kEveryMinute;
 	mib_buffer[5] = 0;
 	bus_master_prepare_rpc(43, 0, plist_ints(3));
 
@@ -160,17 +195,14 @@ void acquire_pulse()
 
 void read_pulses()
 {
-	mib_buffer[0] = pulse_count() & 0xFF;
-	mib_buffer[1] = pulse_count() >> 8;
+	mib_buffer[0] = counter & 0xFF;
+	mib_buffer[1] = counter >> 8;
 
+	counter = 0;
 	bus_slave_setreturn(pack_return_status(0, 2));
 }
 
 void scheduled_callback()
 {
-	if ( state.acquire_pulse == 0 )
-	{
-		state.acquire_pulse = 1;
-		state.push_pending = 1;
-	}
+	state.push_pending = 1;
 }

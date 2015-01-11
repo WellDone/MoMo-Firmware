@@ -25,7 +25,10 @@
 				"AN_VOLTAGE": "A4",
 
 				"PULSE_IN": "B3",
-				"PULSE_IOC": "3"
+				"PULSE_IOC": "3",
+
+				"SERIAL_TX": "B5",
+				"SERIAL_RX": "B2"
 			}
 		}
 	},
