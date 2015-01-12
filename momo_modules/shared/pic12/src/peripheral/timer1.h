@@ -35,8 +35,11 @@ enum
 	TMR1H = (value >> 8);}
 
 #define tmr1_get() ((((uint16_t)TMR1H) << 8) | TMR1L)
-
-void tmr1_config(uint8_t config);
-void tmr1_setstate(PeripheralState state);
+#define tmr1_config(config) T1CON = config
+#define tmr1_setstate(state) {\
+	TMR1IF = 0; \
+	TMR1IE = (state == kEnabled_Async); \
+  TMR1ON = (state != kDisabled); \
+}
 
 #endif

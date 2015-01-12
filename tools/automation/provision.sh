@@ -54,26 +54,29 @@ python setup.py install
 echo "export PYTHONPATH=\".:/usr/local/lib/scons-$SCONSVERSION\"" >> $HOME/.profile
 cd ..
 
-XC8INSTALLER='xc8-v1.30-linux.run'
-download_file "XC8 Installer"	http://ww1.microchip.com/downloads/en/DeviceDoc/$XC8INSTALLER.tar 1ab6186eda45f774cfad1e2a0c7a4cbe449991b363634545c3eb005667925722
-tar -xvf $XC8INSTALLER.tar
+
+XC8VERSION=v1.33
+XC8INSTALLER=xc8-$XC8VERSION-full-install-linux-installer.run
+download_file "XC8 Installer"	http://ww1.microchip.com/downloads/en/DeviceDoc/$XC8INSTALLER 5bdfbafbe1fb4f2d47a7dacc60d918a0b54425bc02a0ffe352ab4ad02c70143a
 echo "Installing xc8 compiler..."
-./$XC8INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc8/v1.30"
+chmod +x ./$XC8INSTALLER
+./$XC8INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc8/$XC8VERSION"
 CODE=$?
-echo "export PATH=\"\$PATH:/opt/microchip/xc8/v1.30/bin\"" >> $HOME/.profile
+echo "export PATH=\"\$PATH:/opt/microchip/xc8/$XC8VERSION/bin\"" >> $HOME/.profile
 rm -f ./$XC8INSTALLER $XC8INSTALLER.tar
 if [ $CODE -ne 0 ]; then
 	die "Failed to install xc8, exiting!"
 fi
 echo "DONE!"
 
-XC16INSTALLER=xc16-v1.21-linux-installer.run
+XC16VERSION=v1.21
+XC16INSTALLER=xc16-$XC16VERSION-linux-installer.run
 download_file "XC16 Installer" http://ww1.microchip.com/downloads/en/DeviceDoc/$XC16INSTALLER.tar 80a9fcc6e9e8b051266e06c1eff0ca078ebbc791a7d248dedd65f34a76d7735c
 tar -xvf $XC16INSTALLER.tar
 echo "Installing xc16 compiler..."
-./$XC16INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc16/v1.21"
+./$XC16INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc16/$XC16VERSION"
 CODE=$?
-echo "export PATH=\"\$PATH:/opt/microchip/xc16/v1.21/bin\"" >> $HOME/.profile
+echo "export PATH=\"\$PATH:/opt/microchip/xc16/$XC16VERSION/bin\"" >> $HOME/.profile
 rm -f ./$XC16INSTALLER ./$XC16INSTALLER.tar
 if [ $CODE -ne 0 ]; then
 	die "Failed to install xc16, exiting!"

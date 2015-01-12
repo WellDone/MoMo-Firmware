@@ -1,7 +1,7 @@
 {
 	"module_targets":
 	{
-		"gsm_module": ["16lf1823/app/v4", "16lf1847/app/v5"]
+		"gsm_module": [ "16lf1847/app/v5"]
 	},
 
 	"architectures":
@@ -21,6 +21,7 @@
 
 		"v5":
 		{
+			"xc8_flags": ["-G", "--addrqual=require", "--summary=default,+psect,-class,+mem,-hex,-file", "--output=default,-inhx032", "--asmlist", "-P", "--mode=pro", "--opt=all,-asm,-asmfile" ],
 			"defines":
 			{
 				"MODULEPOWERPIN": "A4",

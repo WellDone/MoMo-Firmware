@@ -54,12 +54,15 @@ enum
 
 typedef struct 
 {
-	char            report_server_address[16];
+	char            route_primary[64];
+	char            route_secondary[64];
+	char            gprs_apn[21];
 	uint16          current_sequence;
 	AlarmRepeatTime report_interval;
 	uint16          report_flags;
 	uint8           bulk_aggregates;
 	uint8           interval_aggregates;
+	uint8           retry_limit;
 } ReportConfiguration;
 
 void report_manager_start();
@@ -69,6 +72,7 @@ void post_report( void* );
 void start_report_scheduling();
 void stop_report_scheduling();
 void set_report_scheduling_interval( AlarmRepeatTime interval );
-void set_report_server_address( const char* address, uint8 len );
+void set_report_route_primary( const char* address, uint8 len );
+void set_report_route_secondary( const char* address, uint8 len );
 
 #endif	/* __report_manager_h__ */
