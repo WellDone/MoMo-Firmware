@@ -1,5 +1,5 @@
 #include "pulse.h"
-#include "timer1.h"
+#include "timerx.h"
 #include "sample.h"
 #include "port.h"
 #include "ioc.h"
@@ -23,27 +23,29 @@ void pulse_sample()
 	 * Count pulses for 0.1 seconds
 	 */
 
-	tmr1_config(pack_tmr1_config(kInstructionClock, kPrescaler1_8));
-	tmr1_load(k100msTimeConstant);
-	tmr1_setstate(kEnabled_Sync);
+	tmr_config(2, kTMRPrescale_64, kTMRPostscale1_16);
+	tmr_loadperiod(2, 98);
+	tmr_load(2, 0);
+	tmr_flag(2) = 0;
+	tmr_setstate(2, 1);
 	
 	//Wait for the pin to go high so that we have a valid signal
-	while(PIN(PULSE_IN) == 0 && TMR1IF == 0)
+	while(PIN(PULSE_IN) == 0 && tmr_flag(2) == 0)
 		;
 	
-	if (TMR1IF == 0)
+	if (tmr_flag(2) == 0)
 	{
 		ioc_flag_b(PULSE_IOC) = 0;
 		ioc_detect_falling_b(PULSE_IOC, 1);
 
-		while(TMR1IF == 0)
+		while(tmr_flag(2) == 0)
 			;
 
 		//Disable everything
 		ioc_detect_falling_b(PULSE_IOC, 0);
 	}
 
-	tmr1_setstate(kDisabled);
+	tmr_setstate(2, 0);
 	set_analog_power(0);
 	PIN_DIR(PULSE_IN, OUTPUT);
 
