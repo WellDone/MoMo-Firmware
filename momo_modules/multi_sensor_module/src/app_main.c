@@ -58,6 +58,10 @@ void task(void)
 
 		bus_master_prepare_rpc(70, 0, plist_with_buffer(2, 4));
 		bus_master_send_rpc(8);
+
+		//Reset counters to start counting again
+		counter = 0;
+		periods = 0;
 	}
 
 	WDTCON = k4SecondTimeout;
@@ -116,13 +120,14 @@ void initialize(void)
 
 	ioc_enable_b();
 	counter = 0;
+	periods = 0;
 	
 	bus_master_begin_rpc();
 
 	mib_buffer[0] = mib_address;
 	mib_buffer[1] = 0;
 
-	mib_buffer[2] = 8;
+	mib_buffer[2] = 2;
 	mib_buffer[3] = 20;
 
 	mib_buffer[4] = kEveryMinute;
@@ -197,9 +202,17 @@ void read_pulses()
 {
 	mib_buffer[0] = counter & 0xFF;
 	mib_buffer[1] = counter >> 8;
+	mib_buffer[2] = periods & 0xFF;
+	mib_buffer[3] = periods >> 8;
 
-	counter = 0;
 	bus_slave_setreturn(pack_return_status(0, 2));
+}
+
+void clear_counters()
+{
+	counter = 0;
+	periods = 0;
+	bus_slave_setreturn(pack_return_status(0, 0));
 }
 
 void scheduled_callback()

@@ -10,8 +10,6 @@
 uint16_t counter;
 uint16_t periods;
 
-#define k100msTimeConstant 	53036
-
 void pulse_readone();
 
 void pulse_sample()
