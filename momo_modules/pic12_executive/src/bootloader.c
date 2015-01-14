@@ -43,9 +43,7 @@ void enter_bootloader()
 	boot_count = kFirstApplicationRow-1;
 
 	//Let everyone know that we are reflashing
-	#ifndef __PIC16LF1847__
 	ioc_disable(); //make sure we don't reset ourselves when we take the bus down
-	#endif 
 
 	LATCH(ALARM) = 0;
 	PIN_DIR(ALARM, OUTPUT);
@@ -67,9 +65,7 @@ void enter_bootloader()
 
 	} while (boot_count != (kNumFlashRows-1));
 
+	//Make sure we can still reset ourselves upon receipt of a reset pulse
 	PIN_DIR(ALARM, INPUT);
-	
-	#ifndef __PIC16LF1847__
-	ioc_disable(); //make sure we don't reset ourselves when we take the bus down
-	#endif 
+	ioc_enable(ALARMPORT); 
 }
