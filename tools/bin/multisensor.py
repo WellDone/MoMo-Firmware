@@ -9,6 +9,7 @@ from pymomo.commander.meta import *
 from pymomo.commander.exceptions import *
 from pymomo.commander.proxy import *
 
+import time
 import cmdln
 
 class SensorTool(cmdln.Cmdln):

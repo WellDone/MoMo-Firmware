@@ -21,6 +21,8 @@ void pulse_sample()
 	 * Count pulses for 0.1 seconds
 	 */
 
+	++periods;
+
 	tmr_config(2, kTMRPrescale_64, kTMRPostscale1_16);
 	tmr_loadperiod(2, 98);
 	tmr_load(2, 0);
@@ -46,8 +48,6 @@ void pulse_sample()
 	tmr_setstate(2, 0);
 	set_analog_power(0);
 	PIN_DIR(PULSE_IN, OUTPUT);
-
-	++periods;
 }
 
 uint16_t pulse_count()

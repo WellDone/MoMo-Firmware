@@ -205,7 +205,7 @@ void read_pulses()
 	mib_buffer[2] = periods & 0xFF;
 	mib_buffer[3] = periods >> 8;
 
-	bus_slave_setreturn(pack_return_status(0, 2));
+	bus_slave_setreturn(pack_return_status(0, 4));
 }
 
 void clear_counters()

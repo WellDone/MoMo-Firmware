@@ -69,6 +69,9 @@ class MultiSensorModule (proxy12.MIB12ProxyObject):
 		counts, periods = self.read_pulses()
 
 		counts *= 10.0
+		if periods == 0:
+			return 0
+		
 		return counts/periods
 
 	def clear_counters(self):
