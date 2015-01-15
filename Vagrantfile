@@ -12,6 +12,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
 	  momo.vm.network "forwarded_port", guest: 80, host: 1111
 
-	  momo.vm.provision "shell", path: "tools/automation/provision.sh"
+	  momo.vm.provision "shell", inline: "MOMO_DEV=true; /vagrant/tools/automation/provision.sh"
 	end
 end

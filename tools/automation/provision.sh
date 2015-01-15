@@ -1,20 +1,31 @@
 #!/bin/bash
 
 die() { echo "$@" 1>&2; exit 1; }
+set -e
+
+echo "MOMO_DEV: $MOMO_DEV"
 
 apt-get update
-apt-get install -y python python-setuptools python-dev libc6:i386 lib32stdc++6 gpsim
+apt-get install -y python python-setuptools python-dev python-pip
+if [ -n "$MOMO_DEV" ]; then
+	apt-get install -y libc6:i386 lib32stdc++6 gpsim
+fi
+apt-get install wget # for the raspberry pi
 
-easy_install pip
-easy_install intelhex # This doesn't work with PIP for some reason
-pip install cmdln ZODB3 colorama pyparsing BeautifulSoup4 Cheetah pyserial pytest decorator pycparser nose
-pip install --allow-external dirspec --allow-unverified dirspec dirspec
+easy_install -U pip
+
+pip install pyserial # for the raspberry pi
+pip install --allow-external dirspec --allow-external intelhex --allow-unverified dirspec dirspec --allow-unverified intelhex pymomo
+
+pip install http://sourceforge.net/projects/scons/files/latest/download --egg | tee -a $HOME/scons-install.log
+PYTHONPATH=`cat $HOME/scons-install.log | grep ' library modules ' | awk '{print $6}'`
+echo "PYTHONPATH=$PYTHONPATH" >> $HOME/.profile
 
 if [ -n "$TRAVIS" ]; then
-	MOMOROOT=`pwd`
+	MOMOPATH=`pwd`
 	DOWNLOADCACHE="~/.cached_downloads"
 else # VAGRANT
-	MOMOROOT="/vagrant"
+	MOMOPATH="/vagrant"
 	HOME="/home/vagrant"
 	DOWNLOADCACHE="/vagrant/.cached_downloads"
 
@@ -22,7 +33,7 @@ else # VAGRANT
 	usermod vagrant -a -G dialout
 	echo "DONE!"
 fi
-echo "MOMOROOT=$MOMOROOT" >> $HOME/.profile
+echo "export MOMOPATH=$MOMOPATH" >> $HOME/.profile
 mkdir -p $DOWNLOADCACHE
 
 download_file () {
@@ -46,45 +57,57 @@ download_file () {
 	fi
 }
 
-SCONSVERSION=2.3.3
-download_file "SCONS Installer" http://downloads.sourceforge.net/project/scons/scons/$SCONSVERSION/scons-$SCONSVERSION.tar.gz 63a74e1012ad9ad54950eafc69604fd9246e1a405c18acf936caa433c97cc0e2
-tar -xvzf scons-$SCONSVERSION.tar.gz
-cd scons-$SCONSVERSION
-python setup.py install
-echo "export PYTHONPATH=\".:/usr/local/lib/scons-$SCONSVERSION\"" >> $HOME/.profile
-cd ..
+if [ -n "$MOMO_DEV" ]; then
 
+	XC8VERSION=v1.33
+	XC8INSTALLER=xc8-$XC8VERSION-full-install-linux-installer.run
+	download_file "XC8 Installer"	http://ww1.microchip.com/downloads/en/DeviceDoc/$XC8INSTALLER 5bdfbafbe1fb4f2d47a7dacc60d918a0b54425bc02a0ffe352ab4ad02c70143a
+	echo "Installing xc8 compiler..."
+	chmod +x ./$XC8INSTALLER
+	./$XC8INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc8/$XC8VERSION"
+	CODE=$?
+	echo "export PATH=\"\$PATH:/opt/microchip/xc8/$XC8VERSION/bin\"" >> $HOME/.profile
+	rm -f ./$XC8INSTALLER $XC8INSTALLER.tar
+	if [ $CODE -ne 0 ]; then
+		die "Failed to install xc8, exiting!"
+	fi
+	echo "DONE!"
 
-XC8VERSION=v1.33
-XC8INSTALLER=xc8-$XC8VERSION-full-install-linux-installer.run
-download_file "XC8 Installer"	http://ww1.microchip.com/downloads/en/DeviceDoc/$XC8INSTALLER 5bdfbafbe1fb4f2d47a7dacc60d918a0b54425bc02a0ffe352ab4ad02c70143a
-echo "Installing xc8 compiler..."
-chmod +x ./$XC8INSTALLER
-./$XC8INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc8/$XC8VERSION"
-CODE=$?
-echo "export PATH=\"\$PATH:/opt/microchip/xc8/$XC8VERSION/bin\"" >> $HOME/.profile
-rm -f ./$XC8INSTALLER $XC8INSTALLER.tar
-if [ $CODE -ne 0 ]; then
-	die "Failed to install xc8, exiting!"
+	XC16VERSION=v1.21
+	XC16INSTALLER=xc16-$XC16VERSION-linux-installer.run
+	download_file "XC16 Installer" http://ww1.microchip.com/downloads/en/DeviceDoc/$XC16INSTALLER.tar 80a9fcc6e9e8b051266e06c1eff0ca078ebbc791a7d248dedd65f34a76d7735c
+	tar -xvf $XC16INSTALLER.tar
+	echo "Installing xc16 compiler..."
+	./$XC16INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc16/$XC16VERSION"
+	CODE=$?
+	echo "export PATH=\"\$PATH:/opt/microchip/xc16/$XC16VERSION/bin\"" >> $HOME/.profile
+	rm -f ./$XC16INSTALLER ./$XC16INSTALLER.tar
+	if [ $CODE -ne 0 ]; then
+		die "Failed to install xc16, exiting!"
+	fi
+	echo "DONE!"
 fi
-echo "DONE!"
 
-XC16VERSION=v1.21
-XC16INSTALLER=xc16-$XC16VERSION-linux-installer.run
-download_file "XC16 Installer" http://ww1.microchip.com/downloads/en/DeviceDoc/$XC16INSTALLER.tar 80a9fcc6e9e8b051266e06c1eff0ca078ebbc791a7d248dedd65f34a76d7735c
-tar -xvf $XC16INSTALLER.tar
-echo "Installing xc16 compiler..."
-./$XC16INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc16/$XC16VERSION"
-CODE=$?
-echo "export PATH=\"\$PATH:/opt/microchip/xc16/$XC16VERSION/bin\"" >> $HOME/.profile
-rm -f ./$XC16INSTALLER ./$XC16INSTALLER.tar
-if [ $CODE -ne 0 ]; then
-	die "Failed to install xc16, exiting!"
-fi
-echo "DONE!"
+# echo "Patching GPSIM..."
 
-echo "Adding MoMo tool bin ($MOMOROOT/tools/bin) to the path..."
-echo "export PATH=\"\$PATH:$MOMOROOT/tools/bin\"" >> $HOME/.profile
+# apt-get install -y subversion automake make libglib2.0-dev pkg-configure libpopt-dev libtool flex bison
+
+# mkdir gpsim
+# cd gpsim
+# svn checkout svn://svn.code.sf.net/p/gpsim/code/trunk -r 2281 .
+# patch -p0 -i $MOMOPATH/support/gpsim_16lf1847_support.patch
+
+# libtoolize --force
+# aclocal
+# autoheader
+# automake --force-missing --add-missing
+# autoconf
+# ./configure
+# make
+# sudo make install
+
+echo "Adding MoMo tool bin ($MOMOPATH/tools/bin) to the path..."
+echo "export PATH=\"\$PATH:$MOMOPATH/tools/bin\"" >> $HOME/.profile
 echo "DONE!"
 
 exit 0
