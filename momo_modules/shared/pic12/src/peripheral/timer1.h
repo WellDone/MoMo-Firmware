@@ -30,13 +30,12 @@ enum
 
 #define kHalfSecondConstant 3036UL
 
-#define tmr1_load( value) {\
-	TMR1L = value & 0xFF; \
-	TMR1H = (value >> 8); \
-}
+#define tmr1_load( value) {	\
+	TMR1L = value & 0xFF; 	\
+	TMR1H = (value >> 8);}
 
+#define tmr1_get() ((((uint16_t)TMR1H) << 8) | TMR1L)
 #define tmr1_config(config) T1CON = config
-
 #define tmr1_setstate(state) {\
 	TMR1IF = 0; \
 	TMR1IE = (state == kEnabled_Async); \

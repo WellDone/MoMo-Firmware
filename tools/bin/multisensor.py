@@ -9,6 +9,7 @@ from pymomo.commander.meta import *
 from pymomo.commander.exceptions import *
 from pymomo.commander.proxy import *
 
+import time
 import cmdln
 
 class SensorTool(cmdln.Cmdln):
@@ -52,14 +53,12 @@ class SensorTool(cmdln.Cmdln):
 
 	@cmdln.option('-p', '--port', help='Serial port that fsu is plugged into')
 	@cmdln.option('-a', '--address', help='The MIB address of the multisensor module' )
-	@cmdln.option('-c', '--continuous', action='store_true', default=False, help='Continually sample and report' )
+	@cmdln.option('-c', '--continuous', action='store', type=int, default=5, help='Continually sample and report' )
 	def do_pulse(self, subcmd, opts):
-		"""${cmd_name}: Set the parameter 'name' to the value 'value'
+		"""${cmd_name}: Sample the pulse counters and return the average pulse rate
 
-		Valid parameter names are: offset, gain1, gain2, select, invert and delay
-		Valid values are: offset: [0, 255], gain1: [0,127], gain2: [0,7], 
-		select: [current|differential], invert: [yes|no], delay: [1, 255]
-
+		Optionally sample continously with a delay between each report.  The delay should between
+		at least 4 seconds to allow for one complete sampling cycle per report.
 		${cmd_usage}
 		${cmd_option_list}
 		"""
@@ -67,13 +66,14 @@ class SensorTool(cmdln.Cmdln):
 		sens = self._create_proxy(opts)
 
 		while True:
-			sens.acquire_pulses()
-			sleep(0.6)
-			val = sens.read_pulses()
-			print "Pulse Count: %d (%d per second)" % (val, 2*val)
-
+			val = sens.pulse_rate()
+			sens.clear_counters()
+			print "Pulse Count: %.2f pulses per second" % val
+			
 			if not opts.continuous:
 				break
+
+			time.sleep(opts.continuous)
 
 	def _create_proxy(self,opts):
 		try:
