@@ -3,25 +3,30 @@
 
 #include "rtcc.h"
 #include "flash_queue.h"
-
-#define MOMO_VERSION 4
-#define MOMO_REPORT_INTERVAL kEveryDay
-#define MOMO_REPORT_SERVER "+251912685152" //"+15107358486"
+#include "report_manager.h"
 
 typedef struct {
-  unsigned int version;
-  bool registered;
-  rtcc_date last_reported;
-  bool event_log_created;
-  flash_queue event_log;
+  uint16              state_flags;
+  ReportConfiguration report_config;
 } MoMoState;
 
+typedef enum {
+	kStateFlagReportingEnabled = 0b0001
+} MoMoStateFlag;
+
+
+
+#ifndef MOMO_STATE_CONTROLLER
 extern MoMoState current_momo_state;
+#endif
 
 void init_momo_config( unsigned int subsection_index );
 void reset_momo_state();
 void save_momo_state();
 void load_momo_state();
-void flush_config_to_memory();
+void flush_config_to_memory( void* );
+
+bool get_momo_state_flag( MoMoStateFlag flag );
+void set_momo_state_flag( MoMoStateFlag flag, bool value );
 
 #endif

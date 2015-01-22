@@ -12,17 +12,22 @@
 #include "scheduler.h"
 #include "reset_manager.h"
 #include "pic24asm.h"
-#include "debug_utilities.h"
+#include "base64.h"
+#include "debug.h"
+#include "bus_master.h"
+#include "eeprom.h"
 
 extern volatile unsigned int adc_buffer[kADCBufferSize];
 ScheduledTask test_task;
 
-void handle_echo_params(command_params *params)
+CommandStatus handle_echo_params(command_params *params)
 {
   unsigned int i;
 
-  if (params->num_params == 0)
+  if (params->num_params == 0) {
     print( "No parameters were passed.\r\n");
+    return kFailure;
+  }
   else
   {
     for (i=0; i<params->num_params; ++i)
@@ -31,16 +36,17 @@ void handle_echo_params(command_params *params)
       print( "\r\n");
     }
   }
+  return kSuccess;
 }
 
-void handle_adc(command_params *params)
+CommandStatus handle_adc(command_params *params)
 {
     char *cmd;
 
     if (params->num_params < 1)
     {
-        print( "You must pass a subcommand to the device command.\r\n");
-        return;
+        print( "You must pass a subcommand to the adc command.\r\n");
+        return kFailure;
     }
 
     cmd = get_param_string(params, 0);
@@ -146,17 +152,21 @@ void handle_adc(command_params *params)
         sends(DEBUG_UART, "ADC Disabled\r\n");
     }
     else
+    {
         sendf(DEBUG_UART, "Unknown adc command: %s", cmd);
+        return kFailure;
+    }
+    return kSuccess;
 }
 
-void handle_device(command_params *params)
+CommandStatus handle_device(command_params *params)
 {
     char *cmd;
 
     if (params->num_params < 1)
     {
         print( "You must pass a subcommand to the device command.\r\n");
-        return;
+        return kFailure;
     }
 
     cmd = get_param_string(params, 0);
@@ -164,27 +174,30 @@ void handle_device(command_params *params)
     if (strcmp(cmd, "reset") == 0)
     {
         print( "Resetting the device...\r\n");
+        set_command_result( kSuccess );
         asm_reset();
+        return kNone;
     }
     else if (strcmp(cmd, "rtype") == 0)
     {
-            sendf(DEBUG_UART, "Last reset type: %d\r\n", last_reset_type());
+        sendf(DEBUG_UART, "Last reset type: %d\r\n", last_reset_type());
     }
     else if (strcmp(cmd, "sleep") == 0)
     {
         print("Sleeping\r\n");
         asm_sleep();
     }
+    return kSuccess;
 }
 
-void handle_rtcc(command_params *params)
+CommandStatus handle_rtcc(command_params *params)
 {
     char *cmd;
 
     if (params->num_params < 1)
     {
         print( "You must pass a subcommand to the rtcc command.\r\n");
-        return;
+        return kFailure;
     }
 
     cmd = get_param_string(params, 0);
@@ -215,7 +228,7 @@ void handle_rtcc(command_params *params)
         if (params->num_params < 3)
         {
             print( "usage: rtcc set mm/dd/yy hh:mm:ss\r\n");
-            return;
+            return kFailure;
         }
 
         date = get_param_string(params, 1);
@@ -242,5 +255,135 @@ void handle_rtcc(command_params *params)
         print("RTCC Enabled\r\n");
     }
     else
+    {
         sendf(DEBUG_UART, "Unknown rtcc command: %s\r\n", cmd);
+        return kFailure;
+    }
+    return kSuccess;
+}
+
+static void rpc_callback(unsigned char status) 
+{
+    int i;
+    put(DEBUG_UART, status);
+
+    if ( status != kNoMIBError )
+    {
+        set_command_result( false );
+        return;
+    }
+
+    //Command was successful
+    put(DEBUG_UART, bus_get_returnvalue_length());
+
+    for (i=0; i<bus_get_returnvalue_length(); ++i)
+        put(DEBUG_UART, plist_get_buffer(0)[i]);
+
+    set_command_result( true );
+}
+
+CommandStatus handle_binrpc(command_params *params)
+{
+    unsigned char buffer[24];
+    int i,length;
+    char* str;
+    MIBUnified data;
+
+    if (params->num_params != 1) {
+        put(DEBUG_UART, 254);
+        print( "You must pass a single base64 encoded buffer with all parameters to binrpc.\n");
+        return kFailure;
+    }
+
+    str = get_param_string(params, 0);
+
+    if (strlen(str) != 32)
+    {
+        put(DEBUG_UART, 254);
+        print( "You must pass a base64 encoded buffer with length 32.\n");
+        return kFailure;
+    }
+
+    length = base64_decode(str, strlen(str), buffer, 24);
+
+    if (length != 24)
+    {
+        put(DEBUG_UART, 254);
+        print( "Could not decode base64 buffer\n");
+        return kFailure;
+    }
+
+    if (!momo_attached())
+    {
+        put(DEBUG_UART, 254);
+        print( "No MoMo unit attached to FSU, cannot send RPC.\n");
+        return kFailure;
+    }
+
+    data.address = buffer[0];
+    data.bus_command.feature = buffer[1];
+    data.bus_command.command = buffer[2];
+    data.bus_command.param_spec = buffer[3];
+
+    for(i=0; i<kBusMaxMessageSize; ++i)
+        data.mib_buffer[i] = buffer[i+4];
+
+    bus_master_rpc_async(rpc_callback, &data);
+    return kPending;
+}
+
+CommandStatus handle_attached(command_params *params)
+{
+    if (momo_attached())
+        print("1\n");
+    else
+        print("0\n");
+
+    return kSuccess;
+}
+
+CommandStatus handle_alarm(command_params *params)
+{
+    char *cmd;
+
+    if (params->num_params != 1) 
+    {
+        print( "Usage: alarm [yes|no|status]\n");
+        return kFailure;
+    }
+
+    cmd = get_param_string(params, 0);
+
+    if (strcmp(cmd, "status") == 0)
+    {
+        if (ALARM_PIN == 0)
+            print("0\n");
+        else
+            print("1\n");
+
+        return kSuccess;
+    }
+    else if (strcmp(cmd, "yes") == 0)
+    {
+        ALARM_PIN = 0;
+        ALARM_TRIS = 0;
+        eeprom_write(0, 0xAA);
+        return kSuccess;
+    }
+    else if (strcmp(cmd, "no") == 0)
+    {
+        ALARM_TRIS = 1;
+        ALARM_PIN = 0;
+        eeprom_write(0, 0xFF);
+        return kSuccess;
+    }
+
+    return kFailure;
+}
+
+CommandStatus handle_i2cstatus(command_params *params)
+{
+    put(DEBUG_UART, I2C1STAT&0xFF);
+    put(DEBUG_UART, I2C1STAT>>8);
+    return kSuccess;
 }

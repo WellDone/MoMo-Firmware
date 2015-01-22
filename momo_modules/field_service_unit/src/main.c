@@ -2,7 +2,11 @@
 #include "common.h"
 #include "reset_manager.h"
 #include "task_manager.h"
+#include "scheduler.h"
 #include "fsu_reset_handler.h"
+#include "bus_master.h"
+#include "eeprom.h"
+#include "bus_master.h"
 
 // FBS
 #pragma config BWRP = OFF               // Table Write Protect Boot (Boot segment may be written)
@@ -46,11 +50,24 @@
 #pragma config DSBOREN = ON             // Deep Sleep Zero-Power BOR Enable bit (Deep Sleep BOR enabled in Deep Sleep)
 #pragma config DSWDTEN = OFF            // Deep Sleep Watchdog Timer Enable bit (DSWDT disabled)
 
+
 int main(void) {
     AD1PCFG = 0xFFFF;
 
+    if (eeprom_read(0) == 0xAA)
+    {
+    	ALARM_TRIS = 0;
+    	ALARM_PIN = 0;
+    }
+    else
+    {
+    	ALARM_TRIS = 1;
+    	ALARM_PIN = 0;
+    }
+
     register_reset_handlers();
     handle_reset();
+
     taskloop_loop();
 
     return (EXIT_SUCCESS);

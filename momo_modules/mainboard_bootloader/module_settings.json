@@ -1,0 +1,22 @@
+{
+	"modules":
+	{
+		"mainboard_bootloader":
+		{
+			"overlays":
+			{
+				"24fj64ga306":
+				{
+					"linker": "./linker/p24FJ64GA306.gld"
+				}
+			},
+			
+			"libraries": ["pic24"]
+		}
+	},
+
+	"module_targets" :
+	{
+		"mainboard_bootloader": ["24fj64ga306"]
+	}
+}
