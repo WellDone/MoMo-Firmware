@@ -10,12 +10,12 @@ apt-get install -y python python-setuptools python-dev python-pip
 if [ -n "$MOMO_DEV" ]; then
 	apt-get install -y libc6:i386 lib32stdc++6 gpsim
 fi
-apt-get install wget # for the raspberry pi
+apt-get install wget
 
 easy_install -U pip
 
-pip install pyserial # for the raspberry pi
-pip install --allow-external dirspec --allow-external intelhex --allow-unverified dirspec dirspec --allow-unverified intelhex pymomo
+pip install pyserial
+pip install --allow-external intelhex --allow-unverified intelhex pymomo
 
 pip install http://sourceforge.net/projects/scons/files/latest/download --egg | tee -a $HOME/scons-install.log
 PYTHONPATH=`cat $HOME/scons-install.log | grep ' library modules ' | awk '{print $6}'`
