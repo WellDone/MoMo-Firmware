@@ -8,16 +8,14 @@
 #include "serial_commands.h"
 #include "command_handlers.h"
 #include "task_manager.h"
-#include "debug_utilities.h"
 #include "debug.h"
 #include <string.h>
 
-volatile char __attribute__((space(data))) command_buffer[UART_BUFFER_SIZE+1];
-
 char __attribute__((space(data))) *known_commands[MAX_COMMANDS+1];
 CommandHandler __attribute__((space(data))) command_handlers[MAX_COMMANDS+1];
+static volatile CommandStatus command_status = kNone;
 
-static void process_commands_task(int len, bool overflown);
+static void process_commands_task(char* command_buffer, int len, bool overflown);
 
 void register_command_handlers()
 {
@@ -26,8 +24,12 @@ void register_command_handlers()
     register_command("rtcc", handle_rtcc);
     register_command("adc", handle_adc);
 
-    set_uart_rx_newline_callback( DEBUG_UART, process_commands_task, command_buffer, UART_BUFFER_SIZE );
-    print( DEBUG_PROMPT );
+    register_command("binrpc", handle_binrpc);
+    register_command("alarm", handle_alarm);
+    register_command("attached", handle_attached);
+    register_command("i2c", handle_i2cstatus);
+
+    debug_setup_handler(process_commands_task);
 }
 
 /*
@@ -51,14 +53,26 @@ void register_command(char *cmd, CommandHandler handler)
   command_handlers[i] = 0;
 }
 
+static void send_command_acknowledgement()
+{
+  put( DEBUG_UART, (command_status == kSuccess)?ACK:NAK );
+  command_status = kNone;
+}
+
+void set_command_result( bool success )
+{
+  command_status = ((success)?kSuccess:kFailure);
+  send_command_acknowledgement();
+}
+
 /*
  * Check if there are any commands pending and if so, process them.
  */
-static void process_commands_task(int len, bool overflown)
+static void process_commands_task(char* command_buffer, int len, bool overflown)
 {
   char *params = 0;
   unsigned int i;
-  clear_uart_rx_newline_callback( DEBUG_UART );
+  command_buffer[len] = '\0';
 
   for(i=0; i<=len; ++i)
   {
@@ -79,6 +93,7 @@ static void process_commands_task(int len, bool overflown)
      print( "Unknown command: ");
      print( command_buffer);
      print( "\r\n");
+     command_status = kFailure;
      break;
    }
    else if(strcmp(command_buffer, known_commands[i])==0)
@@ -88,13 +103,14 @@ static void process_commands_task(int len, bool overflown)
 
      fill_param_struct(&p, params);
 
-     command_handlers[i](&p);
+     command_status = command_handlers[i](&p);
      break;
    }
   }
 
-  set_uart_rx_newline_callback( DEBUG_UART, process_commands_task, command_buffer, UART_BUFFER_SIZE );
-  print( DEBUG_PROMPT );
+  if ( command_status != kPending && command_status != kNone ) {
+    send_command_acknowledgement();
+  }
 }
 
 void fill_param_struct(command_params *params, char *buff)

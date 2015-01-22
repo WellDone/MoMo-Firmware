@@ -1,0 +1,11 @@
+{
+	"module_targets": 
+	{
+		"pic12_executive": ["16lf1847/exec", "16lf1823/exec", "12lf1822/exec"]
+	},
+
+	"modules":
+	{
+		"pic12_executive": {}
+	}
+}

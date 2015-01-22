@@ -1,0 +1,39 @@
+import os
+import os.path
+
+Import('library_env')
+asfiles = ["./util/pic24asm.s"]
+
+srcfiles =    Glob('./core/*.c') \
+			+ Glob('./mib/*.c') \
+			+ Glob('./mib/slave/*.c') \
+			+ Glob('./mib/slave/commands/*.c') \
+			+ Glob('./mib/master/*.c') \
+			+ Glob('./modules/*.c') \
+			+ Glob('./util/*.c')
+
+#Paths are relative to build/<chip>, which is why there's an extra ../
+#Portable files don't get copied because they're not part of the VariantDir
+#that only affects things under src/
+portfiles =   Glob('../../../portable/core/*.c') \
+			+ Glob('../../../portable/mib/*.c') \
+			+ Glob('../../../portable/util/*.c')
+
+ldffiles = ['log_definitions.ldf']
+
+objs = []
+for src in srcfiles:
+	objs.append(library_env.xc16_gcc(src))
+
+for src in portfiles:
+	outname = os.path.basename(os.path.splitext(str(src))[0])
+	target = os.path.join('portable', outname)
+	objs.append(library_env.xc16_gcc(source=src, target=target))
+
+for src in asfiles:
+	objs.append(library_env.xc16_as(src))
+
+for ldf in ldffiles:
+	library_env.ldf_compiler(ldf)
+
+library_env.Command(library_env['OUTPUT'], objs, Action('xc16-ar -qc $TARGET $SOURCES','Linking $TARGET'))
