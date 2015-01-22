@@ -106,8 +106,6 @@ fi
 # make
 # sudo make install
 
-echo "Adding MoMo tool bin ($MOMOPATH/tools/bin) to the path..."
-echo "export PATH=\"\$PATH:$MOMOPATH/tools/bin\"" >> $HOME/.profile
 echo "DONE!"
 
 exit 0
