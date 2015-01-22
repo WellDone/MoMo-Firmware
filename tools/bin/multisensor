@@ -1,6 +1,0 @@
-#!/usr/bin/env python
-import multisensor
-import sys
-
-emulator = multisensor.SensorTool()
-sys.exit(emulator.main())
