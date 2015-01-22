@@ -72,7 +72,7 @@ typedef struct
 #define plist_spec_mask         0b11100000
 #define plist_buffer_mask		0b00011111
 
-#define plist_with_buffer(ints,buffer_length) (plist_spec(ints, 1)|(buffer_length&0x1F))
+#define plist_with_buffer(ints,buffer_length) (plist_spec(ints, 1)|((buffer_length)&0x1F))
 #define plist_no_buffer(ints)	plist_ints(ints)
 #define plist_empty()			plist_spec_empty()
 

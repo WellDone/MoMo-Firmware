@@ -281,6 +281,19 @@ void get_perf_counter()
 	bus_slave_return_buffer(val, 20);
 }
 
+void get_uuid()
+{
+	plist_set_int16( 0, current_momo_state.uuid & 0xFFFF );
+	plist_set_int16( 1, (current_momo_state.uuid >> 16) & 0xFFFF );
+	bus_slave_set_returnbuffer_length( 4 );
+}
+
+void set_uuid()
+{
+	current_momo_state.uuid = makeu32(plist_get_int16(1), plist_get_int16(0));
+	save_momo_state();
+}
+
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x00, register_module, plist_spec(0,true) },
@@ -302,6 +315,9 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x10, factory_reset, plist_spec_empty()},
 	{0x11, read_ram, plist_spec(1, false)},
 	{0x12, set_time, plist_spec(0, true)},
+
+	{0x13, get_uuid, plist_spec(0, false)},
+	{0x14, set_uuid, plist_spec(2, false)},
 
 	{0x20, write_log, plist_spec(0, true)},
 	{0x21, log_count, plist_spec_empty()},
