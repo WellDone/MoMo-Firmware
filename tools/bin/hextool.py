@@ -5,8 +5,6 @@ import os.path
 import os
 import intelhex
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
 import cmdln
 from colorama import Fore, Style
 from pymomo.hex8.instruction import Instruction

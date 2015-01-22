@@ -2,8 +2,6 @@ import sys
 import os
 import shlex
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
 from pymomo.utilities.typedargs.shell import HierarchicalShell, posix_lex
 from pymomo.exceptions import *
 from pymomo.utilities.typedargs import annotate

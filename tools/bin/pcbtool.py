@@ -7,8 +7,6 @@ import os.path
 import os
 import shutil
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
 import cmdln
 from colorama import init, Fore, Style
 from pymomo.utilities.paths import MomoPaths

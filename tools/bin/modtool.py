@@ -7,8 +7,6 @@ import intelhex
 from time import sleep
 import datetime
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
 from pymomo.commander.meta import *
 from pymomo.commander.exceptions import *
 from pymomo.hex16.convert import *

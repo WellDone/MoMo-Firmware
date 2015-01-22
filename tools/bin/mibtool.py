@@ -5,8 +5,6 @@ import os.path
 import os
 import intelhex
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
 from pymomo.proteus.project import Project
 from pymomo.mib.descriptor import MIBDescriptor
 from pymomo.mib.block import MIBBlock
@@ -14,6 +12,7 @@ from pymomo.mib.api import MIBAPI
 from pymomo.mib import config12
 from pymomo.mib.reflash import *
 from pymomo.utilities import build
+from pymomo.utilities.paths import MomoPaths
 import cmdln
 from colorama import Fore, Style
 import pyparsing
@@ -60,7 +59,7 @@ class MIBTool(cmdln.Cmdln):
 		import pymomo.utilities.invoke
 		import SCons.Script
 
-		site_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'site_scons'))
+		site_path = os.path.abspath(os.path.join(MoMoPaths().base, 'tools', 'site_scons'))
 
 
 		all_args = ['mibtool', '--site-dir=%s' % site_path]
