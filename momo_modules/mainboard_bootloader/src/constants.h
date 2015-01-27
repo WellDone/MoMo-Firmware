@@ -16,11 +16,6 @@
 #define kFlashRowSizeInstructions 	64
 #define kFlashPageSizeInstructions	512
 
-#define ALARM 						D3
-#define DATA						G3
-
-#define kHardwareString				"con_v3.1"
-
 #else
 #error "Unsupported chip type"
 #endif

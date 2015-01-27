@@ -21,8 +21,8 @@
 #pragma config BOREN1 = EN              // BOR Override bit (BOR Enabled [When BOREN=1])
 #pragma config IOL1WAY = OFF            // IOLOCK One-Way Set Enable bit (The IOLOCK bit can be set and cleared using the unlock sequence)
 #pragma config OSCIOFCN = ON            // OSCO Pin Configuration (OSCO/CLKO/RC15 functions as port I/O (RC15))
-#pragma config FCKSM = CSDCMD           // Clock Switching and Fail-Safe Clock Monitor Configuration bits (Clock switching and Fail-Safe Clock Monitor are disabled)
-#pragma config FNOSC = FRC              // Initial Oscillator Select (Fast RC Oscillator (FRC))
+#pragma config FCKSM = CSECMD           // Clock Switching and Fail-Safe Clock Monitor Configuration bits (Clock switching enabled and Fail-Safe Clock Monitor disabled)
+#pragma config FNOSC = FRC           	// Initial Oscillator Select (Fast RC Oscillator (FRC))
 #pragma config ALTVREF = DLT_AV_DLT_CV  // Alternate VREF/CVREF Pins Selection bit (Voltage reference input, ADC =RA9/RA10 Comparator =RA9,RA10)
 #pragma config IESO = OFF               // Internal External Switchover (Disabled)
 
@@ -51,7 +51,12 @@ int _BOOTLOADER_CODE main(void)
 {
 	ValidationResult metadata_status;
 
+	//Speed up clock to 8 Mhz (from the default 4 Mhz).
+	_RCDIV = 000;
+
 	DIR(ALARM) = INPUT;
+	ENSURE_DIGITAL(ALARM);
+	
 
 	//Allow 100 ms for someone to assert the alarm pin in case this is a
 	//power on reset.
@@ -69,25 +74,20 @@ int _BOOTLOADER_CODE main(void)
 			while(PIN(ALARM) == 0)
 				;
 
-			//Reflash ourselves and pull alarm pin low during the operation so
-			//people can know when we're done.
-			LAT(ALARM) = 0;
-			DIR(ALARM) = OUTPUT;
-
-			DELAY_MS(100);
-
+			//Reflash ourselves
 			program_application(kBackupFirmwareSector);
-			DIR(ALARM) = INPUT;
 		}
 	}
 	else if (reflash == kReflashMagic)
 	{
 		//If we are told to reflash, do so.
 		reflash = 0x0000;
-		LAT(ALARM) = 0;
-		DIR(ALARM) = OUTPUT;
 		program_application(kMainFirmwareSector);
-		DIR(ALARM) = INPUT;
+	}
+	else if (reflash == kRecoverMagic)
+	{
+		reflash = kAlreadyRecoveredMagic;
+		program_application(kBackupFirmwareSector);
 	}
 
 	metadata_status = validate_metadata();
@@ -95,9 +95,22 @@ int _BOOTLOADER_CODE main(void)
 		goto_address(kMetadataResetVector);
 
 	/*
-	 * Firmware was invalid or not loaded, signal our displeasure.
+	 * If there was no valid firmware loaded, try to recover by loading
+	 * the recovery firmware.  Only do it once though so we don't wear out
+	 * our flash with continual useful reflashes.
+	 */
+	if (reflash != kAlreadyRecoveredMagic)
+	{
+		reflash = kRecoverMagic;
+		asm volatile("reset");
+	}
+
+	/*
+	 * Firmware was invalid or not loaded and the recovery firmware was also
+	 * not present or not correct, signal our displeasure.
 	 * Users with a logic analyzer or other tool can decipher what went wrong
-	 * using the period of the output pulses.
+	 * using the period of the output pulses.  The momo python tools also parse
+	 * and interpret it.
 	 */
 	flash_alarm(metadata_status);
 

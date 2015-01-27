@@ -18,8 +18,10 @@ void battery_init()
     TYPE(BATTERY_VOLTAGE) = ANALOG;
 
 	//Configure charge controller pin (0 disables charging)
-	LAT(CHARGE_ENABLE) = 0;
-    DIR(CHARGE_ENABLE) = OUTPUT;
+	DIR(CHARGE_ENABLE) = INPUT;
+    LAT(CHARGE_ENABLE) = 0;
+    ENSURE_DIGITAL(CHARGE_ENABLE);
+
 
 	//Store ADC configuration
     batt_adc_config.output_format = kUIntegerFormat;
