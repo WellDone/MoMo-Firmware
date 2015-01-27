@@ -1,0 +1,3 @@
+import autobuild
+
+autobuild.autobuild_pic12('mib12_reflash', test_dir='test', modulefile='module_settings.json')

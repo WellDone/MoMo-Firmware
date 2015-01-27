@@ -1,0 +1,90 @@
+DeviceInitializedNotice
+"The MoMo controller has been initialized"
+
+MCLRTriggeredNotice
+"The MoMo controller has reset due to an MCLR pulse"
+
+RTCCOffNotice
+"The Realtime clock was off, it is being enabled"
+
+PowerOnNotice
+"The MoMo controller has reset due to a power-cycle event"
+
+DeviceResetNotice
+"The MoMo controller has been reset"
+
+
+ControllerReflashNotice
+"The MoMo controller has started to reflash itself"
+
+ControllerResetNotice
+"The MoMo controller received a reset RPC and is resetting"
+
+ControllerFactoryResetNotice
+"The MoMo controller is performing a factory reset"
+
+
+SubmoduleAddressRequestNotice
+"A submodule asked for an address"
+
+SetAPNNotice
+"Setting GPRS APN"
+- "APN" as string
+
+SetCommDestinationNotice
+"Setting comm module stream destination"
+- "Start Index" as integer, format unsigned
+- "Length" as integer, format unsigned
+- "Buffer" as string
+
+OpenedCommStreamNotice
+"Opening a communication stream"
+- "Comm Module Address" as integer, format unsigned
+- "Report Length" as integer, format unsigned
+
+FinishedReportStreamingNotice
+"Finished streaming report to all comm modules"
+
+ClosingCommStreamNotice
+"Closing comm stream"
+
+StreamingCommDataNotice
+"Streaming data"
+- "Streamed data" as string
+
+AbandoningCommStreamNotice
+"Abandoning current report stream"
+
+ReportSucceededNotice
+"Report succeeded"
+
+ReportFailedRetryNotice
+"Report failed, retrying"
+- "Retry Count" as integer, format unsigned
+
+ReportFailedRerouteNotice
+"Report failed, switching to secondary route"
+- "New Route" as string
+
+ReportAbandonedNotice
+"Retry count exceeded, abandoning report"
+
+FailedMessageToCommModuleNotice
+"Failed to send a message to a comm module"
+- "Error Code" as integer, format unsigned
+
+
+ConstructingReportNotice
+"Constructing report"
+
+ReportConstructedNotice
+"Report constructed successfully"
+
+FailedToConstructReportError
+"Failed to construct report"
+
+ReportSchedulingStartedNotice
+"Report scheduling started"
+
+ReportSchedulingStoppedNotice
+"Report scheduling stopped"

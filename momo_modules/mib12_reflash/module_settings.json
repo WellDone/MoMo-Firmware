@@ -1,0 +1,14 @@
+{
+	"modules":
+	{
+		"mib12_reflash":
+		{
+
+		}
+	},
+
+	"module_targets":
+	{
+		"mib12_reflash" : ["16lf1847/app", "16lf1823/app", "12lf1822/app"]
+	}
+}
