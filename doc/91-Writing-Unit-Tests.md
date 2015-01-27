@@ -91,13 +91,39 @@ sense to test it as a unit.  So, unit tests for applications work by replacing t
 and keeping the entire application code as it would be in the real module.  Executive tests work in a similar way by replacing the application code
 with the unit testing script.  This is done automatically by the build system.  
 
-*NB upon test execution control jumps directly to the test code, no code from the module under test, including initialization code is run by default.*
-
-There are two types of 8-bit unit tests that must be specified in the Type attribute: executive and application.  Executive unit tests can only be 
-defined for the pic12_executive.  All other application modules must define all of their tests as application tests.
+There are three types of 8-bit unit tests that must be specified in the Type attribute: executive, executive_integration and application.  Executive unit tests can only be 
+defined for the pic12_executive.  All other application modules must define all of their tests as application tests.  By default, no module code is run before jumping directly to the unit test code except when executive_integration testing is specified.  ```executive_integration``` tests run through the complete executive startup code and run the unit test code as an application module.  This lets you test things that require a fully initialized mib12_executive.
 
 ### An Example Unit Test
 FILL In this section
+
+### Including Different Support Files on Each Architecture
+Sometimes the same unit test code will run on multiple architectures, so you would like it to run on multiple architectures, but those architectures require different support files.  For example, if you want to test whether a certain pin triggers an interrupt, the test code is the same: did the interrupt get triggers, but what if the pin is in a different location on the different architectures.  The unit testing build code handles this in the following way.  When you specify an additional file like a .cmd file to pass commands to gpsim or a .as file to include in your unit test code, the build system internally looks for that file name appended with the architecture currently being targeted and if that file is found, will use it instead of a generic version.  
+
+For example, say that you're targeting the architectures ```12lf1822/v1``` and ```12lf1822/v2```.  In your unit test you have an additional file include statement like the following. 
+
+```
+Additional: support_pinlocation.cmd
+```
+
+When building for the v2 architeccture, the build system parses your architecture string into a prefix list:
+
+```
+["12lf1822", "v2"]
+["12lf1822"]
+[""]
+```
+
+It then splits the support file prefix off and adds in the architecture prefixes, in order until it finds a file that exists.  So it looks for:
+
+```
+support_pinlocation_12lf1822_v2.cmd
+support_pinlocation_12lf1822.cmd
+support_pinlocation.cmd
+```
+
+Once it finds a match it stops.  If no match is found, it throws a BuildError.  On the v1 architecture, the build system looks for 
+```support_pinlocation_12lf1822_v1.cmd``` first, so you can just specify two different support files and the build system will pull them in automatically for the right architecture without needing to create a separate unit test code file.
 
 ### Using Checkpoints Effectively
 FILL In this section

@@ -6,6 +6,18 @@
 
 	"modules":
 	{
-		"pic12_executive": {}
+		"pic12_executive":
+		{
+			"overlays":
+			{	
+				"exec":
+				{
+					"defines":
+					{
+						"kExecutiveTimer": "2"
+					}
+				}
+			}
+		}
 	}
 }
