@@ -52,10 +52,11 @@ enum
 	kAggMax      = 0b01000000
 };
 
+#define ROUTE_MAX_LENGTH 64
 typedef struct 
 {
-	char            route_primary[64];
-	char            route_secondary[64];
+	char            route_primary[ROUTE_MAX_LENGTH];
+	char            route_secondary[ROUTE_MAX_LENGTH];
 	char            gprs_apn[21];
 	uint16          current_sequence;
 	AlarmRepeatTime report_interval;
@@ -72,7 +73,7 @@ void post_report( void* );
 void start_report_scheduling();
 void stop_report_scheduling();
 void set_report_scheduling_interval( AlarmRepeatTime interval );
-void set_report_route_primary( const char* address, uint8 len );
-void set_report_route_secondary( const char* address, uint8 len );
+void update_report_route( uint8 index, uint8 start, const char* address, uint8 len );
+const char* get_report_route( uint8 index );
 
 #endif	/* __report_manager_h__ */
