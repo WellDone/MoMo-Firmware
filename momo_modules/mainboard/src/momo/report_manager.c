@@ -64,7 +64,7 @@ char                  base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 static sensor_event   event_buffer[EVENT_BUFFER_SIZE];
 
 //TODO: Implement dynamic report routing based on an initial "registration" ping to the coordinator address
-static const char   default_web_route[31] = {'h','t','t','p',':','/','/','r','e','q','u','e','s','t','b','.','i','n','/','1','7','e','t','u','h','n','1','\0'};
+static const char   default_web_route[41] = {'h','t','t','p',':','/','/','s','t','r','a','t','o','.','w','e','l','l','d','o','n','e','.','o','r','g','/','g','a','t','e','w','a','y','/','p','o','s','t','\0'};
 static const char   default_sms_route[13] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0'};
 #define DEFAULT_GPRS_APN "wap.cingular"
 #define DEFAULT_GPRS_APN_LEN 12
@@ -331,6 +331,16 @@ void update_report_route( uint8 index, uint8 start, const char* route, uint8 len
   char* target = (index == 0)? CONFIG.route_primary : CONFIG.route_secondary;
   memcpy( target+start, route, len );
   target[start+len] = '\0';
+  save_momo_state();
+}
+
+void set_gprs_apn( const char* apn, uint8 len )
+{
+  if ( len + 1 > sizeof(CONFIG.gprs_apn) )
+    return;
+
+  memcpy( CONFIG.gprs_apn, apn, len );
+  CONFIG.gprs_apn[len] = '\0';
   save_momo_state();
 }
 
