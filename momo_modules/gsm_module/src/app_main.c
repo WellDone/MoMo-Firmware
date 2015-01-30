@@ -81,6 +81,8 @@ void task(void)
 			}
 			else
 			{
+				uint_buf[5] = '\0';
+				
 				strcpy( mib_buffer, "GPRS ERROR : " );
 				strcpy( mib_buffer+13, uint_buf );
 

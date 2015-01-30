@@ -31,7 +31,7 @@ bool http_await_response( uint8 seconds ) {
 		return false;
 	gsm_rx(); // '1', '2', or '3'
 	gsm_rx(); // ','
-	while ( gsm_rx() )
+	while ( gsm_rx() && (ptr < (uint_buf+5)))
 	{
 		if ( gsm_rx_peek() == ',' )
 			break;
