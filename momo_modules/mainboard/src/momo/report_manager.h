@@ -75,5 +75,6 @@ void stop_report_scheduling();
 void set_report_scheduling_interval( AlarmRepeatTime interval );
 void update_report_route( uint8 index, uint8 start, const char* address, uint8 len );
 const char* get_report_route( uint8 index );
+void set_gprs_apn( const char* apn, uint8 len );
 
 #endif	/* __report_manager_h__ */

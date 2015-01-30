@@ -73,6 +73,15 @@ static void get_reporting_route(void)
 	bus_slave_return_buffer( route + start, len );
 }
 
+static void set_reporting_apn(void)
+{
+	set_gprs_apn( (const char*)plist_get_buffer(0), plist_get_buffer_length() );
+}
+static void get_reporting_apn(void)
+{
+	bus_slave_return_buffer( current_momo_state.report_config.gprs_apn, strlen(current_momo_state.report_config.gprs_apn) );
+}
+
 static void set_reporting_flags(void)
 {
 	current_momo_state.report_config.report_flags = plist_get_int16(0);	
@@ -173,6 +182,8 @@ DEFINE_MIB_FEATURE_COMMANDS(reporting) {
 	{ 0x10, count_report_log_mib, plist_spec_empty() },
 	{ 0x11, clear_report_log_mib, plist_spec_empty() },
 	{ 0x12, init_report_config, plist_spec_empty() },
+	{ 0x13, set_reporting_apn, plist_spec(0,true) },
+	{ 0x14, get_reporting_apn, plist_spec_empty() },
 	{ 0xF0, handle_report_stream_success, plist_spec_empty() },
 	{ 0xF1, handle_report_stream_failure, plist_spec_empty() }
 };
