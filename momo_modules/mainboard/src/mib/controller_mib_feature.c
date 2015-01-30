@@ -17,6 +17,8 @@
 #include "memory_manager.h"
 #include "perf.h"
 #include "log_definitions.h"
+#include "rn4020.h"
+
 #include "momo_config.h"
 #include "sensor_event_log.h"
 
@@ -28,6 +30,12 @@ unsigned int debug_flag_value = 0;
 
 void con_init()
 {
+	//Make all pins digital if they could be analog
+	ENSURE_DIGITAL(SCL);
+	ENSURE_DIGITAL(SDA);
+	ENSURE_DIGITAL(ALARM);
+	ENSURE_DIGITAL(BUS_ENABLE);
+
 	LAT(BUS_ENABLE) = 0;
 	DIR(BUS_ENABLE) = OUTPUT;
 
@@ -299,6 +307,8 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x21, log_count, plist_spec_empty()},
 	{0x22, read_log, plist_spec(2, false)},
 	{0x23, clear_log, plist_spec_empty() },
-	{0x26, get_perf_counter, plist_spec(1, false)}
+
+	{0x26, get_perf_counter, plist_spec(1, false)},
+	{0x27, bt_debug_buffer, plist_spec(0, false)}
 };
 DEFINE_MIB_FEATURE(controller);

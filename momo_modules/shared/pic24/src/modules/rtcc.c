@@ -1,5 +1,6 @@
 #include "rtcc.h"
 #include "pic24.h"
+#include "oscillator.h"
 #include "task_manager.h"
 #include <string.h>
 
@@ -9,10 +10,10 @@ static int callback_pending = 0;
 
 static void rtcc_callback(void *unused);
 
-const uint32    year_seconds                    = 24LL*60LL*60LL*365LL;
-const uint16    halfday_seconds                 = 12LL*60LL*60LL;
-const uint32    day_seconds                     = 24LL*60LL*60LL;
-const uint32    month_lintable[kNumMonths]      = {0LL, 2678400LL, 5097600LL, 7776000LL, 10368000LL, 13046400LL, 15638400LL, 18316800LL, 20995200LL, 23587200LL, 26265600LL, 28857600LL};
+const uint32    year_seconds                    = 24ULL*60ULL*60ULL*365ULL;
+const uint16    halfday_seconds                 = 12ULL*60ULL*60ULL;
+const uint32    day_seconds                     = 24ULL*60ULL*60ULL;
+const uint32    month_lintable[kNumMonths]      = {0ULL, 2678400ULL, 5097600ULL, 7776000ULL, 10368000ULL, 13046400ULL, 15638400ULL, 18316800ULL, 20995200ULL, 23587200ULL, 26265600ULL, 28857600ULL};
 
 void enable_rtcc()
 {
@@ -34,7 +35,7 @@ uint16 rtcc_enabled()
     return _RTCEN;
 }
 
-void configure_rtcc()
+void configure_rtcc(RTCCClockSource source)
 {
     rtcc_datetime date;
     _RTCCMD = 0; //Make sure power to the rtcc is enabled.
@@ -44,7 +45,10 @@ void configure_rtcc()
 
 //newer pic supports another register for extracting RTCC timer from 60hz power line
 #ifdef __PIC24FJ64GA306__
-    _RTCLK = 0b01;
+    if (source == kRTCCSoscSource)
+        set_sosc_status(1);
+
+    _RTCLK = source;
 #endif
     _CAL = 0; //Clear oscillator trimming
     _RTCOE = 0; //Don't output the clock signal
@@ -119,11 +123,11 @@ rtcc_timestamp rtcc_create_timestamp(const rtcc_datetime *source)
     //Add in one extra day for each leap year between 2000 and source->year
     //Remember that 2000 was a leap year
     if (source->year > 0)
-        out += (((source->year-1)>>2) + 1)*source->year;
+        out += (((source->year-1)>>2) + 1)*day_seconds;
 
-    //Add in the number of seconds in this year to the month
-    if (source->month > 0)
-        out += month_lintable[source->month];
+    //Add in the number of seconds in this year to the month (month is stored with 1 equal to january)
+    if (source->month > 1)
+        out += month_lintable[source->month-1];
 
     //If we're currently in a leap year and after February, add in an extra day
     //This simplified rule 
@@ -133,8 +137,8 @@ rtcc_timestamp rtcc_create_timestamp(const rtcc_datetime *source)
     if (source->day > 0)
         out += (source->day-1)*day_seconds;
 
-    out += 3600LL * source->hours;
-    out += 60LL * source->minutes;
+    out += 3600ULL * source->hours;
+    out += 60ULL * source->minutes;
     out += source->seconds;
 
     return out;

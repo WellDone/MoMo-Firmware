@@ -7,7 +7,9 @@
 #define _BOOTLOADER_CODE //__attribute__((section(".bootloader")))
 #define _BOOTLOADER_VAR  __attribute__((section(".bootvar")))
 
-#define kReflashMagic 		0xABCD 
+#define kReflashMagic 			0xABCD
+#define kRecoverMagic			0xACCA
+#define kAlreadyRecoveredMagic	0xBDDB		//If we have already attempted recovery, don't keep on doing so	
 
 //These section definitions need to stay in sync with controllerblock.py in pymomo.hex
 //These constants define the boundaries of contigous memory regions that are checksummed
@@ -68,7 +70,7 @@ ValidationResult validate_metadata();
 extern void flash_operation(unsigned int nvmcon);
 
 //Clock configuration and delays
-#define FCY   4000000L  //define your instruction frequency, FCY = FOSC/2
+#define FCY   kClockspeed  		//define your instruction frequency, FCY = FOSC/2
   
 #define CYCLES_PER_MS ((unsigned long long)(FCY * 0.001))        //instruction cycles per millisecond
 #define CYCLES_PER_US ((unsigned long long)(FCY * 0.000001))   //instruction cycles per microsecond

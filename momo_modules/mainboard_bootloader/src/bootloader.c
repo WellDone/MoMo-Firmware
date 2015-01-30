@@ -5,7 +5,10 @@
 #include "ioport.h"
 #include "constants.h"
 
-const char *hw_version = kHardwareString;
+#define HARDWARE_STRING_R(str)		#str
+#define HARDWARE_STRING(str)		HARDWARE_STRING_R(str)
+
+const char *hw_version = HARDWARE_STRING(kHardwareVersion);
 
 void _BOOTLOADER_CODE write_row(unsigned int row, unsigned char *row_buffer)
 {
@@ -43,9 +46,13 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
 
 	reset_vector = extract_reset_vector();
 
+	//Pull alarm low during reflashing so the world knows it
+	LAT(ALARM) = 0;
+	DIR(ALARM) = OUTPUT;
+
 	//Enable the Memory Module
-    LAT(E5) = 1;
-    DIR(E5) = OUTPUT;
+    LAT(MEM_POWER) = 1;
+    DIR(MEM_POWER) = OUTPUT;
 	configure_SPI();
 
 	//Give the flash memory time to warm up. (it needs at least 30 us after VCC reaches min value)
@@ -62,7 +69,15 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
 
 			//Patch the reset vector with a jump to us.
 			if (row == 0)
-				patch_reset_vector(row_buffer, reset_vector);
+			{
+				row_buffer[0] = reset_vector & 0xFF;
+				row_buffer[1] = (reset_vector >> 8) & 0xFF;
+				row_buffer[2] = 0x04;
+
+				row_buffer[3] = 0;
+				row_buffer[4] = 0;
+				row_buffer[5] = 0;
+			}
 
 			write_row(row, row_buffer);
 			++row;
@@ -70,6 +85,8 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
 			addr += kFlashRowSizeInstructions*3;
 		}
 	}
+
+	DIR(ALARM) = INPUT;
 }
 
 unsigned int _BOOTLOADER_CODE calculate_checksum(unsigned int start_addr, unsigned int length)
@@ -112,6 +129,7 @@ ValidationResult _BOOTLOADER_CODE validate_metadata()
 	if (value != kTotalLength)
 		return kWrongFirmwareLength;
 
+	/*
 	//Validate IVT, AIVT and Firmware code
 	value = __builtin_tblrdl(kMetadataStart + 18);
 	value ^= calculate_checksum(kIVTStart, kIVTLength);
@@ -120,7 +138,7 @@ ValidationResult _BOOTLOADER_CODE validate_metadata()
 	value ^= __builtin_tblrdl(kMetadataStart + 22);
 	value ^= calculate_checksum(kCodeStart, kCodeLength);
 	if (value != 0)
-		return kInvalidFirmware;
+		return kInvalidFirmware;*/
 	
 
 	//Check to make sure the hardware is compatible
@@ -143,17 +161,6 @@ uint16_t _BOOTLOADER_CODE extract_reset_vector()
 {
 	TBLPAG = 0;
 	return __builtin_tblrdl(0);
-}
-
-void _BOOTLOADER_CODE patch_reset_vector(unsigned char *row_buffer, uint16_t vector)
-{
-	row_buffer[0] = vector & 0xFF;
-	row_buffer[1] = (vector >> 8) & 0xFF;
-	row_buffer[2] = 0x04;
-
-	row_buffer[3] = 0;
-	row_buffer[4] = 0;
-	row_buffer[5] = 0;
 }
 
 void _BOOTLOADER_CODE goto_address(unsigned int addr)

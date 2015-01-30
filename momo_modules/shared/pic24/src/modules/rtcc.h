@@ -20,6 +20,12 @@ enum
 
 typedef enum
 {
+    kRTCCSoscSource = 0,
+    kRTCCLPRCSource = 1      //NB, on the 24FJ64GA306 the LPRC is +- 20% accuracy, use with caution!
+} RTCCClockSource;
+
+typedef enum
+{
     kPositiveDelta = 1,
     kZeroDelta = 0,
     kNegativeDelta = -1
@@ -68,7 +74,7 @@ void disable_rtcc();
 
 unsigned int rtcc_enabled();
 
-void configure_rtcc();
+void configure_rtcc(RTCCClockSource source);
 
 unsigned int    rtcc_datetimes_equal(rtcc_datetime *time1, rtcc_datetime *time2);
 unsigned int    rtcc_compare_times(rtcc_datetime *time1, rtcc_datetime *time2);
