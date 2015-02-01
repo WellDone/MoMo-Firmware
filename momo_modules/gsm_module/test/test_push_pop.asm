@@ -21,13 +21,29 @@ counter: ds 1
 
 PSECT text_unittest,local,class=CODE,delta=2
 BEGINFUNCTION _begin_tests
+	;Make sure buffer_end and buffer_start are in the 
+	;same bank since the algorithms in buffer.as require it
+	movlw _rx_buffer_end_variable >> 7
+	assertlw _rx_buffer_start_variable >> 7
+
+	movlw _rx_buffer_end_variable >> 7
+	assertlw _rx_buffer_len_variable >> 7
+
 	asm_call_gsm_rx_clear()
 	call test_pushing_easy
 
-	;We've filled the buffer, buffer_end should be 0
+	;We've filled the buffer, buffer_end and start should be 0
 	banksel _rx_buffer_end_variable
 	movf 	BANKMASK(_rx_buffer_end_variable),w
 	assertlw 0
+
+	banksel _rx_buffer_start_variable
+	movf 	BANKMASK(_rx_buffer_start_variable),w
+	assertlw 0
+
+	banksel _rx_buffer_len_variable
+	movf 	BANKMASK(_rx_buffer_len_variable),w
+	assertlw GSM_BUFFER_LENGTH
 
 	call test_pushing_full
 
@@ -45,7 +61,29 @@ BEGINFUNCTION _begin_tests
 
 	call test_pushing_easy
 	call test_pushing_full
+	call test_push_peek
+
+	;Make sure the buffer works when we are pushing without being aligned
+	asm_call_gsm_rx_clear()
+	movlw 0xAA
+	asm_call_gsm_rx_push()
+	asm_call_gsm_rx_push()
+	asm_call_gsm_rx_push()
+	call fill_buffer
 	call test_popping_easy
+
+	;Make sure the buffer has length 0 and the start and end pointers at 3
+	banksel _rx_buffer_end_variable
+	movf 	BANKMASK(_rx_buffer_end_variable),w
+	assertlw 3
+
+	banksel _rx_buffer_start_variable
+	movf 	BANKMASK(_rx_buffer_start_variable),w
+	assertlw 3
+
+	banksel _rx_buffer_len_variable
+	movf 	BANKMASK(_rx_buffer_len_variable),w
+	assertlw 0
 	return
 ENDFUNCTION _begin_tests
 
@@ -63,6 +101,30 @@ BEGINFUNCTION assert_empty_buffer
 	assertlw 0
 	return
 ENDFUNCTION assert_empty_buffer
+
+BEGINFUNCTION fill_buffer
+	banksel counter
+	clrf BANKMASK(counter)
+
+	loop4:
+		incf BANKMASK(counter),f
+		movf BANKMASK(counter),w
+		asm_call_gsm_rx_push()
+
+		;Make sure the last character equals what we wrote
+		asm_call_gsm_rx_peek()
+		movwf FSR0L
+		banksel counter
+		movf BANKMASK(counter),w
+		call _assertv
+
+		banksel counter
+		movf BANKMASK(counter),w
+		xorlw GSM_BUFFER_LENGTH
+		skipz
+			goto loop4
+	return
+ENDFUNCTION fill_buffer
 
 BEGINFUNCTION test_pushing_easy
 	banksel counter
@@ -175,3 +237,11 @@ BEGINFUNCTION test_push_pop
 	assertlw 2
 	return
 ENDFUNCTION test_push_pop
+
+BEGINFUNCTION test_push_peek
+	movlw 50
+	asm_call_gsm_rx_push()
+	asm_call_gsm_rx_peek()
+	assertlw 50
+	return
+ENDFUNCTION test_push_peek

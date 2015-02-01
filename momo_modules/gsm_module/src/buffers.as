@@ -29,6 +29,7 @@ BEGINFUNCTION _gsm_rx_clear
 ENDFUNCTION _gsm_rx_clear
 
 ;Take a buffer ID number and load that buffer into FSR1
+;Does not affect bank
 BEGINFUNCTION _load_buffer
 	movwf FSR1H
 	call _buffer_table_low
@@ -60,7 +61,6 @@ BEGINFUNCTION _gsm_rx_peek
 	movlw kReceiveBuffer
 	call _load_buffer
 
-	banksel _rx_buffer_end
 	movf BANKMASK(_rx_buffer_end),w
 	skipnz
 		movlw GSM_RECEIVE_BUFFER_LENGTH
@@ -71,22 +71,7 @@ BEGINFUNCTION _gsm_rx_peek
 	return
 ENDFUNCTION _gsm_rx_peek
 
-;if ( rx_buffer_len < GSM_RECEIVE_BUFFER_LENGTH )
-;{
-;	gsm_rx_buffer[rx_buffer_end++] = RCREG;
-;	if ( rx_buffer_end >= GSM_RECEIVE_BUFFER_LENGTH )
-;		rx_buffer_end = 0;
-;	++rx_buffer_len;
-;}
-;else
-;{
-;	gsm_rx_buffer[rx_buffer_start++] = RCREG;
-;	rx_buffer_end = rx_buffer_start;
-;	if ( rx_buffer_start >= GSM_RECEIVE_BUFFER_LENGTH )
-;		rx_buffer_start = 0;
-;}
-
-;push a character onto the gsm_rx_buffer circular buffer
+;Push a character onto the gsm_rx_buffer circular buffer
 ;PARAMETERS: one character in W
 ;USES:FSR0L,FSR1
 BEGINFUNCTION _gsm_rx_push
@@ -108,16 +93,15 @@ BEGINFUNCTION _gsm_rx_push
 	buffer_full:
 	banksel _rx_buffer_start
 	movf BANKMASK(_rx_buffer_start),w
-	banksel _rx_buffer_start
 	call _add_w_fsr1
 	incf BANKMASK(_rx_buffer_start),f
 	movf BANKMASK(_rx_buffer_start),w
-	banksel _rx_buffer_end
-	movwf BANKMASK(_rx_buffer_end)
-	banksel _rx_buffer_start
 	xorlw GSM_RECEIVE_BUFFER_LENGTH
 	skipnz
 		clrf BANKMASK(_rx_buffer_start)
+	movf BANKMASK(_rx_buffer_start),w
+	movwf BANKMASK(_rx_buffer_end)
+
 	goto load_character
 
 
@@ -143,20 +127,9 @@ BEGINFUNCTION _gsm_rx_push
 	return
 ENDFUNCTION _gsm_rx_push
 
-;char gsm_rx_pop()
-;{
-;	if ( rx_buffer_len == 0 )
-;		return 0;
-;	
-;	--rx_buffer_len;
-;
-;	char res = gsm_rx_buffer[rx_buffer_start++];
-;	if ( rx_buffer_start == GSM_RECEIVE_BUFFER_LENGTH )
-;		rx_buffer_start = 0;
-;	return res;
-;}
-;Pop the oldest entry off of the gsm_rx_buffer and return it
-
+;pop the oldest value from the ringbuffer and return
+;it in WREG.
+;USES: FSR1
 BEGINFUNCTION _gsm_rx_pop
 	banksel _rx_buffer_len
 	movf BANKMASK(_rx_buffer_len),w
@@ -168,10 +141,10 @@ BEGINFUNCTION _gsm_rx_pop
 	movlw kReceiveBuffer
 	call _load_buffer
 
-	banksel _rx_buffer_start
 	movf BANKMASK(_rx_buffer_start),w
 	call _add_w_fsr1
 	incf BANKMASK(_rx_buffer_start),f
+	movf BANKMASK(_rx_buffer_start),w
 	xorlw GSM_RECEIVE_BUFFER_LENGTH
 	skipnz
 		movwf BANKMASK(_rx_buffer_start)
