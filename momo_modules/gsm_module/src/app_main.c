@@ -13,6 +13,7 @@
 #include "global_state.h"
 #include "port.h"
 #include "intel_hex.h"
+#include "buffers.h"
 #include <string.h>
 
 static void report_result(bool success)

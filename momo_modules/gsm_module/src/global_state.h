@@ -26,11 +26,6 @@ typedef union
 #endif
 
 //GSM Serial Communication Receive Buffer
-#define RX_BUFFER_LENGTH 64
-prefix uint8 gsm_rx_buffer[RX_BUFFER_LENGTH];
-prefix uint8 rx_buffer_start;
-prefix uint8 rx_buffer_end;
-prefix uint8 rx_buffer_len;
 prefix uint8 debug_val;
 
 //GSM Module Status

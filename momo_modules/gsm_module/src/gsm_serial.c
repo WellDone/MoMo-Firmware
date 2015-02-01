@@ -7,6 +7,7 @@
 #include "gsm_defines.h"
 #include "gsm_module.h"
 #include "timer1.h"
+#include "buffers.h"
 #include <string.h>
 
 void gsm_serial_init()
@@ -59,31 +60,6 @@ void gsm_write_char(char c)
 	TXREG = c;
 }
 
-char gsm_rx_peek()
-{
-	if ( rx_buffer_len == 0 )
-		return 0;
-	if ( rx_buffer_end == 0 )
-		return gsm_rx_buffer[RX_BUFFER_LENGTH-1];
-	else
-		return gsm_rx_buffer[rx_buffer_end-1];
-}
-char gsm_rx_pop()
-{
-	if ( rx_buffer_len == 0 )
-		return 0;
-	--rx_buffer_len;
-	char res = gsm_rx_buffer[rx_buffer_start++];
-	if ( rx_buffer_start == RX_BUFFER_LENGTH )
-		rx_buffer_start = 0;
-	return res;
-}
-
-void gsm_rx_clear()
-{
-	rx_buffer_start = rx_buffer_end = rx_buffer_len = 0;
-}
-
 bool gsm_rx()
 {
 	if (OERR)
@@ -102,20 +78,7 @@ bool gsm_rx()
 	if ( TMR1IF == 1 )
 		return false;
 
-	if ( rx_buffer_len < RX_BUFFER_LENGTH )
-	{
-		gsm_rx_buffer[rx_buffer_end++] = RCREG;
-		if ( rx_buffer_end >= RX_BUFFER_LENGTH )
-			rx_buffer_end = 0;
-		++rx_buffer_len;
-	}
-	else
-	{
-		gsm_rx_buffer[rx_buffer_start++] = RCREG;
-		rx_buffer_end = rx_buffer_start;
-		if ( rx_buffer_start >= RX_BUFFER_LENGTH )
-			rx_buffer_start = 0;
-	}
+	gsm_rx_push(RCREG);
 	
 	return true;
 }
@@ -174,6 +137,7 @@ uint8 gsm_readback( char* buf, uint8 max_len )
 	}
 	return i;
 }
+
 uint8 gsm_read( char* buf, uint8 max_len )
 {
 	uint8 timeout_counter = GSM_EXPECT_TIMEOUT;

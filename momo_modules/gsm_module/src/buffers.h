@@ -1,0 +1,21 @@
+#ifndef __buffers_h__
+#define __buffers_h__
+
+
+#define GSM_RECEIVE_BUFFER_LENGTH	100
+
+//Buffer IDs
+#define kReceiveBuffer 0
+
+#ifndef DEFINES_ONLY
+#include <xc.h>
+#include <stdint.h>
+
+extern char gsm_rx_buffer[GSM_RECEIVE_BUFFER_LENGTH];
+extern uint8 rx_buffer_start;
+extern uint8 rx_buffer_end;
+extern uint8 rx_buffer_len;
+
+#endif
+
+#endif
