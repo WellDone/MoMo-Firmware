@@ -37,7 +37,8 @@ bool http_await_response( uint8 seconds ) {
 			break;
 		*(ptr++) = gsm_rx_peek();
 	}
-	while ( gsm_rx() )
+
+	while (gsm_rx())
 	{
 		if ( gsm_rx_peek() == '\r' )
 			break;
@@ -65,6 +66,7 @@ bool http_head(const char* url)
 		return false;
 	return true;
 }
+
 bool http_get(const char* url)
 {
 	http_read_start = 0;

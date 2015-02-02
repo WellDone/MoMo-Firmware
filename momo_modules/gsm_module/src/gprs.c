@@ -19,7 +19,7 @@ bool gprs_connect()
 		return true;
 
 	gsm_write_str( "AT+SAPBR=3,1,\"APN\",\"" );
-	gsm_write_str( gprs_apn );
+	gsm_write_str(gprs_apn);
 	gsm_cmd( "\"" );
 
 	gsm_cmd( "AT+SAPBR=3,1,\"Contype\",\"GPRS\"" );
