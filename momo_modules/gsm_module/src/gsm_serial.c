@@ -85,8 +85,6 @@ bool gsm_rx()
 
 extern const char* expected1;
 extern const char* expected2;
-const char* expectation_counter1;
-const char* expectation_counter2;
 
 void gsm_expect(const char* response)
 {
@@ -125,7 +123,7 @@ uint8 gsm_check(uint8 current)
 	if (check_inc_expected1(current) == 0)
 		return 1;
 
-	if (check_inc_expected1(current) == 0)
+	if (check_inc_expected2(current) == 0)
 		return 2;
 
 	return 0;
