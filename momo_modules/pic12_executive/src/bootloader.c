@@ -52,7 +52,7 @@ void enter_bootloader()
 	{
 		++boot_count;
 
-    	invalid_row = 0;
+    	invalid_row = 1;
 
     	for (offset = 0; offset < kBootloaderBufferSize; offset += kMIBRequestSize)
     		get_half_row(); //offset is passed through global
