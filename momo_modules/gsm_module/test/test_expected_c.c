@@ -10,9 +10,39 @@
 
 void begin_tests()
 {
-	//Does not test anything currently because I need to find a way to infer
-	//the proper way to make calls to xc8 functions since they use global variables
-	//to pass any arguments except the first 8 bit one.
+	char value;
+
+	c_call_gsm_rx_clear();
+	c_call_gsm_expect_ok_error();
 	c_call_reset_expected1_ptr();
 	c_call_reset_expected2_ptr();
+
+	WREG='O';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_check_inc_expected1();
+	value = WREG;
+	assert(value, 'K');
+	
+	WREG='K';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_check_inc_expected1();
+	value = WREG;
+	assert(value, 0);
+
+	//Check gsm_check
+	WREG='O';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+	assert(value, 0);
+	
+	WREG='K';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+	assert(value, 1);
 }
