@@ -21,7 +21,7 @@
 
 		"v5":
 		{
-			"xc8_flags": ["-G", "--addrqual=require", "--summary=default,+psect,-class,+mem,-hex,-file", "--output=default,-inhx032", "--asmlist", "-P", "--mode=pro", "--opt=all,-asm,-asmfile" ],
+			"xc8_flags": ["-G", "-L-ALINEAR=21f4h-23e7h", "--addrqual=require", "--summary=default,+psect,-class,+mem,-hex,-file", "--output=default,-inhx032", "--asmlist", "-P", "--mode=pro", "--opt=all,-asm,-asmfile" ],
 			"defines":
 			{
 				"MODULEPOWERPIN": "A4",

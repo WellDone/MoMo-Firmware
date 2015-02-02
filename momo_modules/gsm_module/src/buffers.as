@@ -6,7 +6,7 @@
 #include "asm_branches.inc"
 
 global _gsm_rx_buffer, _rx_buffer_start, _rx_buffer_end, _rx_buffer_len
-global _expected1, _expected2
+global _expected1, _expected2, _expected1_ptr
 
 PSECT gsmvars,global,class=RAM,delta=1
 _rx_buffer_start: ds 1
@@ -18,9 +18,8 @@ _expected2: ds 2
 
 _expected1_ptr: ds 2
 _expected2_ptr: ds 2
-;_temp: ds 1
 
-PSECT gsmbuffers,global,class=BIGRAM,delta=1
+PSECT gsmbuffers,global,class=LINEAR,delta=1
 _gsm_rx_buffer: ds GSM_RECEIVE_BUFFER_LENGTH
 
 PSECT gsmrx_text,global,class=CODE,delta=2
