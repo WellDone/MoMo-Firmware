@@ -84,6 +84,27 @@ BEGINFUNCTION _begin_tests
 	banksel _rx_buffer_len_variable
 	movf 	BANKMASK(_rx_buffer_len_variable),w
 	assertlw 0
+
+	movlw 5
+	banksel 3
+	asm_call_gsm_rx_push()
+	banksel 3
+	asm_call_gsm_rx_peek()
+	assertlw 5
+
+	movlw 6
+	banksel 1
+	asm_call_gsm_rx_push()
+	banksel 1
+	asm_call_gsm_rx_peek()
+	assertlw 6
+
+	movlw 6
+	banksel 20
+	asm_call_gsm_rx_push()
+	banksel 20
+	asm_call_gsm_rx_peek()
+	assertlw 6
 	return
 ENDFUNCTION _begin_tests
 

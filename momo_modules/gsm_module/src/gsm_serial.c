@@ -25,7 +25,7 @@ void gsm_serial_init()
 	BRG16 = 1;
 
 	SPBRGH = 0;
-	SPBRGL = 16;
+	SPBRGL = 51;
 
 	CREN = 0; // Make sure any previous transient errors are cleared.
 	CREN = 1;
@@ -91,10 +91,18 @@ void gsm_expect(const char* response)
 	expected1 = response;
 	expected2 = response;
 }
+
 void gsm_expect2(const char* response)
 {
 	expected2 = response;
 }
+
+void gsm_expect_ok_error()
+{
+	gsm_expect("OK");
+	gsm_expect2("ERROR");
+}
+
 uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
 {
 	reset_expected1_ptr();
@@ -118,12 +126,27 @@ uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
 	return GSM_SERIAL_TIMEDOUT;
 }
 
+/* 
+ * Check if this character matches the current position of one of the variables
+ * we are looking for.  We have to check a second time if it does not match since
+ * it may match the first character but we were on the 3rd character, for example.
+ */
 uint8 gsm_check(uint8 current)
 {
-	if (check_inc_expected1(current) == 0)
+	uint8 result;
+
+	result = check_inc_expected1(current);
+	if (result == 0xFF)
+		result = check_inc_expected1(current);
+
+	if (result == 0)
 		return 1;
 
-	if (check_inc_expected2(current) == 0)
+	result = check_inc_expected2(current);
+	if (result == 0xFF)
+		result = check_inc_expected2(current);
+
+	if (result == 0)
 		return 2;
 
 	return 0;
