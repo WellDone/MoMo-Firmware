@@ -25,7 +25,7 @@ void gsm_serial_init()
 	BRG16 = 1;
 
 	SPBRGH = 0;
-	SPBRGL = 16;
+	SPBRGL = 51;
 
 	CREN = 0; // Make sure any previous transient errors are cleared.
 	CREN = 1;
