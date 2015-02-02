@@ -83,23 +83,22 @@ bool gsm_rx()
 	return true;
 }
 
-const char* expected_response1;
-const char* expected_response2;
-const char* expectation_counter1;
-const char* expectation_counter2;
-void gsm_expect( const char* response )
+extern const char* expected1;
+extern const char* expected2;
+
+void gsm_expect(const char* response)
 {
-	expected_response1 = response;
-	expected_response2 = NULL;
+	expected1 = response;
+	expected2 = response;
 }
-void gsm_expect2( const char* response )
+void gsm_expect2(const char* response)
 {
-	expected_response2 = response;
+	expected2 = response;
 }
 uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
 {
-	expectation_counter1 = expected_response1;
-	expectation_counter2 = expected_response2;
+	reset_expected1_ptr();
+	reset_expected2_ptr();
 	
 	timeout_s *= 2; // Each RX timeout is .5s
 	while ( !gsm_rx() )
@@ -110,22 +109,24 @@ uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
 
 	do
 	{
-		if ( *expectation_counter1 != gsm_rx_peek() )
-			expectation_counter1 = expected_response1;
-		else if ( *(++expectation_counter1) == '\0' )
-			return 1;
-
-		if ( expected_response2 != NULL )
-		{
-			if ( *expectation_counter2 != gsm_rx_peek() )
-				expectation_counter2 = expected_response2;
-			else if ( *(++expectation_counter2) == '\0' )
-				return 2;
-		}
+		uint8 value = gsm_check(gsm_rx_peek());
+		if (value != 0)
+			return value;
 	}
 	while ( gsm_rx() || gsm_rx() ); // Try twice to get a char, to be a little more robust.
 	
 	return GSM_SERIAL_TIMEDOUT;
+}
+
+uint8 gsm_check(uint8 current)
+{
+	if (check_inc_expected1(current) == 0)
+		return 1;
+
+	if (check_inc_expected2(current) == 0)
+		return 2;
+
+	return 0;
 }
 
 uint8 gsm_readback( char* buf, uint8 max_len )
