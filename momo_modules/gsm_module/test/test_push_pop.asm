@@ -29,6 +29,28 @@ BEGINFUNCTION _begin_tests
 	movlw _rx_buffer_end_variable >> 7
 	assertlw _rx_buffer_len_variable >> 7
 
+	;Check to make sure that peeking with nothing written returns 0
+	asm_call_gsm_rx_clear()
+	asm_call_gsm_rx_peek()
+	assertlw 0
+	call assert_empty_buffer
+
+	;Check to make sure that peeking after pushing 1 thing works (as a simple case)
+	asm_call_gsm_rx_clear()
+	movlw 0xAA
+	asm_call_gsm_rx_push()
+	banksel _rx_buffer_len_variable
+	movf 	BANKMASK(_rx_buffer_len_variable),w
+	assertlw 1
+
+	banksel _rx_buffer_end_variable
+	movf 	BANKMASK(_rx_buffer_end_variable),w
+	assertlw 1
+
+	asm_call_gsm_rx_peek()
+	assertlw 0xAA
+
+	;Test pushing and peeking systematically
 	asm_call_gsm_rx_clear()
 	call test_pushing_easy
 
