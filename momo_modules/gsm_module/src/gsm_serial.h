@@ -27,5 +27,6 @@ uint8 gsm_read( char* buf, uint8 buf_len );
 void gsm_expect( const char* );
 void gsm_expect2( const char* );
 uint8 gsm_await( uint8 timeout_s );
+uint8 gsm_check(uint8 current);
 
 #endif

@@ -6,16 +6,100 @@
 #include "asm_branches.inc"
 
 global _gsm_rx_buffer, _rx_buffer_start, _rx_buffer_end, _rx_buffer_len
+global _expected1, _expected2
 
 PSECT gsmvars,global,class=RAM,delta=1
 _rx_buffer_start: ds 1
 _rx_buffer_end: ds 1
 _rx_buffer_len: ds 1
 
+_expected1: ds 2
+_expected2: ds 2
+
+_expected1_ptr: ds 2
+_expected2_ptr: ds 2
+;_temp: ds 1
+
 PSECT gsmbuffers,global,class=BIGRAM,delta=1
 _gsm_rx_buffer: ds GSM_RECEIVE_BUFFER_LENGTH
 
 PSECT gsmrx_text,global,class=CODE,delta=2
+
+;Take the pointers in _expected1 or _expected2 and
+;copy them over to the working variables _expected1_ptr
+;or _expected2_ptr
+BEGINFUNCTION _reset_expected1_ptr
+	banksel _expected1
+	movf BANKMASK(_expected1),w
+	movwf BANKMASK(_expected1_ptr)
+	movf BANKMASK(_expected1+1),w
+	movwf BANKMASK(_expected1_ptr+1)
+	return
+ENDFUNCTION _reset_expected1_ptr
+
+BEGINFUNCTION _reset_expected2_ptr
+	banksel _expected2
+	movf BANKMASK(_expected2),w
+	movwf BANKMASK(_expected2_ptr)
+	movf BANKMASK(_expected2+1),w
+	movwf BANKMASK(_expected2_ptr+1)
+	return
+ENDFUNCTION _reset_expected2_ptr
+
+;Check if the value in W is equal to the current value
+;pointed to by expected1_ptr and if so, increment
+;expected1_ptr and return 0 if the string terminated
+;otherwise, reset _expected1_ptr and return 0xFF
+;USES: FSR0
+BEGINFUNCTION _check_inc_expected1
+	banksel _expected1_ptr
+	movwf 	FSR0H
+	movf BANKMASK(_expected1_ptr),w
+	movwf FSR0L
+	movf BANKMASK(_expected1_ptr+1),w
+	xorwf FSR0H,w
+	xorwf FSR0H,f
+	xorwf FSR0H,w
+	xorwf INDF0,w
+	skipnz 
+		goto matched_exp1
+
+	;Was not matched
+	call _reset_expected1_ptr
+	retlw 0xFF
+
+	matched_exp1:
+	incf BANKMASK(_expected1_ptr),f
+	skipnz
+		incf BANKMASK(_expected1_ptr+1),f
+	moviw [1]FSR0
+	return
+ENDFUNCTION _check_inc_expected1
+
+BEGINFUNCTION _check_inc_expected2
+	banksel _expected2_ptr
+	movwf 	FSR0H
+	movf BANKMASK(_expected2_ptr),w
+	movwf FSR0L
+	movf BANKMASK(_expected2_ptr+1),w
+	xorwf FSR0H,w
+	xorwf FSR0H,f
+	xorwf FSR0H,w
+	xorwf INDF0,w
+	skipnz 
+		goto matched_exp2
+
+	;Was not matched
+	call _reset_expected2_ptr
+	retlw 0xFF
+
+	matched_exp2:
+	incf BANKMASK(_expected2_ptr),f
+	skipnz
+		incf BANKMASK(_expected2_ptr+1),f
+	moviw [1]FSR0
+	return
+ENDFUNCTION _check_inc_expected2
 
 ;Initialize the gsm_rx_buffer fullness variables to 0
 BEGINFUNCTION _gsm_rx_clear
@@ -39,16 +123,6 @@ BEGINFUNCTION _load_buffer
 	movwf FSR1H
 	return
 ENDFUNCTION _load_buffer
-
-;char gsm_rx_peek()
-;{
-;	if ( rx_buffer_len == 0 )
-;		return 0;
-;	if ( rx_buffer_end == 0 )
-;		return gsm_rx_buffer[RX_BUFFER_LENGTH-1];
-;	else
-;		return gsm_rx_buffer[rx_buffer_end-1];
-;}
 
 ;Look at the last character in the gsm_rx_buffer
 ;RETURN: last character or 0 if there is no character
