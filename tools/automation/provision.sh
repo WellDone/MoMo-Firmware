@@ -8,7 +8,7 @@ echo "MOMO_DEV: $MOMO_DEV"
 apt-get update
 apt-get install -y python python-setuptools python-dev python-pip
 if [ -n "$MOMO_DEV" ]; then
-	apt-get install -y libc6:i386 lib32stdc++6 gpsim
+	apt-get install -y libc6:i386 lib32stdc++6
 fi
 apt-get install wget
 
@@ -22,12 +22,12 @@ PYTHONPATH=`cat $HOME/scons-install.log | grep ' library modules ' | awk '{print
 echo "PYTHONPATH=$PYTHONPATH" >> $HOME/.profile
 
 if [ -n "$TRAVIS" ]; then
-	MOMOPATH=`pwd`
-	DOWNLOADCACHE="~/.cached_downloads"
+	export MOMOPATH=`pwd`
+	export DOWNLOADCACHE="~/.cached_downloads"
 else # VAGRANT
-	MOMOPATH="/vagrant"
-	HOME="/home/vagrant"
-	DOWNLOADCACHE="/vagrant/.cached_downloads"
+	export MOMOPATH="/vagrant"
+	export HOME="/home/vagrant"
+	export DOWNLOADCACHE="/vagrant/.cached_downloads"
 
 	echo "Adding user 'vagrant' to the group 'dialout' so it can access USB devices..."
 	usermod vagrant -a -G dialout
@@ -86,25 +86,10 @@ if [ -n "$MOMO_DEV" ]; then
 		die "Failed to install xc16, exiting!"
 	fi
 	echo "DONE!"
+
+	cd $HOME
+	$MOMOPATH/tools/automation/install_patched_gpsim.sh
 fi
-
-# echo "Patching GPSIM..."
-
-# apt-get install -y subversion automake make libglib2.0-dev pkg-configure libpopt-dev libtool flex bison
-
-# mkdir gpsim
-# cd gpsim
-# svn checkout svn://svn.code.sf.net/p/gpsim/code/trunk -r 2281 .
-# patch -p0 -i $MOMOPATH/support/gpsim_16lf1847_support.patch
-
-# libtoolize --force
-# aclocal
-# autoheader
-# automake --force-missing --add-missing
-# autoconf
-# ./configure
-# make
-# sudo make install
 
 echo "DONE!"
 
