@@ -1,6 +1,6 @@
 Index: src/14bit-hexdecode.cc
 ===================================================================
---- src/14bit-hexdecode.cc	(revision 2281)
+--- src/14bit-hexdecode.cc	(revision 2299)
 +++ src/14bit-hexdecode.cc	(working copy)
 @@ -77,9 +77,6 @@
    { 0x3f00,  0x0400,  IORWF::construct },
@@ -14,7 +14,7 @@ Index: src/14bit-hexdecode.cc
    { 0x3fff,  0x0020,  NOP::construct },
 Index: src/14bit-instructions.h
 ===================================================================
---- src/14bit-instructions.h	(revision 2281)
+--- src/14bit-instructions.h	(revision 2299)
 +++ src/14bit-instructions.h	(working copy)
 @@ -94,7 +94,6 @@
  class BRW : public instruction
@@ -24,9 +24,73 @@ Index: src/14bit-instructions.h
    unsigned int absolute_destination_index;
  
    BRW(Processor *new_cpu, unsigned int new_opcode, unsigned int address);
+Index: src/14bit-processors.cc
+===================================================================
+--- src/14bit-processors.cc	(revision 2299)
++++ src/14bit-processors.cc	(working copy)
+@@ -497,6 +497,24 @@
+     pic_processor::enter_sleep();
+ }
+ 
++/*
++ * BUGFIX: there are 4 possible states for the watchdog timer on the
++ * enhanced midrange cores, 0b01 in wdt_flag means that the watchdog
++ * timer is under software control, so it can be enabled during sleep
++ * if SWDTEN is enabled before putting the chip to sleep.  
++ * Make sure that in that case we properly wake from sleep rather than
++ * resetting.
++ */
++bool _14bit_e_processor::exit_wdt_sleep() 
++{
++  if (wdt_flag & 2)
++    return true;
++  else if (wdt_flag == 0b01 && wdt.isEnabled())
++    return true;
++
++  return false;
++}
++
+  //-------------------------------------------------------------------
+ void _14bit_e_processor::exit_sleep()
+ {
+Index: src/14bit-processors.h
+===================================================================
+--- src/14bit-processors.h	(revision 2299)
++++ src/14bit-processors.h	(working copy)
+@@ -211,7 +211,7 @@
+   virtual void create_symbols();
+   virtual void create_sfr_map();
+   virtual void interrupt();
+-  virtual bool exit_wdt_sleep() {return wdt_flag & 2;}
++  virtual bool exit_wdt_sleep();
+   virtual void enter_sleep();
+   virtual void exit_sleep();
+   virtual void reset(RESET_TYPE r);
+Index: src/14bit-registers.cc
+===================================================================
+--- src/14bit-registers.cc	(revision 2299)
++++ src/14bit-registers.cc	(working copy)
+@@ -325,7 +325,7 @@
+ 	break;
+ 
+     case HF:
+-	mask = OSCSTAT::HFIOFL | OSCSTAT::HFIOFR;
++	mask = OSCSTAT::HFIOFL | OSCSTAT::HFIOFR | OSCSTAT::HFIOFS; //BUGFIX: add HFIOFS to set stable flag (oscillator within 0.5%)
+ 	break;
+ 
+     case PLL:
+@@ -1013,7 +1013,7 @@
+     else if (fsr_adj >= 0x2000 && fsr_adj < 0x29b0) // Linear GPR region
+     {
+ 	unsigned int bank = (fsr_adj & 0xfff) / 0x50;
+-	unsigned int low_bits = ((fsr_adj & 0xff) % 0x50) + 0x20;
++	unsigned int low_bits = ((fsr_adj & 0xfff) % 0x50) + 0x20;
+         return(cpu_pic->registers[bank * 0x80 + low_bits]->get()); 
+     }
+     else if (fsr_adj >= 0x8000 && fsr_adj <= 0xffff) // program memory
 Index: src/Makefile.am
 ===================================================================
---- src/Makefile.am	(revision 2281)
+--- src/Makefile.am	(revision 2299)
 +++ src/Makefile.am	(working copy)
 @@ -44,6 +44,7 @@
  	modules.cc \
@@ -44,9 +108,22 @@ Index: src/Makefile.am
  	p16x5x.h \
  	p16f62x.h \
  	p16x6x.h \
+Index: src/a2d_v2.h
+===================================================================
+--- src/a2d_v2.h	(revision 2299)
++++ src/a2d_v2.h	(working copy)
+@@ -22,7 +22,7 @@
+ // For A2D modules which have ADCON0, ADCON1 and ADCON2 registers
+ 
+ #ifndef __A2D_V2_H__
+-#define __A2D_v2_H__
++#define __A2D_V2_H__
+ 
+ #include "registers.h"
+ #include "trigger.h"
 Index: src/makefile.mingw
 ===================================================================
---- src/makefile.mingw	(revision 2281)
+--- src/makefile.mingw	(revision 2299)
 +++ src/makefile.mingw	(working copy)
 @@ -71,6 +71,7 @@
  	operator.o		\
@@ -56,205 +133,9 @@ Index: src/makefile.mingw
  	p12f6xx.o		\
  	p12x.o			\
  	p16f62x.o		\
-Index: src/p16f1847.cc
-===================================================================
---- src/p16f1847.cc	(revision 0)
-+++ src/p16f1847.cc	(working copy)
-@@ -0,0 +1,147 @@
-+#include "p16f1847.h"
-+#include "pic-ioports.h"
-+#include "packages.h"
-+
-+Processor * P16F1847::construct(const char *name)
-+{
-+
-+  P16F1847 *p = new P16F1847(name);
-+
-+  p->create(0x3ff, 256);
-+  p->create_invalid_registers();
-+  p->create_symbols();
-+  return p;
-+}
-+
-+P16F1847::~P16F1847()
-+{
-+  delete_sfr_register(m_portb);
-+  delete_sfr_register(m_trisb);
-+  delete_sfr_register(m_latb);
-+  delete_sfr_register(m_wpub);
-+  remove_sfr_register(&m_anselb);
-+}
-+
-+P16F1847::P16F1847(const char *_name, const char *desc)
-+  : P12F1822(_name,desc), 
-+  m_anselb(this, "anselc", "Analog Select port b")
-+{
-+  m_portb = new PicPortBRegister(this, "portb", "", intcon, 8, 0xff);
-+  m_trisb = new PicTrisRegister(this, "trisb", "", m_portb, false, 0xff);
-+  m_latb = new PicLatchRegister(this, "latb", "", m_portb, 0xff);
-+  m_wpub = new WPU(this, "wpub", "Weak Pull-up Register port b", m_portb, 0xff);
-+}
-+
-+void  P16F1847::create(int ram_top, int eeprom_size)
-+{
-+
-+  create_iopin_map();
-+  e = new EEPROM_EXTND(this, pir2);
-+  set_eeprom(e);
-+
-+  pic_processor::create();
-+
-+  e->initialize(eeprom_size, 16, 16, 0x8000);
-+  e->set_intcon(intcon);
-+  e->get_reg_eecon1()->set_valid_bits(0xff);
-+
-+  //Add GPR registers for each bank of RAM
-+  //There are 1024 bytes of GPR, in 12 pages
-+  //of 80 bytes each + 16 bytes of common ram
-+  //and 48 bytes in bank 12.  Datasheet page 23
-+  for (int bank=0; bank<=11; ++bank)
-+  {
-+  	int start = 0x20 + (bank*128);
-+  	int end = start + 80 - 1;
-+
-+  	add_file_registers(start, end, 0x00);
-+  }
-+
-+  //Common RAM and partial BANK12
-+  add_file_registers(0x70, 0x7F, 0x00);
-+  add_file_registers(0x620, 0x620 + 48 -1, 0x00);
-+
-+  //Initialize Special Function Registers
-+  create_ports();
-+
-+  _14bit_e_processor::create_sfr_map();
-+  P12F1822::create_sfr_map();
-+  create_sfr_map();
-+
-+  // Set DeviceID (0b010100100 + 5 bits for revision ID for 16F1847)
-+  if (m_configMemory && m_configMemory->getConfigWord(6))
-+      m_configMemory->getConfigWord(6)->set(0x1480);
-+}
-+
-+void P16F1847::create_sfr_map()
-+{
-+  create_ports();
-+
-+  ssp.set_sckPin(&(*m_portb)[4]);
-+  ssp.set_sdiPin(&(*m_portb)[1]);
-+  ssp.set_sdoPin(&(*m_portb)[2]);
-+  ssp.set_ssPin(&(*m_portb)[5]);
-+  ssp.set_tris(m_trisb);
-+
-+  // Pin values for default APFCON
-+  usart.set_TXpin(&(*m_portb)[2]); // TX pin
-+  usart.set_RXpin(&(*m_portb)[1]);  // RX pin
-+}
-+
-+void P16F1847::create_ports()
-+{
-+  /*
-+   * Configure port B and connect the digital and analog control
-+   * registers.
-+   */ 
-+  add_sfr_register(m_portb, 0x0D);
-+  add_sfr_register(m_trisb, 0x8D);
-+  add_sfr_register(&m_anselb, 0x18D, RegisterValue(0xFE, 0));
-+  add_sfr_register(m_wpub, 0x20D);
-+
-+  //All Port B pins are analog except for B0 (AN5-AN11, but not in order)
-+  m_anselb.config(0xFE, 5);
-+  m_anselb.setValidBits(0xFE);
-+  m_anselb.setAdcon1(&adcon1);
-+  m_anselb.setAnsel(&ansela);
-+  ansela.setAnsel(&m_anselb);
-+
-+  adcon1.setIOPin(5, &(*m_portb)[6]);
-+  adcon1.setIOPin(6, &(*m_portb)[7]);
-+  adcon1.setIOPin(7, &(*m_portb)[5]);
-+  adcon1.setIOPin(8, &(*m_portb)[4]);
-+  adcon1.setIOPin(9, &(*m_portb)[3]);
-+  adcon1.setIOPin(10, &(*m_portb)[2]);
-+  adcon1.setIOPin(11, &(*m_portb)[1]);
-+}
-+
-+void P16F1847::create_iopin_map()
-+{
-+	package = new Package(20);
-+	if (!package)
-+		return;
-+
-+  package->assign_pin(19, m_porta->addPin(new IO_bi_directional_pu("porta0"),0));
-+  package->assign_pin(20, m_porta->addPin(new IO_bi_directional_pu("porta1"),1));
-+  package->assign_pin(1, m_porta->addPin(new IO_bi_directional_pu("porta2"),2));
-+  package->assign_pin(2, m_porta->addPin(new IO_bi_directional_pu("porta3"),3));
-+  package->assign_pin(3, m_porta->addPin(new IO_bi_directional_pu("porta4"),4));
-+  package->assign_pin(4, m_porta->addPin(new IO_bi_directional_pu("porta5"),5));
-+  package->assign_pin(17, m_porta->addPin(new IO_bi_directional_pu("porta6"),6));
-+  package->assign_pin(18, m_porta->addPin(new IO_bi_directional_pu("porta7"),7));
-+
-+  package->assign_pin(7, m_portb->addPin(new IO_bi_directional_pu("portb0"),0));
-+  package->assign_pin(8, m_portb->addPin(new IO_bi_directional_pu("portb1"),1));
-+  package->assign_pin(9, m_portb->addPin(new IO_bi_directional_pu("portb2"),2));
-+  package->assign_pin(10, m_portb->addPin(new IO_bi_directional_pu("portb3"),3));
-+  package->assign_pin(11, m_portb->addPin(new IO_bi_directional_pu("portb4"),4));
-+  package->assign_pin(12, m_portb->addPin(new IO_bi_directional_pu("portb5"),5));
-+  package->assign_pin(13, m_portb->addPin(new IO_bi_directional_pu("portb6"),6));
-+  package->assign_pin(14, m_portb->addPin(new IO_bi_directional_pu("portb7"),7));
-+
-+  //VDD and VSS
-+  package->assign_pin(5, 0);
-+  package->assign_pin(6, 0);
-+  package->assign_pin(15, 0);
-+  package->assign_pin(16, 0);
-+}
-\ No newline at end of file
-Index: src/p16f1847.h
-===================================================================
---- src/p16f1847.h	(revision 0)
-+++ src/p16f1847.h	(working copy)
-@@ -0,0 +1,38 @@
-+#ifndef __p16f1847__h__
-+#define __p16f1847__h__
-+
-+#include "p1xf1xxx.h"
-+
-+/*
-+ * PIC16F1847 - Enhanced Midrange Microcontroller with 1K RAM, 8K Flash and 256 bytes of EEPROM
-+ *
-+ * The processor is a larger version of the 16f1823 family (implemented in p1xf1xxx.{h,cc})
-+ */
-+
-+class P16F1847 : public P12F1822
-+{
-+public:
-+  PicPortBRegister   *m_portb;
-+  PicTrisRegister    *m_trisb;
-+  PicLatchRegister   *m_latb;
-+  WPU                *m_wpub;
-+  ANSEL_P            m_anselb;
-+
-+  virtual unsigned int program_memory_size() const {return 8192;}
-+  virtual unsigned int register_memory_size() const {return 0x1000;}
-+  virtual PROCESSOR_TYPE isa() {return _P16F1847_;}
-+
-+  virtual void create(int ram_top, int eeprom_size);
-+  virtual void create_iopin_map();
-+  virtual void create_sfr_map();
-+
-+   P16F1847(const char *_name=0, const char *desc=0);
-+  ~P16F1847();
-+
-+  static Processor *construct(const char *name);
-+
-+private:
-+  void create_ports();
-+};
-+
-+#endif
 Index: src/p1xf1xxx.cc
 ===================================================================
---- src/p1xf1xxx.cc	(revision 2281)
+--- src/p1xf1xxx.cc	(revision 2299)
 +++ src/p1xf1xxx.cc	(working copy)
 @@ -463,7 +463,6 @@
  
@@ -273,7 +154,7 @@ Index: src/p1xf1xxx.cc
    _14bit_e_processor::create_sfr_map();
    P12F1822::create_sfr_map();
    // Set DeviceID
-@@ -1779,6 +1780,8 @@
+@@ -1774,6 +1775,8 @@
    e->get_reg_eecon1()->set_valid_bits(0xff);
  
    add_file_registers(0x20, ram_top, 0x00);
@@ -284,7 +165,7 @@ Index: src/p1xf1xxx.cc
    P16F1823::create_sfr_map();
 Index: src/p1xf1xxx.h
 ===================================================================
---- src/p1xf1xxx.h	(revision 2281)
+--- src/p1xf1xxx.h	(revision 2299)
 +++ src/p1xf1xxx.h	(working copy)
 @@ -41,8 +41,6 @@
  SSP1_MODULE 	*m_ssp;
@@ -311,9 +192,9 @@ Index: src/p1xf1xxx.h
  #endif //__P1xF1xxx_H__
 Index: src/pic-instructions.cc
 ===================================================================
---- src/pic-instructions.cc	(revision 2281)
+--- src/pic-instructions.cc	(revision 2299)
 +++ src/pic-instructions.cc	(working copy)
-@@ -753,8 +753,7 @@
+@@ -753,15 +753,14 @@
  BRW::BRW (Processor *new_cpu, unsigned int new_opcode, unsigned int address)
    : instruction(new_cpu, new_opcode, address)
  {
@@ -323,7 +204,6 @@ Index: src/pic-instructions.cc
  
    new_name("brw");
  }
-@@ -761,7 +760,7 @@
  
  void BRW::execute()
  {
@@ -343,7 +223,7 @@ Index: src/pic-instructions.cc
    return(return_str);
 Index: src/pic-processor.cc
 ===================================================================
---- src/pic-processor.cc	(revision 2281)
+--- src/pic-processor.cc	(revision 2299)
 +++ src/pic-processor.cc	(working copy)
 @@ -55,6 +55,7 @@
  #include "p12x.h"
@@ -353,7 +233,7 @@ Index: src/pic-processor.cc
  #ifdef P17C7XX  // code no longer works
  #include "p17c75x.h"
  #endif
-@@ -329,6 +330,9 @@
+@@ -326,6 +327,9 @@
                                "__16F1788", "pic16f1788", "p16f1788", "16f1788");
  ProcessorConstructor pP16F1823(P16F1823::construct ,
                                "__16F1823", "pic16f1823", "p16f1823", "16f1823");
@@ -365,7 +245,7 @@ Index: src/pic-processor.cc
                                "__17C7xx", "pic17c7xx",  "p17c7xx", "17c7xx");
 Index: src/pic-processor.h
 ===================================================================
---- src/pic-processor.h	(revision 2281)
+--- src/pic-processor.h	(revision 2299)
 +++ src/pic-processor.h	(working copy)
 @@ -125,6 +125,7 @@
    _P16F886_,
@@ -375,3 +255,12 @@ Index: src/pic-processor.h
    _P16F1788_,
    _P16F1789_,
    _P17C7xx_,
+@@ -260,6 +261,8 @@
+   void set_breakpoint(unsigned int bpn);
+   bool hasBreak() { return breakpoint != 0;}
+ 
++  bool isEnabled() {return wdte;}; 
++
+ protected:
+   pic_processor *cpu;           // The cpu to which this wdt belongs.
+ 
