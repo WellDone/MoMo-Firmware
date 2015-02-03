@@ -39,6 +39,18 @@ void gsm_serial_init()
 	gsm_rx_clear();
 }
 
+void gsm_clear_receive()
+{
+	if (OERR)
+	{
+		CREN = 0;
+		CREN = 1;
+	}
+
+	while(RCIF)
+		RCREG;
+}
+
 void gsm_write_char(char c)
 {
 	if (OERR)
@@ -119,7 +131,22 @@ uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
 	{
 		uint8 value = gsm_check(gsm_rx_peek());
 		if (value != 0)
+		{
+			if (value == 2)
+			{
+				uint8 rcount = 0;
+				while(gsm_rx())
+				{
+					if (gsm_rx_peek() == '\r')
+						++rcount;
+
+					if (rcount == 2)
+						return value;
+				}
+			}
+
 			return value;
+		}
 	}
 	while ( gsm_rx() || gsm_rx() ); // Try twice to get a char, to be a little more robust.
 	
@@ -197,5 +224,6 @@ void gsm_write(const char* buf, uint8 len)
 }
 void gsm_write_str(const char* str)
 {
-	gsm_write( str, strlen( str ) );
+	while (*str)
+		gsm_write_char(*str++);
 }

@@ -15,6 +15,7 @@ void gsm_write_char(char);
 void gsm_write(const char*, uint8);
 void gsm_write_str(const char*);
 
+void gsm_clear_receive();
 char gsm_rx_pop();
 void gsm_rx_clear();
 char gsm_rx_peek();

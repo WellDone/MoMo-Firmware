@@ -45,8 +45,6 @@ void task(void)
 	//serial message
 	while(state.module_on)
 	{
-		gsm_rx();
-
 		if ( state.shutdown_pending )
 		{
 			uint8 result, timeout_10s = 8*6; // 8 minutes
@@ -56,6 +54,7 @@ void task(void)
 				gsm_expect2( "ERROR" );
 				do
 				{
+					debug_val = 2;
 					result = gsm_await( 10 );
 					if ( --timeout_10s == 0 )
 						break;
@@ -66,15 +65,20 @@ void task(void)
 			{
 				do
 				{
+					debug_val = 1;
 					result = http_await_response( 10 );
+
 					if ( result || --timeout_10s == 0 )
 						break;
 				}
 				while (true);
 
+				debug_val = 6;
+
 				result = ( ( result && http_status() == 200 )? 1 : 2 );
 			}
 
+			debug_val = 3;
 			report_result( result == 1 );
 			if ( result == 2 && state.stream_type == kStreamSMS )
 			{
@@ -82,6 +86,7 @@ void task(void)
 			}
 			else
 			{
+				debug_val = 4;
 				uint_buf[5] = '\0';
 				
 				strcpy( mib_buffer, "GPRS ERROR : " );
@@ -91,6 +96,9 @@ void task(void)
 				bus_master_prepare_rpc( 42, 0x20, plist_with_buffer( 0, 13+strlen(uint_buf) ) );
 				bus_master_send_rpc( 8 );
 			}
+
+			debug_val = 5;
+
 			gsm_off();
 		}
 	}

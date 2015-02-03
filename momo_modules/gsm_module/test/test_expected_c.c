@@ -13,12 +13,19 @@ void begin_tests()
 	char value;
 
 	c_call_gsm_rx_clear();
+
+	//Note that xc8 makes assumptions about the bank that variables will
+	//live in and what bank will be selected upon function call by looking
+	//at the call chain for that function.
+	asm("movlb 2");
 	c_call_gsm_expect_ok_error();
 	c_call_reset_expected1_ptr();
 	c_call_reset_expected2_ptr();
 
 	WREG='O';
 	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	assert(WREG, 'O');
 	c_call_gsm_rx_peek();
 	c_call_check_inc_expected1();
 	value = WREG;

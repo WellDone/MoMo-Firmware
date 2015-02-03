@@ -51,8 +51,12 @@ BEGINFUNCTION _get_half_row
 	movf BANKMASK(_boot_source),w
 	call _bus_master_send_rpc
 
+	;Make sure that if any of the calls to get half_row succeed then we program the
+	;entire row.
 	banksel _invalid_row
-	iorwf BANKMASK(_invalid_row),f
+	iorlw 0x00 ;Make sure that the ZERO flag is set if it's 0
+	btfsc ZERO
+		clrf BANKMASK(_invalid_row),f
 
 	;Load the offset that we should copy to here
 	banksel _offset
