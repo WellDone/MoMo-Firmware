@@ -6,7 +6,10 @@
 #include "asm_branches.inc"
 
 global _gsm_rx_buffer, _rx_buffer_start, _rx_buffer_end, _rx_buffer_len
+global _mib_to_fsr0
+global _gprs_apn, _comm_destination
 global _expected1, _expected2, _expected1_ptr
+global _mib_buffer,_mib_packet
 
 PSECT gsmvars,global,class=RAM,delta=1
 _rx_buffer_start: ds 1
@@ -20,7 +23,9 @@ _expected1_ptr: ds 2
 _expected2_ptr: ds 2
 
 PSECT gsmbuffers,global,class=LINEAR,delta=1
-_gsm_rx_buffer: ds GSM_RECEIVE_BUFFER_LENGTH
+_gsm_rx_buffer: 	ds GSM_RECEIVE_BUFFER_LENGTH
+_gprs_apn:			ds GSM_APN_LENGTH
+_comm_destination:	ds GSM_COMM_DESTINATION_LENGTH
 
 PSECT gsmrx_text,global,class=CODE,delta=2
 
@@ -236,10 +241,42 @@ ENDFUNCTION _add_w_fsr1
 BEGINFUNCTION _buffer_table_low
 	brw
 	retlw LOW _gsm_rx_buffer
+	retlw LOW _gprs_apn
+	retlw LOW _comm_destination
 ENDFUNCTION _buffer_table_low
 
 BEGINFUNCTION _buffer_table_high
 	brw
 	retlw HIGH _gsm_rx_buffer
+	retlw HIGH _gprs_apn
+	retlw HIGH _comm_destination
 ENDFUNCTION _buffer_table_high
 
+;Set up FSR0 to point to the mib buffer
+BEGINFUNCTION _mib_to_fsr0
+	movlw low _mib_buffer
+	movwf FSR0L
+	movlw high _mib_buffer
+	movwf FSR0H
+	return
+ENDFUNCTION _mib_to_fsr0
+
+;Copy WREG bytes from FSR0 to FSR1
+BEGINFUNCTION _copy
+	;Make sure we dont copy zero bytes
+	movf WREG,w
+	btfsc ZERO
+	return
+
+	copyloop:
+	movwf INDF1
+	moviw FSR0++
+	xorwf INDF1,w 	;swap w with copied byte
+	xorwf INDF1,f
+	xorwf INDF1,w
+	addfsr FSR1,1
+	decfsz WREG,w
+	goto copyloop
+
+	return
+ENDFUNCTION _copy

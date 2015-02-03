@@ -2,6 +2,7 @@
 
 #include "gsm_module.h"
 #include "gsm_serial.h"
+#include "gprs.h"
 #include "global_state.h"
 #include "simcard.h"
 
@@ -10,6 +11,7 @@ void gsm_init()
 	gsm_module_off();
 	simdet_idle();
 	gsm_rx_clear();
+	gprs_init_buffers();
 }
 bool gsm_on()
 {
@@ -44,17 +46,32 @@ bool gsm_registered()
 	gsm_expect( "+CREG: 0,1" ); // Registered, home network
 	gsm_expect2( "+CREG: 0,5" ); // Registered, roaming
 	uint8 result = gsm_cmd_raw( "AT+CREG?", kDEFAULT_CMD_TIMEOUT );
+
+	__delay_ms(100);
+	
 	return result == 1 || result == 2;
 }
 uint8 gsm_cmd(const char* cmd)
 {
+	//Clear out rcreg so that when we call gsm_await we don't start our timeout
+	//immediately.
+	gsm_clear_receive();
+
+	uint8 retval;
 	gsm_expect_ok_error();
 	gsm_write_str(cmd);
 	gsm_write_char('\r');
-	return gsm_await( kDEFAULT_CMD_TIMEOUT );
+	retval = gsm_await(kDEFAULT_CMD_TIMEOUT);
+
+	//Make sure we can't send commands too fast to the modem
+	__delay_ms(100);
+	return retval;
 }
+
 uint8 gsm_cmd_raw(const char* cmd, uint8 timeout)
 {
+	gsm_clear_receive();
+
 	gsm_write_str(cmd);
 	gsm_write_char('\r');
 	return gsm_await( timeout );
