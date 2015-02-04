@@ -52,7 +52,7 @@ void gsm_rpc_setcommdestination()
 
  	if ( gsm_register( 60 ) )
  	{
- 		debug_val = comm_destination_get(0);
+ 		gsm_remember_band();
 
  		if (comm_destination_get(0) == '+' )
 	 	{
@@ -75,6 +75,7 @@ void gsm_rpc_setcommdestination()
  	}
  	else
  	{
+ 		gsm_forget_band();
  		state.stream_in_progress = 0;
  	}
 

@@ -132,18 +132,18 @@ uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
 		uint8 value = gsm_check(gsm_rx_peek());
 		if (value != 0)
 		{
-			if (value == 2)
-			{
-				uint8 rcount = 0;
-				while(gsm_rx())
-				{
-					if (gsm_rx_peek() == '\r')
-						++rcount;
+			// if (value == 2)
+			// {
+			// 	uint8 rcount = 0;
+			// 	while(gsm_rx())
+			// 	{
+			// 		if (gsm_rx_peek() == '\r')
+			// 			++rcount;
 
-					if (rcount == 2)
-						return value;
-				}
-			}
+			// 		if (rcount == 2)
+			// 			return value;
+			// 	}
+			// }
 
 			return value;
 		}

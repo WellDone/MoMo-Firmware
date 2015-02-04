@@ -6,8 +6,11 @@
 #include "global_state.h"
 #include "simcard.h"
 
+char sticky_band[21];
+
 void gsm_init()
 {
+	sticky_band[0] ='\0';
 	gsm_module_off();
 	simdet_idle();
 	gsm_rx_clear();
@@ -27,7 +30,10 @@ bool gsm_on()
 		return false;
 	}
 
+	__delay_ms(1000);
+
 	gsm_rx_clear();
+	gsm_recall_band();
 	return true;
 }
 
@@ -51,6 +57,34 @@ bool gsm_registered()
 	
 	return result == 1 || result == 2;
 }
+
+void gsm_remember_band()
+{
+	gsm_expect( "+CBAND: " );
+	gsm_cmd_raw( "AT+CBAND?" , kDEFAULT_CMD_TIMEOUT );
+	sticky_band[ gsm_read( sticky_band, sizeof(sticky_band)-1 ) ] = '\0';
+	uint8 i = 0;
+	while ( sticky_band[i] != '\0' && sticky_band[i] != ',' && sticky_band[i] != '\r' && i++ < sizeof(sticky_band) )
+		continue;
+	sticky_band[i] = '\0';
+}
+void gsm_recall_band()
+{
+	if ( sticky_band[0] != '\0' )
+	{
+		gsm_write_str("AT+CBAND=\"");
+		gsm_write_str(sticky_band);
+		if ( !gsm_cmd("\"") )
+		{
+			gsm_forget_band();
+		}
+	}
+}
+void gsm_forget_band()
+{
+	sticky_band[0] = '\0';
+}
+
 uint8 gsm_cmd(const char* cmd)
 {
 	//Clear out rcreg so that when we call gsm_await we don't start our timeout

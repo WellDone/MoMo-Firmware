@@ -8,6 +8,10 @@
 #include "symbols.h"
 #include "test_log.h"
 
+const char* str = "+HTTPACTION:";
+const char* expected1 @ _expected1_variable;
+const char* expected2 @ _expected2_variable;
+
 void begin_tests()
 {
 	char value;
@@ -47,6 +51,95 @@ void begin_tests()
 	assert(value, 0);
 	
 	WREG='K';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+	assert(value, 1);
+
+	expected1 = str;
+	expected2 = str;
+	c_call_reset_expected1_ptr();
+	c_call_reset_expected2_ptr();
+
+	WREG='+';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+	assert(value, 0);
+
+	WREG='H';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+
+	assert(value, 0);
+	WREG='T';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+	assert(value, 0);
+
+	WREG='T';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+	assert(value, 0);
+
+	WREG='P';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+	assert(value, 0);
+
+	WREG='A';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+	assert(value, 0);
+
+	WREG='C';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+	assert(value, 0);
+
+	WREG='T';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+	assert(value, 0);
+
+	WREG='I';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+	assert(value, 0);
+
+	WREG='O';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+	assert(value, 0);
+
+	WREG='N';
+	c_call_gsm_rx_push();
+	c_call_gsm_rx_peek();
+	c_call_gsm_check();
+	value = WREG;
+	assert(value, 0);
+
+	WREG=':';
 	c_call_gsm_rx_push();
 	c_call_gsm_rx_peek();
 	c_call_gsm_check();

@@ -8,7 +8,7 @@
 global _gsm_rx_buffer, _rx_buffer_start, _rx_buffer_end, _rx_buffer_len
 global _mib_to_fsr0
 global _gprs_apn, _comm_destination
-global _expected1, _expected2, _expected1_ptr
+global _expected1, _expected2, _expected1_ptr, _expected2_ptr
 global _mib_buffer,_mib_packet
 
 PSECT gsmvars,global,class=RAM,delta=1

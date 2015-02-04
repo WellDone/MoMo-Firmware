@@ -16,6 +16,7 @@
 #include "buffers.h"
 #include <string.h>
 
+extern uint16 http_response_status;
 static void report_result(bool success)
 {
 	bus_master_begin_rpc();
@@ -25,16 +26,16 @@ static void report_result(bool success)
 	bus_master_send_rpc(8);
 }
 
-static void capture_error(void)
-{
-	uint8 len = gsm_read( mib_buffer, kBusMaxMessageSize );
-	if ( len == 0 )
-		return;
+// static void capture_error(void)
+// {
+// 	uint8 len = gsm_read( mib_buffer, kBusMaxMessageSize );
+// 	if ( len == 0 )
+// 		return;
 
-	bus_master_begin_rpc();
-	bus_master_prepare_rpc( 42, 0x20, plist_with_buffer( 0, len ) );
-	bus_master_send_rpc( 8 );
-}
+// 	bus_master_begin_rpc();
+// 	bus_master_prepare_rpc( 42, 0x20, plist_with_buffer( 0, len ) );
+// 	bus_master_send_rpc( 8 );
+// }
 
 extern char* uint_buf;
 void task(void)
@@ -54,7 +55,6 @@ void task(void)
 				gsm_expect2( "ERROR" );
 				do
 				{
-					debug_val = 2;
 					result = gsm_await( 10 );
 					if ( --timeout_10s == 0 )
 						break;
@@ -65,39 +65,32 @@ void task(void)
 			{
 				do
 				{
-					debug_val = 1;
-					result = http_await_response( 10 );
+					result = http_await_response();
 
 					if ( result || --timeout_10s == 0 )
 						break;
 				}
 				while (true);
-
-				debug_val = 6;
-
+				
 				result = ( ( result && http_status() == 200 )? 1 : 2 );
 			}
 
-			debug_val = 3;
 			report_result( result == 1 );
-			if ( result == 2 && state.stream_type == kStreamSMS )
-			{
-				capture_error();
-			}
-			else
-			{
-				debug_val = 4;
-				uint_buf[5] = '\0';
+			// if ( result == 2 && state.stream_type == kStreamSMS )
+			// {
+			// 	capture_error();
+			// }
+			// else
+			// {
+			// 	uint_buf[5] = '\0';
 				
-				strcpy( mib_buffer, "GPRS ERROR : " );
-				strcpy( mib_buffer+13, uint_buf );
+			// 	strcpy( mib_buffer, "GPRS ERROR : " );
+			// 	strcpy( mib_buffer+13, uint_buf );
 
-				bus_master_begin_rpc();
-				bus_master_prepare_rpc( 42, 0x20, plist_with_buffer( 0, 13+strlen(uint_buf) ) );
-				bus_master_send_rpc( 8 );
-			}
-
-			debug_val = 5;
+			// 	bus_master_begin_rpc();
+			// 	bus_master_prepare_rpc( 42, 0x20, plist_with_buffer( 0, 13+strlen(uint_buf) ) );
+			// 	bus_master_send_rpc( 8 );
+			// }
 
 			gsm_off();
 		}

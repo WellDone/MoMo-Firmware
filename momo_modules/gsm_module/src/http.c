@@ -24,18 +24,17 @@ bool http_init()
 	return gsm_cmd( "AT+HTTPINIT" ) == kCMDOK;
 }
 
-bool http_await_response( uint8 seconds ) {
-	gsm_expect( "+HTTPACTION:" );
-	char* ptr = uint_buf;
-	if ( gsm_await( seconds ) != 1 )
-		return false;
+// char* ptr;
+void capture_status()
+{
 	gsm_rx(); // '1', '2', or '3'
 	gsm_rx(); // ','
-	while ( gsm_rx() && (ptr < (uint_buf+5)))
+	uint8 i = 0;
+	while ( gsm_rx() && i < sizeof(uint_buf)-1)
 	{
 		if ( gsm_rx_peek() == ',' )
 			break;
-		*(ptr++) = gsm_rx_peek();
+		uint_buf[i++] = gsm_rx_peek();
 	}
 
 	while (gsm_rx())
@@ -44,10 +43,16 @@ bool http_await_response( uint8 seconds ) {
 			break;
 	}
 
-	*ptr = 0;
+	uint_buf[i] = '\0';
 	status_atoi( uint_buf );
-	debug_val = response_status & 0xFF;
-
+}
+bool http_await_response()
+{
+	gsm_expect( "+HTTPACTION:" );
+	if ( gsm_await( 10 ) != 1 )
+		return false;
+	
+	capture_status();
 	return true;
 }
 
