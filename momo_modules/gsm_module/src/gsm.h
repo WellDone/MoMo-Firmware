@@ -11,7 +11,7 @@
 void gsm_init();
 bool gsm_on();
 
-bool gsm_register( uint8 timeout_s );
+bool gsm_register();
 bool gsm_registered();
 
 void gsm_remember_band();

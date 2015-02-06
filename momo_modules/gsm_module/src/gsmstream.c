@@ -50,9 +50,9 @@ void gsm_rpc_setcommdestination()
  	}
  	state.stream_in_progress = 1;
 
- 	if ( gsm_register( 60 ) )
+ 	if ( gsm_register() )
  	{
- 		gsm_remember_band();
+ 		gsm_remember_band(); // Times out after 4 minutes
 
  		if (comm_destination_get(0) == '+' )
 	 	{

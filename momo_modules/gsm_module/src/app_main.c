@@ -76,6 +76,7 @@ void task(void)
 			}
 
 			report_result( result == 1 );
+
 			// if ( result == 2 && state.stream_type == kStreamSMS )
 			// {
 			// 	capture_error();

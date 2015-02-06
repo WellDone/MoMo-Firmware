@@ -64,10 +64,10 @@ char                  base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 static sensor_event   event_buffer[EVENT_BUFFER_SIZE];
 
 //TODO: Implement dynamic report routing based on an initial "registration" ping to the coordinator address
-static const char   default_web_route[41] = {'h','t','t','p',':','/','/','s','t','r','a','t','o','.','w','e','l','l','d','o','n','e','.','o','r','g','/','g','a','t','e','w','a','y','/','p','o','s','t','\0'};
-static const char   default_sms_route[13] = {'+','1','4','1','5','9','9','2','8','3','7','0','\0'};
-#define DEFAULT_GPRS_APN "wap.cingular"
-#define DEFAULT_GPRS_APN_LEN 12
+#define DEFAULT_WEB_ROUTE "http://strato.welldone.org/gateway/post"
+#define DEFAULT_SMS_ROUTE "+14159928370"
+#define DEFAULT_GPRS_APN "JTM2M"
+
 extern unsigned int last_battery_voltage;
 
 void report_manager_start()
@@ -78,9 +78,9 @@ void report_manager_start()
 
 void init_report_config()
 {
-  memcpy( CONFIG.route_primary, default_web_route, sizeof(default_web_route) );
-  memcpy( CONFIG.route_secondary, default_sms_route, sizeof(default_sms_route) );
-  memcpy( CONFIG.gprs_apn, DEFAULT_GPRS_APN, DEFAULT_GPRS_APN_LEN+1 );
+  strcpy( CONFIG.route_primary, DEFAULT_WEB_ROUTE );
+  strcpy( CONFIG.route_secondary, DEFAULT_SMS_ROUTE );
+  strcpy( CONFIG.gprs_apn, DEFAULT_GPRS_APN );
   CONFIG.current_sequence          = 0;
   CONFIG.report_interval           = kEveryDay;
   CONFIG.report_flags              = kReportFlagDefault;
