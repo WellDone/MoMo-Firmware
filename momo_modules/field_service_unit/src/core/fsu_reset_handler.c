@@ -1,14 +1,6 @@
 #include "fsu_reset_handler.h"
 #include "reset_manager.h"
-
-void register_reset_handlers()
-{
-    register_reset_handler( kAllResetsBefore, handle_all_resets_before );
-    register_reset_handler( kAllResetsAfter, handle_all_resets_after );
-    register_reset_handler( kPowerOnReset, handle_poweron_reset );
-    register_reset_handler( kMCLRReset, handle_mclr_reset );
-}
-
+#include "common.h"
 #include "rtcc.h"
 #include "uart.h"
 #include "task_manager.h"
@@ -16,6 +8,7 @@ void register_reset_handlers()
 #include "debug.h"
 #include "oscillator.h"
 #include "pme.h"
+#include "bus.h"
 
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
@@ -26,6 +19,9 @@ void handle_all_resets_before(unsigned int type)
     oscillator_init();
     taskloop_init();
     scheduler_init();
+    debug_init();
+
+    bus_init( 10 );
 
     mclr_triggered = false;
 }
@@ -36,20 +32,26 @@ void handle_all_resets_after(unsigned int type)
      * Add code that should be called after all other reset code here
      */
 
-    if ( !mclr_triggered ) {
-        //taskloop_set_sleep( 1 );
-    }
+    if ( !rtcc_enabled() )
+        enable_rtcc();
 }
 
 void handle_poweron_reset(unsigned int type)
 {
     //Power-on reset resets the rtcc, so configure and enable it.
-    configure_rtcc();
+    configure_rtcc(kRTCCLPRCSource);
     enable_rtcc();
 }
 
 void handle_mclr_reset(unsigned int type)
 {
     mclr_triggered = true;
-    debug_init();
+}
+
+void register_reset_handlers()
+{
+    register_reset_handler( kAllResetsBefore, handle_all_resets_before );
+    register_reset_handler( kAllResetsAfter, handle_all_resets_after );
+    register_reset_handler( kPowerOnReset, handle_poweron_reset );
+    register_reset_handler( kMCLRReset, handle_mclr_reset );
 }

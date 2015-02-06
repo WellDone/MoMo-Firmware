@@ -1,0 +1,40 @@
+{
+	"modules":
+	{
+		"libpic24":
+		{
+			"type_package": "python/firmware_types"
+		}
+	},
+
+	"module_targets" :
+	{
+		"libpic24": ["24f16ka101", "24fj64ga306/no_uart/v40"]
+	},
+
+	"architectures":
+	{
+		"no_uart":
+		{
+			"defines":
+			{
+				"NO_UART_INTERRUPTS": 1
+			}
+		},
+
+		"v40":
+		{
+			"defines":
+			{
+				"MEM_POWER": 	"E5",
+				"CS":			"G8",
+				"SCK":			"G7",
+				"SDO":			"G6",
+				"SDI":			"G9",
+				"RPSDO":		"21",
+				"RPSCK":		"26",
+				"RPSDI":		"27"
+			}
+		}
+	}
+}

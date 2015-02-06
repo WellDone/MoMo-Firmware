@@ -1,0 +1,266 @@
+Index: src/14bit-hexdecode.cc
+===================================================================
+--- src/14bit-hexdecode.cc	(revision 2299)
++++ src/14bit-hexdecode.cc	(working copy)
+@@ -77,9 +77,6 @@
+   { 0x3f00,  0x0400,  IORWF::construct },
+   { 0x3f00,  0x0800,  MOVF::construct },
+   { 0x3f00,  0x3000,  MOVLW::construct },
+-  { 0x3f00,  0x3100,  MOVLW::construct },
+-  { 0x3f00,  0x3200,  MOVLW::construct },
+-  { 0x3f00,  0x3300,  MOVLW::construct },
+   { 0x3f80,  0x0080,  MOVWF::construct },
+   { 0x3fff,  0x0000,  NOP::construct },
+   { 0x3fff,  0x0020,  NOP::construct },
+Index: src/14bit-instructions.h
+===================================================================
+--- src/14bit-instructions.h	(revision 2299)
++++ src/14bit-instructions.h	(working copy)
+@@ -94,7 +94,6 @@
+ class BRW : public instruction
+ {
+ public:
+-  int destination_index;
+   unsigned int absolute_destination_index;
+ 
+   BRW(Processor *new_cpu, unsigned int new_opcode, unsigned int address);
+Index: src/14bit-processors.cc
+===================================================================
+--- src/14bit-processors.cc	(revision 2299)
++++ src/14bit-processors.cc	(working copy)
+@@ -497,6 +497,24 @@
+     pic_processor::enter_sleep();
+ }
+ 
++/*
++ * BUGFIX: there are 4 possible states for the watchdog timer on the
++ * enhanced midrange cores, 0b01 in wdt_flag means that the watchdog
++ * timer is under software control, so it can be enabled during sleep
++ * if SWDTEN is enabled before putting the chip to sleep.  
++ * Make sure that in that case we properly wake from sleep rather than
++ * resetting.
++ */
++bool _14bit_e_processor::exit_wdt_sleep() 
++{
++  if (wdt_flag & 2)
++    return true;
++  else if (wdt_flag == 0b01 && wdt.isEnabled())
++    return true;
++
++  return false;
++}
++
+  //-------------------------------------------------------------------
+ void _14bit_e_processor::exit_sleep()
+ {
+Index: src/14bit-processors.h
+===================================================================
+--- src/14bit-processors.h	(revision 2299)
++++ src/14bit-processors.h	(working copy)
+@@ -211,7 +211,7 @@
+   virtual void create_symbols();
+   virtual void create_sfr_map();
+   virtual void interrupt();
+-  virtual bool exit_wdt_sleep() {return wdt_flag & 2;}
++  virtual bool exit_wdt_sleep();
+   virtual void enter_sleep();
+   virtual void exit_sleep();
+   virtual void reset(RESET_TYPE r);
+Index: src/14bit-registers.cc
+===================================================================
+--- src/14bit-registers.cc	(revision 2299)
++++ src/14bit-registers.cc	(working copy)
+@@ -325,7 +325,7 @@
+ 	break;
+ 
+     case HF:
+-	mask = OSCSTAT::HFIOFL | OSCSTAT::HFIOFR;
++	mask = OSCSTAT::HFIOFL | OSCSTAT::HFIOFR | OSCSTAT::HFIOFS; //BUGFIX: add HFIOFS to set stable flag (oscillator within 0.5%)
+ 	break;
+ 
+     case PLL:
+@@ -1013,7 +1013,7 @@
+     else if (fsr_adj >= 0x2000 && fsr_adj < 0x29b0) // Linear GPR region
+     {
+ 	unsigned int bank = (fsr_adj & 0xfff) / 0x50;
+-	unsigned int low_bits = ((fsr_adj & 0xff) % 0x50) + 0x20;
++	unsigned int low_bits = ((fsr_adj & 0xfff) % 0x50) + 0x20;
+         return(cpu_pic->registers[bank * 0x80 + low_bits]->get()); 
+     }
+     else if (fsr_adj >= 0x8000 && fsr_adj <= 0xffff) // program memory
+Index: src/Makefile.am
+===================================================================
+--- src/Makefile.am	(revision 2299)
++++ src/Makefile.am	(working copy)
+@@ -44,6 +44,7 @@
+ 	modules.cc \
+ 	os_dependent.cc \
+ 	p1xf1xxx.cc \
++	p16f1847.cc \
+ 	p12f6xx.cc \
+ 	p12x.cc \
+ 	p16f62x.cc \
+@@ -129,6 +130,7 @@
+ 	p12f6xx.h \
+ 	p12x.h \
+ 	p1xf1xxx.h \
++	p16f1847.h \
+ 	p16x5x.h \
+ 	p16f62x.h \
+ 	p16x6x.h \
+Index: src/a2d_v2.h
+===================================================================
+--- src/a2d_v2.h	(revision 2299)
++++ src/a2d_v2.h	(working copy)
+@@ -22,7 +22,7 @@
+ // For A2D modules which have ADCON0, ADCON1 and ADCON2 registers
+ 
+ #ifndef __A2D_V2_H__
+-#define __A2D_v2_H__
++#define __A2D_V2_H__
+ 
+ #include "registers.h"
+ #include "trigger.h"
+Index: src/makefile.mingw
+===================================================================
+--- src/makefile.mingw	(revision 2299)
++++ src/makefile.mingw	(working copy)
+@@ -71,6 +71,7 @@
+ 	operator.o		\
+ 	os_dependent.o		\
+ 	p1xf1xxx.o		\
++	p16f1847.o 		\
+ 	p12f6xx.o		\
+ 	p12x.o			\
+ 	p16f62x.o		\
+Index: src/p1xf1xxx.cc
+===================================================================
+--- src/p1xf1xxx.cc	(revision 2299)
++++ src/p1xf1xxx.cc	(working copy)
+@@ -463,7 +463,6 @@
+ 
+ 
+   //add_sfr_register(indf,    0x00);
+-  add_file_registers(0xa0, 0xbf, 0x00);
+   add_sfr_register(m_porta, 0x0c);
+   add_sfr_register(pir1,    0x11, RegisterValue(0,0),"pir1");
+   add_sfr_register(pir2,    0x12, RegisterValue(0,0),"pir2");
+@@ -719,6 +718,8 @@
+   e->get_reg_eecon1()->set_valid_bits(0xff);
+ 
+   add_file_registers(0x20, ram_top, 0x00);
++  add_file_registers(0xa0, 0xbf, 0x00);
++
+   _14bit_e_processor::create_sfr_map();
+   P12F1822::create_sfr_map();
+   // Set DeviceID
+@@ -1774,6 +1775,8 @@
+   e->get_reg_eecon1()->set_valid_bits(0xff);
+ 
+   add_file_registers(0x20, ram_top, 0x00);
++  add_file_registers(0xa0, 0xbf, 0x00);
++
+   _14bit_e_processor::create_sfr_map();
+   P12F1822::create_sfr_map();
+   P16F1823::create_sfr_map();
+Index: src/p1xf1xxx.h
+===================================================================
+--- src/p1xf1xxx.h	(revision 2299)
++++ src/p1xf1xxx.h	(working copy)
+@@ -41,8 +41,6 @@
+ SSP1_MODULE 	*m_ssp;
+ T1GCON    	*m_t1gcon;
+ CCPCON		*m_ccpcon;
+-
+-
+ };
+ 
+ class P12F1822 : public _14bit_e_processor
+@@ -244,6 +242,7 @@
+   virtual unsigned int register_memory_size () const { return 0x1000; }
+ 
+ };
++
+ class P16F1823 : public P12F1822
+ {
+ public:
+@@ -262,4 +261,5 @@
+   PicLatchRegister *m_latc;
+   WPU              *m_wpuc;
+ };
++
+ #endif //__P1xF1xxx_H__
+Index: src/pic-instructions.cc
+===================================================================
+--- src/pic-instructions.cc	(revision 2299)
++++ src/pic-instructions.cc	(working copy)
+@@ -753,15 +753,14 @@
+ BRW::BRW (Processor *new_cpu, unsigned int new_opcode, unsigned int address)
+   : instruction(new_cpu, new_opcode, address)
+ {
+-  destination_index = cpu_pic->Wget();
+-  absolute_destination_index = address + destination_index;
++  absolute_destination_index = address;
+ 
+   new_name("brw");
+ }
+ 
+ void BRW::execute()
+ {
+-  cpu_pic->pc->jump(absolute_destination_index);
++  cpu_pic->pc->jump(absolute_destination_index + cpu_pic->Wget() + 1);
+ 
+ }
+ 
+@@ -772,7 +771,7 @@
+   sprintf(return_str,"%s\t$%c0x%x\t;(0x%05x)",
+ 	  gpsimObject::name().c_str(),
+ 	  (opcode & 0x100) ? '-' : '+', 
+-	  (destination_index & 0x1ff)<<1,
++	  (0 & 0x1ff)<<1,
+ 	  absolute_destination_index<<1);
+ 
+   return(return_str);
+Index: src/pic-processor.cc
+===================================================================
+--- src/pic-processor.cc	(revision 2299)
++++ src/pic-processor.cc	(working copy)
+@@ -55,6 +55,7 @@
+ #include "p12x.h"
+ #include "p12f6xx.h"
+ #include "p1xf1xxx.h"
++#include "p16f1847.h"
+ #ifdef P17C7XX  // code no longer works
+ #include "p17c75x.h"
+ #endif
+@@ -326,6 +327,9 @@
+                               "__16F1788", "pic16f1788", "p16f1788", "16f1788");
+ ProcessorConstructor pP16F1823(P16F1823::construct ,
+                               "__16F1823", "pic16f1823", "p16f1823", "16f1823");
++ProcessorConstructor pP16F1847(P16F1847::construct ,
++                              "__16F1847", "pic16f1847", "p16f1847", "16f1847");
++
+ #ifdef P17C7XX  // code no longer works
+ ProcessorConstructor pP17C7xx(P17C7xx::construct ,
+                               "__17C7xx", "pic17c7xx",  "p17c7xx", "17c7xx");
+Index: src/pic-processor.h
+===================================================================
+--- src/pic-processor.h	(revision 2299)
++++ src/pic-processor.h	(working copy)
+@@ -125,6 +125,7 @@
+   _P16F886_,
+   _P16F887_,
+   _P16F1823_,
++  _P16F1847_,
+   _P16F1788_,
+   _P16F1789_,
+   _P17C7xx_,
+@@ -260,6 +261,8 @@
+   void set_breakpoint(unsigned int bpn);
+   bool hasBreak() { return breakpoint != 0;}
+ 
++  bool isEnabled() {return wdte;}; 
++
+ protected:
+   pic_processor *cpu;           // The cpu to which this wdt belongs.
+ 
