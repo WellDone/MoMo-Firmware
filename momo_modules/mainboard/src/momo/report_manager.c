@@ -18,17 +18,17 @@
 
 #define CONFIG current_momo_state.report_config
 
-//SMS Report structure, 118 bytes total
+//Report structure, 118 bytes total
 typedef struct 
 { 
-    //16 byte header
-    uint8          report_version;         // = 2, must be positive
-    uint8          sensor_id;              //   The unique ID of this sensor related to this controller.
-    uint16         sequence;               //2 - which report # is this (for this sensor/stream?)
+    //18 byte header
+    uint8          report_version;         // = 3, must be positive
+    uint8          transmit_sequence;      //   How many times have we tried to transmit a report
+    uint32         momo_uuid;              //   The unique ID of this MoMo
     uint16         flags;                  //   Various flags determining how the data will be aggregated and other things
 
+    uint32         timestamp;
     uint16         battery_voltage;        //2
-    uint16         diagnostics[2];         //4  diagnostic flags and data, usage TBD
 
     uint8          bulk_aggregates;        //  The aggregate functions to run on the entire span
     uint8          interval_aggregates;    //  The aggregate functions to run on each interval
@@ -46,9 +46,9 @@ typedef struct
 
     uint8          interval_count;         //  Up to 256 'intervals' each aggregated individually
     
-    // 102 bytes for data (56 two byte report values)
+    // 100 bytes for data (50 two byte report values)
     uint16         data[NUM_BUCKETS];
-} sms_report;
+} Report;
 
 typedef struct 
 {
@@ -58,7 +58,7 @@ typedef struct
   uint16 sum;
 } agg_counters;
 
-static sms_report     report;
+static Report         report;
 static ScheduledTask  report_task;
 char                  base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 static sensor_event   event_buffer[EVENT_BUFFER_SIZE];
@@ -81,10 +81,10 @@ void init_report_config()
   strcpy( CONFIG.route_primary, DEFAULT_WEB_ROUTE );
   strcpy( CONFIG.route_secondary, DEFAULT_SMS_ROUTE );
   strcpy( CONFIG.gprs_apn, DEFAULT_GPRS_APN );
-  CONFIG.current_sequence          = 0;
+  CONFIG.transmit_sequence         = 0;
   CONFIG.report_interval           = kEveryDay;
   CONFIG.report_flags              = kReportFlagDefault;
-  CONFIG.bulk_aggregates           = kAggCount | kAggMin | kAggMax;
+  CONFIG.bulk_aggregates           = kAggMin | kAggMax;
   CONFIG.interval_aggregates       = kAggCount | kAggMean;
   CONFIG.retry_limit               = 3;
 
@@ -94,7 +94,7 @@ void init_report_config()
   init_comm_stream();
 }
 
-void update_interval_headers( sms_report* header, AlarmRepeatTime interval )
+void update_interval_headers( Report* header, AlarmRepeatTime interval )
 {
   switch ( interval )
   {
@@ -122,7 +122,7 @@ void update_interval_headers( sms_report* header, AlarmRepeatTime interval )
   }
 }
 
-uint32 create_time_delta( const sms_report* header )
+uint32 create_time_delta( const Report* header )
 {
   //FIXME: is 0 a valid option for the caller of this function?
   switch ( header->interval_type )
@@ -186,20 +186,18 @@ bool construct_report()
   PROFILE_START(kConstructReport);
   agg_counters    bulk_agg;
   agg_counters    int_agg;
-  rtcc_timestamp  now;
   uint8           i, c;
-  uint8           curr_interval = 0;
+  uint8           sensor_id = 0, curr_interval = 0;
   uint8           interval_bucket = agg_size(CONFIG.bulk_aggregates);
   uint8           max_bucket = NUM_BUCKETS - agg_size(CONFIG.interval_aggregates);
 
   //Initialize the report header
-  report.report_version = 2;
-  report.sensor_id = 0;
-  report.sequence = CONFIG.current_sequence++;
+  report.report_version = MOMO_REPORT_VERSION;
+  report.transmit_sequence = CONFIG.transmit_sequence;
+  report.momo_uuid = current_momo_state.uuid;
   report.flags = CONFIG.report_flags;
   report.battery_voltage = last_battery_voltage;
-  report.diagnostics[0] = sensor_event_log_count();
-  report.diagnostics[1] = 0;
+  report.timestamp = rtcc_get_timestamp();
   report.bulk_aggregates = CONFIG.bulk_aggregates;
   report.interval_aggregates = CONFIG.interval_aggregates;
 
@@ -210,7 +208,6 @@ bool construct_report()
 
   init_agg(&bulk_agg);
   init_agg(&int_agg);
-  now = rtcc_get_timestamp();
 
   //Zero out the report structure
   for (i=0; i<NUM_BUCKETS; ++i)
@@ -222,9 +219,9 @@ bool construct_report()
     c = read_sensor_events( event_buffer, EVENT_BUFFER_SIZE );
     for ( i = 0; i < c; ++i )
     {
-      if ( report.sensor_id == 0 )
-        report.sensor_id = event_buffer[i].module;
-      else if ( report.sensor_id != event_buffer[i].module )
+      if ( sensor_id == 0 )
+        sensor_id = event_buffer[i].module;
+      else if ( sensor_id != event_buffer[i].module )
         continue; // TODO: Support multiple sensor streams
 
       if (CONFIG.bulk_aggregates != kAggNone)
@@ -241,7 +238,7 @@ bool construct_report()
 
         //Check if the event is too old and drop it
         //TODO: extend the report start backwards to pick up the dropped events?
-        time_seconds = rtcc_timestamp_difference(event_buffer[i].timestamp, now, &delta);
+        time_seconds = rtcc_timestamp_difference(event_buffer[i].timestamp, report.timestamp, &delta);
         if (time_seconds >= time_delta)
           continue;
 
