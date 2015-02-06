@@ -39,7 +39,7 @@ void handle_all_resets_after(unsigned int type)
 void handle_poweron_reset(unsigned int type)
 {
     //Power-on reset resets the rtcc, so configure and enable it.
-    configure_rtcc();
+    configure_rtcc(kRTCCLPRCSource);
     enable_rtcc();
 }
 

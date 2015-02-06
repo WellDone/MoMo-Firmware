@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "mib_feature_definition.h"
 #include "intel_hex.h"
+#include "system_log.h"
 #include "firmware_cache.h"
 
 //transient state during a firmware push event
@@ -49,7 +50,7 @@ void fc_startpush(void)
 		current_bucket = kControllerBackupBucket;
 	else
 	{
-		if ( fc_state.count == kNumFirmwareBuckets )
+		if ( fc_state.count == kNumModuleFirmwareBuckets )
 		{
 			bus_slave_seterror(kCallbackError);
 			return;

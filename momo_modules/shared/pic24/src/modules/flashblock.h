@@ -4,6 +4,8 @@
 #include "memory.h"
 #include <stdint.h>
 
+#ifndef __NO_FLASH__
+
 /*
  * flashblock - a flash memory structure for efficiently saving a frequently
  * changing small item.  Since flash memory cannot be easily erased this module
@@ -73,4 +75,6 @@ unsigned char	fb_nextpow2(unsigned char val);
 unsigned int	fb_countset(unsigned int val);
 void 			fb_updatecurrent(flash_block_info *info);
 void 			fb_updatebitmap(flash_block_info *info);
+
+#endif
 #endif

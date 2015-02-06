@@ -1,5 +1,10 @@
+//Name: test_linkedlist
+//Type: module
+
 #include "unity.h"
 #include "linkedlist.h"
+#include <xc.h>
+#include <stdio.h>
 
 void setUp(void) 
 {

@@ -58,9 +58,9 @@ static void bus_slave_searchcommand()
 		bus_slave_seterror(kChecksumError); //Make sure the parameter checksum was valid.
 		return;
 	}
-	
+
 	mib_state.slave_handler = find_handler();
-	
+
 	if (mib_state.slave_handler == kInvalidMIBIndex)
 	{
 		bus_slave_seterror(kUnsupportedCommand);

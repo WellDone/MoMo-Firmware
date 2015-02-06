@@ -20,4 +20,6 @@ void 	bus_slave_seterror(uint8 error);
 uint8 	bus_is_idle();
 void	trap(uint8 code);
 
+void exec_reset();
+
 #endif

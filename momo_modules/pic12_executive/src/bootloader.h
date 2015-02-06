@@ -21,7 +21,7 @@ typedef union
 {
 	struct
 	{
-		uint8 reserved1 	: 1; //cannot change position (referenced by watchdog.as)
+		uint8 timer_running	: 1; //set when we receive an edge on ALARM so that we can check for 2 edges in one timeout period
 		uint8 valid_app 	: 1;
 		uint8 bootload_mode : 1;
 		uint8 registered	: 1;

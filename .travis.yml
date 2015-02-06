@@ -1,0 +1,5 @@
+language: c
+before_install:
+- sudo bash -c "export MOMO_DEV=true; ./tools/automation/provision.sh"
+script:
+- ./tools/automation/build_all.sh

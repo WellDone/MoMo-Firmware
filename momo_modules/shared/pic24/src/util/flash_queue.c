@@ -1,6 +1,8 @@
 #include "flash_queue.h"
 #include "memory.h"
 
+#ifndef __NO_FLASH__
+
 void flash_queue_create( flash_queue* queue,
                          uint8 start_subsection,
                          uint8 element_size,
@@ -215,3 +217,5 @@ uint8 flash_queue_walk( flash_queue_walker* walker, void* data, uint8 batch_size
   }
   return count;
 }
+
+#endif

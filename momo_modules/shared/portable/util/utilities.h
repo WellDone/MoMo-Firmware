@@ -2,6 +2,7 @@
 #define __utilities_h__
 
 #include <stdarg.h>
+#include <stdint.h>
 #include "common_types.h"
 #include "bit_utilities.h"
 
@@ -12,10 +13,10 @@ bool atoi_small(const char *buf, int* out);
 
 char to_upper_case( char c );
 
-void print_byte( BYTE b );
+void print_byte( uint8_t b );
 void println( const char* msg );
 
-BYTE hexbyte_to_binary( char* ascii );
-void binary_to_hexbyte( BYTE b, char* out );
+uint8_t hexbyte_to_binary( char* ascii );
+void binary_to_hexbyte( uint8_t b, char* out );
 
 #endif

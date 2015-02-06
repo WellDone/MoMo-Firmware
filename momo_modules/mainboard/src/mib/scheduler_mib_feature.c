@@ -45,7 +45,9 @@ static void callback( void* arg )
     RPCCallback *cb = (RPCCallback*) arg;
 
     if (BIT(cb->flags, kRPCInProgress))
+    {
         return;
+    }
 
     MIBUnified cmd;
     cmd.address = cb->address;

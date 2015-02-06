@@ -1,13 +1,25 @@
+//Name: test_rpc_queue
+//Type: module
+//Modules: task_manager, ringbuffer, interrupts
+//Sources:../../portable
+
 #include "unity.h"
 #include "rpc_queue.h"
 #include "task_manager.h"
+#include "system_log.h"
 #include "ringbuffer.h"
+#include "scheduler.h"
 #include <string.h>
 
 //Mocked functions
 void asm_sleep()
 {
 	// do nothing
+}
+
+void asm_reset()
+{
+
 }
 
 void disable_memory()
@@ -30,6 +42,25 @@ unsigned int memory_enabled()
 	return 0;
 }
 
+void flush_log(void *arg)
+{
+
+}
+
+void scheduler_schedule_task( task_callback func,
+                              AlarmRepeatTime freq,
+                              unsigned char numtimes,
+                              ScheduledTask /*out*/ *saved_task,
+                              void *argument )
+{
+
+}
+
+void write_system_log( LogStream stream, const BYTE* data, uint8 length )
+{
+
+}
+
 static int task_count = 0;
 void setUp(void) {
 	rpc_queue_init();
@@ -39,32 +70,32 @@ void tearDown(void) {
 
 }
 
-void noncritical_task_0(void) {
+void noncritical_task_0(void *arg) {
 	TEST_ASSERT_EQUAL_INT( 0, task_count );
 	TEST_ASSERT_TRUE( !taskloop_locked() );
 	++task_count;
 }
-void critical_task_1(void) {
+void critical_task_1(void *arg) {
 	TEST_ASSERT_EQUAL_INT( 1, task_count );
 	TEST_ASSERT_TRUE( taskloop_locked() );
 	++task_count;	
 }
-void critical_task_2(void) {
+void critical_task_2(void *arg) {
 	TEST_ASSERT_EQUAL_INT( 2, task_count );
 	TEST_ASSERT_TRUE( taskloop_locked() );
 	++task_count;	
 }
-void noncritical_task_3(void) {
+void noncritical_task_3(void *arg) {
 	TEST_ASSERT_EQUAL_INT( 3, task_count );
 	TEST_ASSERT_TRUE( !taskloop_locked() );
 	++task_count;
 }
-void queue_rpc(void) {
+void queue_rpc(void *arg) {
 	MIBUnified data;
 	TEST_ASSERT_FALSE( rpc_queue_full() );
 	rpc_queue( NULL, &data);
 }
-void dequeue_rpc(void) {
+void dequeue_rpc(void *arg) {
 	TEST_ASSERT_FALSE( rpc_queue_empty() );
 	rpc_dequeue(NULL);
 }
@@ -79,7 +110,7 @@ void test_rpc_queue_taskloop_locking(void) {
 	taskloop_add( noncritical_task_0, NULL );
 	int i = 0;
 	while ( i++ < RPC_QUEUE_SIZE ) {
-		taskloop_add( queue_rpc );
+		taskloop_add( queue_rpc, NULL );
 	}
 	taskloop_add_critical( critical_task_1, NULL );
 	taskloop_add( noncritical_task_3, NULL ); // won't actually run.

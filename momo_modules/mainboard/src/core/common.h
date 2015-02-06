@@ -7,18 +7,6 @@
 #define SENSOR_INTERRUPT_BIT    IFS1bits.INT2IF
 #define RTC_INTERRUPT_BIT       IFS3bits.RTCIF
 
-#define BATTERY_VOLTAGE 		B2
-#define BATTERY_VOLTAGE_AN		2
-
-#define CHARGE_ENABLE			B0
-#define BUS_ENABLE				F3
-#define MEM_POWER				E5
-
-#define SCL						G2
-#define SDA						G3
-#define ALARM					D3
-
-
 //Clock configuration and delays
 #define FCY   4000000L  //define your instruction frequency, FCY = FOSC/2
   

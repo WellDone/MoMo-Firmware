@@ -8,17 +8,18 @@ static inline void write_osccon_l(unsigned char value);
 
 void oscillator_init()
 {
+    set_oscillator_speed(k8MhzFRC, false);
     set_sosc_status(1); //Secondary oscillator always needs to be enabled, disable sosc
 }
 
-void set_oscillator_speed(OscillatorSpeedSelector speed)
+int set_oscillator_speed(FRCPostscaler speed, int use_pll)
 {
-    unsigned int curr = _COSC;
     unsigned char oscconh;
     unsigned char oscconl;
 
-    if (curr == speed)
-        return;
+    //You cannot enable the PLL if the FRC is not between 4 and 8 Mhz
+    if (use_pll && speed > k4MhzFRC)
+        return false;
 
     uninterruptible_start();
 
@@ -27,25 +28,33 @@ void set_oscillator_speed(OscillatorSpeedSelector speed)
 
     //select new speed
     oscconh &= ~(0b111 << 8);
-    oscconh |= speed;
+
+    if (use_pll)
+        oscconh |= kFRCDIVPLL;
+    else
+        oscconh |= kFRCDIV;
 
     write_osccon_h(oscconh);
 
-    //If we're switching to high speed, change clkdiv first so make the PLL always between 4 and 8 mhz
-    if (speed == kHighSpeedSelect)
-        _RCDIV = kHighSpeedClockDiv;
+    _RCDIV = speed;
 
     SET_BIT(oscconl, 0);
     write_osccon_l(oscconl);
 
+    //Wait for the switch to happen
     while (_OSWEN)
         ;
 
-    if (speed == kLowSpeedSelect)
-        _RCDIV = kLowSpeedClockDiv;
-
+    //If we're using the PLL, wait for it to stabilize
+    if (use_pll)
+    {
+        while (_LOCK)
+            ;
+    }
 
     uninterruptible_end();
+
+    return true;
 }
 
 /*

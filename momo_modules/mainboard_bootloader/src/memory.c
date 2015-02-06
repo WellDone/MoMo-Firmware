@@ -2,14 +2,8 @@
 #include "ioport.h"
 #include "bootloader.h"
 
-#ifdef __PIC24FJ64GA306__
 #define ENABLE_MEMORY() LAT(CS) = 0
 #define DISABLE_MEMORY() LAT(CS) = 1
-#else
-#define SS_VALUE LATBbits.LATB15
-#define ENABLE_MEMORY() SS_VALUE = 0
-#define DISABLE_MEMORY() SS_VALUE = 1
-#endif 
 
 #define MEMORY_TX_STATUS SPI1STATbits.SPITBF
 #define MEMORY_STATUS_OVERFLOWN SPI1STATbits.SPIROV
@@ -70,6 +64,7 @@ void _BOOTLOADER_CODE configure_SPI()
 
   //map peripheral pins
   MAP_PERIPHERAL_IN(RPSDI, SDI1_INPUT);
+  MAP_PERIPHERAL_IN(RPSCK, SCK1_INPUT);
   MAP_PERIPHERAL_OUT(RPSDO, SDO1_OUTPUT);
   MAP_PERIPHERAL_OUT(RPSCK, SCK1_OUTPUT);
 

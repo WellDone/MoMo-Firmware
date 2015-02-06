@@ -3,6 +3,6 @@
 
 #include "common.h"
 
-void push_sensor_value( uint8 stream_index, uint8 meta, uint32 *value );
+void push_sensor_value(uint8 stream_index, uint8 meta, uint32 value);
 
 #endif

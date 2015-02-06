@@ -3,13 +3,13 @@
 
 typedef enum
 {
-    kEveryHalfSecond = 0b0000,
-    kEverySecond = 0b0001,
-    kEvery10Seconds = 0b0010,
-    kEveryMinute = 0b0011,
-    kEvery10Minutes = 0b0100,
-    kEveryHour = 0b0101,
-    kEveryDay = 0b0110,
+    kEveryHalfSecond = 0,
+    kEverySecond = 1,
+    kEvery10Seconds = 2,
+    kEveryMinute = 3,
+    kEvery10Minutes = 4,
+    kEveryHour = 5,
+    kEveryDay = 6,
     kNumAlarmTimes
 } AlarmRepeatTime;
 

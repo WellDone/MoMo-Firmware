@@ -1,0 +1,2 @@
+# These python executable types
+tools/bin/* text eol=lf

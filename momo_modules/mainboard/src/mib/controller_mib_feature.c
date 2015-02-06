@@ -15,6 +15,9 @@
 #include "module_manager.h"
 #include "system_log.h"
 #include "memory_manager.h"
+#include "perf.h"
+#include "log_definitions.h"
+#include "rn4020.h"
 
 #include "momo_config.h"
 #include "sensor_event_log.h"
@@ -27,8 +30,14 @@ unsigned int debug_flag_value = 0;
 
 void con_init()
 {
-	DIR(BUS_ENABLE) = INPUT;
+	//Make all pins digital if they could be analog
+	ENSURE_DIGITAL(SCL);
+	ENSURE_DIGITAL(SDA);
+	ENSURE_DIGITAL(ALARM);
+	ENSURE_DIGITAL(BUS_ENABLE);
+
 	LAT(BUS_ENABLE) = 0;
+	DIR(BUS_ENABLE) = OUTPUT;
 
 	DIR(ALARM) = INPUT;
 	LAT(ALARM) = 1;
@@ -48,6 +57,12 @@ void con_reset_bus()
 	DIR(SDA) = OUTPUT;
 	DIR(ALARM) = OUTPUT;
 
+	//We need to wait for all of the modules to reset and disable
+	//any functionality on their boards that may parasitically
+	//power the bus when we cut power to it.  100 ms is tested to
+	//be long enough for the gsm_module.  10 ms is too short.
+	DELAY_MS(100);
+
 	//Bus disable FET is active high to remove power
 	//from the bus.
 	LAT(BUS_ENABLE) = 1;
@@ -61,7 +76,7 @@ void con_reset_bus()
 	DIR(SDA) = INPUT;
 	DIR(ALARM) = INPUT;
 
-	DIR(BUS_ENABLE) = INPUT;
+	LAT(BUS_ENABLE) = 0;
 
 	bus_init(kMIBControllerAddress);
 }
@@ -86,6 +101,8 @@ void register_module(void)
 		bus_slave_seterror( kCallbackError );
 		return;	
 	}
+
+	LOG_DEBUG(kSubmoduleAddressRequestNotice);
 	
 	bus_slave_return_int16( addr );
 }
@@ -171,25 +188,24 @@ void test_fb_read()
 
 void reflash_self()
 {
-	CRITICAL_LOGL( "Performing controller firmware reflash..." );
-	FLUSH_LOG();
+	LOG_CRITICAL(kControllerReflashNotice);
+	LOG_FLUSH();
 	reflash = kReflashMagic;
 	asm volatile("reset");
 }
 
 void reset_self()
 {
-	CRITICAL_LOGL( "Reset command received, performing software reset." );
-	FLUSH_LOG();
+	LOG_CRITICAL(kControllerResetNotice);
+	LOG_FLUSH();
 	asm volatile("reset");
 }
 
 void factory_reset()
 {
-	CRITICAL_LOGL( "Performing factory reset..." );
+	LOG_CRITICAL(kControllerFactoryResetNotice);
 	mem_clear_all();
 	flash_memory_init();
-	CRITICAL_LOGL( "Factory reset complete!" );
 }
 
 void current_time()
@@ -208,6 +224,13 @@ void current_time()
 	bus_slave_setreturn(pack_return_status(kNoMIBError, 12));
 }
 
+void set_time()
+{
+	if ( plist_get_buffer_length() != 8 )
+		return bus_slave_seterror( kCallbackError );
+	rtcc_set_time( (rtcc_datetime*)plist_get_buffer(0) );
+}
+
 void debug_value()
 {
 	bus_slave_return_int16(debug_flag_value);
@@ -223,58 +246,39 @@ void set_sleep()
 
 void write_log()
 {
-	write_system_log( kRemoteLog, plist_get_buffer(0), plist_get_buffer_length() );
+	//FIXME: Re-enable remote logging
+	//write_system_log( kRemoteLog, plist_get_buffer(0), plist_get_buffer_length() );
 }
+
 void log_count()
 {
 	bus_slave_return_int16( system_log_count() );
 }
 void read_log()
 {
-	LogEntry log_buffer;
-	if ( !read_system_log( plist_get_int16(0), &log_buffer ) )
-	{
-		bus_slave_seterror( kCallbackError );
-	}
+	GenericLogEntry log_buffer;
+	if (!read_system_log( plist_get_int16(0), &log_buffer ))
+		bus_slave_seterror(kCallbackError);
 	else
-	{
-		uint16 offset = plist_get_int16(1);
-		uint8 length = 20;
-		if ( offset == 0 )
-		{
-			length = (log_buffer.data-(BYTE*)&log_buffer);
-		}
-		else if ( 20 * offset < log_buffer.length )
-		{
-			offset = (uint16)(log_buffer.data-(BYTE*)&log_buffer) + ( 20 * (offset-1) );
-			length = 20;
-		}
-		else if ( 20 * (offset-1) < log_buffer.length )
-		{
-			length = log_buffer.length - ( 20 * (offset-1) );
-			offset = (uint16)(log_buffer.data-(BYTE*)&log_buffer) + ( 20 * (offset-1) );
-		}
-		else
-		{
-			bus_slave_seterror( kCallbackError );
-		}
-
-		bus_slave_return_buffer( (BYTE*)(&log_buffer)+offset, length );
-	}
+		bus_slave_return_buffer((BYTE*)(&log_buffer), sizeof(GenericLogEntry));
 }
 void clear_log()
 {
 	clear_system_log();
 }
 
-extern bool lazy_system_logging;
-void get_lazy_logging()
+void read_ram()
 {
-	bus_slave_return_int16( lazy_system_logging );
+	unsigned char *val = (unsigned char *)(plist_get_int16(0));
+	bus_slave_return_buffer(val, 20);
 }
-void set_lazy_logging()
+
+void get_perf_counter()
 {
-	lazy_system_logging = (plist_get_int16(0)==0)?false:true;
+	uint16 counter = plist_get_int16(0);
+	const performance_counter *val = perf_get_counter((PerformanceCounter)counter);
+
+	bus_slave_return_buffer(val, 20);
 }
 
 
@@ -296,12 +300,15 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x0E, set_sleep, plist_spec(1, false)},
 	{0x0F, reset_self, plist_spec_empty()},
 	{0x10, factory_reset, plist_spec_empty()},
+	{0x11, read_ram, plist_spec(1, false)},
+	{0x12, set_time, plist_spec(0, true)},
 
 	{0x20, write_log, plist_spec(0, true)},
 	{0x21, log_count, plist_spec_empty()},
 	{0x22, read_log, plist_spec(2, false)},
 	{0x23, clear_log, plist_spec_empty() },
-	{0x24, get_lazy_logging, plist_spec(0, false)},
-	{0x25, set_lazy_logging, plist_spec(1, false)},
+
+	{0x26, get_perf_counter, plist_spec(1, false)},
+	{0x27, bt_debug_buffer, plist_spec(0, false)}
 };
 DEFINE_MIB_FEATURE(controller);

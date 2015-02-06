@@ -2,7 +2,7 @@
 ;Targets: all
 ;Type: application
 ;Description: Test to ensure that match_response function is working 
-properly  
+;properly  
 
 #include <xc.inc>
 #include "asm_macros.inc"

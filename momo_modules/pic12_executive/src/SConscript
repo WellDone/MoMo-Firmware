@@ -15,7 +15,6 @@ asm_sources = [	'flash_memory.as', 'i2c_utilities.as', 'asm_utils.as', 'watchdog
 srcfiles = asm_sources									\
 	+ Glob('./*.c') 									\
 	+ Glob('../../../shared/portable/core/*.c')			\
-	+ Glob('../../../shared/portable/mib/*.c')			\
 	+ Glob('./mib/*.c')									\
 	+ Glob('./mib/*.as')								\
 	+ Glob('./mib/slave/commands/*.c')

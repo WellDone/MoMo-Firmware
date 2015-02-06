@@ -18,8 +18,10 @@ void battery_init()
     TYPE(BATTERY_VOLTAGE) = ANALOG;
 
 	//Configure charge controller pin (0 disables charging)
-	LAT(CHARGE_ENABLE) = 0;
-    DIR(CHARGE_ENABLE) = OUTPUT;
+	DIR(CHARGE_ENABLE) = INPUT;
+    LAT(CHARGE_ENABLE) = 0;
+    ENSURE_DIGITAL(CHARGE_ENABLE);
+
 
 	//Store ADC configuration
     batt_adc_config.output_format = kUIntegerFormat;
@@ -45,7 +47,7 @@ void battery_callback( void* arg )
 		return;
 
 	adc_configure(&batt_adc_config);
-    adc_set_channel(2);
+    adc_set_channel(BATTERY_VOLTAGE_AN);
     last_battery_voltage = adc_convert_one();
 
     //Disable charging if battery voltage is greater than max charge level
@@ -68,7 +70,7 @@ void report_battery()
     unsigned int voltage;
 
     adc_configure(&batt_adc_config);
-    adc_set_channel(2);
+    adc_set_channel(BATTERY_VOLTAGE_AN);
     voltage = adc_convert_one();
 
     bus_slave_return_int16(voltage);

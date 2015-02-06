@@ -5,6 +5,11 @@
 #include "ioport.h"
 #include "constants.h"
 
+#define HARDWARE_STRING_R(str)		#str
+#define HARDWARE_STRING(str)		HARDWARE_STRING_R(str)
+
+const char *hw_version = HARDWARE_STRING(kHardwareVersion);
+
 void _BOOTLOADER_CODE write_row(unsigned int row, unsigned char *row_buffer)
 {
 	unsigned int j;
@@ -37,13 +42,17 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
 	unsigned int row, page, i;
 	unsigned char row_buffer[kFlashRowSizeInstructions*3];
 
-	uint32 reset_low, reset_high;
+	uint16_t reset_vector;
 
-	extract_reset_vector(&reset_low, &reset_high);
+	reset_vector = extract_reset_vector();
+
+	//Pull alarm low during reflashing so the world knows it
+	LAT(ALARM) = 0;
+	DIR(ALARM) = OUTPUT;
 
 	//Enable the Memory Module
-    LAT(E5) = 1;
-    DIR(E5) = OUTPUT;
+    LAT(MEM_POWER) = 1;
+    DIR(MEM_POWER) = OUTPUT;
 	configure_SPI();
 
 	//Give the flash memory time to warm up. (it needs at least 30 us after VCC reaches min value)
@@ -58,19 +67,16 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
 		{
 			mem_read(addr, row_buffer, kFlashRowSizeInstructions*3);
 
-			//Patch the application goto vector and replace the reset vector
-			//with a jump to us.
+			//Patch the reset vector with a jump to us.
 			if (row == 0)
-				patch_reset_vector(row_buffer, reset_low, reset_high);
-			else if(row == kAppJumpRow)
 			{
-				//Overwrite the flash at address 0x100 so that we know we have a valid application
-				row_buffer[0] = 0xAA;
-				row_buffer[1] = 0xAA;
-				row_buffer[2] = 0xAA;
-				row_buffer[3] = 0xAA;
-				row_buffer[4] = 0xAA;
-				row_buffer[5] = 0xAA;
+				row_buffer[0] = reset_vector & 0xFF;
+				row_buffer[1] = (reset_vector >> 8) & 0xFF;
+				row_buffer[2] = 0x04;
+
+				row_buffer[3] = 0;
+				row_buffer[4] = 0;
+				row_buffer[5] = 0;
 			}
 
 			write_row(row, row_buffer);
@@ -79,51 +85,82 @@ void _BOOTLOADER_CODE program_application(unsigned int sector)
 			addr += kFlashRowSizeInstructions*3;
 		}
 	}
+
+	DIR(ALARM) = INPUT;
 }
 
-bool _BOOTLOADER_CODE valid_instruction(unsigned int addr)
+unsigned int _BOOTLOADER_CODE calculate_checksum(unsigned int start_addr, unsigned int length)
 {
-	unsigned int low, high;
+	unsigned int checksum = 0;
+	unsigned int i;
 
 	TBLPAG = 0;
-	low = __builtin_tblrdl(addr);
-	high = __builtin_tblrdh(addr);
+	for (i=start_addr; i<(start_addr+length); i+=2)
+	{
+		checksum += __builtin_tblrdl(i);
+		checksum += __builtin_tblrdh(i);
+	}
 
-	if (low == 0xFFFF && ((high & 0xFF) == 0xFF))
-		return false;
-
-	return true;
+	return (~checksum) + 1;
 }
 
-void _BOOTLOADER_CODE extract_reset_vector(uint32 *low, uint32 *high)
+/*
+ * Check and make sure the metadata block embedded at 0x200 with length 32 words
+ * is correct and has all of the right information
+ */
+ValidationResult _BOOTLOADER_CODE validate_metadata()
 {
-	unsigned int tmpl, tmph;
+	unsigned int 	value;
+	unsigned int 	metacheck;
+	unsigned int 	i;
 
 	TBLPAG = 0;
-	tmpl = __builtin_tblrdl(0);
-	tmph = __builtin_tblrdh(0);
 
-	*low = 0;
-	*low |= tmpl;
-	*low |= ((uint32)tmph & 0xFF) << 16;
+	//Validate metadata block and make sure that it hasn't been corrupted
+	metacheck = __builtin_tblrdl(kMetadataStart + 30);
+	value = calculate_checksum(kMetadataStart, kMetadataCheckLength);
+	if (value == kNoFirmwareChecksum)
+		return kNoFirmwareLoaded;
+	else if (value != metacheck)
+		return kInvalidMetadata;
+	
+	//Validate that this firmware image is the right size.*/
+	value = __builtin_tblrdl(kMetadataStart + 8);
+	if (value != kTotalLength)
+		return kWrongFirmwareLength;
 
-	tmpl = __builtin_tblrdl(2);
-	tmph = __builtin_tblrdh(2);
+	/*
+	//Validate IVT, AIVT and Firmware code
+	value = __builtin_tblrdl(kMetadataStart + 18);
+	value ^= calculate_checksum(kIVTStart, kIVTLength);
+	value ^= __builtin_tblrdl(kMetadataStart + 20);
+	value ^= calculate_checksum(kAIVTStart, kAIVTLength);
+	value ^= __builtin_tblrdl(kMetadataStart + 22);
+	value ^= calculate_checksum(kCodeStart, kCodeLength);
+	if (value != 0)
+		return kInvalidFirmware;*/
+	
 
-	*high = 0;
-	*high |= tmpl;
-	*high |= ((uint32)tmph & 0xFF) << 16;
+	//Check to make sure the hardware is compatible
+	for (i=0; i<kMetadataHWLength; i+=2)
+	{
+		unsigned int comp = (((unsigned int)hw_version[i+1]) << 8) | hw_version[i];
+		if (comp != __builtin_tblrdl(kMetadataStart+10+i))
+			return kNonmatchingHardware;
+	}
+
+	return kValidMetadata;
 }
 
-void _BOOTLOADER_CODE patch_reset_vector(unsigned char *row_buffer, uint32 low, uint32 high)
+/*
+ * The reset vector is programmed at address 0 in ROM with a 0x4 as the 16-23 bits.  The low
+ * 16 bits is the low word of the address.  Since our device only have 64K of ROM, we can ignore
+ * the high word of the address, which is stored at address 2 since it will always be 0;
+ */
+uint16_t _BOOTLOADER_CODE extract_reset_vector()
 {
-	row_buffer[0] = (low >> 0) & 0xFF;
-	row_buffer[1] = (low >> 8) & 0xFF;
-	row_buffer[2] = (low >> 16) & 0xFF;
-
-	row_buffer[3] = (high >> 0) & 0xFF;
-	row_buffer[4] = (high >> 8) & 0xFF;
-	row_buffer[5] = (high >> 16) & 0xFF;
+	TBLPAG = 0;
+	return __builtin_tblrdl(0);
 }
 
 void _BOOTLOADER_CODE goto_address(unsigned int addr)

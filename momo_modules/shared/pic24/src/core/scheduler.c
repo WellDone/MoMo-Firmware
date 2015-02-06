@@ -3,6 +3,7 @@
 #include "utilities.h"
 #include "pic24.h"
 #include "system_log.h"
+#include "log_definitions.h"
 
 static SchedulerState state;
 
@@ -53,8 +54,10 @@ void scheduler_schedule_task( task_callback func,
 
 void scheduler_remove_task(ScheduledTask *task)
 {
-	int list = task->flags & kScheduleFrequencyMask;
+	if (!BIT_TEST(task->flags, kBeingScheduledBit))
+		return;
 
+	int list = task->flags & kScheduleFrequencyMask;
 	scheduler_list_remove(&state.tasks[list], task);
 }
 
@@ -154,7 +157,8 @@ static void scheduler_callback()
 		{
 			if (BIT_TEST(curr->flags, kCallbackPendingBit))
 			{
-				CRITICAL_LOGL("Scheduled callback period came and went without callback being called.");
+				LOG_CRITICAL(kScheduledCallbackSlowError);
+				LOG_ARRAY(curr, sizeof(ScheduledTask));
 				continue;
 			}
 
@@ -168,6 +172,12 @@ static void scheduler_callback()
 static void scheduler_call_task(void *task)
 {
 	ScheduledTask *curr = task;
+
+	if ( !BIT_TEST(curr->flags, kBeingScheduledBit) ) // Sanity check, in case the task was removed after this instance was queued
+	{
+		CLEAR_BIT(curr->flags, kCallbackPendingBit);
+		return;
+	}
 
 	//Call the function and then let it be rescheduled for callback
 	//if needed.  This is so if something is locking the taskloop

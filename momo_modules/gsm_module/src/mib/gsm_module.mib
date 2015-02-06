@@ -9,17 +9,21 @@ ModuleFlags = 0;
 
 #Supported Feature Information
 feature 10
-0: _gsm_module_on(0, no);
-1: _gsm_power_on(0, no);
-2: _gsm_sendcommand(0, yes);
-3: _gsm_testsim(0, no);
-4: _gsm_dumpbuffer(0, no);
-5: _gsm_module_off(0, no);
-6: _gsm_power_off(0, no);
-7: _gsm_debug(0, no);
+0: _gsm_rpc_on(0, no);
+1: _gsm_rpc_power_on(0, no);
+2: _gsm_rpc_sendcommand(0, yes);
+3: _gsm_rpc_testsim(0, no);
+4: _gsm_rpc_dumpbuffer(0, no);
+5: _gsm_rpc_off(0, no);
+6: _gsm_rpc_power_off(0, no);
+7: _gsm_rpc_debug(0, no);
+8: _gsm_rpc_download(0, no);
+9: _gsm_rpc_setapn(0, yes);
 
 #Communication Channel Feature
 feature 11
-0: _gsm_openstream(0, yes);
+0: _gsm_openstream(1, no);
 1: _gsm_putstream(0, yes);
 2: _gsm_closestream(0, no);
+3: _gsm_abandonstream(0, no);
+4: _gsm_rpc_setcommdestination(1, yes);

@@ -19,22 +19,24 @@ void init_sensor_event_log( uint8 start_subsection, uint8 subsection_count )
 
 static void flush_one_event()
 {
+  sensor_event event;
+
   if ( ringbuffer_empty( &event_buffer ) )
     return;
-  sensor_event event;
+
   ringbuffer_pop( &event_buffer, &event );
   flash_queue_queue( &event_log, &event );
 }
 
-bool log_sensor_event( uint8 module, SensorMetadata metadata, const rtcc_datetime* datetime, uint32 *value )
+bool log_sensor_event( uint8 module, SensorMetadata metadata, const rtcc_datetime* datetime, uint32 value )
 {
   sensor_event event;
 
   event.module = module;
   event.metadata = metadata;
 
-  rtcc_create_timestamp( datetime, &(event.timestamp) );
-  event.value = *value;
+  event.timestamp = rtcc_create_timestamp(datetime);
+  event.value = value;
 
   ringbuffer_push( &event_buffer, &event );
   taskloop_add( flush_one_event, NULL );

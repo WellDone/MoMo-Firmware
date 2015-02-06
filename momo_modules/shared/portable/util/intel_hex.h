@@ -25,7 +25,7 @@ typedef struct {
 	char data_length [2];
 	char address     [4];
 	char record_type [2];
-	char data        [16];
+	char data        [32];
 	char checksum    [2];
 } intel_hex16_ascii;
 

@@ -1,6 +1,11 @@
 #include "rpc_queue.h"
 #include "task_manager.h"
 #include "system_log.h"
+
+#ifndef __TEST__
+#include "log_definitions.h"
+#endif 
+
 #include <string.h>
 
 static rpc_info   the_rpc_queue_data[RPC_QUEUE_SIZE];
@@ -14,8 +19,9 @@ void rpc_queue_init()
 void rpc_queue(mib_rpc_function callback, const MIBUnified *data)
 {
 	uninterruptible_start();
-	if ( rpc_queue_full() ) {
-		CRITICAL_LOGL("RPC Queue Full.");
+	if ( rpc_queue_full() ) 
+	{
+		LOG_CRITICAL(kRPCQueueFullError);
 		uninterruptible_end();
 		return;  // THIS IS REALLY BAD!!!!!!
 	}

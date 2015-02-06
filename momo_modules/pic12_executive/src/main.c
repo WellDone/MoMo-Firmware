@@ -6,6 +6,9 @@
 #include "mib_definitions.h"
 #include "i2c_defines.h"
 #include "port.h"
+#include "ioc.h"
+
+#define _XTAL_FREQ          4000000
 
 //Configuration Words
 #pragma config FOSC=INTOSC      /* Use internal oscillator as the frequency oscillator. */
@@ -21,6 +24,18 @@ void initialize();
 extern void restore_status();
 
 void interrupt service_isr() {
+    //Check if an alarm occurred and reset if so.
+
+    if(ioc_flag(ALARMPORT, ALARMIOC))
+    {
+        //software debounce the pin to add noise immunity
+        __delay_us(10);
+        if (PIN(ALARM) == 0)
+            exec_reset();
+
+        ioc_flag(ALARMPORT, ALARMIOC) = 0;
+    }
+
     // Handle i2c interrupts (MSSP) in the bootloader.
     if (SSP1IF == 1) 
     {
@@ -65,7 +80,7 @@ void main()
      */
     status.dirty_reset = 1;
     
-    if (status.valid_app && PIN(ALARM) == 1)
+    if (status.valid_app)
     {
         call_app_init();
         reset_page();
@@ -80,9 +95,7 @@ void main()
     }
     //Otherwise wait forever for new firmware to be downloaded
     while (1)
-    {
         sleep();
-    }
 }
 
 void initialize()
@@ -116,10 +129,9 @@ void initialize()
     ANSELB = 0;
     #endif
 
-    /* Make sure that the alarm pin is an input so that we can disable app loading if required */
-    //The above calls take care of this
-    //PIN_DIR(ALARM, INPUT);
-
+    /* Make sure that the alarm pin is configured to notify us if the alarm line is ever pulled low */
+    ioc_detect_falling(ALARMPORT, ALARMIOC, 1);
+    ioc_enable(ALARMPORT);
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
     
     /* Enable interrupts globally. */
