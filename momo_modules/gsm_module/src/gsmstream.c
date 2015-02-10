@@ -151,6 +151,9 @@ void gsm_rpc_setcommdestination()
 		while (true);
 		
 		result = ( ( result && http_status() == 200 )? 1 : 2 );
+
+		while ( http_read( NULL, 20 ) != 0 )
+			continue;
 	}
 
 	state.stream_in_progress = 0;

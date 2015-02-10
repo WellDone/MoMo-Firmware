@@ -21,8 +21,8 @@ void status_atoi( const char* str )
 
 bool http_init()
 {
-	//gsm_cmd( "AT+CDNSCFG=\"8.8.8.8\",\"8.8.4.4\"" ) == kCMDOK
-	// gsm_cmd("AT+CDNSGIP=\"google.com\"");
+	//TODO: HTTPS
+	
 	return gsm_cmd( "AT+HTTPINIT" ) == kCMDOK;
 }
 
@@ -85,6 +85,7 @@ bool http_post(const char* url)
 {
 	http_read_start = 0;
 	gsm_cmd( "AT+HTTPPARA=\"CID\",1" );
+	gsm_cmd( "AT+HTTPPARA=\"CONTENT\",\"text/plain\"" );
 	
 	gsm_write_str( "AT+HTTPPARA=\"URL\",\"" );
 	gsm_write_str( url );
@@ -113,10 +114,14 @@ uint8 http_read(char* out, uint8 out_len)
 
 	gsm_capture_remainder( http_buf, sizeof(http_buf) );
 	gsm_expect( "+HTTPREAD:" );
+	gsm_expect2( "OK" );
 	if ( gsm_cmd_raw( "", 10 ) != 1 )
 	{
 		return 0;
 	}
+
+	if ( !out )
+		return out_len;
 
 	uint8 i = 0;
 	while ( http_buf[i++] != '\r' )
