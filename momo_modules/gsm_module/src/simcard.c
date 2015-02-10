@@ -22,6 +22,8 @@ uint8 simdet_detect()
 	ENSURE_DIGITAL(SIMDET_POW);
 	PIN_SET(SIMDET_POW, 1);
 
+	__delay_ms(10);
+
 	if (PIN(SIMDET_SENSE) == 0)
 	{
 		simdet_idle();

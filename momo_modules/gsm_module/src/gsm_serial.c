@@ -7,8 +7,11 @@
 #include "gsm_defines.h"
 #include "gsm_module.h"
 #include "timer1.h"
+#include "buffers.h"
 #include <string.h>
 
+static char* remainder_buffer;
+static uint8 remainder_buffer_len;
 void gsm_serial_init()
 {
 	#ifdef ALTERNATE_SERIAL
@@ -24,7 +27,7 @@ void gsm_serial_init()
 	BRG16 = 1;
 
 	SPBRGH = 0;
-	SPBRGL = 16;
+	SPBRGL = 51;
 
 	CREN = 0; // Make sure any previous transient errors are cleared.
 	CREN = 1;
@@ -35,7 +38,21 @@ void gsm_serial_init()
 
 	RCIF = 0;
 
+	remainder_buffer = 0;
+	remainder_buffer_len = 0;
 	gsm_rx_clear();
+}
+
+void gsm_clear_receive()
+{
+	if (OERR)
+	{
+		CREN = 0;
+		CREN = 1;
+	}
+
+	while(RCIF)
+		RCREG;
 }
 
 void gsm_write_char(char c)
@@ -59,31 +76,6 @@ void gsm_write_char(char c)
 	TXREG = c;
 }
 
-char gsm_rx_peek()
-{
-	if ( rx_buffer_len == 0 )
-		return 0;
-	if ( rx_buffer_end == 0 )
-		return gsm_rx_buffer[RX_BUFFER_LENGTH-1];
-	else
-		return gsm_rx_buffer[rx_buffer_end-1];
-}
-char gsm_rx_pop()
-{
-	if ( rx_buffer_len == 0 )
-		return 0;
-	--rx_buffer_len;
-	char res = gsm_rx_buffer[rx_buffer_start++];
-	if ( rx_buffer_start == RX_BUFFER_LENGTH )
-		rx_buffer_start = 0;
-	return res;
-}
-
-void gsm_rx_clear()
-{
-	rx_buffer_start = rx_buffer_end = rx_buffer_len = 0;
-}
-
 bool gsm_rx()
 {
 	if (OERR)
@@ -102,41 +94,40 @@ bool gsm_rx()
 	if ( TMR1IF == 1 )
 		return false;
 
-	if ( rx_buffer_len < RX_BUFFER_LENGTH )
-	{
-		gsm_rx_buffer[rx_buffer_end++] = RCREG;
-		if ( rx_buffer_end >= RX_BUFFER_LENGTH )
-			rx_buffer_end = 0;
-		++rx_buffer_len;
-	}
-	else
-	{
-		gsm_rx_buffer[rx_buffer_start++] = RCREG;
-		rx_buffer_end = rx_buffer_start;
-		if ( rx_buffer_start >= RX_BUFFER_LENGTH )
-			rx_buffer_start = 0;
-	}
+	gsm_rx_push(RCREG);
 	
 	return true;
 }
 
-const char* expected_response1;
-const char* expected_response2;
-const char* expectation_counter1;
-const char* expectation_counter2;
-void gsm_expect( const char* response )
+extern const char* expected1;
+extern const char* expected2;
+
+void gsm_expect(const char* response)
 {
-	expected_response1 = response;
-	expected_response2 = NULL;
+	expected1 = response;
+	expected2 = response;
 }
-void gsm_expect2( const char* response )
+
+void gsm_expect2(const char* response)
 {
-	expected_response2 = response;
+	expected2 = response;
+}
+
+void gsm_expect_ok_error()
+{
+	gsm_expect("OK");
+	gsm_expect2("ERROR");
+}
+
+void gsm_capture_remainder( char* buf, uint8 max_len )
+{
+		remainder_buffer = buf;
+		remainder_buffer_len = max_len;
 }
 uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
 {
-	expectation_counter1 = expected_response1;
-	expectation_counter2 = expected_response2;
+	reset_expected1_ptr();
+	reset_expected2_ptr();
 	
 	timeout_s *= 2; // Each RX timeout is .5s
 	while ( !gsm_rx() )
@@ -147,22 +138,54 @@ uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
 
 	do
 	{
-		if ( *expectation_counter1 != gsm_rx_peek() )
-			expectation_counter1 = expected_response1;
-		else if ( *(++expectation_counter1) == '\0' )
-			return 1;
-
-		if ( expected_response2 != NULL )
+		uint8 value = gsm_check(gsm_rx_peek());
+		if (value != 0)
 		{
-			if ( *expectation_counter2 != gsm_rx_peek() )
-				expectation_counter2 = expected_response2;
-			else if ( *(++expectation_counter2) == '\0' )
-				return 2;
+			while ( gsm_rx() )
+			{
+				if ( remainder_buffer && remainder_buffer_len > 1 )
+				{
+					*(remainder_buffer++) = gsm_rx_peek();
+					--remainder_buffer_len;
+				}
+				continue;
+			}
+
+			if ( remainder_buffer && remainder_buffer_len != 0 )
+				*remainder_buffer = '\0';
+
+			return value;
 		}
 	}
 	while ( gsm_rx() || gsm_rx() ); // Try twice to get a char, to be a little more robust.
 	
 	return GSM_SERIAL_TIMEDOUT;
+}
+
+/* 
+ * Check if this character matches the current position of one of the variables
+ * we are looking for.  We have to check a second time if it does not match since
+ * it may match the first character but we were on the 3rd character, for example.
+ */
+uint8 gsm_check(uint8 current)
+{
+	uint8 result;
+
+	result = check_inc_expected1(current);
+	if (result == 0xFF)
+		result = check_inc_expected1(current);
+
+	if (result == 0)
+		return 1;
+
+	result = check_inc_expected2(current);
+	if (result == 0xFF)
+		result = check_inc_expected2(current);
+
+	if (result == 0)
+		return 2;
+
+	return 0;
 }
 
 uint8 gsm_readback( char* buf, uint8 max_len )
@@ -174,6 +197,7 @@ uint8 gsm_readback( char* buf, uint8 max_len )
 	}
 	return i;
 }
+
 uint8 gsm_read( char* buf, uint8 max_len )
 {
 	uint8 timeout_counter = GSM_EXPECT_TIMEOUT;
@@ -209,5 +233,6 @@ void gsm_write(const char* buf, uint8 len)
 }
 void gsm_write_str(const char* str)
 {
-	gsm_write( str, strlen( str ) );
+	while (*str)
+		gsm_write_char(*str++);
 }

@@ -20,7 +20,7 @@ void gsm_module_off()
 	ANALOG_IF_POSSIBLE(GSMRESETPIN);
 
 	state.module_on = 0;
-	state.shutdown_pending = 0;
+	state.callback_pending = 0;
 	state.stream_in_progress = 0;
 }
 
