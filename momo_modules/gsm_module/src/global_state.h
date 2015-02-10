@@ -7,10 +7,11 @@ typedef union
 	struct
 	{
 		volatile uint8 module_on:1;
-		volatile uint8 shutdown_pending:1;
+		volatile uint8 callback_pending:1;
 		volatile uint8 stream_in_progress:1;
 		volatile uint8 stream_type:1;
-		volatile uint8 unused:4;
+		volatile uint8 stream_success:1;
+		volatile uint8 unused:3;
 	};
 
 	volatile uint8 gsm_state;

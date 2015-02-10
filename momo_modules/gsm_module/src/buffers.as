@@ -153,6 +153,17 @@ ENDFUNCTION _gsm_rx_peek
 ;PARAMETERS: one character in W
 ;USES:FSR0L,FSR1
 BEGINFUNCTION _gsm_rx_push
+	; store character at rx_buffer_end
+	; if rx_buffer_len == GSM_RECEIVE_BUFFER_LENGTH:
+	;   increment rx_buffer_start
+	;   if rx_buffer_start == GSM_RECEIVE_BUFFER_LENGTH:
+	;     rx_buffer_start = 0
+	; else
+	;   increment rx_buffer_end
+	; increment rx_buffer_end
+	; if rx_buffer_end == GSM_RECEIVE_BUFFER_LENGTH:
+	;   rx_buffer_end = 0
+
 	;save off byte for later
 	movwf FSR0L
 	
@@ -160,8 +171,15 @@ BEGINFUNCTION _gsm_rx_push
 	movlw kReceiveBuffer
 	call _load_buffer
 
-	;Check if rx_buffer_len == GSM_RECEIVE_BUFFER_LENGTH
-	banksel _rx_buffer_len
+	banksel(_rx_buffer_end)
+	movf BANKMASK(_rx_buffer_end),w
+	call _add_w_fsr1
+
+	; store the character
+	movf FSR0L,w
+	movwf INDF1
+	
+	;Check if the buffer is full
 	movf BANKMASK(_rx_buffer_len),w
 	xorlw GSM_RECEIVE_BUFFER_LENGTH
 	skipnz 
@@ -169,39 +187,24 @@ BEGINFUNCTION _gsm_rx_push
 	goto buffer_not_full
 
 	buffer_full:
-	banksel _rx_buffer_start
-	movf BANKMASK(_rx_buffer_start),w
-	call _add_w_fsr1
-	incf BANKMASK(_rx_buffer_start),f
-	movf BANKMASK(_rx_buffer_start),w
-	xorlw GSM_RECEIVE_BUFFER_LENGTH
-	skipnz
-		clrf BANKMASK(_rx_buffer_start)
-	movf BANKMASK(_rx_buffer_start),w
-	movwf BANKMASK(_rx_buffer_end)
-
-	goto load_character
+		incf BANKMASK(_rx_buffer_start),f
+		movf BANKMASK(_rx_buffer_start),w
+		xorlw GSM_RECEIVE_BUFFER_LENGTH
+		skipnz
+			clrf BANKMASK(_rx_buffer_start)
+		goto finish
 
 
 	buffer_not_full:
-	banksel(_rx_buffer_end)
-	movf BANKMASK(_rx_buffer_end),w
-	call _add_w_fsr1
-	incf BANKMASK(_rx_buffer_end),f
+		incf BANKMASK(_rx_buffer_len)
 
-	;If rx_buffer_end == GSM_RECEIVE_BUFFER_LENGTH, zero it
-	movlw GSM_RECEIVE_BUFFER_LENGTH
-	xorwf BANKMASK(_rx_buffer_end),w
-	skipnz
-		clrf BANKMASK(_rx_buffer_end)
-
-	banksel _rx_buffer_len
-	incf BANKMASK(_rx_buffer_len)
-
-	load_character:
-	;Load character into buffer
-	movf FSR0L,w
-	movwf INDF1
+	finish:
+		incf BANKMASK(_rx_buffer_end),f
+		movf BANKMASK(_rx_buffer_end),w
+		xorlw GSM_RECEIVE_BUFFER_LENGTH
+		skipnz
+			clrf BANKMASK(_rx_buffer_end)
+	
 	return
 ENDFUNCTION _gsm_rx_push
 

@@ -16,6 +16,7 @@
 #include "sms.h"
 #include "gprs.h"
 #include "http.h"
+#include "gsm_defines.h"
 #include <string.h>
 
 //Defined in buffers.as
@@ -99,22 +100,38 @@ void gsm_rpc_setcommdestination()
  	}
 
  	gsm_write( mib_buffer, mib_buffer_length() );
+ 	__delay_ms(1);
 
  	bus_slave_setreturn(pack_return_status(0,0));
  }
 
  void gsm_closestream()
  {
- 	
- 	state.stream_in_progress = 0; //TODO: Prevent new streams until the message has actually sent?
+ 	if ( !state.stream_in_progress )
+ 	{
+ 		bus_slave_setreturn(pack_return_status(7,0));
+ 		return;
+ 	}
 
+ 	uint8 result = 0, timeout_10s = 8*6; // 8 minutes
 	if ( state.stream_type == kStreamSMS )
 	{
 		if ( sms_send() )
+		{
 	 		gsm_off();
-	 	else
-	 		state.shutdown_pending = 1;  // Shutdown the module after we've sent the message (or timed out)
-	 	bus_slave_setreturn(pack_return_status(0,0));
+	 		bus_slave_setreturn(pack_return_status(0,0));
+	 		return;
+		}
+
+		gsm_expect( "+CMGS:" );
+		gsm_expect2( "ERROR" );
+		do
+		{
+			result = gsm_await( 10 );
+			if ( result == 1 || --timeout_10s == 0 )
+				break;
+		}
+		while ( true );	
 	}
 	else
 	{
@@ -122,13 +139,41 @@ void gsm_rpc_setcommdestination()
 		{
 			gsm_off();
 			bus_slave_setreturn(pack_return_status(6,0));
+			return;
 		}
-		else
+		do
 		{
-			state.shutdown_pending = 1;
-			bus_slave_setreturn(pack_return_status(0,0));
+			result = http_await_response();
+
+			if ( result || --timeout_10s == 0 )
+				break;
 		}
+		while (true);
+		
+		result = ( ( result && http_status() == 200 )? 1 : 2 );
 	}
+
+	state.stream_in_progress = 0;
+	state.callback_pending = 1;
+	state.stream_success = ( result == 1 ) ? 1 : 0;
+	bus_slave_setreturn(pack_return_status(0,0));
+	gsm_off();
+
+		// if ( result == 2 && state.stream_type == kStreamSMS )
+		// {
+		// 	capture_error();
+		// }
+		// else
+		// {
+		// 	uint_buf[5] = '\0';
+			
+		// 	strcpy( mib_buffer, "GPRS ERROR : " );
+		// 	strcpy( mib_buffer+13, uint_buf );
+
+		// 	bus_master_begin_rpc();
+		// 	bus_master_prepare_rpc( 42, 0x20, plist_with_buffer( 0, 13+strlen(uint_buf) ) );
+		// 	bus_master_send_rpc( 8 );
+		// }
  }
 
  void gsm_abandonstream()

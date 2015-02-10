@@ -25,7 +25,7 @@ bool gprs_connect()
 	gsm_cmd( "AT+SAPBR=3,1,\"Contype\",\"GPRS\"" );
 	__delay_ms(100);
 	
-	uint8 retry_count = 4;
+	uint8 retry_count = 2;
 	do
 	{
 		//Need to wait a longer time for this command because it can take > 3s to return
