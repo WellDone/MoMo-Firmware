@@ -10,6 +10,8 @@
 #include "buffers.h"
 #include <string.h>
 
+static char* remainder_buffer;
+static uint8 remainder_buffer_len;
 void gsm_serial_init()
 {
 	#ifdef ALTERNATE_SERIAL
@@ -36,6 +38,8 @@ void gsm_serial_init()
 
 	RCIF = 0;
 
+	remainder_buffer = 0;
+	remainder_buffer_len = 0;
 	gsm_rx_clear();
 }
 
@@ -115,6 +119,11 @@ void gsm_expect_ok_error()
 	gsm_expect2("ERROR");
 }
 
+void gsm_capture_remainder( char* buf, uint8 max_len )
+{
+		remainder_buffer = buf;
+		remainder_buffer_len = max_len;
+}
 uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
 {
 	reset_expected1_ptr();
@@ -144,6 +153,18 @@ uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
 			// 			return value;
 			// 	}
 			// }
+			while ( gsm_rx() )
+			{
+				if ( remainder_buffer && remainder_buffer_len > 1 )
+				{
+					*(remainder_buffer++) = gsm_rx_peek();
+					--remainder_buffer_len;
+				}
+				continue;
+			}
+
+			if ( remainder_buffer && remainder_buffer_len != 0 )
+				*remainder_buffer = '\0';
 
 			return value;
 		}

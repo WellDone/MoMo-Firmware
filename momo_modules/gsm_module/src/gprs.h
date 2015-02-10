@@ -3,7 +3,7 @@
 
 #include "platform.h"
 
-#define GPRS_CONNECT_TIMEOUT	10		//It can take a long time for the gprs connection to activate
+#define GPRS_CONNECT_TIMEOUT	30		//It can take a long time for the gprs connection to activate
 
 void gprs_init_buffers();
 void gprs_set_apn();

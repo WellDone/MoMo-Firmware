@@ -61,9 +61,10 @@ bool gsm_registered()
 
 void gsm_remember_band()
 {
+	gsm_capture_remainder( sticky_band, sizeof(sticky_band) );
 	gsm_expect( "+CBAND: " );
 	gsm_cmd_raw( "AT+CBAND?" , kDEFAULT_CMD_TIMEOUT );
-	sticky_band[ gsm_read( sticky_band, sizeof(sticky_band)-1 ) ] = '\0';
+	
 	uint8 i = 0;
 	while ( sticky_band[i] != '\0' && sticky_band[i] != ',' && sticky_band[i] != '\r' && i++ < sizeof(sticky_band) )
 		continue;

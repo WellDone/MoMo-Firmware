@@ -157,9 +157,11 @@ void gsm_rpc_debug()
 	mib_buffer[1] = state.shutdown_pending;
 	mib_buffer[2] = rx_buffer_start;
 	mib_buffer[3] = rx_buffer_end;
-	mib_buffer[4] = debug_val;
+	mib_buffer[4] = rx_buffer_len;
+	mib_buffer[5] = debug_val;
+	((uint16*)mib_buffer)[3] = http_response_status;
 
-	bus_slave_setreturn(pack_return_status(0, 5));
+	bus_slave_setreturn(pack_return_status(0, 8));
 }
 
 void gsm_rpc_download()
