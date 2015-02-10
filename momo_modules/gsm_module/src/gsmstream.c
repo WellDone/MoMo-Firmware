@@ -32,6 +32,13 @@ void gsm_rpc_setcommdestination()
 
  void gsm_openstream()
  {
+ 	if ( state.stream_in_progress )
+ 	{
+ 		gsm_off(); // Prioritize later streams in case we got hung-up somehow.
+ 		__delay_ms( 1000 );
+ 	}
+ 	state.stream_in_progress = 1;
+
  	if (!gsm_on())
  	{
  		bus_slave_setreturn(pack_return_status(6,0));
@@ -44,16 +51,9 @@ void gsm_rpc_setcommdestination()
  		return;
  	}
 
- 	if ( state.stream_in_progress )
- 	{
- 		bus_slave_setreturn(pack_return_status(7,0)); //TODO: Busy MIB status code
- 		return;
- 	}
- 	state.stream_in_progress = 1;
-
  	if ( gsm_register() )
  	{
- 		gsm_remember_band(); // Times out after 4 minutes
+ 		gsm_remember_band(); // Timeout after 4 minutes
 
  		if (comm_destination_get(0) == '+' )
 	 	{
@@ -151,9 +151,13 @@ void gsm_rpc_setcommdestination()
 		while (true);
 		
 		result = ( ( result && http_status() == 200 )? 1 : 2 );
-
-		while ( http_read( NULL, 20 ) != 0 )
-			continue;
+		
+		// TODO: do something with the result
+		// if ( result == 1 )
+		// {
+		// 	while ( http_read( NULL, 20 ) != 0 )
+		// 		continue;
+		// }
 	}
 
 	state.stream_in_progress = 0;

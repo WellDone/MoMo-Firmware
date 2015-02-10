@@ -1,7 +1,9 @@
 #include "http.h"
 #include "gsm_serial.h"
 #include "gsm.h"
+#include "gsmstream.h"
 #include "global_state.h"
+#include "buffers.h"
 #include <stdlib.h>
 
 uint16 http_read_start;
@@ -21,8 +23,14 @@ void status_atoi( const char* str )
 
 bool http_init()
 {
-	//TODO: HTTPS
-	
+	if ( comm_destination_get(0) == 'h'
+		&& comm_destination_get(1) == 't'
+		&& comm_destination_get(2) == 't'
+		&& comm_destination_get(3) == 'p'
+		&& comm_destination_get(4) == 's' )
+	{
+		gsm_cmd( "AT+HTTPSSL=1" );
+	}
 	return gsm_cmd( "AT+HTTPINIT" ) == kCMDOK;
 }
 
