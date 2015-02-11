@@ -117,7 +117,7 @@ static void get_report()
 
 static void get_reporting_sequence(void)
 {
-	bus_slave_return_int16( current_momo_state.report_config.current_sequence );
+	bus_slave_return_int16( current_momo_state.report_config.transmit_sequence );
 }
 
 static BYTE report_buffer[RAW_REPORT_MAX_LENGTH];

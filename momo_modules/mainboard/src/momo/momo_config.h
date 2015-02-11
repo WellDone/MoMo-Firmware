@@ -1,12 +1,14 @@
 #ifndef __momo_config_h__
 #define __momo_config_h__
 
+#include "platform.h"
 #include "rtcc.h"
 #include "flash_queue.h"
 #include "report_manager.h"
 
 typedef struct {
   uint16              state_flags;
+  uint32              uuid;
   ReportConfiguration report_config;
 } MoMoState;
 

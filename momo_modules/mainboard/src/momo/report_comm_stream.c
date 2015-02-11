@@ -44,6 +44,8 @@ void reset_comm_stream()
 }
 void open_stream()
 {
+  ++CONFIG.transmit_sequence;
+  
   MIBUnified cmd;
   *((uint16*)cmd.mib_buffer) = strlen(report_buffer);
   
