@@ -24,6 +24,19 @@ ControllerFactoryResetNotice
 "The MoMo controller is performing a factory reset"
 
 
+SanityCheckNotice
+"Running sanity check"
+- "rpc_start_time" as integer, format unsigned
+- "Now" as integer, format unsigned
+- "Diff" as integer, format unsigned
+
+SanityCheckResetNotice
+"The regular sanity check failed, resetting."
+- "Expected Modules" as integer, format unsigned
+- "Attached Modules" as integer, format unsigned
+- "RPC Hang Delay" as integer, format unsigned
+
+
 SubmoduleAddressRequestNotice
 "A submodule asked for an address"
 
