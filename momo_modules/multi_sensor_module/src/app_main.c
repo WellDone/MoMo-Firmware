@@ -16,33 +16,47 @@
 MultiSensorState state;
 
 extern unsigned int adc_result;
-extern uint16_t counter;
-extern uint16_t periods;
+extern uint8_t periods;
+
+#define kMaxPeriods		10
+uint16_t median_intervals[kMaxPeriods];
 
 void task(void)
-{
+{ 
 	wdt_disable();
 
 	//If we slept for an increment, sample the number of pulses
-	if (nTO==0)
-		pulse_sample();
-
-	if (state.push_pending)
+	//Also allow pulse sampling if we received a sample command RPC
+	if (nTO==0 || state.acquire_pulse)
 	{
-		uint16_t correction_factor = 1;
-		state.push_pending = 0;
+		pulse_sample();
+		median_intervals[periods] = pulse_median_interval() >> 8; //divide by 256 to get approx in ms since each clock tick was 8 us
+		state.acquire_pulse = 0;
 
+		++periods;
+	}
+
+	if (state.push_pending && (!state.push_disabled))
+	{
+		uint16_t average_flow = 0;
+		
 		/*
-		 * We report data every minute, and we sample for 0.1 seconds
-		 * per time.  So we need to correct our sampled counter for the
-		 * ratio between the period of time that we are covering (60 seconds)
-		 * and the amount of time we were sampling for (periods*0.1 seconds)
+		 * Compute and report the average flow rate in pulses per second
 		 */
-
 		if (periods > 0)
-			correction_factor = 600/periods;
+		{
+			uint8_t i;
 
-		counter *= correction_factor;
+			for(i=0; i<periods; ++i)
+			{
+				if (median_intervals[i] > 0)
+					average_flow += 1000UL/median_intervals[i];
+			}
+
+			average_flow /= periods;
+		}
+
+		state.push_pending = 0;
 
 		bus_master_begin_rpc();
 		mib_buffer[0] = mib_address;
@@ -51,20 +65,19 @@ void task(void)
 		mib_buffer[2] = 0;
 		mib_buffer[3] = 0; //metadata
 
-		mib_buffer[4] = counter & 0xFF;
-		mib_buffer[5] = counter & 0xFF;
+		mib_buffer[4] = average_flow & 0xFF;
+		mib_buffer[5] = average_flow >> 8;
 		mib_buffer[6] = 0;
 		mib_buffer[7] = 0;
 
 		bus_master_prepare_rpc(70, 0, plist_with_buffer(2, 4));
 		bus_master_send_rpc(8);
 
-		//Reset counters to start counting again
-		counter = 0;
+		//Start counting again
 		periods = 0;
 	}
 
-	WDTCON = k4SecondTimeout;
+	WDTCON = k16SecondTimeout;
 	wdt_enable();
 }
 
@@ -72,7 +85,11 @@ void interrupt_handler(void)
 {
 	if (ioc_flag_b(PULSE_IOC))
 	{
-		counter += 1;
+		if (PIN(PULSE_IN) == 0)
+			pulse_falling_edge();
+		else
+			pulse_rising_edge();
+
 		ioc_flag_b(PULSE_IOC) = 0;
 	}
 }
@@ -119,7 +136,6 @@ void initialize(void)
 	state.combined_state = 0;
 
 	ioc_enable_b();
-	counter = 0;
 	periods = 0;
 	
 	bus_master_begin_rpc();
@@ -198,24 +214,53 @@ void acquire_pulse()
 	bus_slave_setreturn(pack_return_status(0, 0));
 }
 
-void read_pulses()
+void number_of_pulses()
 {
-	mib_buffer[0] = counter & 0xFF;
-	mib_buffer[1] = counter >> 8;
-	mib_buffer[2] = periods & 0xFF;
-	mib_buffer[3] = periods >> 8;
+	mib_buffer[0] = pulse_count() & 0xFF;
+	mib_buffer[1] = pulse_count() >> 8;
+	mib_buffer[2] = pulse_invalid_count() & 0xFF;
+	mib_buffer[3] = pulse_invalid_count() >> 8;
 
 	bus_slave_setreturn(pack_return_status(0, 4));
 }
 
-void clear_counters()
+void read_pulse()
 {
-	counter = 0;
-	periods = 0;
-	bus_slave_setreturn(pack_return_status(0, 0));
+	uint8 pulse = mib_buffer[0];
+
+	mib_buffer[0] = pulse_width(pulse) & 0xFF;
+	mib_buffer[1] = pulse_width(pulse) >> 8;
+	mib_buffer[2] = pulse_interval(pulse) & 0xFF;
+	mib_buffer[3] = pulse_interval(pulse) >> 8;
+
+	bus_slave_setreturn(pack_return_status(0, 4));
 }
 
 void scheduled_callback()
 {
 	state.push_pending = 1;
+}
+
+void read_periods()
+{
+	mib_buffer[0] = periods & 0xFF;
+	mib_buffer[1] = periods >> 8;
+
+	bus_slave_setreturn(pack_return_status(0, 2));
+}
+
+void set_push_status()
+{
+	state.push_disabled = !(mib_buffer[0] > 0);
+	bus_slave_setreturn(pack_return_status(0, 0));
+}
+
+void read_median_interval()
+{
+	uint16_t median = pulse_median_interval();
+
+	mib_buffer[0] = median & 0xFF;
+	mib_buffer[1] = median >> 8;
+
+	bus_slave_setreturn(pack_return_status(0, 2));
 }
