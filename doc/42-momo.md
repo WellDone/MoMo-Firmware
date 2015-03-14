@@ -193,7 +193,7 @@ add_ldf /home/timburke/Projects/MoMo-Firmware/momo_modules/shared/pic24/src/log_
 The file should be called momo_config.txt and stored under the .config directory in your home folder on unix and in %APPDATA% on windows.  To Find where the config file should be stored on your system just run:
 
 ```
-> momo --rcdir
+> momo --rcfile
 /Users/timburke/Library/Preferences/momo_config.txt
 ```
 
