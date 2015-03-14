@@ -25,7 +25,7 @@ regsave: ds 1
 fsrlsave: ds 1
 fsrhsave: ds 1
 
-PSECT text_unittest,local,class=CODE,delta=2
+PSECT text_unit1,local,class=CODE,delta=2
 
 ;Save all of the registers that these routines could overwrite
 _savestate:
