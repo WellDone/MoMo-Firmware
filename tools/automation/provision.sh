@@ -59,9 +59,9 @@ download_file () {
 
 if [ -n "$MOMO_DEV" ]; then
 
-	XC8VERSION=v1.33
+	XC8VERSION=v1.34
 	XC8INSTALLER=xc8-$XC8VERSION-full-install-linux-installer.run
-	download_file "XC8 Installer"	http://ww1.microchip.com/downloads/en/DeviceDoc/$XC8INSTALLER 5bdfbafbe1fb4f2d47a7dacc60d918a0b54425bc02a0ffe352ab4ad02c70143a
+	download_file "XC8 Installer"	http://ww1.microchip.com/downloads/en/DeviceDoc/$XC8INSTALLER ab0e36db27919fee2f41f95f345920e50fa3f32ba64f0accd2e041715ebdb231
 	echo "Installing xc8 compiler..."
 	chmod +x ./$XC8INSTALLER
 	./$XC8INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc8/$XC8VERSION"
@@ -73,11 +73,11 @@ if [ -n "$MOMO_DEV" ]; then
 	fi
 	echo "DONE!"
 
-	XC16VERSION=v1.21
-	XC16INSTALLER=xc16-$XC16VERSION-linux-installer.run
-	download_file "XC16 Installer" http://ww1.microchip.com/downloads/en/DeviceDoc/$XC16INSTALLER.tar 80a9fcc6e9e8b051266e06c1eff0ca078ebbc791a7d248dedd65f34a76d7735c
-	tar -xvf $XC16INSTALLER.tar
+	XC16VERSION=v1.24
+	XC16INSTALLER=xc16-$XC16VERSION-full-install-linux-installer.run
+	download_file "XC16 Installer" http://ww1.microchip.com/downloads/en/DeviceDoc/$XC16INSTALLER 22fd2d5cb7042e8d9aa7aef8c2e5a8c7a76bf3c55e0b5ff2dbd23450e227e023
 	echo "Installing xc16 compiler..."
+	chmod +x ./$XC16INSTALLER
 	./$XC16INSTALLER --mode unattended --netservername "" --prefix "/opt/microchip/xc16/$XC16VERSION"
 	CODE=$?
 	echo "export PATH=\"\$PATH:/opt/microchip/xc16/$XC16VERSION/bin\"" >> $HOME/.profile

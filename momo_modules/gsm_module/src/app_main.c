@@ -13,8 +13,11 @@
 #include "global_state.h"
 #include "port.h"
 #include "intel_hex.h"
+#include "buffers.h"
 #include <string.h>
 
+
+extern uint16 http_response_status;
 static void report_result(bool success)
 {
 	bus_master_begin_rpc();
@@ -24,72 +27,26 @@ static void report_result(bool success)
 	bus_master_send_rpc(8);
 }
 
-static void capture_error(void)
-{
-	uint8 len = gsm_read( mib_buffer, kBusMaxMessageSize );
-	if ( len == 0 )
-		return;
+// static void capture_error(void)
+// {
+// 	uint8 len = gsm_read( mib_buffer, kBusMaxMessageSize );
+// 	if ( len == 0 )
+// 		return;
 
-	bus_master_begin_rpc();
-	bus_master_prepare_rpc( 42, 0x20, plist_with_buffer( 0, len ) );
-	bus_master_send_rpc( 8 );
-}
+// 	bus_master_begin_rpc();
+// 	bus_master_prepare_rpc( 42, 0x20, plist_with_buffer( 0, len ) );
+// 	bus_master_send_rpc( 8 );
+// }
 
 extern char* uint_buf;
 void task(void)
 {
 	wdt_disable();
-	
-	//Don't sleep while the module's on so that we don't miss a
-	//serial message
-	while(state.module_on)
+
+	if ( state.callback_pending == 1 )
 	{
-		gsm_rx();
-
-		if ( state.shutdown_pending )
-		{
-			uint8 result, timeout_10s = 8*6; // 8 minutes
-			if ( state.stream_type == kStreamSMS )
-			{
-				gsm_expect( "+CMGS:" );
-				gsm_expect2( "ERROR" );
-				do
-				{
-					result = gsm_await( 10 );
-					if ( --timeout_10s == 0 )
-						break;
-				}
-				while ( true );	
-			}
-			else
-			{
-				do
-				{
-					result = http_await_response( 10 );
-					if ( result || --timeout_10s == 0 )
-						break;
-				}
-				while (true);
-
-				result = ( ( result && http_status() == 200 )? 1 : 2 );
-			}
-
-			report_result( result == 1 );
-			if ( result == 2 && state.stream_type == kStreamSMS )
-			{
-				capture_error();
-			}
-			else
-			{
-				strcpy( mib_buffer, "GPRS ERROR : " );
-				strcpy( mib_buffer+13, uint_buf );
-
-				bus_master_begin_rpc();
-				bus_master_prepare_rpc( 42, 0x20, plist_with_buffer( 0, 13+strlen(uint_buf) ) );
-				bus_master_send_rpc( 8 );
-			}
-			gsm_off();
-		}
+		report_result( state.stream_success );
+		state.callback_pending = 0;
 	}
 }
 
@@ -101,6 +58,7 @@ void interrupt_handler(void)
 void initialize(void)
 {	
 	debug_val = 0;
+	http_response_status = 0;
 	gsm_init();
 }
 
@@ -149,12 +107,14 @@ void gsm_rpc_dumpbuffer()
 void gsm_rpc_debug()
 {
 	mib_buffer[0] = state.module_on;
-	mib_buffer[1] = state.shutdown_pending;
+	mib_buffer[1] = state.callback_pending;
 	mib_buffer[2] = rx_buffer_start;
 	mib_buffer[3] = rx_buffer_end;
-	mib_buffer[4] = debug_val;
+	mib_buffer[4] = rx_buffer_len;
+	mib_buffer[5] = debug_val;
+	((uint16*)mib_buffer)[3] = http_response_status;
 
-	bus_slave_setreturn(pack_return_status(0, 5));
+	bus_slave_setreturn(pack_return_status(0, 8));
 }
 
 void gsm_rpc_download()

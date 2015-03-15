@@ -57,3 +57,9 @@ skipel MACRO lit
 	xorlw lit
 	skipz
 ENDM
+
+;skip if W > literal
+skipwgtl MACRO lit
+	sublw lit
+	btfss STATUS && 0x7F, 0
+ENDM

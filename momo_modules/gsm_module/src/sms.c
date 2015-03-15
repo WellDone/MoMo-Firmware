@@ -6,7 +6,7 @@
 bool sms_prepare(const char* destination, uint8 length)
 {
 	gsm_write_str("AT+CMGS=\"");
- 	gsm_write( destination, length );
+ 	gsm_write(destination, length);
  	gsm_write_str( "\"\r" );
  	gsm_expect( ">" );
  	return gsm_await( 5 );

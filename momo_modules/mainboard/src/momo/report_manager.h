@@ -4,13 +4,13 @@
 #include "platform.h"
 #include "rtcc.h"
 
-#define MOMO_REPORT_VERSION 2
+#define MOMO_REPORT_VERSION 3
 #define pack_report_interval(type, step)	(((step&0xF) << 4) | (type&0xF))
 
 // If this ever changes, make sure to update report_log.c
 #define RAW_REPORT_MAX_LENGTH     118
 #define BASE64_REPORT_MAX_LENGTH  160 //( 4 * ( ( RAW_REPORT_MAX_LENGTH + 2 ) / 3) )
-#define NUM_BUCKETS               56
+#define NUM_BUCKETS               50 // at 24 intervals (hourly buckets, daily reports) and 2 interval aggregates: 2 bulk aggregates
 
 enum 
 {
@@ -58,7 +58,7 @@ typedef struct
 	char            route_primary[ROUTE_MAX_LENGTH];
 	char            route_secondary[ROUTE_MAX_LENGTH];
 	char            gprs_apn[21];
-	uint16          current_sequence;
+	uint8           transmit_sequence;
 	AlarmRepeatTime report_interval;
 	uint16          report_flags;
 	uint8           bulk_aggregates;
