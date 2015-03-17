@@ -1,8 +1,3 @@
-module library libgpsim_modules
-module load i2cmaster u1
-node scl
-node sda
-
 stimulus asynchronous_stimulus
 initial_state 1
 start_cycle 1000
@@ -183,6 +178,5 @@ start_cycle 1000
 name sda_seq
 end
 
-attach scl portb4 scl_seq
-attach sda portb1 sda_seq
-run
+attach scl scl_seq
+attach sda sda_seq

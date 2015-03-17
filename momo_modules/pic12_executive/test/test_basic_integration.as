@@ -1,7 +1,7 @@
 ;Name: test_basic_integration
 ;Targets: all
 ;Type: executive_integration
-;Additional: support_valid_app.as,support_i2c_pullups.cmd
+;Additional: support_valid_app.as
 ;Checkpoints: _begin_tests=0
 ;Description: Test to ensure that executive integration tests work
 ;correctly and run the entire executive, finding an application module 
