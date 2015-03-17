@@ -4,13 +4,13 @@
 #include "platform.h"
 #include "rtcc.h"
 
-#define MOMO_REPORT_VERSION 2
+#define MOMO_REPORT_VERSION 3
 #define pack_report_interval(type, step)	(((step&0xF) << 4) | (type&0xF))
 
 // If this ever changes, make sure to update report_log.c
 #define RAW_REPORT_MAX_LENGTH     118
 #define BASE64_REPORT_MAX_LENGTH  160 //( 4 * ( ( RAW_REPORT_MAX_LENGTH + 2 ) / 3) )
-#define NUM_BUCKETS               56
+#define NUM_BUCKETS               50 // at 24 intervals (hourly buckets, daily reports) and 2 interval aggregates: 2 bulk aggregates
 
 enum 
 {
@@ -52,14 +52,18 @@ enum
 	kAggMax      = 0b01000000
 };
 
+#define ROUTE_MAX_LENGTH 64
 typedef struct 
 {
-	char            report_server_address[16];
-	uint16          current_sequence;
+	char            route_primary[ROUTE_MAX_LENGTH];
+	char            route_secondary[ROUTE_MAX_LENGTH];
+	char            gprs_apn[21];
+	uint8           transmit_sequence;
 	AlarmRepeatTime report_interval;
 	uint16          report_flags;
 	uint8           bulk_aggregates;
 	uint8           interval_aggregates;
+	uint8           retry_limit;
 } ReportConfiguration;
 
 void report_manager_start();
@@ -69,6 +73,8 @@ void post_report( void* );
 void start_report_scheduling();
 void stop_report_scheduling();
 void set_report_scheduling_interval( AlarmRepeatTime interval );
-void set_report_server_address( const char* address, uint8 len );
+void update_report_route( uint8 index, uint8 start, const char* address, uint8 len );
+const char* get_report_route( uint8 index );
+void set_gprs_apn( const char* apn, uint8 len );
 
 #endif	/* __report_manager_h__ */

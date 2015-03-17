@@ -45,13 +45,41 @@ static void get_reporting_interval(void)
 	bus_slave_return_int16( current_momo_state.report_config.report_interval );
 }
 
-static void set_reporting_gsm_address(void)
+static void set_reporting_route(void)
 {
-	set_report_server_address( (const char*)plist_get_buffer(0), plist_get_buffer_length() );
+	update_report_route( (plist_get_int16(0) >> 8) & 0xFF
+	                   , plist_get_int16(0) & 0xFF
+	                   , (const char*)plist_get_buffer(1)
+	                   , plist_get_buffer_length() );
 }
-static void get_reporting_gsm_address(void)
+static void get_reporting_route(void)
 {
-	bus_slave_return_buffer( current_momo_state.report_config.report_server_address, strlen( current_momo_state.report_config.report_server_address ) );
+	const char* route = get_report_route( ( plist_get_int16(0) >> 8 ) & 0xFF );
+	if ( !route )
+	{
+		bus_slave_seterror( kUnknownError );
+		return;
+	}
+	uint8 start = plist_get_int16(0) & 0xFF;
+	uint8 len = strlen( route ) - start;
+	if ( len < 0 )
+	{
+		bus_slave_seterror( kCallbackError );
+		return;
+	}
+
+	if ( len > kBusMaxMessageSize )
+		len = kBusMaxMessageSize;
+	bus_slave_return_buffer( route + start, len );
+}
+
+static void set_reporting_apn(void)
+{
+	set_gprs_apn( (const char*)plist_get_buffer(0), plist_get_buffer_length() );
+}
+static void get_reporting_apn(void)
+{
+	bus_slave_return_buffer( current_momo_state.report_config.gprs_apn, strlen(current_momo_state.report_config.gprs_apn) );
 }
 
 static void set_reporting_flags(void)
@@ -89,7 +117,7 @@ static void get_report()
 
 static void get_reporting_sequence(void)
 {
-	bus_slave_return_int16( current_momo_state.report_config.current_sequence );
+	bus_slave_return_int16( current_momo_state.report_config.transmit_sequence );
 }
 
 static BYTE report_buffer[RAW_REPORT_MAX_LENGTH];
@@ -139,21 +167,24 @@ DEFINE_MIB_FEATURE_COMMANDS(reporting) {
 	{ 0x01, start_scheduled_reporting, plist_spec_empty() },
 	{ 0x02, stop_scheduled_reporting, plist_spec_empty() },
 	{ 0x03, set_reporting_interval, plist_spec(1, false) },
-	{ 0x04, get_reporting_interval, plist_spec(0, false) },
-	{ 0x05, set_reporting_gsm_address, plist_spec(0, true) },
-	{ 0x06, get_reporting_gsm_address, plist_spec(0, false) },
+	{ 0x04, get_reporting_interval, plist_spec_empty() },
+	{ 0x05, set_reporting_route, plist_spec(1, true) },
+	{ 0x06, get_reporting_route, plist_spec(1, false) },
 	{ 0x07, set_reporting_flags, plist_spec(1, false) },
-	{ 0x08, get_reporting_flags, plist_spec(0, false) },
+	{ 0x08, get_reporting_flags, plist_spec_empty() },
 	{ 0x09, set_reporting_aggregates, plist_spec(2, false) },
-	{ 0x0A, get_reporting_aggregates, plist_spec(0, false) },
-	{ 0x0B, get_reporting_sequence, plist_spec(0, false) },
+	{ 0x0A, get_reporting_aggregates, plist_spec_empty() },
+	{ 0x0B, get_reporting_sequence, plist_spec_empty() },
 	{ 0x0C, build_report, plist_spec_empty() },
 	{ 0x0D, get_report, plist_spec(1, false) },
 	{ 0x0E, get_scheduled_reporting, plist_spec_empty() },
 	{ 0x0F, read_report_log_mib, plist_spec(2, false) },
 	{ 0x10, count_report_log_mib, plist_spec_empty() },
 	{ 0x11, clear_report_log_mib, plist_spec_empty() },
-	{ 0xF0, handle_report_stream_success, plist_spec(0, false) },
-	{ 0xF1, handle_report_stream_failure, plist_spec(0, false) }
+	{ 0x12, init_report_config, plist_spec_empty() },
+	{ 0x13, set_reporting_apn, plist_spec(0,true) },
+	{ 0x14, get_reporting_apn, plist_spec_empty() },
+	{ 0xF0, handle_report_stream_success, plist_spec_empty() },
+	{ 0xF1, handle_report_stream_failure, plist_spec_empty() }
 };
 DEFINE_MIB_FEATURE(reporting);

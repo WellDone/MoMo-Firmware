@@ -6,11 +6,8 @@
 #include "gsm_defines.h"
 #include "platform.h"
 
-void gsm_init();
-uint8 gsm_on();
-void gsm_off();
-
-#define GSM_REGISTRATION_TIMEOUT_S 240
-bool wait_for_registration();
+bool gsm_module_active();
+uint8 gsm_module_on();
+void gsm_module_off();
 
 #endif

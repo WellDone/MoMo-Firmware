@@ -1,7 +1,6 @@
 #ifndef __digital_amp_h__
 #define __digital_amp_h__
 
-#include "sensor_defines.h"
 #include "port.h"
 #include <stdint.h>
 

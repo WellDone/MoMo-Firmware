@@ -46,7 +46,7 @@ void taskloop_init()
 
 void taskloop_log_performance(void *arg)
 {
-    if (sleep_time < kMINSLEEPTICKS)
+    if (sleep_time < kMINSLEEPTICKS && TMR1 >= kMINSLEEPTICKS)
     {
         int i;
 

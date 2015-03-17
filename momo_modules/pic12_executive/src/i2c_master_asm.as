@@ -200,12 +200,8 @@ BEGINFUNCTION _i2c_master_receive_message
 	;FSR0[-2] has the return status
 	;FSR0[-1] has the checksum
 	check_status:
-	;Check if the response was just 0xFF, 0xFF indicating the slave was nonexistant.
+	;Check if the return status was 0xFF indicating the slave was nonexistant.
 	moviw [-2]FSR0
-	xorlw 0xFF
-	btfss ZERO
-		goto verify_status_checksum
-	moviw [-1]FSR0
 	xorlw 0xFF
 	btfss ZERO
 		goto verify_status_checksum
@@ -224,16 +220,31 @@ BEGINFUNCTION _i2c_master_receive_message
 	btfss ZERO
 		goto checksum_error
 
+	;If slave responded that our command was corrupted, try again
 	moviw [-1]FSR0 ;get the return status
 	xorlw kChecksumError
 	btfsc ZERO
 		goto resend_command_error
 
+	;If the 2nd MSB of the slave's response is 0, then there is no more
+	;data to read because either there was an error or because it simply
+	;didn't return data beyond a status code.
+	moviw [-1]FSR0
+	btfss WREG, 6
+		goto no_data_to_read
+
 	;move the pointer back to the next byte location and continue the loop
 	addfsr FSR0, 1
 	goto readloop
 
-	;We've read 25 bytes wothout error, make sure the checksum is valid
+	;If the response said that there was an error or no data, then
+	;clear the bus and don't read any further.
+	no_data_to_read:
+	bcf CARRY
+	call _i2c_master_receivebyte
+	goto finished_call
+
+	;We've read 25 bytes without error, make sure the checksum is valid
 	done_reading:
 	call _i2c_loadbuffer
 	call _i2c_verify_checksum

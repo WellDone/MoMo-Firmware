@@ -17,7 +17,9 @@ extern bank1 unsigned char 		mib_buffer[kBusMaxMessageSize];
 extern bank1 MIBCommandPacket   mib_packet;
 extern bank1 uint8              slave_address;
 
-#define mib_address (slave_address >> 1)
+#define mib_address             (slave_address >> 1)
+#define plist_get_int8(n)				mib_buffer[(n<<1) ]
+#define plist_get_int16(n)			((int*)mib_buffer)[n]
 
 #define bus_master_prepare_rpc(f, c, s) { \
 	mib_packet.feature = f; \

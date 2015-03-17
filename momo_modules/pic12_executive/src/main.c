@@ -25,17 +25,16 @@ extern void restore_status();
 
 void interrupt service_isr() {
     //Check if an alarm occurred and reset if so.
-    #ifndef __PIC16LF1847__  
-    if(ioc_flag(ALARMIOC))
+
+    if(ioc_flag(ALARMPORT, ALARMIOC))
     {
         //software debounce the pin to add noise immunity
         __delay_us(10);
         if (PIN(ALARM) == 0)
             exec_reset();
 
-        ioc_flag(ALARMIOC) = 0;
+        ioc_flag(ALARMPORT, ALARMIOC) = 0;
     }
-    #endif
 
     // Handle i2c interrupts (MSSP) in the bootloader.
     if (SSP1IF == 1) 
@@ -131,11 +130,8 @@ void initialize()
     #endif
 
     /* Make sure that the alarm pin is configured to notify us if the alarm line is ever pulled low */
-    #ifndef __PIC16LF1847__
-    ioc_detect_falling(ALARMIOC, 1);
-    ioc_enable();
-    #endif
-
+    ioc_detect_falling(ALARMPORT, ALARMIOC, 1);
+    ioc_enable(ALARMPORT);
     /* Set all PORTA pins to be digital I/O (instead of analog input). */
     
     /* Enable interrupts globally. */

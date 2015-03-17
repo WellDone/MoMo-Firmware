@@ -17,6 +17,8 @@
 #include "memory_manager.h"
 #include "perf.h"
 #include "log_definitions.h"
+#include "rn4020.h"
+
 #include "momo_config.h"
 #include "sensor_event_log.h"
 
@@ -28,6 +30,12 @@ unsigned int debug_flag_value = 0;
 
 void con_init()
 {
+	//Make all pins digital if they could be analog
+	ENSURE_DIGITAL(SCL);
+	ENSURE_DIGITAL(SDA);
+	ENSURE_DIGITAL(ALARM);
+	ENSURE_DIGITAL(BUS_ENABLE);
+
 	LAT(BUS_ENABLE) = 0;
 	DIR(BUS_ENABLE) = OUTPUT;
 
@@ -273,6 +281,19 @@ void get_perf_counter()
 	bus_slave_return_buffer(val, 20);
 }
 
+void get_uuid()
+{
+	plist_set_int16( 0, current_momo_state.uuid & 0xFFFF );
+	plist_set_int16( 1, (current_momo_state.uuid >> 16) & 0xFFFF );
+	bus_slave_set_returnbuffer_length( 4 );
+}
+
+void set_uuid()
+{
+	current_momo_state.uuid = makeu32(plist_get_int16(1), plist_get_int16(0));
+	save_momo_state();
+}
+
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x00, register_module, plist_spec(0,true) },
@@ -295,10 +316,15 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x11, read_ram, plist_spec(1, false)},
 	{0x12, set_time, plist_spec(0, true)},
 
+	{0x13, get_uuid, plist_spec(0, false)},
+	{0x14, set_uuid, plist_spec(2, false)},
+
 	{0x20, write_log, plist_spec(0, true)},
 	{0x21, log_count, plist_spec_empty()},
 	{0x22, read_log, plist_spec(2, false)},
 	{0x23, clear_log, plist_spec_empty() },
-	{0x26, get_perf_counter, plist_spec(1, false)}
+
+	{0x26, get_perf_counter, plist_spec(1, false)},
+	{0x27, bt_debug_buffer, plist_spec(0, false)}
 };
 DEFINE_MIB_FEATURE(controller);

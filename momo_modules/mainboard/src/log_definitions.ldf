@@ -27,11 +27,20 @@ ControllerFactoryResetNotice
 SubmoduleAddressRequestNotice
 "A submodule asked for an address"
 
+SetAPNNotice
+"Setting GPRS APN"
+- "APN" as string
+
+SetCommDestinationNotice
+"Setting comm module stream destination"
+- "Start Index" as integer, format unsigned
+- "Length" as integer, format unsigned
+- "Buffer" as string
 
 OpenedCommStreamNotice
 "Opening a communication stream"
 - "Comm Module Address" as integer, format unsigned
-- "Report Route" as string
+- "Report Length" as integer, format unsigned
 
 FinishedReportStreamingNotice
 "Finished streaming report to all comm modules"
@@ -49,9 +58,13 @@ AbandoningCommStreamNotice
 ReportSucceededNotice
 "Report succeeded"
 
-ReportFailedNotice
+ReportFailedRetryNotice
 "Report failed, retrying"
 - "Retry Count" as integer, format unsigned
+
+ReportFailedRerouteNotice
+"Report failed, switching to secondary route"
+- "New Route" as string
 
 ReportAbandonedNotice
 "Retry count exceeded, abandoning report"
@@ -75,3 +88,43 @@ ReportSchedulingStartedNotice
 
 ReportSchedulingStoppedNotice
 "Report scheduling stopped"
+
+
+CouldNotAdvertise
+"Could not start bluetooth module advertisements"
+
+BTModuleInitializedCorrectly
+"Correctly initialized the BTLE module"
+
+BTAdvertisementSuccessful
+"Succesfully started bluetooth advertisement"
+
+BTErrorSendingCommand
+"Error sending bluetooth command"
+- "Send Buffer" as string
+- "Receive Buffer" as string
+
+BTTimeout
+"Timeout talking to BT module"
+
+BTNoWakeup
+"Could not wake RN4020 BTLE Module."
+
+BTNoShutdown
+"Could not put BTLE module to sleep"
+
+BTCouldNotCommunicate
+"Could not enable BTLE module, trying a higher baud rate"
+- "Error Code" as integer, format unsigned
+
+BTCouldNotTalkAt115200
+"Attempted to communicate with the BTLE module at 115200 baud and could not"
+- "Error Code" as integer, format unsigned
+
+BTResetBaud
+"Sucessfully set the baud rate of the BTLE module down to 38400"
+
+BTCouldNotResetBaud
+"Could not reset the baud rate of the BTLE module"
+- "Error Code" as integer, format unsigned
+- "Receive Buffer" as string

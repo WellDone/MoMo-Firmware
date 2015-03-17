@@ -1,5 +1,0 @@
-#!/usr/bin/env python
-import momo
-import sys
-
-sys.exit(momo.run_momo())

@@ -2,14 +2,8 @@
 #include "ioport.h"
 #include "bootloader.h"
 
-#ifdef __PIC24FJ64GA306__
 #define ENABLE_MEMORY() LAT(CS) = 0
 #define DISABLE_MEMORY() LAT(CS) = 1
-#else
-#define SS_VALUE LATBbits.LATB15
-#define ENABLE_MEMORY() SS_VALUE = 0
-#define DISABLE_MEMORY() SS_VALUE = 1
-#endif 
 
 #define MEMORY_TX_STATUS SPI1STATbits.SPITBF
 #define MEMORY_STATUS_OVERFLOWN SPI1STATbits.SPIROV

@@ -1,6 +1,0 @@
-#!/usr/bin/env python
-import momosensor
-import sys
-
-emulator = momosensor.MoMoSensor()
-sys.exit(emulator.main())

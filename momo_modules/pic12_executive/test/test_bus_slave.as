@@ -1,9 +1,9 @@
 ;Name: test_bus_slave
-;Targets: 12lf1822
+;Targets: 12lf1822,16lf1847
 ;Type: executive
-;Additional: support_i2c_slave.cmd,support_find_handler_mib.as
+;Additional: support_i2c_slave_16lf1847.cmd,support_find_handler_mib.as
 ;Description:Test to ensure tha mib bus slave handler is working correctly.  Only test
-;on pic16lf1822 because we need to know which pins are the i2c clock and data lines
+;on pic16lf1847 and 12lf1822 because we need to know which pins are the i2c clock and data lines
 ;for defining the i2c master module that will drive the slave handler.
 
 #include <xc.inc>

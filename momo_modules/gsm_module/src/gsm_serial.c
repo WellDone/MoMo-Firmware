@@ -6,11 +6,13 @@
 #include "mib12_api.h"
 #include "gsm_defines.h"
 #include "gsm_module.h"
-#include "gsm_strings.h"
 #include "timer1.h"
+#include "buffers.h"
 #include <string.h>
 
-void enable_serial()
+static char* remainder_buffer;
+static uint8 remainder_buffer_len;
+void gsm_serial_init()
 {
 	#ifdef ALTERNATE_SERIAL
 	RXDTSEL = 1;
@@ -25,8 +27,9 @@ void enable_serial()
 	BRG16 = 1;
 
 	SPBRGH = 0;
-	SPBRGL = 16;
+	SPBRGL = 51;
 
+	CREN = 0; // Make sure any previous transient errors are cleared.
 	CREN = 1;
 	
 	//clear the contents of RCREG
@@ -34,123 +37,46 @@ void enable_serial()
 	RCREG;
 
 	RCIF = 0;
+
+	remainder_buffer = 0;
+	remainder_buffer_len = 0;
+	gsm_rx_clear();
 }
 
-uint8 open_gsm_module()
+void gsm_clear_receive()
 {
-	gsm_buffer[0] = 'A';
-	gsm_buffer[1] = 'T';
-	gsm_buffer[2] = 'E';
-	gsm_buffer[3] = '0';
-	gsm_buffer[4] = '\r';
+	if (OERR)
+	{
+		CREN = 0;
+		CREN = 1;
+	}
 
-	buffer_len = 5;
-
-	send_buffer();
-	receive_response();
-
-	gsm_buffer[0] = 'A';
-	gsm_buffer[1] = 'T';
-	gsm_buffer[2] = '+';
-	gsm_buffer[3] = 'C';
-	gsm_buffer[4] = 'M';
-	gsm_buffer[5] = 'E';
-	gsm_buffer[6] = 'E';
-	gsm_buffer[7] = '=';
-	gsm_buffer[8] = '1';
-	gsm_buffer[9] = '\r';
-
-	buffer_len = 10;
-
-	send_buffer();
-	receive_response();
-
-	gsm_buffer[0] = 'A';
-	gsm_buffer[1] = 'T';
-	gsm_buffer[2] = '+';
-	gsm_buffer[3] = 'C';
-	gsm_buffer[4] = 'M';
-	gsm_buffer[5] = 'G';
-	gsm_buffer[6] = 'F';
-	gsm_buffer[7] = '=';
-	gsm_buffer[8] = '1';
-	gsm_buffer[9] = '\r';
-
-	buffer_len = 10;
-
-	send_buffer();
-	receive_response();
-
-	return 0;
+	while(RCIF)
+		RCREG;
 }
 
-void start_timer()
+void gsm_write_char(char c)
 {
+	if (OERR)
+	{
+		CREN = 0;
+		CREN = 1;
+	}
+
 	tmr1_config(pack_tmr1_config(kInstructionClock, kPrescaler1_8));
 	tmr1_load(kHalfSecondConstant);
 	tmr1_setstate(kEnabled_Sync);
-}
 
-bool send_buffer()
-{
-	uint8 i;
-
-	for (i=0; i<buffer_len; ++i)
-	{
-		start_timer();	
-		while(TXIF == 0 && TMR1IF == 0)
-			;
-		if ( TMR1IF == 1 )
-			return false; // Report an error?
-
-		TXREG = gsm_buffer[i];
-
-		asm("nop");
-		asm("nop");
-	}
-	return true;
-}
-
-uint8 peek_rx_buffer_end()
-{
-	if ( rx_buffer_len == 0 )
-		return 0;
-	if ( rx_buffer_end == 0 )
-		return gsm_rx_buffer[RX_BUFFER_LENGTH-1];
-	else
-		return gsm_rx_buffer[rx_buffer_end-1];
-}
-
-uint8 gsm_receiveone()
-{
-	start_timer();
-	while( !RCIF && TMR1IF == 0 )
+	while ( !TXIF && TMR1IF == 0 )
 		;
 
 	if ( TMR1IF == 1 )
-	{
-		return 1;
-	}
+		return;
 
-	if ( rx_buffer_len < RX_BUFFER_LENGTH )
-	{
-		gsm_rx_buffer[rx_buffer_end++] = RCREG;
-		++rx_buffer_len;
-		if ( rx_buffer_end >= RX_BUFFER_LENGTH )
-			rx_buffer_end = 0;
-	}
-	else
-	{
-		gsm_rx_buffer[rx_buffer_start++] = RCREG;
-		rx_buffer_end = rx_buffer_start;
-		if ( rx_buffer_start >= RX_BUFFER_LENGTH )
-			rx_buffer_start = 0;
-	}
-	
-	return 0;
+	TXREG = c;
 }
 
-uint8 receive_response()
+bool gsm_rx()
 {
 	if (OERR)
 	{
@@ -158,45 +84,155 @@ uint8 receive_response()
 		CREN = 1;
 	}
 	
-	reset_match_counters();
-	while( true )
-	{
-		if ( ok_matched() )
-			return 0;
-		if ( err_matched() )
-			return 1;
-		if ( gsm_receiveone() != 0 )
-			return 2;
-	}
-	return 3;
+	tmr1_config(pack_tmr1_config(kInstructionClock, kPrescaler1_8));
+	tmr1_load(kHalfSecondConstant);
+	tmr1_setstate(kEnabled_Sync);
+
+	while( !RCIF && TMR1IF == 0 )
+		;
+
+	if ( TMR1IF == 1 )
+		return false;
+
+	gsm_rx_push(RCREG);
+	
+	return true;
 }
 
-void copy_mib()
+extern const char* expected1;
+extern const char* expected2;
+
+void gsm_expect(const char* response)
 {
-	uint8 i;
-
-	buffer_len = mib_buffer_length();
-
-	for (i=0; i<buffer_len; ++i)
-		gsm_buffer[i] = mib_buffer[i];
+	expected1 = response;
+	expected2 = response;
 }
 
-uint8 copy_to_mib()
+void gsm_expect2(const char* response)
+{
+	expected2 = response;
+}
+
+void gsm_expect_ok_error()
+{
+	gsm_expect("OK");
+	gsm_expect2("ERROR");
+}
+
+void gsm_capture_remainder( char* buf, uint8 max_len )
+{
+		remainder_buffer = buf;
+		remainder_buffer_len = max_len;
+}
+uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
+{
+	reset_expected1_ptr();
+	reset_expected2_ptr();
+	
+	timeout_s *= 2; // Each RX timeout is .5s
+	while ( !gsm_rx() )
+	{
+		if ( timeout_s-- == 0 )
+			return GSM_SERIAL_NODATA;
+	}
+
+	do
+	{
+		uint8 value = gsm_check(gsm_rx_peek());
+		if (value != 0)
+		{
+			while ( gsm_rx() )
+			{
+				if ( remainder_buffer && remainder_buffer_len > 1 )
+				{
+					*(remainder_buffer++) = gsm_rx_peek();
+					--remainder_buffer_len;
+				}
+				continue;
+			}
+
+			if ( remainder_buffer && remainder_buffer_len != 0 )
+				*remainder_buffer = '\0';
+
+			return value;
+		}
+	}
+	while ( gsm_rx() || gsm_rx() ); // Try twice to get a char, to be a little more robust.
+	
+	return GSM_SERIAL_TIMEDOUT;
+}
+
+/* 
+ * Check if this character matches the current position of one of the variables
+ * we are looking for.  We have to check a second time if it does not match since
+ * it may match the first character but we were on the 3rd character, for example.
+ */
+uint8 gsm_check(uint8 current)
+{
+	uint8 result;
+
+	result = check_inc_expected1(current);
+	if (result == 0xFF)
+		result = check_inc_expected1(current);
+
+	if (result == 0)
+		return 1;
+
+	result = check_inc_expected2(current);
+	if (result == 0xFF)
+		result = check_inc_expected2(current);
+
+	if (result == 0)
+		return 2;
+
+	return 0;
+}
+
+uint8 gsm_readback( char* buf, uint8 max_len )
 {
 	uint8 i = 0;
-
-	while ( rx_buffer_len > 0 && i < kBusMaxMessageSize )
+	while ( i < max_len && rx_buffer_len != 0 )
 	{
-		mib_buffer[i++] = gsm_rx_buffer[rx_buffer_start++];
-		if ( rx_buffer_start == RX_BUFFER_LENGTH )
-			rx_buffer_start = 0;
-		--rx_buffer_len;
+		buf[i++] = gsm_rx_pop();
 	}
-
 	return i;
 }
 
-void append_carriage()
+uint8 gsm_read( char* buf, uint8 max_len )
 {
-	gsm_buffer[buffer_len++] = '\r';
+	uint8 timeout_counter = GSM_EXPECT_TIMEOUT;
+	while ( !gsm_rx() )
+	{
+		if ( --timeout_counter == 0 )
+			return GSM_SERIAL_NODATA;
+	}
+
+	uint8 len = 0;
+	do
+	{
+		if ( buf != NULL )
+			*(buf++) = gsm_rx_peek();
+		if ( ++len == max_len )
+			break;
+	}
+	while ( gsm_rx() );
+
+	return len;
+}
+
+void gsm_write_carriage()
+{
+	gsm_write_char('\r');
+}
+void gsm_write(const char* buf, uint8 len)
+{
+	while ( len-- > 0 )
+	{
+		gsm_write_char( *(buf++) );
+	}
+}
+void gsm_write_str(const char* str)
+{
+	while (*str)
+		gsm_write_char(*str++);
 }
