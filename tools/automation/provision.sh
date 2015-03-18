@@ -6,32 +6,34 @@ set -e
 echo "MOMO_DEV: $MOMO_DEV"
 
 apt-get update
-apt-get install -y python python-setuptools python-dev python-pip
 if [ -n "$MOMO_DEV" ]; then
 	apt-get install -y libc6:i386 lib32stdc++6
 fi
 apt-get install wget
 
-easy_install -U pip
+if [ -z "$SKIP_PYMOMO_INSTALLATION" ]; then
+	apt-get install -y python python-setuptools python-dev python-pip
+	easy_install -U pip
 
-pip install pyserial
-pip install --allow-external intelhex --allow-unverified intelhex pymomo
+	pip install pyserial
+	pip install --allow-external intelhex --allow-unverified intelhex pymomo
 
-pip install http://sourceforge.net/projects/scons/files/latest/download --egg | tee -a $HOME/scons-install.log
-PYTHONPATH=`cat $HOME/scons-install.log | grep ' library modules ' | awk '{print $6}'`
-echo "PYTHONPATH=$PYTHONPATH" >> $HOME/.profile
+	pip install http://sourceforge.net/projects/scons/files/latest/download --egg | tee -a $HOME/scons-install.log
+	PYTHONPATH=`cat $HOME/scons-install.log | grep ' library modules ' | awk '{print $6}'`
+	echo "PYTHONPATH=$PYTHONPATH" >> $HOME/.profile
+fi
 
 if [ -n "$TRAVIS" ]; then
-	export MOMOPATH=`pwd`
+	if [ -z "$MOMOPATH" ]; then
+		export MOMOPATH=`pwd`
+	fi
 	export DOWNLOADCACHE="~/.cached_downloads"
 else # VAGRANT
-	export MOMOPATH="/vagrant"
+	if [ -z "$MOMOPATH" ]; then
+		export MOMOPATH="/vagrant"
+	fi
 	export HOME="/home/vagrant"
 	export DOWNLOADCACHE="/vagrant/.cached_downloads"
-
-	echo "Adding user 'vagrant' to the group 'dialout' so it can access USB devices..."
-	usermod vagrant -a -G dialout
-	echo "DONE!"
 fi
 echo "export MOMOPATH=$MOMOPATH" >> $HOME/.profile
 mkdir -p $DOWNLOADCACHE
