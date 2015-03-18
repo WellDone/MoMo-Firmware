@@ -29,7 +29,7 @@ ENDFUNCTION _i2c_append_checksum
 ;Side Effets: Z set if checksum is valid, Z clear otherwise
 BEGINFUNCTION _i2c_verify_checksum
 	call _i2c_calculate_checksum
-	addwf INDF0,w
+	xorwf INDF0,w
 	return
 ENDFUNCTION _i2c_verify_checksum
 

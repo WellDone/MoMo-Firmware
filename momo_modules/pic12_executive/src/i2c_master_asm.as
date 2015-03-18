@@ -156,7 +156,7 @@ BEGINFUNCTION _i2c_master_receive_message
 		return
 
 	;Setup FSR0 with _mibdata
-	call _i2c_loadbuffer	
+	call _i2c_loadbuffer
 
 	;save off first two bytes of packet since those will be overwritten
 	;and may need to be restored if the slave response is that our command
@@ -249,7 +249,7 @@ BEGINFUNCTION _i2c_master_receive_message
 	call _i2c_loadbuffer
 	call _i2c_verify_checksum
 	btfss ZERO
-		goto checksum_error
+		goto checksum_error_no_nack
 
 	;We were successful, so clear the status bits and return	
 	finished_call:
@@ -259,18 +259,25 @@ BEGINFUNCTION _i2c_master_receive_message
 
 	;The slave has indicated a checksum error receiving the command packet
 	;We need to send one more read with a nack to clear the bus and then
-	;resend the command.  Set DC to indicate 
+	;resend the command.  Set DC to indicate that we should resend the 
+	;command
 	resend_command_error:
+	bcf CARRY
+	call _i2c_master_receivebyte
 	bsf DC
+	goto restore_and_return_error
 
 	;We could not read this packet, send one more nack to clear the bus
-	;and return with C set so that we know to either retry the read
-	;or retry the write (if we can from resend_command_error above)
+	;and return with C set so that we know to retry the read
 	checksum_error:
 	bcf CARRY
 	call _i2c_master_receivebyte
+
+	checksum_error_no_nack:
+	bcf DC
 	bsf CARRY
 
+	restore_and_return_error:
 	;Restore the packet portion that was overwritten
 	call _i2c_loadbuffer
 	movf FSR1L,w
