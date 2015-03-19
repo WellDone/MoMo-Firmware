@@ -1,6 +1,867 @@
+Index: configure.ac
+===================================================================
+--- configure.ac	(revision 2308)
++++ configure.ac	(working copy)
+@@ -128,6 +128,9 @@
+ AC_HEADER_TIME
+ AC_TYPE_SIGNAL
+ 
++#Check for python so that we can compile MoMoPythonSlave
++AX_PYTHON_DEVEL(>='2.7.0')
++
+ # Checks for library functions.
+ AC_FUNC_ALLOCA
+ AC_PROG_GCC_TRADITIONAL
+@@ -168,9 +171,10 @@
+     ;;
+ esac
+ 
++CPPFLAGS="${PYTHON_CPPFLAGS}"
+ CFLAGS="${CFLAGS} ${AM_CFLAGS}"
+ CXXFLAGS="${CXXFLAGS} ${AM_CXXFLAGS}"
+-LDFLAGS="${LDFLAGS} ${AM_LDFLAGS}"
++LDFLAGS="${LDFLAGS} ${AM_LDFLAGS} ${PYTHON_LDFLAGS} ${PYTHON_EXTRA_LDFLAGS} ${PYTHON_EXTRA_LIBS}"
+ 
+ # Host filesystem options
+ case "${host}" in
+Index: modules/Makefile.am
+===================================================================
+--- modules/Makefile.am	(revision 2308)
++++ modules/Makefile.am	(working copy)
+@@ -15,6 +15,8 @@
+ 	push_button.cc push_button.h \
+ 	encoder.cc encoder.h \
+ 	i2c-eeprom.cc i2c-eeprom.h \
++	momo_slave.cc momo_slave.h \
++	momo_python_slave.cc momo_python_slave.h \
+ 	stimuli.h stimuli.cc \
+ 	ttl.cc ttl.h \
+ 	video.cc video.h \
+Index: modules/gpsim_modules.cc
+===================================================================
+--- modules/gpsim_modules.cc	(revision 2308)
++++ modules/gpsim_modules.cc	(working copy)
+@@ -68,6 +68,8 @@
+ #include "ttl.h"
+ #include "i2c-eeprom.h"
+ #include "i2c.h"
++#include "momo_slave.h"
++#include "momo_python_slave.h"
+ 
+ 
+ Module_Types available_modules[] =
+@@ -128,7 +130,8 @@
+   { {"I2C-EEPROM16k", "e24xx16b"}, I2C_EEPROM_Modules::I2C_EE_Module::construct_16k},
+   { {"I2C-EEPROM256k", "e24xx256"}, I2C_EEPROM_Modules::I2C_EE_Module::construct_256k},
+   { {"i2cmaster", "I2CMaster"},   I2C_Module::I2CMaster::construct },
+-
++  { {"MoMoSlave", "momo_slave"}, MoMoSlaveModule::MoMoSlave::construct },
++  { {"MoMoPythonSlave", "momo_python_slave"}, MoMoSlaveModule::MoMoPythonSlave::construct },
+   // No more modules
+   { {0,0},0}
+ };
+Index: modules/makefile.mingw
+===================================================================
+--- modules/makefile.mingw	(revision 2308)
++++ modules/makefile.mingw	(working copy)
+@@ -39,6 +39,8 @@
+ 	encoder.o		\
+ 	i2c.o			\
+ 	i2c-eeprom.o		\
++	momo_slave.o    \
++	momo_python_slave.o \
+ 	led.o			\
+ 	logic.o			\
+ 	push_button.o		\
+Index: modules/momo_python_slave.cc
+===================================================================
+--- modules/momo_python_slave.cc	(revision 0)
++++ modules/momo_python_slave.cc	(working copy)
+@@ -0,0 +1,232 @@
++#include "momo_python_slave.h"
++#include <string>
++
++namespace MoMoSlaveModule 
++{
++
++size_t MoMoPythonSlave::num_instances = 0;
++
++MoMoPythonSlave::MoMoPythonSlave(const char *name) : MoMoSlave(name), python_module("python_module", "", "path to python module implementing this MIB slave"),
++													 initialized(false), module_object(NULL), handler_object(NULL)
++{
++	addSymbol(&python_module);
++	Py_Initialize();
++	PySys_SetPath("."); //make sure we can find modules in our current working dir
++
++	++num_instances;
++}
++
++MoMoPythonSlave::~MoMoPythonSlave()
++{
++	--num_instances;
++
++	if (module_object)
++		Py_DECREF(module_object);
++
++	if (handler_object)
++		Py_DECREF(handler_object);
++
++	if (num_instances == 0)
++		Py_Finalize();
++}
++
++void MoMoPythonSlave::load_module()
++{
++	std::string module_string = python_module.getVal();
++
++	if (initialized == true)
++		return;
++
++	if (module_string.size() == 0)
++		return;
++
++	PyObject *module_path = PyString_FromString(module_string.c_str());
++	if (module_path == NULL)
++		return;
++
++	PyObject *module_obj = PyImport_Import(module_path);
++
++	Py_DECREF(module_path);
++	if (module_obj == NULL)
++		return;
++
++	PyObject *handler = PyObject_GetAttrString(module_obj, kMoMoSlavePythonFunction);
++	if (handler == NULL || !PyCallable_Check(handler))
++	{
++		Py_DECREF(module_obj);
++		return;
++	}
++
++	module_object = module_obj;
++	handler_object = handler;
++	initialized = true;
++}
++
++Module* MoMoPythonSlave::construct(const char *name)
++{
++	return new MoMoPythonSlave(name);
++}
++
++/*
++ * Check if retval is a valid sequence object and attempt to unpack it into a vector
++ * for sending on the line.  
++ * 
++ * retval should be a sequence of 2 items, with the first an integer (status code)
++ * and the second a sequence that contains the response if there is one.
++ */
++bool MoMoPythonSlave::interpret_response(PyObject *retval, uint8_t *status, std::vector<uint8_t> &output)
++{
++	if (PySequence_Check(retval) == 0)
++	{
++		printf("Invalid response from python code, was not a sequence object\n");
++		return false;
++	}
++
++	if (PySequence_Length(retval) != 2)
++	{
++		printf("Invalid response from python code, was not a sequence of length 2\n");
++		return false;
++	}
++
++	PyObject *status_obj = PySequence_GetItem(retval, 0);
++	PyObject *value_obj = PySequence_GetItem(retval, 1);
++
++	if (!status_obj || !value_obj)
++	{
++		printf("Invalid response from python code, could not get 2 items from return value\n");
++		Py_XDECREF(status_obj);
++		Py_XDECREF(value_obj);
++		return false;
++	}
++
++	if (PyNumber_Check(status_obj) == 0)
++	{
++		printf("Invalid response from python code, first item in tuple not a number.\n");
++		Py_XDECREF(status_obj);
++		Py_XDECREF(value_obj);
++		return false;
++	}
++
++	*status = (uint8_t)PyNumber_AsSsize_t(status_obj, NULL);
++	Py_DECREF(status_obj);
++
++	if (PySequence_Check(value_obj) == 0)
++	{
++		printf("Invalid response from python code, second item is not a sequence.\n");
++		Py_DECREF(value_obj);
++		return false;
++	}
++
++	size_t len = PySequence_Length(value_obj);
++
++	output.resize(len);
++	for (size_t i=0; i<len; ++i)
++	{
++		PyObject *obj = PySequence_GetItem(value_obj, i);
++		if (!obj)
++			continue;
++
++		uint8_t val = PyNumber_AsSsize_t(obj, NULL);
++		output[i] = val;
++
++		Py_DECREF(obj);
++	}
++
++	return true;
++}
++
++MomoResponse MoMoPythonSlave::handle_mib_endpoint(uint8_t feature, uint8_t command, uint8_t type, uint8_t sender, const std::vector<uint8_t> &params)
++{
++	MomoResponse resp;
++	bool 		 success = false;
++	
++	load_module();
++	
++	if (initialized == true)
++	{
++		PyObject *args = PyTuple_New(5);
++		if (args != NULL)
++		{
++			PyObject *feature_obj 	= PyInt_FromLong(feature);
++			PyObject *cmd_obj 		= PyInt_FromLong(command);
++			PyObject *type_obj 		= PyInt_FromLong(type);
++			PyObject *sender_obj 	= PyInt_FromLong(sender);
++			PyObject *params_obj	= PyTuple_New(params.size());
++
++			if (feature_obj && cmd_obj && type_obj && sender_obj && params_obj)
++			{
++				bool can_call = true;
++
++				PyTuple_SetItem(args, 0, feature_obj);
++				feature_obj = NULL;
++
++				PyTuple_SetItem(args, 1, cmd_obj);
++				cmd_obj = NULL;
++
++				PyTuple_SetItem(args, 2, type_obj);
++				type_obj = NULL;
++
++				PyTuple_SetItem(args, 3, sender_obj);
++				sender_obj = NULL;
++
++				//Create the param tuple with bytes
++				for (size_t i=0; i<params.size(); ++i)
++				{
++					PyObject *obj = PyInt_FromLong(params[i]);
++					if (obj == NULL)
++					{
++						can_call = false;
++						break;
++					}
++
++					PyTuple_SetItem(params_obj, i, obj);
++				}
++
++				PyTuple_SetItem(args, 4, params_obj);
++				params_obj = NULL;
++
++				if (can_call)
++				{
++					PyObject *retval = PyObject_CallObject(handler_object, args);
++					if (retval)
++					{
++						if (interpret_response(retval, &resp.status, resp.response))
++							success = true;
++						else
++							printf("Could not interpret response from python code.\n");
++
++						Py_DECREF(retval);
++					}
++				}
++
++				Py_DECREF(args); //tuple holds the refs to all of its contents so they are released as well
++			}
++
++			if (feature_obj)
++				Py_DECREF(feature_obj);
++
++			if (cmd_obj)
++				Py_DECREF(cmd_obj);
++
++			if (type_obj)
++				Py_DECREF(type_obj);
++
++			if (sender_obj)
++				Py_DECREF(sender_obj);
++
++			if (params_obj)
++				Py_DECREF(params_obj);			
++		}
++	}
++
++	if (success == false)
++	{
++		printf("MoMoPythonSlave called but python code could not be loaded or executed successfully.\n");
++		resp.status = 0b00000000;
++		resp.response.clear();
++	}
++	
++	return resp;
++}
++
++};
+\ No newline at end of file
+Index: modules/momo_python_slave.h
+===================================================================
+--- modules/momo_python_slave.h	(revision 0)
++++ modules/momo_python_slave.h	(working copy)
+@@ -0,0 +1,37 @@
++#ifndef __MOMO_PYTHON_SLAVE_H__
++#define __MOMO_PYTHON_SLAVE_H__
++
++#include "momo_slave.h"
++#include <Python.h>
++
++#define kMoMoSlavePythonFunction "handle_mib_endpoint"
++
++namespace MoMoSlaveModule 
++{
++
++class MoMoPythonSlave : public MoMoSlave
++{
++	public:
++	MoMoPythonSlave(const char *name);
++	virtual ~MoMoPythonSlave();
++
++	static Module* construct(const char *name);
++
++	protected:
++	virtual MomoResponse handle_mib_endpoint(uint8_t feature, uint8_t command, uint8_t type, uint8_t sender, const std::vector<uint8_t> &params);
++	static size_t num_instances;
++
++	private:
++	String		python_module;
++	bool		initialized;
++
++	PyObject 	*module_object;
++	PyObject	*handler_object;
++
++	void load_module();
++	bool interpret_response(PyObject *retval, uint8_t *status, std::vector<uint8_t> &output);
++};
++
++};
++
++#endif
+\ No newline at end of file
+Index: modules/momo_slave.cc
+===================================================================
+--- modules/momo_slave.cc	(revision 0)
++++ modules/momo_slave.cc	(working copy)
+@@ -0,0 +1,394 @@
++#include "momo_slave.h"
++#include <string>
++#include <fstream>
++#include <iomanip>
++
++namespace MoMoSlaveModule
++{
++
++class I2CPin : public IO_open_collector
++{
++	public:
++	MoMoSlave *slave;
++
++	I2CPin (MoMoSlave *new_slave, const char *_name): IO_open_collector(_name), slave(new_slave)
++	{
++		bDrivingState = true;
++		bDrivenState = true;
++
++		// Make the pin an output.
++		update_direction(IO_bi_directional::DIR_OUTPUT,true);
++	}
++
++	void setDrivingState(bool new_state) 
++	{
++		bDrivingState = new_state;
++		bDrivenState = new_state;
++
++		if(snode)
++			snode->update();
++	}
++};
++
++
++class I2CSDAPin : public I2CPin
++{
++	public:
++	I2CSDAPin(MoMoSlave *new_slave, const char *_name) : I2CPin (new_slave, _name)
++	{
++
++	}
++
++	void setDrivenState(bool new_dstate) 
++	{
++		bool diff = new_dstate ^ bDrivenState;
++
++		if(slave && diff) 
++		{
++			bDrivenState = new_dstate;
++			slave->new_sda_edge(new_dstate);
++		}
++	}
++};
++
++class I2CSCLPin : public I2CPin
++{
++	public:
++	I2CSCLPin(MoMoSlave *new_slave, const char *_name) : I2CPin (new_slave, _name)
++	{
++
++	}
++
++	void setDrivenState(bool new_dstate) 
++	{
++		bool diff = new_dstate ^ bDrivenState;
++
++		if(slave && diff) 
++		{
++			bDrivenState = new_dstate;
++			slave->new_scl_edge(new_dstate);
++		}
++	}
++};
++
++MoMoSlave::MoMoSlave(const char *new_name) : Module(new_name, "momoslave"), package(2), address_value("address", 0, "I2C Address"),
++											 log_value("logfile", "mib_calls.log", "Path to log file")
++{
++	std::string pin_name;
++
++	pin_name = name() + ".sda";
++	sda = new I2CSDAPin(this, pin_name.c_str());
++
++	pin_name = name() + ".scl";
++	scl = new I2CSCLPin(this, pin_name.c_str());
++
++	package.assign_pin(1, scl);
++	package.assign_pin(2, sda);
++
++	addSymbol(&address_value);
++	addSymbol(&log_value);
++
++	state = kIdleState;
++	send_acknowledge = kNoAcknowledge;
++	ack_value = false;
++}
++
++MoMoSlave::~MoMoSlave()
++{
++	delete sda;
++	delete scl;
++}
++
++Module * MoMoSlave::construct(const char *name)
++{
++	return new MoMoSlave(name);
++}
++
++bool MoMoSlave::is_start_condition(bool sda_edge)
++{
++	if (sda_edge == false && scl->getDrivenState() == true)
++		return true;
++
++	return false;
++}
++
++bool MoMoSlave::is_stop_condition(bool sda_edge)
++{
++	if (sda_edge == true && scl->getDrivenState() == true)
++		return true;
++
++	return false;
++}
++
++void MoMoSlave::begin_reading()
++{
++	current_byte = 0;
++	bits_read = 0;
++}
++
++void MoMoSlave::begin_writing()
++{
++	current_i = 0;
++	bits_written = 0;
++}
++
++/*
++ * Shift in 1 bit and if we have shifted in an entire byte, return true
++ */
++bool MoMoSlave::shift_read_bit()
++{
++	bool value = sda->getDrivenState();
++
++	current_byte <<= 1;
++	current_byte |= int(value);
++
++	++bits_read;
++
++	if (bits_read == 8)
++		return true;
++
++	return false;
++}
++
++void MoMoSlave::acknowledge_byte(bool ack)
++{
++	send_acknowledge = kStartAcknowledge;
++	ack_value = ack;
++}
++
++void MoMoSlave::log_error(const std::string &message)
++{
++	std::ofstream log;
++	std::string logfile = log_value.getVal();
++
++	if (logfile.size() == 0)
++		return;
++
++	log.open(logfile.c_str(), std::ios_base::app);
++
++	log << "INVALID MIB PACKET:" << message << ": ";
++	log_packet(log, data);
++	log << "\n";
++}
++
++void MoMoSlave::log_packet(std::ofstream &log, const std::vector<uint8_t> &data)
++{
++	log << "[";
++	for (size_t i=0; i< data.size(); ++i)
++	{
++		if (i>0)
++			log << ", ";
++
++		log << "0x" << std::hex << int(data[i]);
++	}
++
++	log << "]";
++}
++
++MomoResponse MoMoSlave::handle_mib_endpoint(uint8_t feature, uint8_t command, uint8_t type, uint8_t sender, const std::vector<uint8_t> &params)
++{
++	//Return a busy response
++	MomoResponse resp;
++	resp.status = 0;
++
++	return resp;
++}
++
++/*
++ * Validate that the data we received was appropriate and
++ * if we have a log file specified, log that we received
++ * the packet.  Subclasses can choose to respond in their
++ * own ways.
++ */
++void MoMoSlave::process_mib_packet()
++{
++	uint8_t	sum = 0;
++
++	if (data.size() != kMIBPacketLength)
++	{
++		log_error("Invalid packet length");
++		return;
++	}
++
++	for (size_t i=0; i<data.size(); ++i)
++		sum += data[i];
++
++	//Validate checksum
++	if (sum != 0)
++	{
++		log_error("Invalid packet checksum");
++		return; 
++	}
++
++	//Log reception of packet
++	std::ofstream log;
++	std::string logfile = log_value.getVal();
++
++	//Log that we received this valid mib packet
++	if (logfile.size() > 0)
++	{
++		log.open(logfile.c_str(), std::ios_base::app);
++
++		log << "VALID MIB PACKET: ";
++		log_packet(log, data);
++		log << "\n";
++	}
++
++	uint8_t feature, command, type, sender;
++	feature = data[0];
++	command = data[1];
++	type = data[2];
++	sender = data[3];
++
++	//Copy over the parameters and call the handler function
++	std::vector<uint8_t> params;
++	for (int i=4; i < (kMIBPacketLength-1); ++i)
++		params.push_back(data[i]);
++
++	MomoResponse resp;
++	resp = handle_mib_endpoint(feature, command, type, sender, params);
++
++	//Copy the response back
++	resp.response.resize(kMIBDataLength);
++	data.resize(kMIBPacketLength);
++
++	data[0] = resp.status;
++	data[1] = (~resp.status) + 1;
++	data[2] = 0;
++	data[3] = (uint8_t)resp.response.size();
++
++	sum = data[3];
++	for (size_t i=0; i<resp.response.size(); ++i)
++	{
++		sum += resp.response[i];
++		data[i+4] = resp.response[i];
++	}
++
++	data[kMIBPacketLength - 1] = (~sum) + 1;
++
++	//Log that we received this valid mib packet
++	if (logfile.size() > 0)
++	{
++		log << "RESPONSE: 0x" << std::hex << int(resp.status) << ": ";
++		log_packet(log, data);
++		log << "\n"; 
++	}
++}
++
++void MoMoSlave::new_scl_edge(bool value)
++{
++	if (value && (state == kReadingAddress || state == kReadingData) && send_acknowledge == kNoAcknowledge)
++	{
++		bool done_reading = shift_read_bit();
++		
++		if (done_reading)
++		{
++			if (state == kReadingAddress)
++			{
++				/*
++				 * Only acknowledge and respond to queries send to our address.  
++				 * If we are being written to, just start to clock in the bytes 
++				 * that will form the MIB packet and header.  
++				 * 
++				 * If we are being read from, first execute the command
++				 * contained in the current MIB buffer and then get ready to send
++				 * the response.
++				 */
++
++				uint8_t send_addr = current_byte >> 1;
++				bool	reading   = (current_byte & 1);
++
++				if (send_addr != address_value.getVal())
++				{
++					acknowledge_byte(false);
++					state = kIdleState;
++				}
++				else if (reading == false)
++				{
++					data.clear();
++					acknowledge_byte(true);
++					begin_reading();
++					state = kReadingData;
++					first_read = true;
++				}
++				else
++				{
++					acknowledge_byte(true);
++
++					//Only call the handler the first time we are asked for data since subsequent calls
++					//are only to try to get the data that we've already read
++					if (first_read)
++					{
++						process_mib_packet();
++						first_read = false;
++					}
++
++					state = kWritingData;
++					begin_writing();
++				}
++			}
++			else if (state == kReadingData)
++			{
++				acknowledge_byte(true);
++				data.push_back(current_byte);
++				begin_reading();
++			}
++		}
++	}
++
++	//Send appropriate acknowledge bit if required
++	if (value == false && send_acknowledge == kStartAcknowledge)
++	{
++		sda->setDrivingState(!ack_value);
++		send_acknowledge = kFinishAcknowledge;
++	}
++	else if (value == false && send_acknowledge == kFinishAcknowledge)
++	{
++		sda->setDrivingState(true);
++		send_acknowledge = kNoAcknowledge;
++	}
++
++	/* If we're responding, clock out data on falling clock edges
++	 * We only clock out a data bit on the falling edge of a clock pulse under the following conditions
++	 * - we are asked to write data (i.e. the master is reading frmo us)
++	 * - the bit is bit 0-7 of the 9-bit words (the last bit is for the master to acknowledge)
++	 * - we are writing the first byte after the address or the master ACKed our last byte.
++	 *	 if the master NACKED our last byte then we must not write another bit so as to not lock the bus.
++	 */
++	if (value == false && state == kWritingData && send_acknowledge == kNoAcknowledge)
++	{
++		//Make sure that if we're starting a new byte, the last one wasn't NACKed
++		if (!(current_i > 0 && bits_written == 0 && sda->getDrivenState() == true))
++		{
++			uint8_t byteval = 0;
++			if (current_i < data.size())
++				byteval = data[current_i];
++
++			//Data is clocked out MSB first
++			bool bit = (byteval & (1 << (7-bits_written)));
++			sda->setDrivingState(bit);
++
++			++bits_written;
++			if (bits_written == 8)
++			{
++				acknowledge_byte(false); //Give the bus to the master to acknowledge the byte;
++				bits_written = 0;
++				++current_i;
++			}
++		}
++	}
++
++}
++
++void MoMoSlave::new_sda_edge(bool value)
++{
++	if (is_start_condition(value))
++	{
++		state = kReadingAddress;
++		begin_reading();
++	}
++	else if (is_stop_condition(value))
++		state = kIdleState;
++}
++
++};
+\ No newline at end of file
+Index: modules/momo_slave.h
+===================================================================
+--- modules/momo_slave.h	(revision 0)
++++ modules/momo_slave.h	(working copy)
+@@ -0,0 +1,99 @@
++#ifndef __MOMO_SLAVE_H__
++#define __MOMO_SLAVE_H__
++
++#define kMIBHeaderLength	4
++#define kMIBDataLength		20
++#define kMIBPacketLength	(kMIBHeaderLength + kMIBDataLength + 1)
++
++/* IN_MODULE should be defined for modules */
++#define IN_MODULE
++
++#include "../src/modules.h"
++#include "../src/ioports.h"
++#include "../src/stimuli.h"
++#include "../src/packages.h"
++#include "../src/value.h"
++#include <stdint.h>
++#include <vector>
++#include <fstream>
++
++namespace MoMoSlaveModule
++{
++
++//Forward Declarations
++class I2CSDAPin;
++class I2CSCLPin;
++
++enum MoMoSlaveState
++{
++	kIdleState,
++	kReadingAddress,
++	kReadingData,
++	kWritingData
++};
++
++enum AcknowledgeState
++{
++	kStartAcknowledge,
++	kFinishAcknowledge,
++	kNoAcknowledge
++};
++
++struct MomoResponse
++{
++	uint8_t				 status;
++	std::vector<uint8_t> response;
++};
++
++class MoMoSlave : public Module 
++{
++	public:
++	MoMoSlave(const char *name);
++	virtual ~MoMoSlave();
++
++	static Module * construct(const char *name);
++
++	void new_sda_edge(bool value);
++	void new_scl_edge(bool value);
++
++	private:
++	Package 			package;
++	I2CSCLPin			*scl;
++	I2CSDAPin			*sda;
++
++	Integer				address_value;
++	String				log_value;
++
++	uint8_t				current_byte;
++	uint8_t				bits_read;
++
++	uint8_t				bits_written;
++	size_t				current_i;
++
++	AcknowledgeState	send_acknowledge;
++	bool				ack_value;
++	MoMoSlaveState		state;
++
++	bool				first_read;
++
++	std::vector<uint8_t> data;
++
++	bool is_stop_condition(bool sda_edge);
++	bool is_start_condition(bool sda_edge);
++	void acknowledge_byte(bool ack);
++
++	void begin_reading();
++	void begin_writing();
++	bool shift_read_bit();
++
++	protected:
++	virtual void process_mib_packet();
++	virtual MomoResponse handle_mib_endpoint(uint8_t feature, uint8_t command, uint8_t type, uint8_t sender, const std::vector<uint8_t> &params);
++
++	void log_error(const std::string &message);
++	void log_packet(std::ofstream &log, const std::vector<uint8_t> &data);
++};
++
++};
++
++#endif
+\ No newline at end of file
 Index: src/14bit-hexdecode.cc
 ===================================================================
---- src/14bit-hexdecode.cc	(revision 2299)
+--- src/14bit-hexdecode.cc	(revision 2308)
 +++ src/14bit-hexdecode.cc	(working copy)
 @@ -77,9 +77,6 @@
    { 0x3f00,  0x0400,  IORWF::construct },
@@ -14,7 +875,7 @@ Index: src/14bit-hexdecode.cc
    { 0x3fff,  0x0020,  NOP::construct },
 Index: src/14bit-instructions.h
 ===================================================================
---- src/14bit-instructions.h	(revision 2299)
+--- src/14bit-instructions.h	(revision 2308)
 +++ src/14bit-instructions.h	(working copy)
 @@ -94,7 +94,6 @@
  class BRW : public instruction
@@ -24,73 +885,9 @@ Index: src/14bit-instructions.h
    unsigned int absolute_destination_index;
  
    BRW(Processor *new_cpu, unsigned int new_opcode, unsigned int address);
-Index: src/14bit-processors.cc
-===================================================================
---- src/14bit-processors.cc	(revision 2299)
-+++ src/14bit-processors.cc	(working copy)
-@@ -497,6 +497,24 @@
-     pic_processor::enter_sleep();
- }
- 
-+/*
-+ * BUGFIX: there are 4 possible states for the watchdog timer on the
-+ * enhanced midrange cores, 0b01 in wdt_flag means that the watchdog
-+ * timer is under software control, so it can be enabled during sleep
-+ * if SWDTEN is enabled before putting the chip to sleep.  
-+ * Make sure that in that case we properly wake from sleep rather than
-+ * resetting.
-+ */
-+bool _14bit_e_processor::exit_wdt_sleep() 
-+{
-+  if (wdt_flag & 2)
-+    return true;
-+  else if (wdt_flag == 0b01 && wdt.isEnabled())
-+    return true;
-+
-+  return false;
-+}
-+
-  //-------------------------------------------------------------------
- void _14bit_e_processor::exit_sleep()
- {
-Index: src/14bit-processors.h
-===================================================================
---- src/14bit-processors.h	(revision 2299)
-+++ src/14bit-processors.h	(working copy)
-@@ -211,7 +211,7 @@
-   virtual void create_symbols();
-   virtual void create_sfr_map();
-   virtual void interrupt();
--  virtual bool exit_wdt_sleep() {return wdt_flag & 2;}
-+  virtual bool exit_wdt_sleep();
-   virtual void enter_sleep();
-   virtual void exit_sleep();
-   virtual void reset(RESET_TYPE r);
-Index: src/14bit-registers.cc
-===================================================================
---- src/14bit-registers.cc	(revision 2299)
-+++ src/14bit-registers.cc	(working copy)
-@@ -325,7 +325,7 @@
- 	break;
- 
-     case HF:
--	mask = OSCSTAT::HFIOFL | OSCSTAT::HFIOFR;
-+	mask = OSCSTAT::HFIOFL | OSCSTAT::HFIOFR | OSCSTAT::HFIOFS; //BUGFIX: add HFIOFS to set stable flag (oscillator within 0.5%)
- 	break;
- 
-     case PLL:
-@@ -1013,7 +1013,7 @@
-     else if (fsr_adj >= 0x2000 && fsr_adj < 0x29b0) // Linear GPR region
-     {
- 	unsigned int bank = (fsr_adj & 0xfff) / 0x50;
--	unsigned int low_bits = ((fsr_adj & 0xff) % 0x50) + 0x20;
-+	unsigned int low_bits = ((fsr_adj & 0xfff) % 0x50) + 0x20;
-         return(cpu_pic->registers[bank * 0x80 + low_bits]->get()); 
-     }
-     else if (fsr_adj >= 0x8000 && fsr_adj <= 0xffff) // program memory
 Index: src/Makefile.am
 ===================================================================
---- src/Makefile.am	(revision 2299)
+--- src/Makefile.am	(revision 2308)
 +++ src/Makefile.am	(working copy)
 @@ -44,6 +44,7 @@
  	modules.cc \
@@ -110,7 +907,7 @@ Index: src/Makefile.am
  	p16x6x.h \
 Index: src/a2d_v2.h
 ===================================================================
---- src/a2d_v2.h	(revision 2299)
+--- src/a2d_v2.h	(revision 2308)
 +++ src/a2d_v2.h	(working copy)
 @@ -22,7 +22,7 @@
  // For A2D modules which have ADCON0, ADCON1 and ADCON2 registers
@@ -123,7 +920,7 @@ Index: src/a2d_v2.h
  #include "trigger.h"
 Index: src/makefile.mingw
 ===================================================================
---- src/makefile.mingw	(revision 2299)
+--- src/makefile.mingw	(revision 2308)
 +++ src/makefile.mingw	(working copy)
 @@ -71,6 +71,7 @@
  	operator.o		\
@@ -133,223 +930,11 @@ Index: src/makefile.mingw
  	p12f6xx.o		\
  	p12x.o			\
  	p16f62x.o		\
-Index: src/p16f1847.cc
-===================================================================
---- src/p16f1847.cc	(revision 0)
-+++ src/p16f1847.cc	(working copy)
-@@ -0,0 +1,157 @@
-+#include "p16f1847.h"
-+#include "pic-ioports.h"
-+#include "packages.h"
-+
-+Processor * P16F1847::construct(const char *name)
-+{
-+
-+  P16F1847 *p = new P16F1847(name);
-+
-+  p->create(0x3ff, 256);
-+  p->create_invalid_registers();
-+  p->create_symbols();
-+  return p;
-+}
-+
-+P16F1847::~P16F1847()
-+{
-+  delete_sfr_register(m_portb);
-+  delete_sfr_register(m_trisb);
-+  delete_sfr_register(m_latb);
-+  delete_sfr_register(m_iocbf);
-+  delete_sfr_register(m_iocbn);
-+  delete_sfr_register(m_iocbp);
-+
-+  delete_sfr_register(m_wpub);
-+  remove_sfr_register(&m_anselb);
-+}
-+
-+P16F1847::P16F1847(const char *_name, const char *desc)
-+  : P12F1822(_name,desc), 
-+  m_anselb(this, "anselc", "Analog Select port b")
-+{
-+  m_iocbp = new IOC(this, "iocbp", "", 0xff);
-+  m_iocbn = new IOC(this, "iocbn", "", 0xff);
-+  m_iocbf = new IOCxF(this, "iocbf", "", 0xff);
-+  m_portb = new PicPortIOCRegister(this, "portb", "", intcon, m_iocbn, m_iocbp, m_iocbf, 8, 0xff);
-+  m_trisb = new PicTrisRegister(this, "trisb", "", m_portb, false, 0xff);
-+  m_latb = new PicLatchRegister(this, "latb", "", m_portb, 0xff);
-+  m_wpub = new WPU(this, "wpub", "Weak Pull-up Register port b", m_portb, 0xff);
-+}
-+
-+void  P16F1847::create(int ram_top, int eeprom_size)
-+{
-+
-+  create_iopin_map();
-+  e = new EEPROM_EXTND(this, pir2);
-+  set_eeprom(e);
-+
-+  pic_processor::create();
-+
-+  e->initialize(eeprom_size, 16, 16, 0x8000);
-+  e->set_intcon(intcon);
-+  e->get_reg_eecon1()->set_valid_bits(0xff);
-+
-+  //Add GPR registers for each bank of RAM
-+  //There are 1024 bytes of GPR, in 12 pages
-+  //of 80 bytes each + 16 bytes of common ram
-+  //and 48 bytes in bank 12.  Datasheet page 23
-+  for (int bank=0; bank<=11; ++bank)
-+  {
-+  	int start = 0x20 + (bank*128);
-+  	int end = start + 80 - 1;
-+
-+  	add_file_registers(start, end, 0x00);
-+  }
-+
-+  //Common RAM and partial BANK12
-+  add_file_registers(0x70, 0x7F, 0x00);
-+  add_file_registers(0x620, 0x620 + 48 -1, 0x00);
-+
-+  //Initialize Special Function Registers
-+  create_ports();
-+
-+  _14bit_e_processor::create_sfr_map();
-+  P12F1822::create_sfr_map();
-+  create_sfr_map();
-+
-+  // Set DeviceID (0b010100100 + 5 bits for revision ID for 16F1847)
-+  if (m_configMemory && m_configMemory->getConfigWord(6))
-+      m_configMemory->getConfigWord(6)->set(0x1480);
-+}
-+
-+void P16F1847::create_sfr_map()
-+{
-+  create_ports();
-+
-+  ssp.set_sckPin(&(*m_portb)[4]);
-+  ssp.set_sdiPin(&(*m_portb)[1]);
-+  ssp.set_sdoPin(&(*m_portb)[2]);
-+  ssp.set_ssPin(&(*m_portb)[5]);
-+  ssp.set_tris(m_trisb);
-+
-+  // Pin values for default APFCON
-+  usart.set_TXpin(&(*m_portb)[2]); // TX pin
-+  usart.set_RXpin(&(*m_portb)[1]);  // RX pin
-+}
-+
-+void P16F1847::create_ports()
-+{
-+  /*
-+   * Configure port B and connect the digital and analog control
-+   * registers.
-+   */
-+  add_sfr_register(m_iocbf, 0x396);
-+  add_sfr_register(m_iocbn, 0x395);
-+  add_sfr_register(m_iocbp, 0x394);
-+  add_sfr_register(m_portb, 0x0D);
-+  add_sfr_register(m_trisb, 0x8D);
-+  add_sfr_register(&m_anselb, 0x18D, RegisterValue(0xFE, 0));
-+  add_sfr_register(m_wpub, 0x20D);
-+
-+  //All Port B pins are analog except for B0 (AN5-AN11, but not in order)
-+  m_anselb.config(0xFE, 5);
-+  m_anselb.setValidBits(0xFE);
-+  m_anselb.setAdcon1(&adcon1);
-+  m_anselb.setAnsel(&ansela);
-+  ansela.setAnsel(&m_anselb);
-+
-+  adcon1.setIOPin(5, &(*m_portb)[6]);
-+  adcon1.setIOPin(6, &(*m_portb)[7]);
-+  adcon1.setIOPin(7, &(*m_portb)[5]);
-+  adcon1.setIOPin(8, &(*m_portb)[4]);
-+  adcon1.setIOPin(9, &(*m_portb)[3]);
-+  adcon1.setIOPin(10, &(*m_portb)[2]);
-+  adcon1.setIOPin(11, &(*m_portb)[1]);
-+}
-+
-+void P16F1847::create_iopin_map()
-+{
-+	package = new Package(20);
-+	if (!package)
-+		return;
-+
-+  package->assign_pin(19, m_porta->addPin(new IO_bi_directional_pu("porta0"),0));
-+  package->assign_pin(20, m_porta->addPin(new IO_bi_directional_pu("porta1"),1));
-+  package->assign_pin(1, m_porta->addPin(new IO_bi_directional_pu("porta2"),2));
-+  package->assign_pin(2, m_porta->addPin(new IO_bi_directional_pu("porta3"),3));
-+  package->assign_pin(3, m_porta->addPin(new IO_bi_directional_pu("porta4"),4));
-+  package->assign_pin(4, m_porta->addPin(new IO_bi_directional_pu("porta5"),5));
-+  package->assign_pin(17, m_porta->addPin(new IO_bi_directional_pu("porta6"),6));
-+  package->assign_pin(18, m_porta->addPin(new IO_bi_directional_pu("porta7"),7));
-+
-+  package->assign_pin(7, m_portb->addPin(new IO_bi_directional_pu("portb0"),0));
-+  package->assign_pin(8, m_portb->addPin(new IO_bi_directional_pu("portb1"),1));
-+  package->assign_pin(9, m_portb->addPin(new IO_bi_directional_pu("portb2"),2));
-+  package->assign_pin(10, m_portb->addPin(new IO_bi_directional_pu("portb3"),3));
-+  package->assign_pin(11, m_portb->addPin(new IO_bi_directional_pu("portb4"),4));
-+  package->assign_pin(12, m_portb->addPin(new IO_bi_directional_pu("portb5"),5));
-+  package->assign_pin(13, m_portb->addPin(new IO_bi_directional_pu("portb6"),6));
-+  package->assign_pin(14, m_portb->addPin(new IO_bi_directional_pu("portb7"),7));
-+
-+  //VDD and VSS
-+  package->assign_pin(5, 0);
-+  package->assign_pin(6, 0);
-+  package->assign_pin(15, 0);
-+  package->assign_pin(16, 0);
-+}
-\ No newline at end of file
-Index: src/p16f1847.h
-===================================================================
---- src/p16f1847.h	(revision 0)
-+++ src/p16f1847.h	(working copy)
-@@ -0,0 +1,44 @@
-+#ifndef __p16f1847__h__
-+#define __p16f1847__h__
-+
-+#include "p1xf1xxx.h"
-+
-+/*
-+ * PIC16F1847 - Enhanced Midrange Microcontroller with 1K RAM, 8K Flash and 256 bytes of EEPROM
-+ *
-+ * The processor is a larger version of the 16f1823 family (implemented in p1xf1xxx.{h,cc})
-+ */
-+
-+class P16F1847 : public P12F1822
-+{
-+public:
-+  //Port B with interrupt on change
-+  PicPortIOCRegister *m_portb;
-+  PicTrisRegister    *m_trisb;
-+  PicLatchRegister   *m_latb;
-+
-+  IOC                *m_iocbp;
-+  IOC                *m_iocbn;
-+  IOCxF              *m_iocbf;
-+
-+  WPU                *m_wpub;
-+  ANSEL_P            m_anselb;
-+
-+  virtual unsigned int program_memory_size() const {return 8192;}
-+  virtual unsigned int register_memory_size() const {return 0x1000;}
-+  virtual PROCESSOR_TYPE isa() {return _P16F1847_;}
-+
-+  virtual void create(int ram_top, int eeprom_size);
-+  virtual void create_iopin_map();
-+  virtual void create_sfr_map();
-+
-+   P16F1847(const char *_name=0, const char *desc=0);
-+  ~P16F1847();
-+
-+  static Processor *construct(const char *name);
-+
-+private:
-+  void create_ports();
-+};
-+
-+#endif
 Index: src/p1xf1xxx.cc
 ===================================================================
---- src/p1xf1xxx.cc	(revision 2299)
+--- src/p1xf1xxx.cc	(revision 2308)
 +++ src/p1xf1xxx.cc	(working copy)
-@@ -463,7 +463,6 @@
+@@ -464,7 +464,6 @@
  
  
    //add_sfr_register(indf,    0x00);
@@ -357,7 +942,7 @@ Index: src/p1xf1xxx.cc
    add_sfr_register(m_porta, 0x0c);
    add_sfr_register(pir1,    0x11, RegisterValue(0,0),"pir1");
    add_sfr_register(pir2,    0x12, RegisterValue(0,0),"pir2");
-@@ -719,6 +718,8 @@
+@@ -720,6 +719,8 @@
    e->get_reg_eecon1()->set_valid_bits(0xff);
  
    add_file_registers(0x20, ram_top, 0x00);
@@ -366,7 +951,7 @@ Index: src/p1xf1xxx.cc
    _14bit_e_processor::create_sfr_map();
    P12F1822::create_sfr_map();
    // Set DeviceID
-@@ -1774,6 +1775,8 @@
+@@ -1776,6 +1777,8 @@
    e->get_reg_eecon1()->set_valid_bits(0xff);
  
    add_file_registers(0x20, ram_top, 0x00);
@@ -377,7 +962,7 @@ Index: src/p1xf1xxx.cc
    P16F1823::create_sfr_map();
 Index: src/p1xf1xxx.h
 ===================================================================
---- src/p1xf1xxx.h	(revision 2299)
+--- src/p1xf1xxx.h	(revision 2308)
 +++ src/p1xf1xxx.h	(working copy)
 @@ -41,8 +41,6 @@
  SSP1_MODULE 	*m_ssp;
@@ -404,9 +989,9 @@ Index: src/p1xf1xxx.h
  #endif //__P1xF1xxx_H__
 Index: src/pic-instructions.cc
 ===================================================================
---- src/pic-instructions.cc	(revision 2299)
+--- src/pic-instructions.cc	(revision 2308)
 +++ src/pic-instructions.cc	(working copy)
-@@ -753,15 +753,14 @@
+@@ -753,8 +753,7 @@
  BRW::BRW (Processor *new_cpu, unsigned int new_opcode, unsigned int address)
    : instruction(new_cpu, new_opcode, address)
  {
@@ -416,6 +1001,7 @@ Index: src/pic-instructions.cc
  
    new_name("brw");
  }
+@@ -761,7 +760,7 @@
  
  void BRW::execute()
  {
@@ -435,7 +1021,7 @@ Index: src/pic-instructions.cc
    return(return_str);
 Index: src/pic-processor.cc
 ===================================================================
---- src/pic-processor.cc	(revision 2299)
+--- src/pic-processor.cc	(revision 2308)
 +++ src/pic-processor.cc	(working copy)
 @@ -55,6 +55,7 @@
  #include "p12x.h"
@@ -457,7 +1043,7 @@ Index: src/pic-processor.cc
                                "__17C7xx", "pic17c7xx",  "p17c7xx", "17c7xx");
 Index: src/pic-processor.h
 ===================================================================
---- src/pic-processor.h	(revision 2299)
+--- src/pic-processor.h	(revision 2308)
 +++ src/pic-processor.h	(working copy)
 @@ -125,6 +125,7 @@
    _P16F886_,
@@ -467,7 +1053,7 @@ Index: src/pic-processor.h
    _P16F1788_,
    _P16F1789_,
    _P17C7xx_,
-@@ -260,6 +261,8 @@
+@@ -261,6 +262,8 @@
    void set_breakpoint(unsigned int bpn);
    bool hasBreak() { return breakpoint != 0;}
  
