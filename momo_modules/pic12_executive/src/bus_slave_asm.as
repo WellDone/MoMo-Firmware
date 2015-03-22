@@ -6,7 +6,7 @@
 #include "i2c_defines.h"
 #include "asm_locations.h"
 #include "asm_branches.inc"
-#include "bus_defines.h"
+#include "protocol_defines.h"
 
 ASM_INCLUDE_GLOBALS()
 
@@ -58,7 +58,7 @@ BEGINFUNCTION _bus_slave_callcommand
 		goto wrongparameter_error
 
 	;Initialize to no error and call the slave handler
-	movlw pack_return_status(kNoMIBError,0)
+	;movlw pack_return_status(kNoMIBError,0)
 	call _bus_slave_setreturn
 	movf FSR0L,w; load the slave handler
 	goto _call_handler
@@ -66,14 +66,14 @@ BEGINFUNCTION _bus_slave_callcommand
 
 	;Errors
 	checksum_error:
-	movlw pack_return_status(kChecksumError, 0)
+	;movlw pack_return_status(kChecksumError, 0)
 	goto _bus_slave_setreturn
 
 	unsupported_error:
-	movlw pack_return_status(kUnsupportedCommand,0)
+	;movlw pack_return_status(kUnsupportedCommand,0)
 	goto _bus_slave_setreturn
 
 	wrongparameter_error:
-	movlw pack_return_status(kWrongParameterType, 0)
+	;movlw pack_return_status(kWrongParameterType, 0)
 	goto _bus_slave_setreturn
 ENDFUNCTION _bus_slave_callcommand

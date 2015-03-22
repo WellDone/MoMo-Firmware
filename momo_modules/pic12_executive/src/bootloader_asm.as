@@ -30,14 +30,14 @@ BEGINFUNCTION _get_half_row
 	call _bus_master_begin_rpc
 	banksel _boot_id
 	movf 	BANKMASK(_boot_id),w
-	banksel _mib_data
+	banksel _mib_packet
 	movwf BANKMASK(mib_buffer+0)
 	clrf  BANKMASK(mib_buffer+1)
 
 	banksel _offset
 	movf BANKMASK(_offset),w
 
-	banksel _mib_data
+	banksel _mib_packet
 	movwf BANKMASK(mib_buffer+2)	;mib_buffer second int param to offset (low byte)
 	
 	;Load in the feature and comand info

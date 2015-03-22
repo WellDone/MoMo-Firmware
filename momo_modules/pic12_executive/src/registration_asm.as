@@ -41,7 +41,7 @@ BEGINFUNCTION _register_module
 
 	;mib_buffer now has the module descriptor
 	;send it to controller endpoint(42, 0)
-	banksel _mib_data
+	banksel _mib_packet
 	movlw 42
 	movwf BANKMASK(bus_feature)
 	
@@ -60,7 +60,7 @@ BEGINFUNCTION _register_module
 
 	;If the call was successful, our address is in the first byte of the 
 	;mib buffer
-	banksel _mib_data
+	banksel _mib_packet
 	movf BANKMASK(mib_buffer),w
 	return
 ENDFUNCTION _register_module

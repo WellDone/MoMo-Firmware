@@ -7,7 +7,7 @@
 #include "i2c_defines.h"
 #include "asm_locations.h"
 #include "asm_branches.inc"
-#include "bus_defines.h"
+#include "protocol_defines.h"
 
 ASM_INCLUDE_GLOBALS()
 
@@ -108,7 +108,7 @@ BEGINFUNCTION _i2c_master_send_message
 	btfsc DC
 		return
 	movf FSR0L,w
-	xorlw _mib_data + kBusPacketSize + 1
+	xorlw _mib_packet + kMIBMessageSize + 1
 	btfss ZERO
 		goto sendloop
 
@@ -171,7 +171,7 @@ BEGINFUNCTION _i2c_master_receive_message
 
 	;Acknowledge bytes 0-23 and do no acknowledge last byte 
 	bsf CARRY
-	movlw _mib_data + kBusPacketSize
+	movlw _mib_packet + kMIBMessageSize - 1
 	xorwf FSR0L,w
 	btfsc ZERO
 		bcf CARRY
@@ -182,13 +182,13 @@ BEGINFUNCTION _i2c_master_receive_message
 		goto resend_command_error
 
 	;After receiving 2 bytes, check to make sure we should keep reading
-	movlw _mib_data + 2
+	movlw _mib_packet + 2
 	xorwf FSR0L,w
 	btfsc ZERO
 		goto check_status
 
 	;If we have read 25 bytes, we're done
-	movlw _mib_data + kBusPacketSize + 1
+	movlw _mib_packet + kMIBMessageSize
 	xorwf FSR0L,w
 	btfsc ZERO
 		goto done_reading
@@ -222,7 +222,7 @@ BEGINFUNCTION _i2c_master_receive_message
 
 	;If slave responded that our command was corrupted, try again
 	moviw [-1]FSR0 ;get the return status
-	xorlw kChecksumError
+	xorlw kChecksumMismatchStatus
 	btfsc ZERO
 		goto resend_command_error
 

@@ -4,7 +4,7 @@
 
 #include <xc.inc>
 #include "i2c_defines.h"
-#include "bus_defines.h"
+#include "protocol_defines.h"
 #include "asm_locations.h"
 
 ASM_INCLUDE_GLOBALS()
@@ -54,7 +54,7 @@ BEGINFUNCTION _i2c_calculate_checksum
 
 	incf FSR0L,f
 	movf FSR0L,w
-	xorlw _mib_data + kBusPacketSize
+	xorlw _mib_packet + kMIBMessageSize
 	btfss ZERO
 		goto validate_loop
 
@@ -69,14 +69,14 @@ ENDFUNCTION _i2c_calculate_checksum
 ;Postcondition: FSR0 contains address
 BEGINFUNCTION _i2c_loadbuffer
 	clrf 	FSR0H
-	movlw	_mib_data
+	movlw	_mib_packet
 	movwf  	FSR0L
 	return
 ENDFUNCTION _i2c_loadbuffer
 
 BEGINFUNCTION _i2c_init_location
 	banksel curr_loc
-	movlw 	_mib_data
+	movlw 	_mib_packet
 	movwf  BANKMASK(curr_loc)
 	return
 ENDFUNCTION _i2c_init_location
@@ -86,7 +86,7 @@ ENDFUNCTION _i2c_init_location
 ;FIXME: Add an overflow bit so that we don't keep sending checksum errors
 BEGINFUNCTION _i2c_incptr
 	banksel _mib_state
-	movlw 	(_mib_data + kBusPacketSize)
+	movlw 	(_mib_packet + kMIBMessageSize)
 	xorwf	BANKMASK(curr_loc),w
 	btfsc 	ZERO
 		return 			;if buffer is full, do not increment

@@ -35,7 +35,7 @@ BEGINFUNCTION _exec_readmem
 
 	movlw	20
 	call 	_copy_fsr
-	movlw 	pack_return_status(0, 20)
+	;movlw 	pack_return_status(0, 20)
 	goto	_bus_slave_setreturn
 ENDFUNCTION _exec_readmem
 
@@ -51,6 +51,6 @@ BEGINFUNCTION _exec_status
 	movf 	BANKMASK(_status), w
 	movwi 	[3]FSR0
 
-	movlw 	pack_return_status(0, 4)
+	;movlw 	pack_return_status(0, 4)
 	goto	_bus_slave_setreturn
 ENDFUNCTION _exec_status

@@ -17,8 +17,4 @@ enum
 	k16SecondTimeout = 0b011100
 };
 
-void wdt_pushenabled();
-void wdt_popenabled();
-void wdt_settimeout(uint8 timeout);
-
 #endif

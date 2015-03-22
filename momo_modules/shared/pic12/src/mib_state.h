@@ -20,5 +20,5 @@ typedef struct
 	unsigned char			checksum;
 } MIBData;
 
-extern bank1 MIBData			mib_data;							//Put mib data in first byte of GPR in bank1 (24 bytes)
+extern MIBData			mib_data;							//Put mib data in first byte of GPR in bank1 (24 bytes)
 extern bank1 MIBState 			mib_state;							//Put mib state right after mib_buffer (2 bytes)

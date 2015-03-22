@@ -14,8 +14,6 @@ GLOBAL exec_cmd_map, exec_spec_map, _find_handler
 
 PSECT text100,local,class=CODE,delta=2
 
-#define kInvalidMIBIndex 255
-
 ;Given a MIB command passed in the MIB packet, decide if
 ;we have a handler for that feature,command pair
 ;Uses: W, FSR0L,FSR0H
@@ -161,7 +159,7 @@ ENDFUNCTION _get_num_features
 ; efficiently on the pic12
 ; Uses: FSR0L and FSR0H
 BEGINFUNCTION _plist_param_length
-	banksel _mib_data
+	banksel _mib_packet
 	movf 	BANKMASK(bus_spec),w
 	movwf BANKMASK(FSR0L)  					
 	andlw 0b01100000

@@ -17,11 +17,11 @@
 #define kMIBUnenumeratedAddress		127
 
 //Defined MIB Module Types
-#define kMIBGenericType				  0b00000000
+#define kMIBGenericType				0b00000000
 #define kMIBControllerType 			0b00000001
 #define kMIBCommunicationType		0b00000010
 #define kMIBExecutiveOnlyType		0b00000100
-#define kMIBSensorType				  0b00001000
+#define kMIBSensorType				0b00001000
 
 //Defined MIB Hardware Types
 #define kMIBPic12lf1822					2
@@ -52,7 +52,7 @@
 typedef struct 
 {
 	uint8	hardware_type;
-	uint8 module_type;
+	uint8 	module_type;
 	uint8	mib_revision : 4;
 	uint8	flags : 4;
 
@@ -78,7 +78,7 @@ typedef struct
 
 #define plist_matches(plist,spec)     ((plist & plist_spec_mask) == spec)
 
-#ifndef _PIC12
+/*#ifndef _PIC12
 #define plist_set_int32(n, val)			((uint16*)mib_data.buffer)[n>>1] = val
 #define plist_set_int16(n, val)			((int*)(mib_unified.mib_buffer))[n] = val
 #define plist_set_int8(n, hi, val)		mib_unified.mib_buffer[(n<<1) + hi] = val
@@ -86,8 +86,6 @@ typedef struct
 #define plist_get_int8(n)				mib_unified.mib_buffer[n<<1]
 #define plist_get_buffer(n)				(mib_unified.mib_buffer + (n << 1))
 #define plist_get_buffer_length()		(mib_unified.bus_command.param_spec & 0b00011111)
-#endif
-
-#define pack_return_status(status, return_length)	(((status & 0b111) << 5) | (return_length & 0b00011111))
+#endif*/
 
 #endif

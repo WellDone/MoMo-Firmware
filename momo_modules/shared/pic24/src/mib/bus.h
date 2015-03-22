@@ -25,6 +25,9 @@ enum
 #define bus_has_returnvalue()			(mib_state.bus_returnstatus.len != 0)
 #define bus_get_returnvalue_length()	(mib_unified.bus_returnstatus.len)
 
+//Callback type for master rpc routines
+typedef void (*mib_rpc_function)(unsigned char);
+
 typedef enum 
 {
 	kMIBIdleState = 0,
