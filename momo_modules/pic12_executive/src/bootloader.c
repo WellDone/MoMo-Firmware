@@ -11,6 +11,7 @@
 #include <xc.h>
 #include "bootloader.h"
 #include "constants.h"
+#include "executive_state.h"
 #include "bus_master.h"
 #include "port.h"
 #include <string.h>
@@ -28,8 +29,6 @@ uint8 i @ 0x68;
 uint8 tmp @ 0x69;
 uint8 invalid_row @ 0x6A;
 uint8 offset @ 0x6B;
-
-extern bank1 __persistent MIBExecutiveStatus status;
 
 void enter_bootloader()
 {

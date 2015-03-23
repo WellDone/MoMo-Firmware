@@ -16,7 +16,7 @@ PSECT text_bus_master,local,class=CODE,delta=2
 
 ;Capture the I2C bus once it has become idle and prepare it to send a master MIB
 ;call.  
-;Arguments: Address to send to in W
+;Arguments: None
 ;Modifies: C,Z
 ;Returns: Nothing
 ;Side Effects: None

@@ -24,8 +24,9 @@
 #define __protocol_defines_h__
 
 //Fixed Sizes for the MIB Bus
-#define kMIBBufferSize 		20
-#define kMIBMessageSize		(kMIBBufferSize + 4 + 1)
+#define kMIBBufferSize 				20
+#define kMIBMessageSize				(kMIBBufferSize + 4 + 1)
+#define kMIBMessageNoChecksumSize	(kMIBMessageSize - 1)
 
 //Fixed Timeouts (in milliseconds, must be less than 256)
 #define kMIBSlaveTimeout 	50
@@ -54,5 +55,26 @@
 #define kChecksumMismatchStatus		make_mib_status(0, 0, kChecksumMismatchCode)
 #define kCommandNotFoundStatus 		make_mib_status(0, 0, kCommandNotFoundCode)
 #define kModuleNotPresentStatus		make_mib_status(1, 1, kModuleNotPresentCode)	//a missing module responds 0xFF on the bus
+
+//Well-Known MIB Addresses
+#define kMIBControllerAddress		8
+#define kMIBUnenumeratedAddress		127
+
+//Defined MIB Module Types
+#define kMIBGenericType				0b00000000
+#define kMIBControllerType 			0b00000001
+#define kMIBCommunicationType		0b00000010
+#define kMIBExecutiveOnlyType		0b00000100
+#define kMIBSensorType				0b00001000
+
+//Defined MIB Hardware Types
+#define kMIBPic12lf1822					2
+#define kMIBPic16lf1823					3
+#define kMIBPic16lf1847					4
+#define kMIBControllerFirmware			5
+#define kMIBBackupControllerFirmware	6
+
+//Defined MIB Protocol revisions
+#define kMIBVersion1				1
 
 #endif

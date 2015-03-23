@@ -45,18 +45,6 @@ typedef struct
 	uint16_t 	command;
 } MIBCommandHeader;
 
-union
-{
-	struct
-	{
-		uint8_t has_data: 1;
-		uint8_t app_defined: 1;
-		uint8_t code: 6;	
-	};
-
-	uint8_t value;
-};
-
 typedef struct 
 {
 	union

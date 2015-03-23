@@ -54,7 +54,7 @@ BEGINFUNCTION _i2c_calculate_checksum
 
 	incf FSR0L,f
 	movf FSR0L,w
-	xorlw _mib_packet + kMIBMessageSize
+	xorlw _mib_packet + kMIBMessageNoChecksumSize
 	btfss ZERO
 		goto validate_loop
 

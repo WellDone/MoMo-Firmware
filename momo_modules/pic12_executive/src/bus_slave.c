@@ -1,8 +1,7 @@
 #include "bus_slave.h"
 #include "bootloader.h"
 #include <string.h>
-
-extern bank1 __persistent MIBExecutiveStatus status;
+#include "executive_state.h"
 
 //Internal functions used only in this file. file.
 void bus_slave_callcommand();

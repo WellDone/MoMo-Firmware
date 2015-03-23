@@ -5,6 +5,7 @@
 #include "mib_hal.h"
 #include "i2c.h"
 #include "protocol.h"
+#include "executive_state.h"
 
 //Takes 2 bits to store
 //Cannot change.  Referenced by mib_hal.as in pic12 code
@@ -24,27 +25,6 @@ typedef enum
 #define plist_get_int8(n)				mib_packet.data[(n<<1) ]
 #define plist_get_buffer(n)				(mib_packet.data + (n << 1))
 #define plist_get_buffer_length()		(mib_data.bus_command.param_spec & 0b00011111)
-
-//3 bytes long
-typedef struct 
-{
-	//Master variables
-	uint8   slave_address;
-	uint8	send_address;
-
-	//Slave variables
-	uint8 	curr_loc;
-} MIBState;
-
-/*
- * Make sure files have access to the fundamental MIB global state variables so that
- * we can replace functions with macros that reference these variables.
- */
-
-#ifndef __NO_EXTERN_MIB_STATE__
-extern MIBPacket	mib_packet;
-extern MIBState 	mib_state;
-#endif
 
 uint8 plist_param_length(void);
 uint8 bus_retval_size();

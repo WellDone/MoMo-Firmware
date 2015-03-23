@@ -108,7 +108,7 @@ BEGINFUNCTION _i2c_master_send_message
 	btfsc DC
 		return
 	movf FSR0L,w
-	xorlw _mib_packet + kMIBMessageSize + 1
+	xorlw _mib_packet + kMIBMessageSize
 	btfss ZERO
 		goto sendloop
 

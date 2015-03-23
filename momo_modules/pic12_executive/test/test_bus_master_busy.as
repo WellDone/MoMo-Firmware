@@ -2,7 +2,7 @@
 ;Targets: all
 ;Type: executive
 ;Attach Slave:8, responder_busy.py
-;I2C Capture: S, 0x08/WA, 0x2a/A, 0x03/A, 0x02/A, 0x0a/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0xc7/A, RS, 0x08/RA, 0x00/A, 0x00/A, 0x00/N, P
+;I2C Capture: S, 0x8/WA, 0x0/A, 0xa/A, 0x2a/A, 0x3/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0x00/A, 0xc9/A, RS, 0x08/RA, 0x00/A, 0x00/A, 0x00/N, P
 ;Description:Test to ensure that mib bus master is working correctly. Test by
 ;sending an rpc and seeing if it sends correctly, i.e. the master rpc logic
 ;does not loop forever
@@ -28,11 +28,11 @@ BEGINFUNCTION _begin_tests
 	asm_call_bus_master_begin_rpc()
 	banksel(_mib_packet)
 	movlw 42
-	movwf BANKMASK(_mib_packet+0)
-	movlw 3
-	movwf BANKMASK(_mib_packet+1)
-	movlw 2
 	movwf BANKMASK(_mib_packet+2)
+	movlw 3
+	movwf BANKMASK(_mib_packet+3)
+	movlw 0
+	movwf BANKMASK(_mib_packet+0)
 	
 	;Send the RPC and make sure that we get the right response (busy in this case)
 	asm_call_bus_master_send_rpc()

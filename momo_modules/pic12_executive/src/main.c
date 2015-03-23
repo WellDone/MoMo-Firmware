@@ -3,10 +3,11 @@
 #include "bootloader.h"
 #include "appcode.h"
 #include "watchdog.h"
-#include "mib_definitions.h"
 #include "i2c_defines.h"
+#include "executive_state.h"
 #include "port.h"
 #include "ioc.h"
+#include "protocol.h"
 
 #define _XTAL_FREQ          4000000
 
@@ -17,8 +18,6 @@
 #pragma config WRT=OFF          /* Flash memory write protection off. */
 #pragma config LVP=OFF
 #pragma config MCLRE=OFF
-
-extern __persistent bank1 MIBExecutiveStatus status;
 
 void initialize();
 extern void restore_status();

@@ -2,8 +2,6 @@
 #include "bootloader.h"
 #include "flash_memory.h"
 
-extern __persistent bank1 MIBExecutiveStatus status;
-
 void exec_prepare_reflash()
 {
 	set_firmware_id(plist_get_int8(1));	//get_int8 returns the low word of the second 16 bit integer param

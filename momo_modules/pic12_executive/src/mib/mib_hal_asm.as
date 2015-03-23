@@ -18,7 +18,7 @@ PSECT text100,local,class=CODE,delta=2
 ;we have a handler for that feature,command pair
 ;Uses: W, FSR0L,FSR0H
 BEGINFUNCTION _find_handler
-	movlb 1
+	banksel(bus_feature)
 	;skipnelf BANKMASK(bus_feature),kMIBExecutiveFeature
 		movf BANKMASK(bus_feature),w
 		xorlw kMIBExecutiveFeature
@@ -80,6 +80,7 @@ ENDFUNCTION _find_handler
 ;if the command is handled by the executive, jump to the executive table
 ;handler is passed in W register
 BEGINFUNCTION _call_handler
+	banksel (bus_feature) 
 	movwf FSR1L
 	movlw kMIBExecutiveFeature
 	xorwf BANKMASK(bus_feature),w ;see if feature matches kMIBExecutiveFeature
@@ -114,7 +115,7 @@ ENDFUNCTION _get_command
 ;Returns: handler spec in W
 BEGINFUNCTION _get_param_spec
 	movwf FSR1L
-	movlb 1
+	banksel bus_feature
 	movlw kMIBExecutiveFeature
 	xorwf BANKMASK(bus_feature),w ;see if feature matches kMIBExecutiveFeature
 	btfss ZERO

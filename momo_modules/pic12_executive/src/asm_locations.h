@@ -2,10 +2,7 @@
 #define __asm_locations_h__
 
 #include "asm_macros.inc"
-
-#define __DEFINES_ONLY__
-#include "mib_definitions.h"
-#undef __DEFINES_ONLY__
+#include "protocol_defines.h"
 
 /*
  * ASM Variable Locations
@@ -20,8 +17,6 @@
 #define bus_sender		(_mib_packet + 1)
 #define bus_feature		(_mib_packet + 2)
 #define bus_command 	(_mib_packet + 3)
-
-
 
 #define bus_status		(_mib_packet + 0)
 #define bus_statuscheck (_mib_packet + 1)
