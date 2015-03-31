@@ -2,9 +2,12 @@
 class BusyException (Exception):
 	pass
 
+class EndpointNotFoundException (Exception):
+	pass
+
 def handle_mib_endpoint(command, sender, params):
 	"""
 	Always return that we're busy
 	"""
 	
-	raise BusyException
+	raise EndpointNotFoundException

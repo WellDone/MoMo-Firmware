@@ -68,7 +68,7 @@ BEGINFUNCTION _bus_master_send_rpc
 	banksel PIR1
 	bcf BCL1IF
 	
-	;Wait for the bus to not be idle (CARRY set when bus is idle)
+	;Wait for the bus to be idle (CARRY set when bus is idle)
 	call _bus_is_idle
 	btfss CARRY
 		goto wait_and_start

@@ -25,27 +25,27 @@ ENDFUNCTION _bus_init
 ;Detect if the i2c bus is idle so that we can start a master MIB packet. The bus
 ;is defined to be idle if a stop is the last condition on the bus or if neither
 ;a start nor a stop has been seen and the bus SCL and SDA pins are high
-;Uses: None
+;Uses: WREG
 ;Modifies: CARRY
 ;Side Effects: CARRY bit is set if the bus is idle and clear otherwise
 BEGINFUNCTION _bus_is_idle
-	bcf CARRY
-	banksel SSP1STAT
-	btfsc BANKMASK(SSP1STAT), SSP1STAT_S_POSN
-		return
-	btfsc BANKMASK(SSP1STAT), SSP1STAT_P_POSN
-		goto stop_seen
-
 	;Check if both SCL and SDA are high
 	banksel I2CPORT
 	bsf CARRY
+
+	;Check for 20 us to make sure that there are no SCL or SDA transitions
+	;or low values in that time.  Since we have a 1mhz clock, if someone is using the
+	;bus, we will see either clock go low or data go low (or stay low) once every 100 khz
+	;bus period
+	movlw 4
+	
+	loop_check:
 	btfss SCLPIN
 		bcf CARRY
 	btfss SDAPIN
 		bcf CARRY
-	return
+	decfsz WREG,w
+		goto loop_check
 
-	stop_seen:
-	bsf CARRY
 	return
 ENDFUNCTION _bus_is_idle

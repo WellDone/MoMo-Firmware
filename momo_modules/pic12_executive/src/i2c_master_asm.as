@@ -264,6 +264,7 @@ BEGINFUNCTION _i2c_master_receive_message
 	resend_command_error:
 	bcf CARRY
 	call _i2c_master_receivebyte
+	call _i2c_finish_transmission ;Send a stop to free the bus and try again
 	bsf DC
 	goto restore_and_return_error
 
@@ -282,8 +283,8 @@ BEGINFUNCTION _i2c_master_receive_message
 	call _i2c_loadbuffer
 	movf FSR1L,w
 	movwi [0]FSR0
-	movwf FSR1H
-	moviw [1]FSR0
+	movf FSR1H,w
+	movwi [1]FSR0
 	return
 ENDFUNCTION _i2c_master_receive_message
 

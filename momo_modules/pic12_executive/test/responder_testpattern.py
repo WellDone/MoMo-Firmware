@@ -1,5 +1,5 @@
 
-def handle_mib_endpoint(feature, command, type, sender, params):
+def handle_mib_endpoint(command, sender, params):
 	"""
 	Handle the MIB endpoint for the controller network address command.
 	"""
