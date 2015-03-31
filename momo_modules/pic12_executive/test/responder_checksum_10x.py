@@ -8,17 +8,17 @@ class EndpointNotFoundException (Exception):
 class ChecksumMismatchException (Exception):
 	pass
 
-first_call = True
+calls = 0
 
 def handle_mib_endpoint(command, sender, params):
 	"""
 	Always return that we're busy
 	"""
 
-	global first_call
+	global calls
 
-	if first_call:
-		first_call = False
+	if calls < 10:
+		calls += 1
 		raise ChecksumMismatchException()
 
 	return 0x00, [x for x in range(0, 20)]
