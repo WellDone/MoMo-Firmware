@@ -14,7 +14,8 @@
 				{
 					"defines":
 					{
-						"kExecutiveTimer": "2"
+						"kExecutiveTimer": "2",
+						"kBusyBusBackoffTimeout": "0b00100"
 					}
 				}
 			}

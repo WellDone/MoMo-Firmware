@@ -11,7 +11,8 @@ ASM_INCLUDE_GLOBALS()
 
 global _i2c_master_receive_message, _i2c_master_send_message, _i2c_loadbuffer
 global _bus_is_idle, _i2c_finish_transmission, _i2c_set_master_mode
-global _i2c_append_checksum
+global _i2c_append_checksum, _wdt_delay
+
 PSECT text_bus_master,local,class=CODE,delta=2
 
 ;Capture the I2C bus once it has become idle and prepare it to send a master MIB
@@ -65,7 +66,13 @@ BEGINFUNCTION _bus_master_send_rpc
 	call _i2c_append_checksum
 
 	wait_and_start:
+
+	;If we collided already, wait a configurable amount of time before trying again to
+	;give the other mib call sufficient time to finish (defined in module_settings.json)
 	banksel PIR1
+	movlw kBusyBusBackoffTimeout
+	btfsc BCL1IF
+		call _wdt_delay
 	bcf BCL1IF
 	
 	;Wait for the bus to be idle (CARRY set when bus is idle)

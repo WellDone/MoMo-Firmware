@@ -11,6 +11,7 @@
 
 enum
 {
+	k16MSTimeout = 0b00100,
 	k1SecondTimeout  = 0b010100,
 	k4SecondTimeout  = 0b011000,
 	k8SecondTimeout  = 0b011010,
