@@ -1,32 +1,13 @@
-echo "Patching GPSIM..."
+echo "Installing GPSIM..."
 set -e
 
-apt-get install -y g++ subversion automake make libglib2.0-dev pkg-config libpopt-dev libtool flex bison
+GPSIM_VERSION="0.28.0"
 
-rm -rf gputils
-mkdir gputils
-cd gputils
+GPSIM_PATH=`pwd`/gpsim
+mkdir $GPSIM_PATH
+wget -O - https://github.com/welldone/gpsim/releases/download/$GPSIM_VERSION/gpsim.tar.gz | tar xz -C $GPSIM_PATH
 
-svn checkout svn://svn.code.sf.net/p/gputils/code/trunk/gputils -r 1128 .
+echo "export PATH=\$PATH:$GPSIM_PATH/bin" >> $HOME/.profile
+echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$GPSIM_PATH/lib" >> $HOME/.profile
 
-./configure
-make
-make install
-
-cd ..
-
-rm -rf gpsim
-mkdir gpsim
-cd gpsim
-
-svn checkout svn://svn.code.sf.net/p/gpsim/code/trunk -r 2299 .
-patch -p0 -i $MOMOPATH/support/gpsim_16lf1847_support.patch
-
-libtoolize --force
-aclocal
-autoheader
-automake --force-missing --add-missing
-autoconf
-./configure --disable-gui
-make
-make install
+echo "Done!"
