@@ -1,5 +1,6 @@
 import os
 import autobuild
+import pymomo.hex
 
 def add_metadata(target, source, env):
 	"""
@@ -7,7 +8,7 @@ def add_metadata(target, source, env):
 	be loaded on the correct hardware.
 	"""
 
-	block = autobuild.pymomo.hex.ControllerBlock(str(source[0]))
+	block = pymomo.hex.ControllerBlock(str(source[0]))
 	block.set_hw_version(env['ARCH'].property('hw_compatibility'))
 	block.update_checksums()
 

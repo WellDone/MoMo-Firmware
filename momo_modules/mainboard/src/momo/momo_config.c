@@ -23,6 +23,7 @@ void init_momo_config( unsigned int subsection_index )
 void reset_momo_state()
 {
   current_momo_state.state_flags = 0;
+  current_momo_state.uuid = 0;
   init_report_config();
   config_state = kClean;
   save_momo_state();

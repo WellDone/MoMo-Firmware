@@ -10,5 +10,8 @@ feature 20
 4: _power_analog(1, no);
 5: _acquire_voltage(0, no);
 6: _acquire_pulse(0, no);
-7: _read_pulses(0, no);
-8: _clear_counters(0, no);
+7: _number_of_pulses(0, no);
+8: _read_pulse(1, no);
+9: _read_periods(0, no);
+10: _read_median_interval(0, no);
+11: _set_push_status(1, no);

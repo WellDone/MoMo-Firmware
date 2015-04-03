@@ -5,7 +5,7 @@
 global _mib_buffer, _mib_packet
 global _copy_to_mib
 
-PSECT text_unittest,local,class=CODE,delta=2
+PSECT text_unit2,local,class=CODE,delta=2
 
 ;copy_to_mib
 ;Given a MIB packet definition in program RAM, pointed

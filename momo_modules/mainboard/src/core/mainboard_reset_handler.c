@@ -50,16 +50,15 @@ void handle_all_resets_before(unsigned int type)
     scheduler_init(); //must come before taskloop and any logging calls since the taskloop and log calls add a scheduled task
     taskloop_init();
     taskloop_set_flag(kTaskLoopSleepBit, 1);
-
-    //Do the logging now since we need both the scheduler and taskloop to be intialized for logging to work
-    if (rtcc_disabled)
-        LOG_CRITICAL(kRTCCOffNotice); //log after enabling rtcc so that the timestamp makes sense
-
     
     con_init();
 
     init_mainboard_mib();
     flash_memory_init();
+
+    //Do the logging now since we need flash_memory_init() called to initialize the syslog
+    if (rtcc_disabled)
+        LOG_CRITICAL(kRTCCOffNotice); //log after enabling rtcc so that the timestamp makes sense
 
     mclr_triggered = false;
     LOG_CRITICAL(kDeviceResetNotice);
