@@ -12,6 +12,8 @@ void 			bus_master_rpc_async_do();
 
 const rpc_info *master_rpcdata;
 
+rtcc_timestamp rpc_start_time;
+
 unsigned int bus_master_idle()
 {
 	return mib_state.rpc_done;
@@ -23,6 +25,7 @@ static void bus_master_finish()
 
 	//Set the flag that this RPC is done for whomever is waiting.
 	mib_state.rpc_done = 1;
+	rpc_start_time = 0;
 
 	if ( !rpc_queue_empty() )
 			taskloop_add_critical( bus_master_rpc_async_do, NULL );
@@ -38,6 +41,7 @@ static void bus_master_finish()
 void bus_master_init()
 {
 	mib_state.rpc_done = 1;
+	rpc_start_time = 0;
 	rpc_queue_init();
 }
 
@@ -76,6 +80,7 @@ void bus_master_sendrpc()
 		return;
 	}
 
+	rpc_start_time = rtcc_get_timestamp();
 	i2c_master_enable();
 
 	set_master_state(kMIBReadReturnStatus);
@@ -151,4 +156,9 @@ void bus_master_callback()
 			bus_master_finish();
 		break;
 	}
+}
+
+rtcc_timestamp bus_master_rpc_start_timestamp()
+{
+	return rpc_start_time;
 }

@@ -17,6 +17,7 @@
 #include "perf.h"
 #include "momo_config.h"
 #include "log_definitions.h"
+#include "sanity_check.h"
 #include "rn4020.h"
 
 static bool mclr_triggered;
@@ -72,6 +73,7 @@ void handle_all_resets_after(unsigned int type)
 
     battery_init();
     //bt_init();
+    sanity_check_schedule();
     report_manager_start();
 
     LOG_CRITICAL(kDeviceInitializedNotice);
