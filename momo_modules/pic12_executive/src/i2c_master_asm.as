@@ -139,6 +139,18 @@ BEGINFUNCTION _i2c_master_receivebyte
 	goto _i2c_wait_flag
 ENDFUNCTION _i2c_master_receivebyte
 
+;FIXME:
+;Rewrite this function to take a length to read in W and reads in exactly that many
+;bytes, NACKing the last one.  Move the saving off of garbage to a higher level function
+;and don't check for bus collisions since a collision is not possible once we have successfully
+;sent the command because it includes our unique address.
+;
+;So the flow would be:
+;receive_message(2)
+;check if we should stop or resend the command
+;if there is data
+;receive_message(25 bytes or data length)
+
 ;Receive a MIB response packet.  Read the first 2 bytes and check for a valid
 ;checksum before reading the body of the packet to make sure that we don't overwrite
 ;the command that we sent with garbage data in case the slave is telling us that
@@ -169,7 +181,7 @@ BEGINFUNCTION _i2c_master_receive_message
 	;Attempt to read 25 bytes
 	readloop:
 
-	;Acknowledge bytes 0-23 and do no acknowledge last byte 
+	;Acknowledge bytes 0-23 and do not acknowledge last byte 
 	bsf CARRY
 	movlw _mib_packet + kMIBMessageSize - 1
 	xorwf FSR0L,w
