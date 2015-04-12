@@ -85,12 +85,15 @@ ENDFUNCTION _i2c_master_start_address
 ;Given an address to talk to in W, send the command and parameters
 ;buffer to that address.  Return once the packet is sent or if there
 ;is an error in transmission.
-;Arguments: Address to send to in W (not shifted)
+;Arguments: None
 ;Uses: FSR0L, FSR0H, W
 ;Modifies: bankX, DC, C, Z
 ;Side Effects: DC set if a collision occurred otherwise clear
 BEGINFUNCTION _i2c_master_send_message
-	bcf CARRY 							;we want to write to the address
+	;we want to write to the address
+	banksel _mib_state
+	movf BANKMASK(send_address),w
+	bcf CARRY 							
 	call _i2c_master_start_address
 	btfsc DC
 		return
@@ -122,8 +125,6 @@ BEGINFUNCTION _i2c_master_receivebyte
 	banksel SSP1CON2
 	bsf BANKMASK(SSP1CON2), 3 ;start receiving a byte
 	call _i2c_wait_flag
-	btfsc DC
-		return
 
 	;Copy the byte to W
 	banksel SSP1BUF
@@ -139,164 +140,45 @@ BEGINFUNCTION _i2c_master_receivebyte
 	goto _i2c_wait_flag
 ENDFUNCTION _i2c_master_receivebyte
 
-;FIXME:
-;Rewrite this function to take a length to read in W and reads in exactly that many
-;bytes, NACKing the last one.  Move the saving off of garbage to a higher level function
-;and don't check for bus collisions since a collision is not possible once we have successfully
-;sent the command because it includes our unique address.
-;
-;So the flow would be:
-;receive_message(2)
-;check if we should stop or resend the command
-;if there is data
-;receive_message(25 bytes or data length)
-
-;Receive a MIB response packet.  Read the first 2 bytes and check for a valid
-;checksum before reading the body of the packet to make sure that we don't overwrite
-;the command that we sent with garbage data in case the slave is telling us that
-;there was a corruption in transmission or we couldn't receive the slave's response correctly.
-;Arguments: Address to send to in W (not shifted)
-;Uses: FSR0, FSR1, W
-;Modifies: bankX, DC, Z
-;Side Effects: 	If the command needs to be resent, DC is set.  
-; 				If the response needs to be reread, C is set. 			
+;Receive either 2 or 25 bytes of a MIB response packet.
+;Sends a repeated start, address + read and then proceeds to read WREG
+;bytes, NACKing after the last byte.  Note that no collisions are possible during a
+;read because, if two senders were both transmitting, the collision would have occured
+;during the sender address transmission part of the transmission.
+;Arguments: WREG, address of the final byte to read (so if you want to read 2 bytes,
+;			W=_mib_pacjet + 2 - 1.
+;Uses: FSR0, FSR1L
+;Modifies BANKX
 BEGINFUNCTION _i2c_master_receive_message
-	;Start a receive packet (address in W + read indication in CARRY bit)
+	;Save off the number of bytes to read
+	movwf FSR1L
+
+	;Send the address with read indication
+	banksel _mib_state
+	movf BANKMASK(send_address),w
 	bsf CARRY
 	call _i2c_master_start_address
-	btfsc DC
-		return
 
-	;Setup FSR0 with _mibdata
 	call _i2c_loadbuffer
 
-	;save off first two bytes of packet since those will be overwritten
-	;and may need to be restored if the slave response is that our command
-	;was corrupted in transmission.
-	moviw [0]FSR0
-	movwf FSR1L
-	moviw [1]FSR0
-	movwf FSR1H
-
-	;Attempt to read 25 bytes
 	readloop:
 
-	;Acknowledge bytes 0-23 and do not acknowledge last byte 
+	;Receive one byte, nacking if it is the last byte to read
+	;FSR0 always points to bank 0 so we can ignore FSR0H
 	bsf CARRY
-	movlw _mib_packet + kMIBMessageSize - 1
+	movf FSR1L,w
 	xorwf FSR0L,w
 	btfsc ZERO
 		bcf CARRY
 	call _i2c_master_receivebyte
-	
 	movwi FSR0++
-	btfsc DC
-		goto resend_command_error
 
-	;After receiving 2 bytes, check to make sure we should keep reading
-	movlw _mib_packet + 2
-	xorwf FSR0L,w
-	btfsc ZERO
-		goto check_status
+	;Check if we're done, otherwise read another byte
+	;i2c_master_receivebyte does not change CARRY, so it retains the
+	;same value as we set above.
+	btfsc CARRY
+		goto readloop
 
-	;If we have read 25 bytes, we're done
-	movlw _mib_packet + kMIBMessageSize
-	xorwf FSR0L,w
-	btfsc ZERO
-		goto done_reading
-
-	goto readloop
-
-	;Check to make sure the first two bytes are twos complements of each other
-	;and that the return status is not checksum error
-	;FSR0[-2] has the return status
-	;FSR0[-1] has the checksum
-	check_status:
-	;Check if the return status was 0xFF indicating the slave was nonexistant.
-	moviw [-2]FSR0
-	xorlw 0xFF
-	btfss ZERO
-		goto verify_status_checksum
-
-	;The slave is not there, the bus is just giving us 0xFF, 0xFF
-	;Initiate one more read with a NACK to follow i2c spec
-	bcf CARRY
-	call _i2c_master_receivebyte
-	goto finished_call
-
-	verify_status_checksum:
-	addfsr FSR0, -2
-	moviw FSR0++
-	addwf INDF0,w
-	;If the checksum is valid, W should be 0
-	btfss ZERO
-		goto checksum_error
-
-	;If slave responded that our command was corrupted, try again
-	moviw [-1]FSR0 ;get the return status
-	xorlw kChecksumMismatchStatus
-	btfsc ZERO
-		goto resend_command_error
-
-	;If the 2nd MSB of the slave's response is 0, then there is no more
-	;data to read because either there was an error or because it simply
-	;didn't return data beyond a status code.
-	moviw [-1]FSR0
-	btfss WREG, 6
-		goto no_data_to_read
-
-	;move the pointer back to the next byte location and continue the loop
-	addfsr FSR0, 1
-	goto readloop
-
-	;If the response said that there was an error or no data, then
-	;clear the bus and don't read any further.
-	no_data_to_read:
-	bcf CARRY
-	call _i2c_master_receivebyte
-	goto finished_call
-
-	;We've read 25 bytes without error, make sure the checksum is valid
-	done_reading:
-	call _i2c_loadbuffer
-	call _i2c_verify_checksum
-	btfss ZERO
-		goto checksum_error_no_nack
-
-	;We were successful, so clear the status bits and return	
-	finished_call:
-	bcf DC
-	bcf CARRY
-	return
-
-	;The slave has indicated a checksum error receiving the command packet
-	;We need to send one more read with a nack to clear the bus and then
-	;resend the command.  Set DC to indicate that we should resend the 
-	;command
-	resend_command_error:
-	bcf CARRY
-	call _i2c_master_receivebyte
-	call _i2c_finish_transmission ;Send a stop to free the bus and try again
-	bsf DC
-	goto restore_and_return_error
-
-	;We could not read this packet, send one more nack to clear the bus
-	;and return with C set so that we know to retry the read
-	checksum_error:
-	bcf CARRY
-	call _i2c_master_receivebyte
-
-	checksum_error_no_nack:
-	bcf DC
-	bsf CARRY
-
-	restore_and_return_error:
-	;Restore the packet portion that was overwritten
-	call _i2c_loadbuffer
-	movf FSR1L,w
-	movwi [0]FSR0
-	movf FSR1H,w
-	movwi [1]FSR0
 	return
 ENDFUNCTION _i2c_master_receive_message
 
