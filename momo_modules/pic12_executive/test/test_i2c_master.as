@@ -24,6 +24,7 @@ BEGINFUNCTION _begin_tests
 	movlw 10
 	asm_call_bus_init()	;enable mib slave mode
 
+	movlw 8
 	asm_call_bus_master_begin_rpc()
 
 	banksel _mib_packet
@@ -37,15 +38,15 @@ BEGINFUNCTION _begin_tests
 	movwf BANKMASK(_mib_packet+3)
 
 	asm_call_i2c_append_checksum()
-	movlw 8
 	asm_call_i2c_master_send_message()
+
 	movlw 0
 	btfsc DC
 		movlw 1
 
 	assertlw 0
 
-	movlw 8
+	movlw _mib_packet + 24
 	asm_call_i2c_master_receive_message()
 	movlw 0
 	btfsc DC

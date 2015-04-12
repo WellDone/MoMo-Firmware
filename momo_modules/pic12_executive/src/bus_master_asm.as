@@ -81,6 +81,9 @@ BEGINFUNCTION _bus_master_tryrpc
 	btfsc ZERO
 		goto resend_command_error
 
+	;If we've gotten here there was no collision and the packet does not need to be resent.
+	bcf DC
+
 	;Check if there is any data to receive, if not we're done.
 	moviw [-1]FSR0
 	btfss WREG, 6
@@ -94,10 +97,11 @@ BEGINFUNCTION _bus_master_tryrpc
 	;Verify the checksum of the entire packet
 	call _i2c_loadbuffer
 	call _i2c_verify_checksum
-	btfsc ZERO
+	btfss ZERO
 		goto read_packet
 
 	;Otherwise we're done, having successfully read the 25 byte packet from the wire
+	bcf DC
 	return
 
 	;If we need to resend the command, restore the first byte of the command packet that we 
@@ -106,7 +110,7 @@ BEGINFUNCTION _bus_master_tryrpc
 	;command packet.
 	resend_command_error:
 	movf FSR1H,w
-	movwi [-2]FSR0
+	movwi [-1]FSR0
 	call _i2c_finish_transmission
 	bsf DC
 	return
