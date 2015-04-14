@@ -33,11 +33,11 @@ BEGINFUNCTION _bus_is_idle
 	banksel I2CPORT
 	bsf CARRY
 
-	;Check for 20 us to make sure that there are no SCL or SDA transitions
+	;Check for 40 us to make sure that there are no SCL or SDA transitions
 	;or low values in that time.  Since we have a 1mhz clock, if someone is using the
 	;bus, we will see either clock go low or data go low (or stay low) once every 100 khz
 	;bus period
-	movlw 4
+	movlw 8
 	
 	loop_check:
 	btfss SCLPIN

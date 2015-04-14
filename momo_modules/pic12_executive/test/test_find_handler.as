@@ -62,20 +62,20 @@ BEGINFUNCTION _test_endpoint2
 ENDFUNCTION _test_endpoint2
 
 
-define_packet mib_test, 1, 2, 3
+define_packet mib_test, 1, 2, 3, 11
 db 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ,14, 15, 16, 17, 18, 19, 20
 
-define_packet nonexistant_mib, 255, 255, 3
+define_packet nonexistant_mib, 255, 255, 3, 11
 db 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ,14, 15, 16, 17, 18, 19, 20
 
-define_packet app1, 10, 0, 3
+define_packet app1, 10, 0, 3, 11
 db 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ,14, 15, 16, 17, 18, 19, 20
 
-define_packet app2, 10, 1, 3
+define_packet app2, 10, 1, 3, 11
 db 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ,14, 15, 16, 17, 18, 19, 20
 
-define_packet app_no1, 10, 2, 3
+define_packet app_no1, 10, 2, 3, 11
 db 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ,14, 15, 16, 17, 18, 19, 20
 
-define_packet app_no2, 11, 0, 3
+define_packet app_no2, 11, 0, 3, 11
 db 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ,14, 15, 16, 17, 18, 19, 20

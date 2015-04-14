@@ -35,5 +35,5 @@ BEGINFUNCTION _test_app_endpoint
 	return
 ENDFUNCTION _test_app_endpoint
 
-define_packet app1ication_packet, 10, 0, 3
+define_packet app1ication_packet, 10, 0, 3, 11
 db 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ,14, 15, 16, 17, 18, 19, 20

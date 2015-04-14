@@ -29,6 +29,7 @@
 #define curr_loc		(_mib_state + 2)
 
 //Variables inside of ExecutiveStatus
+//FIXME: Update bit locations to correspond with latest definitions
 #define WatchdogBit		0
 #define ValidAppBit		1
 #define BootloadBit		2

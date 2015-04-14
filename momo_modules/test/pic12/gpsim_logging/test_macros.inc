@@ -1,10 +1,11 @@
 ;test_macros.as
 
-define_packet MACRO name, feat, cmd, spec
+define_packet MACRO name, feat, cmd, length, sender
 	name:
+	db length
+	db sender
 	db feat
 	db cmd
-	db spec
 ENDM
 
 define_buffer MACRO b0,b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16,b17,b18,b19

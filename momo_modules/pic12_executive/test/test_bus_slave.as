@@ -1,10 +1,11 @@
 ;Name: test_bus_slave
-;Targets: 12lf1822,16lf1847
+;Targets: all
 ;Type: executive
-;Additional: support_i2c_slave_16lf1847.cmd,support_find_handler_mib.as
-;Description:Test to ensure tha mib bus slave handler is working correctly.  Only test
-;on pic16lf1847 and 12lf1822 because we need to know which pins are the i2c clock and data lines
-;for defining the i2c master module that will drive the slave handler.
+;Triggered Master: 500, master_call_slave.py
+;Additional: support_find_handler_mib.as
+;I2C Capture: S, 0xa/WA, 0x0/A, 0x9/A, 0xa/A, 0x0/A, RS, 0xa/RA, 0x40/A, 0xc0/A, 0xa/N, P 
+;Description:Test to ensure tha mib bus slave handler is working correctly by calling 
+;a slave endpoint on the application module and making sure that it is called correctly
 
 #include <xc.inc>
 #include "symbols.h"
@@ -27,9 +28,8 @@ BEGINFUNCTION _begin_tests
 	banksel slave_called
 	movwf BANKMASK(slave_called)
 
-	movlb 0
-	bsf INTCON,7		;enable GIE
-	bsf INTCON,6		;enable peripheral interrupts
+	asm_call_initialize()
+	
 	movlw 10
 	asm_call_bus_init()	;enable mib slave mode
 
@@ -37,8 +37,14 @@ BEGINFUNCTION _begin_tests
 	wait_for_cmd:
 	movf BANKMASK(slave_called),w
 	xorlw 0xAA
-	btfsc ZERO
+	btfss ZERO
 		goto wait_for_cmd
+
+	;Give us enough time to send the response.
+	call _delay_cycles
+	call _delay_cycles
+	call _delay_cycles
+	call _delay_cycles
 
 	return
 ENDFUNCTION _begin_tests

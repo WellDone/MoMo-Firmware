@@ -1,2 +1,2 @@
 def prepare_call():
-	return ()
+	return (9, 11, xrange(1, 21))

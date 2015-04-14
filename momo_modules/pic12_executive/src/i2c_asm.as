@@ -80,33 +80,3 @@ BEGINFUNCTION _i2c_init_location
 	movwf  BANKMASK(curr_loc)
 	return
 ENDFUNCTION _i2c_init_location
-
-;Increment the i2c buffer pointer unless it would 
-;cause an overflow
-;FIXME: Add an overflow bit so that we don't keep sending checksum errors
-BEGINFUNCTION _i2c_incptr
-	banksel _mib_state
-	movlw 	(_mib_packet + kMIBMessageSize)
-	xorwf	BANKMASK(curr_loc),w
-	btfsc 	ZERO
-		return 			;if buffer is full, do not increment
-	incf 	BANKMASK(curr_loc),f
-	return
-ENDFUNCTION _i2c_incptr
-
-;Given that FSR0 contains the buffer pointer
-;read 1 byte from i2c and attempt to increment
-;the buffer pointer.
-BEGINFUNCTION _i2c_read
-	banksel SSP1BUF
-	movf BANKMASK(SSP1BUF),w
-	movwf INDF0
-	goto _i2c_incptr
-ENDFUNCTION _i2c_read
-
-BEGINFUNCTION _i2c_write
-	banksel SSP1BUF
-	movf  INDF0,w
-	movwf BANKMASK(SSP1BUF)
-	goto _i2c_incptr
-ENDFUNCTION _i2c_write

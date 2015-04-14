@@ -109,31 +109,10 @@ BEGINFUNCTION _get_command
 	return 
 ENDFUNCTION _get_command
 
-;Given a valid handler index in W, return the parameter signature
-;for that handler
-;Uses: W, FSR1L
-;Returns: handler spec in W
-BEGINFUNCTION _get_param_spec
-	movwf FSR1L
-	banksel bus_feature
-	movlw kMIBExecutiveFeature
-	xorwf BANKMASK(bus_feature),w ;see if feature matches kMIBExecutiveFeature
-	btfss ZERO
-		goto call_spec
-	movf FSR1L,w
-	goto exec_spec_map
-	
-	call_spec:
-	movf FSR1L,w
-	call 0x7FD
-	reset_page()
-	return
-ENDFUNCTION _get_param_spec
-
 ;Given a word offset in the mib module definition block
 ;in w, return the value at that address
 ;NOTES: 
-; - Must not change the bank 
+; - Must not change the bank
 BEGINFUNCTION _get_mib_block
 	movwf FSR1L
 	movlw low kMIBEndpointAddress
@@ -156,31 +135,3 @@ BEGINFUNCTION _get_num_features
 	return
 ENDFUNCTION _get_num_features
 
-; compute ((plist_int_count(plist) << 1) + (plist & plist_buffer_mask))
-; efficiently on the pic12
-; Uses: FSR0L and FSR0H
-BEGINFUNCTION _plist_param_length
-	banksel _mib_packet
-	movf 	BANKMASK(bus_spec),w
-	movwf BANKMASK(FSR0L)  					
-	andlw 0b01100000
-	swapf WREG,w
-	movwf BANKMASK(FSR0H)	;contains int size
-	movlw 0b00011111
-	andwf BANKMASK(FSR0L),w
-	addwf BANKMASK(FSR0H),w
-	return
-ENDFUNCTION _plist_param_length
-
-;Takes no arguments
-;validate that the params required by the slave_handler match the spec
-;Uses: W, FSR1L (via _get_param_spec)
-;Returns: Nothing
-;Side Effects: 	Zero flag is set if the parameter spec is valid
-;				Zero flag is clear otherwise
-BEGINFUNCTION _validate_param_spec
-	call _get_param_spec		;handler spec in w
-	xorwf BANKMASK(bus_spec),w  ;passed spec xor handler spec
-	andlw 0b11100000 			;only look at spec, ignore length
-	return						;if they match w should be zero
-ENDFUNCTION _validate_param_spec
