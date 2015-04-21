@@ -1,8 +1,8 @@
 ;Name: test_bus_slave
 ;Targets: all
-;Type: executive
-;Triggered Master: 500, master_call_slave.py
-;Additional: support_find_handler_mib.as
+;Type: executive_integration
+;Triggered Master: 1500000, master_call_slave.py
+;Additional: support_bus_slave_mib.mib
 ;I2C Capture: S, 0xa/WA, 0x0/A, 0x9/A, 0xa/A, 0x0/A, RS, 0xa/RA, 0x40/A, 0xc0/A, 0xa/N, P 
 ;Description:Test to ensure tha mib bus slave handler is working correctly by calling 
 ;a slave endpoint on the application module and making sure that it is called correctly
@@ -23,15 +23,13 @@ db 1
 
 PSECT text_unittest,local,class=CODE,delta=2
 BEGINFUNCTION _begin_tests
+	movlw 10
+	asm_call_bus_init()	;enable mib slave mode
+
 	;Setup sentinal value
 	movlw 0
 	banksel slave_called
 	movwf BANKMASK(slave_called)
-
-	asm_call_initialize()
-	
-	movlw 10
-	asm_call_bus_init()	;enable mib slave mode
 
 	banksel slave_called
 	wait_for_cmd:
@@ -45,6 +43,9 @@ BEGINFUNCTION _begin_tests
 	call _delay_cycles
 	call _delay_cycles
 	call _delay_cycles
+	call _delay_cycles
+	call _delay_cycles
+	call _delay_cycles
 
 	return
 ENDFUNCTION _begin_tests
@@ -53,7 +54,7 @@ BEGINFUNCTION _test_endpoint1
 	banksel slave_called
 	movlw 0xAA
 	movwf BANKMASK(slave_called)
-	return
+	retlw 0x00
 ENDFUNCTION _test_endpoint1
 
 BEGINFUNCTION _test_endpoint2

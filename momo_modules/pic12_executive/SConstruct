@@ -38,7 +38,7 @@ def build_exec_for_chip(arch):
 	hexfile = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_%s.hex' % suffix), prods[0])
 	symheader = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_symbols_%s.h' % suffix), prods[1])
 	symtable = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_symbols_%s.stb' % suffix), prods[2])
-	romusage = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_rom_summary_%s.stb' % suffix), prods[3])
+	romusage = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_rom_summary_%s.txt' % suffix), prods[3])
 
 	return [hexfile, symheader, symtable, romusage]
 

@@ -14,7 +14,7 @@
 #define kNumFeatures 			1
 #define kNumDebugCommands		2
 
-PSECT mibblock,global,class=CODE,delta=2
+PSECT mibblock,global,class=CONST,delta=2
 ;Module Name (must be exactly 7 characters long)
 db 		0,0,0,0,0,0,0
 

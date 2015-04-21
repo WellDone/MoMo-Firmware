@@ -7,10 +7,7 @@
 #include <xc.inc>
 #include "i2c_defines.h"
 #include "asm_locations.h"
-#include "constants.h"
-#define __DEFINES_ONLY__
-#include "mib_definitions.h"
-#undef  __DEFINES_ONLY__
+#include "mib12_block.h"
 
 ASM_INCLUDE_GLOBALS()
 

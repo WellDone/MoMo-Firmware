@@ -44,7 +44,10 @@
  * bits 0-5: status code
  */
 
-#define make_mib_status(has_data, app_defined, code)	((((has_data & 1) << 7)) | ((app_defined & 1) << 6) | (code & 0b111111))
+#define kAppDefinedBit 	6
+#define kHasDataBit		7
+
+#define make_mib_status(has_data, app_defined, code)	((((has_data & 1) << kHasDataBit)) | ((app_defined & 1) << kAppDefinedBit) | (code & 0b111111))
 
 #define kModuleBusyCode				0x00
 #define kChecksumMismatchCode 		0x01
@@ -77,5 +80,8 @@
 
 //Defined MIB Protocol revisions
 #define kMIBVersion1				1
+
+//Special Command IDs
+#define kExecutiveSpecialHighByte 	0x00
 
 #endif

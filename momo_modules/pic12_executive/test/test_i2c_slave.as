@@ -1,7 +1,8 @@
 ;Name: test_i2c_slave
 ;Targets: 12lf1822
 ;Type: executive
-;Additional: support_i2c_slave_receive.cmd
+;Triggered Master: 100, master_testpattern.py
+;I2C Capture: S
 ;Description:Test to ensure tha i2c slave handler is working correctly.  Only test
 ;on pic12lf1822 because we need to know which pins are the i2c clock and data lines
 ;for defining the i2c master module that will drive the slave handler.
@@ -21,7 +22,7 @@ BEGINFUNCTION _begin_tests
 	movlb 0
 	bsf INTCON,7		;enable GIE
 	bsf INTCON,6		;enable peripheral interrupts
-	movlw 10
+	movlw 11
 	asm_call_bus_init()	;enable mib slave mode
 
 	;delay at least 8000 cycles so that we read in the message

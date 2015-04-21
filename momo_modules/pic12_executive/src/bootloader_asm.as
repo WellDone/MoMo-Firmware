@@ -5,14 +5,12 @@
 
 
 #include <xc.inc>
-#define __DEFINES_ONLY__
-#include "mib_definitions.h"
 #define _DEFINES_ONLY
 #include "bootloader.h"
 #undef  __DEFINES_ONLY__
 #include "i2c_defines.h"
 #include "asm_locations.h"
-#include "constants.h"
+#include "mib12_block.h"
 
 
 ASM_INCLUDE_GLOBALS()
@@ -41,9 +39,8 @@ BEGINFUNCTION _get_half_row
 	movwf BANKMASK(mib_buffer+2)	;mib_buffer second int param to offset (low byte)
 	
 	;Load in the feature and comand info
-	movlf 0x07, bus_feature
-	movlf 0x04, bus_command
-	movlf 2 shl 5, bus_spec
+	movlf 0x07, bus_cmdlo
+	movlf 0x04, bus_cmdhi
 
 	call _load_boot_address
 	

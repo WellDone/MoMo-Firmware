@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "asm_branches.inc"
 #include "asm_locations.h"
+#include "mib12_block.h"
 
 #define __DEFINES_ONLY__
 #include "mib_definitions.h"
@@ -43,12 +44,9 @@ BEGINFUNCTION _register_module
 	;send it to controller endpoint(42, 0)
 	banksel _mib_packet
 	movlw 42
-	movwf BANKMASK(bus_feature)
+	movwf BANKMASK(bus_cmdlo)
 	
-	clrf  BANKMASK(bus_command)
-	
-	movlw plist_with_buffer(0, kModuleDescriptorSize)
-	movwf BANKMASK(bus_spec)
+	clrf  BANKMASK(bus_cmdhi)
 
 	movlw kMIBControllerAddress
 	call _bus_master_send_rpc

@@ -1,12 +1,7 @@
 #include <xc.inc>
 #include "asm_macros.inc"
 
-#define plist_ints(count)		((count&0b11) << 5)
-#define plist_buffer()          0b10000000
-
-#define plist_spec(ni,buffer) (buffer << 7) | plist_ints(ni) )
-
-global _exec_prepare_reflash,_exec_reset,_exec_verify, _exec_readmem, _exec_status
+global _exec_prepare_reflash, _exec_reset, _exec_verify, _exec_readmem, _exec_status
 
 PSECT textexecmap,local,class=CODE,delta=2
 
@@ -21,6 +16,13 @@ BEGINREGION exec_cmd_map
 	goto _exec_readmem
 	goto _exec_status
 ENDREGION exec_cmd_map
+
+BEGINREGION exec_new_cmd_map
+	retlw 0xFF
+	retlw 0xFF
+	retlw 0xFF
+	retlw 0xFF
+ENDREGION exec_new_cmd_map
 
 BEGINREGION exec_spec_map
 	brw

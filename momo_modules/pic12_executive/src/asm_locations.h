@@ -15,8 +15,8 @@
 //Variables inside MIBData
 #define bus_spec		(_mib_packet + 0)
 #define bus_sender		(_mib_packet + 1)
-#define bus_feature		(_mib_packet + 2)
-#define bus_command 	(_mib_packet + 3)
+#define bus_cmdlo		(_mib_packet + 2)
+#define bus_cmdhi	 	(_mib_packet + 3)
 
 #define bus_status		(_mib_packet + 0)
 #define bus_statuscheck (_mib_packet + 1)
@@ -39,9 +39,7 @@
 #define FirstReadBit	6
 #define TrapBit			7
 
-#define kInvalidMIBIndex 0xff
-
-#define ASM_INCLUDE_GLOBALS()		global _mib_packet, _mib_state, _status
+#define ASM_INCLUDE_GLOBALS()	global _mib_packet, _mib_state, _status
 
 #ifdef kMultipageDevice
 #define reset_page()			pagesel($)
