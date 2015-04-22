@@ -31,7 +31,7 @@ BEGINREGION mib12_api
 	goto _main	;reset()
 
 	goto _main  ;trap(uint8 code)
-	goto _main  ;bus_master_rpc_begin()
-	goto _main	;bus_master_rpc_send(addr)
-	goto _main	;bus_slave_setreturn(value)
+	goto _main  ;bus_master_rpc_begin(addr)
+	goto _main	;bus_master_rpc_send()
+	goto _main	;bus_slave_return_data(length)
 ENDREGION mib12_api

@@ -2,10 +2,12 @@
 ;Targets: all
 ;Type: executive_integration
 ;Triggered Master: 1500000, master_call_slave.py
+;Attach Slave:8, responder_registration.py
 ;Additional: support_bus_slave_mib.mib
 ;I2C Capture: S, 0xa/WA, 0x0/A, 0x9/A, 0xa/A, 0x0/A, RS, 0xa/RA, 0x40/A, 0xc0/A, 0xa/N, P 
 ;Description:Test to ensure tha mib bus slave handler is working correctly by calling 
 ;a slave endpoint on the application module and making sure that it is called correctly
+;the test will hang if the slave endpoint is not succesfully called.
 
 #include <xc.inc>
 #include "symbols.h"
@@ -23,9 +25,6 @@ db 1
 
 PSECT text_unittest,local,class=CODE,delta=2
 BEGINFUNCTION _begin_tests
-	movlw 10
-	asm_call_bus_init()	;enable mib slave mode
-
 	;Setup sentinal value
 	movlw 0
 	banksel slave_called

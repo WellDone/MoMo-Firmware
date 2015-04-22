@@ -27,9 +27,9 @@ retlw 	0
 retlw 	kNumFeatures
 goto 	mibfeatures
 goto 	mibcommands
+retlw	0x00					;Incorrect magic number for testing
 goto 	mibspecs
 goto 	mibhandlers
-retlw	0x00					;Incorrect magic number for testing
 
 PSECT mibstructs,local,class=CONST,delta=2
 

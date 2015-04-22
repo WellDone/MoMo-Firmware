@@ -27,7 +27,7 @@ BEGINFUNCTION _get_mib_block
 	return
 ENDFUNCTION _get_mib_block
 
-;indirect read the highest byte from program memory
+;indirect read the mib block magic value from program memory
 BEGINFUNCTION _get_magic
 	movlw kMIBMagicNumberOffset
 	goto  _get_mib_block		

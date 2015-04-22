@@ -18,8 +18,8 @@
 #define kMIBModulePatchVersionOffset	11
 #define kMIBApplicationChecksumOffset	12
 #define kMIBMagicNumberOffset			13
-#define kMIBCommandMapGotoOffset 		14
-#define kMIBInterfaceMapGotoOffset		15
+#define kMIBApplicationInfoOffset 		14
+#define kMIBReservedByteOffset			15
 
 #define mib_block_address(offset)		(kMIBEndpointAddress + offset)
 
@@ -28,5 +28,14 @@
 
 #define kMIBCommandMapSentinelValue		0xFF
 
+/*
+ * Valid indices to pass to the MIBApplicationInfo function in order
+ * to fetch command map, interface map and configuration variable data.
+ */
+
+#define kMIBCommandMapIndex 		0
+#define kMIBInterfaceMapIndex 		1
+#define kMIBConfigurationMapIndex	2
+#define kMIBReservedInfoIndex		3
 
 #endif

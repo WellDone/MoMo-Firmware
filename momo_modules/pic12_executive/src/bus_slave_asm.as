@@ -13,6 +13,7 @@ ASM_INCLUDE_GLOBALS()
 
 global _i2c_verify_checksum
 global exec_new_cmd_map
+global _bus_slave_returndata
 
 PSECT text_bus_slave,local,class=CODE,delta=2
 
@@ -24,21 +25,44 @@ PSECT text_bus_slave,local,class=CODE,delta=2
 BEGINFUNCTION _bus_slave_setreturn
 	banksel bus_status
 	movwf 	BANKMASK(bus_status)
+	goto 	_bus_slave_update_statuscheck
+ENDFUNCTION _bus_slave_setreturn
+
+BEGINFUNCTION _bus_slave_update_statuscheck
+	banksel bus_status
+	movwf 	BANKMASK(bus_status)
 	comf	WREG,w
 	incf	WREG,w
 	movwf 	BANKMASK(bus_statuscheck)
 	return
-ENDFUNCTION _bus_slave_setreturn
+ENDFUNCTION _bus_slave_update_statuscheck
+
+;Set the length of data returned by the slave endpoint
+;Arguments: length of data to return in WREG
+;Returns: Nothing
+BEGINFUNCTION _bus_slave_returndata
+	banksel bus_status
+	movwf BANKMASK(bus_length)
+	bsf   BANKMASK(bus_status), kHasDataBit
+	return
+ENDFUNCTION _bus_slave_returndata
 
 BEGINFUNCTION _bus_slave_callcommand
+	;Initialize return status to busy by default
+	movlw 0x00
+	call _bus_slave_setreturn
+
 	call _i2c_verify_checksum
 	skipz
 		goto checksum_error
 
+	;Try to call the handler.  Whatever return status was given,
+	;combine that with what is in bus_status in case the slave handler
+	;called bus_slave_returndata, which will set the kHasData bit
 	call _bus_slave_callhandler
-	goto _bus_slave_setreturn
-	;FIXME: Have the return value of the slave handler become the bus_slave_setreturn argument
-	;Function returns normally
+	banksel bus_status
+	iorwf BANKMASK(bus_status)
+	goto _bus_slave_update_statuscheck
 
 	;Errors
 	checksum_error:
@@ -69,12 +93,14 @@ BEGINFUNCTION _bus_slave_callhandler
 		goto look_for_command
 
 	;Check if we have a valid application loaded and if so
-	;load in the application's command table
+	;load in the application's command table otherwise there's no way
+	;the command could exist so just fail now.
 	btfss _status, ValidAppBit
 		retlw kCommandNotFoundStatus
 
 	;Load in the application command table
-	call mib_block_address(kMIBCommandMapGotoOffset)
+	movlw kMIBCommandMapIndex
+	call mib_block_address(kMIBApplicationInfoOffset)
 
 	;Do a linear search through the commands that we have in the active
 	;command table that is loaded into FSR0 and see if any match our
@@ -100,11 +126,16 @@ BEGINFUNCTION _bus_slave_callhandler
 	btfss ZERO
 		goto next_cmd
 
-	;We found a match, call this command handler
+	;We found a match, call this command handler and return whatever it returns.
+	;Mask out the high bits since those have special meanings that the application
+	;cannot directly affect.
 	moviw [3]FSR0
 	movwf PCLATH
 	moviw [2]FSR0
 	callw
+
+	;Make sure the application endpoint does not accidently overwrite of our special bits
+	andlw kMIBStatusCodeMask
 	bsf WREG, kAppDefinedBit
 	return
 

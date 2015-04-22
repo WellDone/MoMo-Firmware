@@ -17,7 +17,7 @@ global _copy_fsr, _bus_master_send_rpc, _bus_master_begin_rpc
 PSECT text_asm_register,local,class=CODE,delta=2
 
 BEGINFUNCTION _register_module
-	
+	movlw kMIBControllerAddress
 	call _bus_master_begin_rpc
 	;check if there's a valid application module loaded
 	call 	_get_magic
@@ -45,15 +45,13 @@ BEGINFUNCTION _register_module
 	banksel _mib_packet
 	movlw 42
 	movwf BANKMASK(bus_cmdlo)
-	
 	clrf  BANKMASK(bus_cmdhi)
 
-	movlw kMIBControllerAddress
 	call _bus_master_send_rpc
 
-	;Check if we were successful (return value == 0)
+	;Check if we were successful (return value == 0 with app defined and has_data bits set)
 	;return 0 if we failed
-	skipel 0
+	skipel 0xc0
 		retlw 0
 
 	;If the call was successful, our address is in the first byte of the 
@@ -65,7 +63,7 @@ ENDFUNCTION _register_module
 
 BEGINREGION module_info
 retlw kModuleHWType
-retlw kMIBExecutiveOnlyType
+retlw 0x00
 retlw (kMIBVersion1 << 4) | 0
 db	  'N','O',' ','A','P','P',' '
 retlw 1

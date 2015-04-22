@@ -29,7 +29,7 @@ main = symtab["_main"][0]
 
 rpcbegin = symtab['_bus_master_begin_rpc'][0]
 rpcsend = symtab["_bus_master_send_rpc"][0]
-setreturn = symtab["_bus_slave_setreturn"][0]
+setreturn = symtab["_bus_slave_returndata"][0]
 trap = symtab["_trap"][0]
 reset = symtab["_exec_reset"][0]
 

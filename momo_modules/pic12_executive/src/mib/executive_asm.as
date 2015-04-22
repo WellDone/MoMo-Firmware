@@ -18,7 +18,7 @@
 ASM_INCLUDE_GLOBALS()
 
 global _exec_readmem, _exec_status, _mib_to_fsr0, _copy_fsr
-global _bus_slave_setreturn
+global _bus_slave_returndata
 
 PSECT text_executive_asm,local,class=CODE,delta=2
 
@@ -35,8 +35,10 @@ BEGINFUNCTION _exec_readmem
 
 	movlw	20
 	call 	_copy_fsr
-	;movlw 	pack_return_status(0, 20)
-	goto	_bus_slave_setreturn
+	
+	movlw   20
+	call 	_bus_slave_returndata
+	retlw 	0x00
 ENDFUNCTION _exec_readmem
 
 BEGINFUNCTION _exec_status
@@ -51,6 +53,8 @@ BEGINFUNCTION _exec_status
 	movf 	BANKMASK(_status), w
 	movwi 	[3]FSR0
 
-	;movlw 	pack_return_status(0, 4)
-	goto	_bus_slave_setreturn
+	movlw 4
+	call _bus_slave_returndata
+
+	retlw 0x00
 ENDFUNCTION _exec_status
