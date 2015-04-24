@@ -77,7 +77,6 @@ The status code field has 2 special high bits that define how to interpret the r
 ## Asynchronous callbacks
 TODO, finish this section. Async callbacks happen after task code.
 
-
 ## Frequently Asked Questions
 
 ### Why is the busy code 0x00?
