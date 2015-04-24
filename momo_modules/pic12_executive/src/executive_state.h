@@ -19,7 +19,7 @@ typedef union
 {
 	struct
 	{
-		uint16 reserved1 		: 1; //cannot change position (referenced by watchdog_asm.as)
+		uint16 respond_busy 	: 1;
 		uint16 valid_app 		: 1;
 		uint16 bootload_mode 	: 1;
 		uint16 registered		: 1;

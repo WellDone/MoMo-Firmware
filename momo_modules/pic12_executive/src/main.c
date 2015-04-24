@@ -41,7 +41,9 @@ void interrupt service_isr() {
         while (SSP1IF == 1)
         {
             SSP1IF = 0; //Do this because with our slow clock we might miss an interrupt
-            if (status.slave_active) 
+            if (status.respond_busy)
+                SSP1BUF = 0;
+            else if (status.slave_active)
                 i2c_slave_interrupt();
             
             //Master i2c is not interrupt driven

@@ -77,3 +77,18 @@ BEGINFUNCTION _trap
 	sleep
 	goto loop_forever
 ENDFUNCTION _trap
+
+;Set whether every subsequent i2c call should be responded to with all 0s
+;until we are told otherwise.
+BEGINFUNCTION _set_busy
+	banksel _status
+	iorlw 0xFF
+	btfsc ZERO 
+		goto do_set_busy
+	bcf BANKMASK(_status), BusyBit
+	return
+	
+	do_set_busy:
+	bsf BANKMASK(_status), BusyBit
+	return
+ENDFUNCTION
