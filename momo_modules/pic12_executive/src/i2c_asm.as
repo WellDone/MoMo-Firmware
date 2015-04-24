@@ -33,7 +33,7 @@ BEGINFUNCTION _i2c_verify_checksum
 	return
 ENDFUNCTION _i2c_verify_checksum
 
-;Calculate the checksum of the mib buffer (packet header + data so 25 bytes)
+;Calculate the checksum of the mib buffer (packet header + data so 24 bytes)
 ;Uses:FSR0
 ;Returns:Buffer checksum in W
 ;Modifies:C,DC,Z

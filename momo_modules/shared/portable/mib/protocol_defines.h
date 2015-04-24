@@ -47,6 +47,8 @@
 #define kAppDefinedBit 	6
 #define kHasDataBit		7
 
+#define kMIBStatusCodeMask	0b00111111
+
 #define make_mib_status(has_data, app_defined, code)	((((has_data & 1) << kHasDataBit)) | ((app_defined & 1) << kAppDefinedBit) | (code & 0b111111))
 
 #define kModuleBusyCode				0x00
@@ -63,13 +65,6 @@
 //Well-Known MIB Addresses
 #define kMIBControllerAddress		8
 #define kMIBUnenumeratedAddress		127
-
-//Defined MIB Module Types
-#define kMIBGenericType				0b00000000
-#define kMIBControllerType 			0b00000001
-#define kMIBCommunicationType		0b00000010
-#define kMIBExecutiveOnlyType		0b00000100
-#define kMIBSensorType				0b00001000
 
 //Defined MIB Hardware Types
 #define kMIBPic12lf1822					2

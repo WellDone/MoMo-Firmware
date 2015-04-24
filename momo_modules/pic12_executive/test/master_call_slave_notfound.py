@@ -1,7 +1,7 @@
 my_address = 9
 
 def execute_call():
-	return (11, 0x0a00, [x for x in xrange(1, 21)])
+	return (10, 0xCCCC, [])
 
 def prepare_call():
 	to_addr, command, params = execute_call()

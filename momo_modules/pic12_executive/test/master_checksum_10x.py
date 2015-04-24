@@ -1,9 +1,16 @@
+# Make a slave endpoint call with an incorrect checksum 10 times
+# and then send the correct checksum the next time to make sure
+# that the checksum validation works correctly.
+
 my_address = 9
+num_calls = 0
 
 def execute_call():
-	return (11, 0x0a00, [x for x in xrange(1, 21)])
+	return (10, 0x0a00, [])
 
 def prepare_call():
+	global num_calls
+
 	to_addr, command, params = execute_call()
 
 	packet = [0]*24
@@ -17,13 +24,22 @@ def prepare_call():
 
 	packet.append(_calculate_checksum(packet))
 
+	print "Preparing Call Data, num_calls=%d" % num_calls
+
 	return (my_address, to_addr, packet)
 
 def _calculate_checksum(packet):
+	global num_calls
+
 	cnt = 0
 
 	for i in xrange(0, len(packet)):
 		cnt += packet[i]
 
 	checksum = 256 - (cnt & 0xFF)
+
+	if num_calls < 10:
+		num_calls += 1
+		return checksum + 5
+
 	return checksum

@@ -48,13 +48,13 @@ BEGINFUNCTION _bus_slave_returndata
 ENDFUNCTION _bus_slave_returndata
 
 BEGINFUNCTION _bus_slave_callcommand
-	;Initialize return status to busy by default
-	movlw 0x00
-	call _bus_slave_setreturn
-
 	call _i2c_verify_checksum
 	skipz
 		goto checksum_error
+
+	;Initialize return status to busy by default
+	movlw 0x00
+	call _bus_slave_setreturn
 
 	;Try to call the handler.  Whatever return status was given,
 	;combine that with what is in bus_status in case the slave handler
