@@ -8,6 +8,8 @@
 
 #define kDEFAULT_CMD_TIMEOUT 2
 
+#define GSM_REGISTRATION_TIMEOUT_S 120
+
 void gsm_init();
 bool gsm_on();
 

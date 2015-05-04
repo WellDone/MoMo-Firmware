@@ -36,7 +36,7 @@ void task(void)
 		++periods;
 	}
 
-	if (state.push_pending && (!state.push_disabled))
+	if (state.push_pending)
 	{
 		uint16_t average_flow = 0;
 		

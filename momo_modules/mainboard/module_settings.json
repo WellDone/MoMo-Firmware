@@ -18,6 +18,7 @@
 				"mainboard/src/mib/commands",
 				"mainboard/src/modules",
 				"mainboard/src/momo",
+				"mainboard/src/diagnostics",
 				"mainboard/src/util"
 			]
 		}
