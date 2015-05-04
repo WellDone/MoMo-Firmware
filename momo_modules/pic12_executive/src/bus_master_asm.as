@@ -15,6 +15,25 @@ global _i2c_append_checksum, _wdt_delay, _i2c_verify_checksum
 
 PSECT text_bus_master,local,class=CODE,delta=2
 
+;Send a master call containing the response to a previous MIB RPC that we are
+;responding to asynchronously.
+BEGINFUNCTION _bus_master_async_callback
+	banksel _mib_state
+	movf BANKMASK(send_address),w
+	call _bus_master_begin_rpc
+
+	banksel _status
+	bcf BANKMASK(_status), AsyncBit
+	bcf BANKMASK(_status), BusyBit
+
+	;Setup the special command to respond to asynchronous rpcs
+	movlw low kAsynchronousReponseCommand
+	movwf BANKMASK(bus_cmdlo)
+	movlw high kAsynchronousReponseCommand
+	movwf BANKMASK(bus_cmdhi)
+	goto _bus_master_send_rpc
+ENDFUNCTION _bus_master_async_callback
+
 ;Capture the I2C bus once it has become idle and prepare it to send a master MIB
 ;call.  
 ;Arguments: Address to send to in WREG

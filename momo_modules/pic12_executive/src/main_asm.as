@@ -11,7 +11,7 @@
 
 ASM_INCLUDE_GLOBALS()
 
-global _get_magic, _wdt_delay, _bus_init, _register_module
+global _get_magic, _wdt_delay, _bus_init, _register_module, _bus_is_idle
 
 #define k1SecondTimeout 0b010100
 
@@ -24,6 +24,7 @@ PSECT text_main_asm,local,class=CODE,delta=2
 BEGINFUNCTION _restore_status
 	;Initialize the bits that we know the value for
 	banksel _status
+	bcf BANKMASK(_status), BusyBit
 	bcf BANKMASK(_status), ValidAppBit
 	bsf BANKMASK(_status), SlaveActiveBit
 
@@ -32,12 +33,6 @@ BEGINFUNCTION _restore_status
 	xorlw kMIBMagicNumber
 	btfsc ZERO
 		bsf BANKMASK(_status), ValidAppBit
-
-	;check if we should bootload
-	call _get_magic
-	xorlw kReflashMagicNumber
-	btfsc ZERO
-		bsf BANKMASK(_status), BootloadBit
 
 	;If we've already registered, we're done, otherwise register
 	btfsc BANKMASK(_status), RegisteredBit
@@ -80,15 +75,29 @@ ENDFUNCTION _trap
 
 ;Set whether every subsequent i2c call should be responded to with all 0s
 ;until we are told otherwise.
-BEGINFUNCTION _set_busy
+BEGINFUNCTION _bus_set_busy
 	banksel _status
-	iorlw 0xFF
-	btfsc ZERO 
+	iorlw 0x00
+	btfss ZERO 
 		goto do_set_busy
+
+	;We can only clear the busy flag when the bus is idle since we don't want to clear the
+	;busy bit halfway through receiving a command and return gibberish.
+	call _bus_is_idle
+	btfss CARRY
+		goto $-2
+
 	bcf BANKMASK(_status), BusyBit
 	return
 	
 	do_set_busy:
 	bsf BANKMASK(_status), BusyBit
 	return
-ENDFUNCTION
+ENDFUNCTION _bus_set_busy
+
+;Check if we should bootload, returns 0 if we should bootload
+BEGINFUNCTION _check_bootload
+	call _get_magic
+	xorlw kReflashMagicNumber
+	return
+ENDFUNCTION _check_bootload

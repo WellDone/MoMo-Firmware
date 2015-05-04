@@ -30,7 +30,7 @@ ENDFUNCTION _bus_slave_setreturn
 
 BEGINFUNCTION _bus_slave_update_statuscheck
 	banksel bus_status
-	movwf 	BANKMASK(bus_status)
+	movf 	BANKMASK(bus_status),w
 	comf	WREG,w
 	incf	WREG,w
 	movwf 	BANKMASK(bus_statuscheck)
@@ -52,6 +52,12 @@ BEGINFUNCTION _bus_slave_callcommand
 	skipz
 		goto checksum_error
 
+	;Save off the sender's address so we know who to respond to in case
+	;this is an asynchronous call.
+	banksel(bus_sender)
+	movf BANKMASK(bus_sender),w
+	movwf BANKMASK(send_address)
+
 	;Initialize return status to busy by default
 	movlw 0x00
 	call _bus_slave_setreturn
@@ -61,8 +67,25 @@ BEGINFUNCTION _bus_slave_callcommand
 	;called bus_slave_returndata, which will set the kHasData bit
 	call _bus_slave_callhandler
 	banksel bus_status
-	iorwf BANKMASK(bus_status)
+	iorwf BANKMASK(bus_status),f
+
+	;Check if the handler told us to respond asynchronously
+	xorlw kAsynchronousResponseCode | (1 << 6)
+	btfsc ZERO
+		goto async_response
+
 	goto _bus_slave_update_statuscheck
+
+	;Asynchronous Response
+	;Indicate that we're in the middle of an asynchronous response.  We can't set the
+	;busy bit here directly because otherwise we won't be able to process interrupts related
+	;to clocking out this response.
+	async_response:
+	bsf BANKMASK(_status), AsyncBit
+
+	;Call setreturn again to make sure that we don't have the HasData bit set
+	movlw kAsynchronousResponseStatus
+	goto _bus_slave_setreturn
 
 	;Errors
 	checksum_error:
@@ -134,7 +157,7 @@ BEGINFUNCTION _bus_slave_callhandler
 	moviw [2]FSR0
 	callw
 
-	;Make sure the application endpoint does not accidently overwrite of our special bits
+	;Make sure the application endpoint does not accidently overwrite any of our special bits
 	andlw kMIBStatusCodeMask
 	bsf WREG, kAppDefinedBit
 	return

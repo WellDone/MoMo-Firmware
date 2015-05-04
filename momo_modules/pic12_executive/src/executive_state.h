@@ -21,7 +21,7 @@ typedef union
 	{
 		uint16 respond_busy 	: 1;
 		uint16 valid_app 		: 1;
-		uint16 bootload_mode 	: 1;
+		uint16 async_callback 	: 1;
 		uint16 registered		: 1;
 		uint16 dirty_reset 		: 1; //cannot change, referenced in watchdog_asm.as
 		uint16 slave_active 	: 1; //cannot change, referenced in i2c_utilities.as
@@ -29,7 +29,7 @@ typedef union
 		uint16 trapped			: 1;
 	};
 
-	uint16 status;
+	uint8_t status;
 } MIBExecutiveStatus;
 
 extern MIBPacket						mib_packet;
