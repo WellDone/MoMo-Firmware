@@ -55,11 +55,13 @@
 #define kChecksumMismatchCode 		0x01
 #define kCommandNotFoundCode		0x02
 #define kModuleNotPresentCode		0x3f
+#define kAsynchronousResponseCode	0x3f
 
 #define kNoErrorStatus				make_mib_status(0, 1, 0x00)
 #define kModuleBusyStatus			make_mib_status(0, 0, kModuleBusyCode)
 #define kChecksumMismatchStatus		make_mib_status(0, 0, kChecksumMismatchCode)
 #define kCommandNotFoundStatus 		make_mib_status(0, 0, kCommandNotFoundCode)
+#define kAsynchronousResponseStatus make_mib_status(0, 0, kAsynchronousResponseCode)
 #define kModuleNotPresentStatus		make_mib_status(1, 1, kModuleNotPresentCode)	//a missing module responds 0xFF on the bus
 
 //Well-Known MIB Addresses
@@ -78,5 +80,6 @@
 
 //Special Command IDs
 #define kExecutiveSpecialHighByte 	0x00
+#define kAsynchronousReponseCommand 0x00
 
 #endif
