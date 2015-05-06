@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="1" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -406,6 +406,18 @@ MAX3223-MAX3243.pdf</description>
 <wire x1="1.6" y1="-1.25" x2="1.6" y2="1.25" width="0.127" layer="48"/>
 <circle x="-1.1" y="-0.77" radius="0.22" width="0.127" layer="48"/>
 </package>
+<package name="JST-PH-3PIN">
+<description>3 pin JST PH Series vertical mount connector</description>
+<pad name="2" x="0" y="0" drill="0.8"/>
+<pad name="1" x="-2" y="0" drill="0.8"/>
+<pad name="3" x="2" y="0" drill="0.8"/>
+<wire x1="-3.95" y1="-2.5" x2="-3.95" y2="2.5" width="0.254" layer="21"/>
+<wire x1="-3.95" y1="2.5" x2="3.95" y2="2.5" width="0.254" layer="21"/>
+<wire x1="3.95" y1="-2.5" x2="3.95" y2="2.5" width="0.254" layer="21"/>
+<text x="-4" y="-4" size="0.8128" layer="25">&gt;NAME</text>
+<wire x1="0.95" y1="-2.5" x2="3.95" y2="-2.5" width="0.254" layer="21"/>
+<wire x1="-0.95" y1="-2.5" x2="-3.95" y2="-2.5" width="0.254" layer="21"/>
+</package>
 </packages>
 <symbols>
 <symbol name="BD45XXX-VOLTAGE-SUPERVISOR">
@@ -617,6 +629,16 @@ MAX3223-MAX3243.pdf</description>
 <wire x1="5.08" y1="-10.16" x2="5.08" y2="12.7" width="0.254" layer="94"/>
 <wire x1="5.08" y1="12.7" x2="-7.62" y2="12.7" width="0.254" layer="94"/>
 <text x="-10.16" y="-12.7" size="1.27" layer="95">&gt;NAME</text>
+</symbol>
+<symbol name="3-PIN-HEADER">
+<pin name="1" x="-5.08" y="2.54" length="short" direction="pas"/>
+<pin name="2" x="-5.08" y="0" length="short" direction="pas"/>
+<pin name="3" x="-5.08" y="-2.54" length="short" direction="pas"/>
+<wire x1="-2.54" y1="5.08" x2="-2.54" y2="-5.08" width="0.254" layer="94"/>
+<wire x1="-2.54" y1="-5.08" x2="5.08" y2="-5.08" width="0.254" layer="94"/>
+<wire x1="5.08" y1="-5.08" x2="5.08" y2="5.08" width="0.254" layer="94"/>
+<wire x1="5.08" y1="5.08" x2="-2.54" y2="5.08" width="0.254" layer="94"/>
+<text x="-2.54" y="-7.62" size="1.778" layer="95">&gt;NAME</text>
 </symbol>
 </symbols>
 <devicesets>
@@ -932,6 +954,28 @@ MAX3223-MAX3243.pdf</description>
 </connects>
 <technologies>
 <technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="JST-PH-3PIN" prefix="JP">
+<gates>
+<gate name="G$1" symbol="3-PIN-HEADER" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="JST-PH-3PIN">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+<connect gate="G$1" pin="3" pad="3"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DESCRIPTION" value="3-pin JST PH Series Vertical Shrouded Connector" constant="no"/>
+<attribute name="DIST" value="Digikey" constant="no"/>
+<attribute name="DISTPN" value="455-1705-ND" constant="no"/>
+<attribute name="FOOTPRINT" value="Through Hole" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
