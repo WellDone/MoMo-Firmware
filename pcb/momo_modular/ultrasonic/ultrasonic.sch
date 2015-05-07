@@ -338,6 +338,8 @@ MAX3223-MAX3243.pdf</description>
 <technologies>
 <technology name="">
 <attribute name="DESCRIPTION" value="TI TDC1000 Ultrasonic Analog Frontend" constant="no"/>
+<attribute name="DIST" value="Digikey" constant="no"/>
+<attribute name="DIST-PN" value="296-38823-1-ND" constant="no"/>
 <attribute name="FOOTPRINT" value="TSSOP28" constant="no"/>
 <attribute name="MANU" value="Texas Instruments" constant="no"/>
 <attribute name="MPN" value="TDC1000" constant="no"/>
@@ -371,6 +373,8 @@ MAX3223-MAX3243.pdf</description>
 <technologies>
 <technology name="">
 <attribute name="DESCRIPTION" value="TI TDC7200 Picosecond Time to Digital Converter" constant="no"/>
+<attribute name="DIST" value="Digikey" constant="no"/>
+<attribute name="DIST-PN" value="296-41125-5-ND" constant="no"/>
 <attribute name="FOOTPRINT" value="TSSOP14" constant="no"/>
 <attribute name="MANU" value="Texas Instruments" constant="no"/>
 <attribute name="MPN" value="TDC7200" constant="no"/>

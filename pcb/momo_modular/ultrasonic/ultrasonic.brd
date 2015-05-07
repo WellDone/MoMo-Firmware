@@ -57,10 +57,6 @@
 </layers>
 <board>
 <plain>
-<wire x1="0" y1="0" x2="100" y2="0" width="0" layer="20"/>
-<wire x1="100" y1="0" x2="100" y2="80" width="0" layer="20"/>
-<wire x1="100" y1="80" x2="0" y2="80" width="0" layer="20"/>
-<wire x1="0" y1="80" x2="0" y2="0" width="0" layer="20"/>
 <wire x1="7.112" y1="8.1788" x2="7.112" y2="41.1988" width="0.254" layer="20"/>
 <wire x1="7.112" y1="41.1988" x2="57.912" y2="41.1988" width="0.254" layer="20"/>
 <wire x1="7.112" y1="8.1788" x2="57.912" y2="8.1788" width="0.254" layer="20"/>
@@ -1694,6 +1690,8 @@ design rules under a new name.</description>
 <attribute name="DIGIKEY-PN" value="1473-1163-1-ND" x="17.272" y="28.702" size="0.8128" layer="27" rot="R90" display="off"/>
 <attribute name="DESCRIPTION" value="8 Mhz MEMS oscillator module" x="17.272" y="28.702" size="0.8128" layer="27" rot="R90" display="off"/>
 <attribute name="FOOTPRINT" value="4-DFN" x="17.272" y="28.702" size="0.8128" layer="27" rot="R90" display="off"/>
+<attribute name="MPN" value="SIT8008AI-22-XXS-8.000000G" x="17.272" y="28.702" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="SITIME" x="17.272" y="28.702" size="1.778" layer="27" display="off"/>
 </element>
 <element name="U1" library="custom_ics" package="TSSOP28" value="TDC1000" x="23.876" y="29.3624" smashed="yes">
 <attribute name="DESCRIPTION" value="TI TDC1000 Ultrasonic Analog Frontend" x="23.876" y="29.3624" size="1.778" layer="27" display="off"/>
@@ -1702,6 +1700,8 @@ design rules under a new name.</description>
 <attribute name="MANU" value="Texas Instruments" x="23.876" y="29.3624" size="1.778" layer="27" display="off"/>
 <attribute name="NAME" x="24.384" y="29.6782" size="0.8128" layer="25" ratio="10" rot="R180"/>
 <attribute name="VALUE" x="30.0372" y="27.2796" size="1.016" layer="27" ratio="10" rot="R90"/>
+<attribute name="DIST" value="Digikey" x="23.876" y="29.3624" size="1.778" layer="27" display="off"/>
+<attribute name="DIST-PN" value="296-38823-1-ND" x="23.876" y="29.3624" size="1.778" layer="27" display="off"/>
 </element>
 <element name="U2" library="custom_ics" package="TSSOP14" value="TDC7200" x="31.496" y="29.3624" smashed="yes">
 <attribute name="DESCRIPTION" value="TI TDC7200 Picosecond Time to Digital Converter" x="31.496" y="29.3624" size="1.778" layer="27" display="off"/>
@@ -1710,6 +1710,8 @@ design rules under a new name.</description>
 <attribute name="MANU" value="Texas Instruments" x="31.496" y="29.3624" size="1.778" layer="27" display="off"/>
 <attribute name="NAME" x="33.3756" y="30.5816" size="0.8128" layer="25" ratio="10" rot="R180"/>
 <attribute name="VALUE" x="35.3822" y="27.2796" size="1.016" layer="27" ratio="10" rot="R90"/>
+<attribute name="DIST" value="Digikey" x="31.496" y="29.3624" size="1.778" layer="27" display="off"/>
+<attribute name="DIST-PN" value="296-41125-5-ND" x="31.496" y="29.3624" size="1.778" layer="27" display="off"/>
 </element>
 <element name="JP1" library="components" package="1X06" value="MOMO-VERT-6M" x="45.212" y="25.654" smashed="yes" rot="R270">
 <attribute name="NAME" x="44.4246" y="19.4564" size="0.8128" layer="25" ratio="10"/>
@@ -1717,132 +1719,184 @@ design rules under a new name.</description>
 <attribute name="FOOTPRINT" value="Through Hole" x="45.212" y="25.654" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="DIGIKEY-PN" value="S7004-ND" x="45.212" y="25.654" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="DESCRIPTION" value="6 pin female vertical header" x="45.212" y="25.654" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="MPN" value="PPTC061LFBN-RC" x="45.212" y="25.654" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="SULLINS" x="45.212" y="25.654" size="1.778" layer="27" display="off"/>
 </element>
 <element name="U3" library="components" package="SSOP20" value="PIC16LF1847" x="38.4048" y="28.5496" smashed="yes" rot="R180">
 <attribute name="DESCRIPTION" value="PIC16LF1847 8-bit microcontroller" x="38.4048" y="28.5496" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="DIGIKEY-PN" value="PIC16LF1847-I/SS-ND" x="38.4048" y="28.5496" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="NAME" x="37.7576" y="28.448" size="0.8128" layer="25" ratio="10"/>
 <attribute name="VALUE" x="41.1602" y="28.575" size="1.27" layer="27" ratio="10" rot="R180"/>
+<attribute name="MPN" value="PIC16LF1847-I/SS" x="38.4048" y="28.5496" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MICROCHIP" x="38.4048" y="28.5496" size="1.778" layer="27" display="off"/>
 </element>
 <element name="R1" library="rcl" package="R0402" value="10k" x="39.2684" y="34.3408" smashed="yes" rot="R90">
 <attribute name="NAME" x="40.0558" y="36.195" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="41.1734" y="33.7058" size="1.27" layer="27" rot="R90"/>
 <attribute name="DIGIKEY-PN" value="RHM10.0KCDCT-ND" x="39.2684" y="34.3408" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MPN" value="MCR01MRTF1002" x="39.2684" y="34.3408" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="ROHM" x="39.2684" y="34.3408" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C1" library="rcl" package="C0402" value="10 nF" x="17.3736" y="31.0896" smashed="yes">
 <attribute name="NAME" x="16.7386" y="32.7914" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="16.7386" y="29.1846" size="1.27" layer="27"/>
 <attribute name="DIGIKEY-PN" value="490-4516-1-ND" x="17.3736" y="31.0896" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="GRM155R71H103KA88D" x="17.3736" y="31.0896" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="17.3736" y="31.0896" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C3" library="rcl" package="C0402" value="1 uF" x="28.8036" y="34.5948" smashed="yes" rot="R180">
 <attribute name="NAME" x="27.6098" y="35.0266" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="29.4386" y="36.4998" size="1.27" layer="27" rot="R180"/>
 <attribute name="DIGIKEY-PN" value="490-3890-1-ND" x="28.8036" y="34.5948" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="GRM155R61A105KE15D" x="28.8036" y="34.5948" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="28.8036" y="34.5948" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C4" library="rcl" package="C0402" value="100 nF" x="17.3736" y="32.1564" smashed="yes">
 <attribute name="NAME" x="16.7386" y="33.8582" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="16.7386" y="30.2514" size="1.27" layer="27"/>
 <attribute name="DIGIKEY-PN" value="490-1318-1-ND" x="17.3736" y="32.1564" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="GRM155R61A104KA01D" x="17.3736" y="32.1564" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="17.3736" y="32.1564" size="1.778" layer="27" display="off"/>
 </element>
 <element name="R4" library="rcl" package="R0402" value="100k" x="28.194" y="22.606" smashed="yes" rot="R90">
 <attribute name="NAME" x="28.829" y="21.209" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="30.099" y="21.971" size="1.27" layer="27" rot="R90"/>
 <attribute name="DIGIKEY-PN" value="RHM100KCDCT-ND" x="28.194" y="22.606" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MPN" value="MCR01MRTF1003" x="28.194" y="22.606" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="ROHM" x="28.194" y="22.606" size="1.778" layer="27" display="off"/>
 </element>
 <element name="R5" library="rcl" package="R0402" value="100k" x="40.894" y="22.606" smashed="yes" rot="R90">
 <attribute name="NAME" x="40.259" y="22.2758" size="0.8128" layer="25" rot="R90"/>
 <attribute name="VALUE" x="42.799" y="21.971" size="1.27" layer="27" rot="R90"/>
 <attribute name="DIGIKEY-PN" value="RHM100KCDCT-ND" x="40.894" y="22.606" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MPN" value="MCR01MRTF1003" x="40.894" y="22.606" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="ROHM" x="40.894" y="22.606" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C5" library="rcl" package="C0402" value="100 nF" x="37.8968" y="23.5712" smashed="yes" rot="R180">
 <attribute name="NAME" x="38.5318" y="22.9362" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="38.5318" y="25.4762" size="1.27" layer="27" rot="R180"/>
 <attribute name="DIGIKEY-PN" value="490-1318-1-ND" x="37.8968" y="23.5712" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="GRM155R61A104KA01D" x="37.8968" y="23.5712" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="37.8968" y="23.5712" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C6" library="rcl" package="C0402" value="100 nF" x="28.8036" y="33.528" smashed="yes" rot="R180">
 <attribute name="NAME" x="26.2382" y="33.8074" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="29.4386" y="35.433" size="1.27" layer="27" rot="R180"/>
 <attribute name="DIGIKEY-PN" value="490-1318-1-ND" x="28.8036" y="33.528" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="GRM155R61A104KA01D" x="28.8036" y="33.528" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="28.8036" y="33.528" size="1.778" layer="27" display="off"/>
 </element>
 <element name="R9" library="rcl" package="R0402" value="10M" x="19.5072" y="24.0792" smashed="yes">
 <attribute name="NAME" x="18.8722" y="24.7142" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="18.8722" y="22.1742" size="1.27" layer="27"/>
 <attribute name="DIGIKEY-PN" value="1276-3434-1-ND" x="19.5072" y="24.0792" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="RC1005F106CS" x="19.5072" y="24.0792" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="SAMSUNG ELECTRO-MECHANICS" x="19.5072" y="24.0792" size="1.778" layer="27" display="off"/>
 </element>
 <element name="R10" library="rcl" package="R0402" value="10M" x="19.5072" y="23.0124" smashed="yes" rot="R180">
 <attribute name="NAME" x="17.399" y="23.1394" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="20.1422" y="24.9174" size="1.27" layer="27" rot="R180"/>
 <attribute name="DIGIKEY-PN" value="1276-3434-1-ND" x="19.5072" y="23.0124" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="RC1005F106CS" x="19.5072" y="23.0124" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="SAMSUNG ELECTRO-MECHANICS" x="19.5072" y="23.0124" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C2" library="rcl" package="C0402" value="10 nF" x="19.5072" y="21.9456" smashed="yes" rot="R180">
 <attribute name="NAME" x="17.2466" y="22.225" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="20.1422" y="23.8506" size="1.27" layer="27" rot="R180"/>
 <attribute name="DIGIKEY-PN" value="490-4516-1-ND" x="19.5072" y="21.9456" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="GRM155R71H103KA88D" x="19.5072" y="21.9456" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="19.5072" y="21.9456" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C8" library="rcl" package="C0402" value="100 nF" x="22.5552" y="34.5948" smashed="yes" rot="R180">
 <attribute name="NAME" x="25.1714" y="35.0266" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="23.1902" y="36.4998" size="1.27" layer="27" rot="R180"/>
 <attribute name="DIGIKEY-PN" value="490-1318-1-ND" x="22.5552" y="34.5948" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="GRM155R61A104KA01D" x="22.5552" y="34.5948" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="22.5552" y="34.5948" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C9" library="rcl" package="C0402" value="1 nF" x="21.6916" y="24.0792" smashed="yes" rot="R270">
 <attribute name="NAME" x="30.2514" y="24.7142" size="0.8128" layer="25" rot="R270"/>
 <attribute name="VALUE" x="19.7866" y="24.7142" size="1.27" layer="27" rot="R270"/>
 <attribute name="DIGIKEY-PN" value="490-6349-1-ND" x="21.6916" y="24.0792" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="MPN" value="GRM155R71H102JA01J" x="21.6916" y="24.0792" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="21.6916" y="24.0792" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C10" library="rcl" package="C0402" value="51 pF" x="24.0792" y="24.0792" smashed="yes" rot="R270">
 <attribute name="NAME" x="32.3342" y="25.3238" size="0.8128" layer="25" rot="R270"/>
 <attribute name="VALUE" x="22.1742" y="24.7142" size="1.27" layer="27" rot="R270"/>
 <attribute name="DIGIKEY-PN" value="490-5944-1-ND" x="24.0792" y="24.0792" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="MPN" value="GRM1555C1H510JA01D" x="24.0792" y="24.0792" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="24.0792" y="24.0792" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C11" library="rcl" package="C0402" value="51 pF" x="23.1648" y="21.9456" smashed="yes" rot="R180">
 <attribute name="NAME" x="26.2382" y="22.225" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="23.7998" y="23.8506" size="1.27" layer="27" rot="R180"/>
 <attribute name="DIGIKEY-PN" value="490-5944-1-ND" x="23.1648" y="21.9456" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="GRM1555C1H510JA01D" x="23.1648" y="21.9456" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="23.1648" y="21.9456" size="1.778" layer="27" display="off"/>
 </element>
 <element name="R11" library="rcl" package="R0402" value="1k" x="22.86" y="24.0792" smashed="yes" rot="R90">
 <attribute name="NAME" x="32.131" y="23.2918" size="0.8128" layer="25" rot="R90"/>
 <attribute name="VALUE" x="24.765" y="23.4442" size="1.27" layer="27" rot="R90"/>
 <attribute name="DIGIKEY-PN" value="RHM1.00KCDCT-ND" x="22.86" y="24.0792" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MPN" value="MCR01MRTF1001" x="22.86" y="24.0792" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="ROHM" x="22.86" y="24.0792" size="1.778" layer="27" display="off"/>
 </element>
 <element name="R12" library="rcl" package="R0402" value="5.36k" x="25.2984" y="24.0792" smashed="yes" rot="R90">
 <attribute name="NAME" x="34.1122" y="23.1394" size="0.8128" layer="25" rot="R90"/>
 <attribute name="VALUE" x="27.2034" y="23.4442" size="1.27" layer="27" rot="R90"/>
 <attribute name="DIGIKEY-PN" value="RHM5.36KCDCT-ND" x="25.2984" y="24.0792" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MPN" value="MCR01MRTF5361" x="25.2984" y="24.0792" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="ROHM" x="25.2984" y="24.0792" size="1.778" layer="27" display="off"/>
 </element>
 <element name="R13" library="rcl" package="R0402" value="200R" x="13.716" y="28.6512" smashed="yes">
 <attribute name="NAME" x="12.9286" y="30.353" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="13.081" y="26.7462" size="1.27" layer="27"/>
 <attribute name="DIGIKEY-PN" value="311-200LRCT-ND" x="13.716" y="28.6512" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="RC0402FR-07200RL" x="13.716" y="28.6512" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="YAGEO" x="13.716" y="28.6512" size="1.778" layer="27" display="off"/>
 </element>
 <element name="R14" library="rcl" package="R0402" value="200R" x="10.5156" y="28.6512" smashed="yes" rot="R180">
 <attribute name="NAME" x="9.3218" y="29.083" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="11.1506" y="30.5562" size="1.27" layer="27" rot="R180"/>
 <attribute name="DIGIKEY-PN" value="311-200LRCT-ND" x="10.5156" y="28.6512" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="RC0402FR-07200RL" x="10.5156" y="28.6512" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="YAGEO" x="10.5156" y="28.6512" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C12" library="rcl" package="C0402" value="300 pF" x="10.5156" y="27.432" smashed="yes" rot="R180">
 <attribute name="NAME" x="9.3218" y="27.8638" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="11.1506" y="29.337" size="1.27" layer="27" rot="R180"/>
 <attribute name="DIGIKEY-PN" value="490-3234-1-ND" x="10.5156" y="27.432" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="GRM1555C1H301JA01D" x="10.5156" y="27.432" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="10.5156" y="27.432" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C13" library="rcl" package="C0402" value="300 pF" x="13.716" y="27.432" smashed="yes">
 <attribute name="NAME" x="12.7762" y="25.3238" size="0.8128" layer="25"/>
 <attribute name="VALUE" x="13.081" y="25.527" size="1.27" layer="27"/>
 <attribute name="DIGIKEY-PN" value="490-3234-1-ND" x="13.716" y="27.432" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="GRM1555C1H301JA01D" x="13.716" y="27.432" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="13.716" y="27.432" size="1.778" layer="27" display="off"/>
 </element>
 <element name="R15" library="rcl" package="R0402" value="1k" x="26.5176" y="24.0792" smashed="yes" rot="R90">
 <attribute name="NAME" x="35.179" y="23.1394" size="0.8128" layer="25" rot="R90"/>
 <attribute name="VALUE" x="28.4226" y="23.4442" size="1.27" layer="27" rot="R90"/>
 <attribute name="DIGIKEY-PN" value="P1.0KDCCT-ND" x="26.5176" y="24.0792" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MPN" value="ERA-2AEB102X" x="26.5176" y="24.0792" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="PANASONIC" x="26.5176" y="24.0792" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C14" library="rcl" package="C0402" value="10 nF" x="22.5552" y="33.528" smashed="yes" rot="R180">
 <attribute name="NAME" x="21.3614" y="33.9598" size="0.8128" layer="25" rot="R180"/>
 <attribute name="VALUE" x="23.1902" y="35.433" size="1.27" layer="27" rot="R180"/>
 <attribute name="DIGIKEY-PN" value="490-4516-1-ND" x="22.5552" y="33.528" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="GRM155R71H103KA88D" x="22.5552" y="33.528" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="22.5552" y="33.528" size="1.778" layer="27" display="off"/>
 </element>
 <element name="C15" library="rcl" package="C0805K" value="10 uF" x="33.2232" y="35.0012" smashed="yes" rot="R180">
 <attribute name="NAME" x="34.149" y="33.9184" size="0.8128" layer="25" rot="R270"/>
 <attribute name="VALUE" x="34.2232" y="36.9012" size="1.016" layer="27" rot="R180"/>
 <attribute name="DIGIKEY-PN" value="490-10516-1-ND" x="33.2232" y="35.0012" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="GRM21BR71A106KA73L" x="33.2232" y="35.0012" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="MURATA" x="33.2232" y="35.0012" size="1.778" layer="27" display="off"/>
 </element>
 <element name="FB2" library="rcl" package="R0603" value="" x="36.6776" y="34.9504" smashed="yes" rot="R180">
 <attribute name="NAME" x="37.6174" y="34.0106" size="0.8128" layer="25" rot="R180"/>
@@ -1850,6 +1904,8 @@ design rules under a new name.</description>
 <attribute name="FOOTPRINT" value="SMD 0603" x="36.6776" y="34.9504" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="DESCRIPTION" value="Ferrite Bead" x="36.6776" y="34.9504" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="DIGIKEY-PN" value="587-1873-1-ND" x="36.6776" y="34.9504" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="BK1608HS600-T" x="36.6776" y="34.9504" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="TAIYO YUDEN" x="36.6776" y="34.9504" size="1.778" layer="27" display="off"/>
 </element>
 <element name="JP5" library="pinhead" package="1X01" value="" x="41.3004" y="33.9852" smashed="yes">
 <attribute name="VALUE" x="40.0304" y="30.8102" size="1.27" layer="27"/>
@@ -1861,6 +1917,8 @@ design rules under a new name.</description>
 <attribute name="FOOTPRINT" value="Through Hole" x="11.2776" y="32.6136" size="1.778" layer="27" display="off"/>
 <attribute name="NAME" x="13.0688" y="33.9476" size="0.8128" layer="25"/>
 <attribute name="DIST-PN" value="455-1705-ND" x="11.2776" y="32.6136" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="B3B-PH-K-S(LF)(SN)" x="11.2776" y="32.6136" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="JST" x="11.2776" y="32.6136" size="1.778" layer="27" display="off"/>
 </element>
 <element name="JP3" library="custom_ics" package="JST-PH-3PIN" value="JST-PH-3PIN" x="11.2776" y="23.9268" smashed="yes">
 <attribute name="DIST" value="Digikey" x="11.2776" y="23.9268" size="1.778" layer="27" display="off"/>
@@ -1868,11 +1926,15 @@ design rules under a new name.</description>
 <attribute name="FOOTPRINT" value="Through Hole" x="11.2776" y="23.9268" size="1.778" layer="27" display="off"/>
 <attribute name="NAME" x="12.9164" y="21.908" size="0.8128" layer="25"/>
 <attribute name="DIST-PN" value="455-1705-ND" x="11.2776" y="23.9268" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="B3B-PH-K-S(LF)(SN)" x="11.2776" y="23.9268" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="JST" x="11.2776" y="23.9268" size="1.778" layer="27" display="off"/>
 </element>
 <element name="JP4" library="components" package="MOMO-EDGE-6M" value="MOMO-EDGE-6M-RIGHT" x="54.102" y="32.004" rot="R180">
 <attribute name="FOOTPRINT" value="Through Hole" x="54.102" y="32.004" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="DIGIKEY-PN" value="609-3327-ND" x="54.102" y="32.004" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="DESCRIPTION" value="6 pin R/A header" x="54.102" y="32.004" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="68016-406HLF" x="54.102" y="32.004" size="1.778" layer="27" display="off"/>
+<attribute name="MANU" value="FCI" x="54.102" y="32.004" size="1.778" layer="27" display="off"/>
 </element>
 </elements>
 <signals>

@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="1" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -405,6 +405,7 @@ MAX3223-MAX3243.pdf</description>
 <wire x1="-1.6" y1="1.25" x2="1.6" y2="1.25" width="0.127" layer="48"/>
 <wire x1="1.6" y1="-1.25" x2="1.6" y2="1.25" width="0.127" layer="48"/>
 <circle x="-1.1" y="-0.77" radius="0.22" width="0.127" layer="48"/>
+<circle x="-1.1" y="-2.04" radius="0.22" width="0.127" layer="21"/>
 </package>
 <package name="JST-PH-3PIN">
 <description>3 pin JST PH Series vertical mount connector</description>
@@ -888,6 +889,8 @@ MAX3223-MAX3243.pdf</description>
 <technologies>
 <technology name="">
 <attribute name="DESCRIPTION" value="TI TDC1000 Ultrasonic Analog Frontend" constant="no"/>
+<attribute name="DIST" value="Digikey" constant="no"/>
+<attribute name="DIST-PN" value="296-38823-1-ND" constant="no"/>
 <attribute name="FOOTPRINT" value="TSSOP28" constant="no"/>
 <attribute name="MANU" value="Texas Instruments" constant="no"/>
 <attribute name="MPN" value="TDC1000" constant="no"/>
@@ -921,6 +924,8 @@ MAX3223-MAX3243.pdf</description>
 <technologies>
 <technology name="">
 <attribute name="DESCRIPTION" value="TI TDC7200 Picosecond Time to Digital Converter" constant="no"/>
+<attribute name="DIST" value="Digikey" constant="no"/>
+<attribute name="DIST-PN" value="296-41125-5-ND" constant="no"/>
 <attribute name="FOOTPRINT" value="TSSOP14" constant="no"/>
 <attribute name="MANU" value="Texas Instruments" constant="no"/>
 <attribute name="MPN" value="TDC7200" constant="no"/>
@@ -973,7 +978,7 @@ MAX3223-MAX3243.pdf</description>
 <technology name="">
 <attribute name="DESCRIPTION" value="3-pin JST PH Series Vertical Shrouded Connector" constant="no"/>
 <attribute name="DIST" value="Digikey" constant="no"/>
-<attribute name="DISTPN" value="455-1705-ND" constant="no"/>
+<attribute name="DIST-PN" value="455-1705-ND" constant="no"/>
 <attribute name="FOOTPRINT" value="Through Hole" constant="no"/>
 </technology>
 </technologies>
