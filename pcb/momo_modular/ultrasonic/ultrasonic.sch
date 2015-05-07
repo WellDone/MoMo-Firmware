@@ -71,6 +71,7 @@
 <wire x1="-1.6" y1="1.25" x2="1.6" y2="1.25" width="0.127" layer="48"/>
 <wire x1="1.6" y1="-1.25" x2="1.6" y2="1.25" width="0.127" layer="48"/>
 <circle x="-1.1" y="-0.77" radius="0.22" width="0.127" layer="48"/>
+<circle x="-1.1" y="-2.04" radius="0.22" width="0.127" layer="21"/>
 </package>
 <package name="TSSOP28">
 <description>&lt;b&gt;Thin Shrink Small Outline Plastic 28&lt;/b&gt;&lt;p&gt;
@@ -393,7 +394,7 @@ MAX3223-MAX3243.pdf</description>
 <technology name="">
 <attribute name="DESCRIPTION" value="3-pin JST PH Series Vertical Shrouded Connector" constant="no"/>
 <attribute name="DIST" value="Digikey" constant="no"/>
-<attribute name="DISTPN" value="455-1705-ND" constant="no"/>
+<attribute name="DIST-PN" value="455-1705-ND" constant="no"/>
 <attribute name="FOOTPRINT" value="Through Hole" constant="no"/>
 </technology>
 </technologies>
@@ -520,6 +521,26 @@ CAD and Schematic files for the PIC24Fka101 series of microcontrollers.</descrip
 <rectangle x1="2.1214" y1="-3.429" x2="2.3246" y2="-2.5908" layer="51"/>
 <rectangle x1="2.7564" y1="-3.429" x2="2.9596" y2="-2.5908" layer="51"/>
 </package>
+<package name="MOMO-EDGE-6M">
+<pad name="V28" x="0" y="10.16" drill="1.016" shape="long"/>
+<pad name="CLK" x="0" y="7.62" drill="1.016" shape="long"/>
+<pad name="DAT" x="0" y="5.08" drill="1.016" shape="long"/>
+<pad name="ALARM" x="0" y="2.54" drill="1.016" shape="long"/>
+<pad name="4V" x="0" y="0" drill="1.016" shape="long"/>
+<pad name="GND" x="0" y="-2.54" drill="1.016" shape="long"/>
+<wire x1="2.54" y1="11.43" x2="-3.81" y2="11.43" width="0.254" layer="21"/>
+<wire x1="-3.81" y1="11.43" x2="-3.81" y2="-3.81" width="0.254" layer="21"/>
+<wire x1="-3.81" y1="-3.81" x2="2.54" y2="-3.81" width="0.254" layer="21"/>
+<wire x1="2.54" y1="-3.81" x2="2.54" y2="11.43" width="0.254" layer="21"/>
+<text x="-2.54" y="8.255" size="1.27" layer="21">1</text>
+<wire x1="0" y1="-2.54" x2="-3.175" y2="-2.54" width="0.254" layer="49"/>
+<wire x1="0" y1="0" x2="-3.175" y2="0" width="0.254" layer="49"/>
+<wire x1="0" y1="2.54" x2="-3.175" y2="2.54" width="0.254" layer="49"/>
+<wire x1="0" y1="5.08" x2="-3.175" y2="5.08" width="0.254" layer="49"/>
+<wire x1="0" y1="7.62" x2="-3.175" y2="7.62" width="0.254" layer="49"/>
+<wire x1="0" y1="10.16" x2="-3.175" y2="10.16" width="0.254" layer="49"/>
+<text x="3.81" y="-3.81" size="0.8128" layer="21" rot="R90">&gt;NAME</text>
+</package>
 </packages>
 <symbols>
 <symbol name="MOMO-8EDGE">
@@ -615,6 +636,26 @@ CAD and Schematic files for the PIC24Fka101 series of microcontrollers.</descrip
 <attribute name="DESCRIPTION" value="PIC16LF1847 8-bit microcontroller" constant="no"/>
 <attribute name="DIGIKEY-PN" value="PIC16LF1847-I/SS-ND" constant="no"/>
 </technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="MOMO-EDGE-6M-RIGHT" prefix="JP">
+<gates>
+<gate name="G$1" symbol="MOMO-8EDGE" x="-2.54" y="-2.54"/>
+</gates>
+<devices>
+<device name="" package="MOMO-EDGE-6M">
+<connects>
+<connect gate="G$1" pin="2.8V" pad="GND"/>
+<connect gate="G$1" pin="4V" pad="CLK"/>
+<connect gate="G$1" pin="ALRM" pad="DAT"/>
+<connect gate="G$1" pin="CLK" pad="4V"/>
+<connect gate="G$1" pin="DAT" pad="ALARM"/>
+<connect gate="G$1" pin="GND" pad="V28"/>
+</connects>
+<technologies>
+<technology name=""/>
 </technologies>
 </device>
 </devices>
@@ -6426,56 +6467,107 @@ Source: AVX .. aphvc.pdf</description>
 </classes>
 <parts>
 <part name="XT1" library="custom_ics" deviceset="MEMS-OSCILLATOR" device=""/>
-<part name="U1" library="custom_ics" deviceset="TDC1000" device=""/>
-<part name="U2" library="custom_ics" deviceset="TDC7200" device=""/>
+<part name="U1" library="custom_ics" deviceset="TDC1000" device="">
+<attribute name="MPN" value="TDC1000PW"/>
+</part>
+<part name="U2" library="custom_ics" deviceset="TDC7200" device="">
+<attribute name="MPN" value="TDC7200PW"/>
+</part>
 <part name="JP1" library="components" deviceset="MOMO-VERT-6M" device=""/>
 <part name="U3" library="components" deviceset="PIC16LF1847" device=""/>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="P+1" library="supply1" deviceset="VCC" device=""/>
 <part name="P+3" library="supply1" deviceset="VCC" device=""/>
-<part name="R1" library="rcl" deviceset="R-US_" device="R0402" value="10k"/>
-<part name="C1" library="rcl" deviceset="C-US" device="C0402" value="10 nF"/>
-<part name="C3" library="rcl" deviceset="C-US" device="C0402" value="1 uF"/>
-<part name="C4" library="rcl" deviceset="C-US" device="C0402" value="100 nF"/>
+<part name="R1" library="rcl" deviceset="R-US_" device="R0402" value="10k">
+<attribute name="DIGIKEY-PN" value="RHM10.0KCDCT-ND"/>
+</part>
+<part name="C1" library="rcl" deviceset="C-US" device="C0402" value="10 nF">
+<attribute name="DIGIKEY-PN" value="490-4516-1-ND"/>
+</part>
+<part name="C3" library="rcl" deviceset="C-US" device="C0402" value="1 uF">
+<attribute name="DIGIKEY-PN" value="490-3890-1-ND"/>
+</part>
+<part name="C4" library="rcl" deviceset="C-US" device="C0402" value="100 nF">
+<attribute name="DIGIKEY-PN" value="490-1318-1-ND"/>
+</part>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
-<part name="R3" library="rcl" deviceset="R-US_" device="R0402" value="24.9R"/>
 <part name="GND4" library="supply1" deviceset="GND" device=""/>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
-<part name="R4" library="rcl" deviceset="R-US_" device="R0402" value="100k"/>
-<part name="R5" library="rcl" deviceset="R-US_" device="R0402" value="100k"/>
+<part name="R4" library="rcl" deviceset="R-US_" device="R0402" value="100k">
+<attribute name="DIGIKEY-PN" value="RHM100KCDCT-ND"/>
+</part>
+<part name="R5" library="rcl" deviceset="R-US_" device="R0402" value="100k">
+<attribute name="DIGIKEY-PN" value="RHM100KCDCT-ND"/>
+</part>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
 <part name="GND8" library="supply1" deviceset="GND" device=""/>
-<part name="C5" library="rcl" deviceset="C-US" device="C0402" value="100 nF"/>
-<part name="C6" library="rcl" deviceset="C-US" device="C0402" value="100 nF"/>
+<part name="C5" library="rcl" deviceset="C-US" device="C0402" value="100 nF">
+<attribute name="DIGIKEY-PN" value="490-1318-1-ND"/>
+</part>
+<part name="C6" library="rcl" deviceset="C-US" device="C0402" value="100 nF">
+<attribute name="DIGIKEY-PN" value="490-1318-1-ND"/>
+</part>
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
 <part name="P+5" library="supply1" deviceset="VCC" device=""/>
 <part name="P+6" library="supply1" deviceset="VCC" device=""/>
-<part name="R9" library="rcl" deviceset="R-US_" device="R0402" value="10M"/>
-<part name="R10" library="rcl" deviceset="R-US_" device="R0402" value="10M"/>
-<part name="C2" library="rcl" deviceset="C-US" device="C0402" value="10 nF"/>
+<part name="R9" library="rcl" deviceset="R-US_" device="R0402" value="10M">
+<attribute name="DIGIKEY-PN" value="1276-3434-1-ND"/>
+</part>
+<part name="R10" library="rcl" deviceset="R-US_" device="R0402" value="10M">
+<attribute name="DIGIKEY-PN" value="1276-3434-1-ND"/>
+</part>
+<part name="C2" library="rcl" deviceset="C-US" device="C0402" value="10 nF">
+<attribute name="DIGIKEY-PN" value="490-4516-1-ND"/>
+</part>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
 <part name="GND13" library="supply1" deviceset="GND" device=""/>
-<part name="C8" library="rcl" deviceset="C-US" device="C0402" value="100 nF"/>
+<part name="C8" library="rcl" deviceset="C-US" device="C0402" value="100 nF">
+<attribute name="DIGIKEY-PN" value="490-1318-1-ND"/>
+</part>
 <part name="GND14" library="supply1" deviceset="GND" device=""/>
-<part name="C9" library="rcl" deviceset="C-US" device="C0402" value="1 nF"/>
-<part name="C10" library="rcl" deviceset="C-US" device="C0402" value="50 pF"/>
-<part name="C11" library="rcl" deviceset="C-US" device="C0402" value="53 pF"/>
-<part name="R11" library="rcl" deviceset="R-US_" device="R0402" value="1k"/>
-<part name="R12" library="rcl" deviceset="R-US_" device="R0402" value="5k"/>
+<part name="C9" library="rcl" deviceset="C-US" device="C0402" value="1 nF">
+<attribute name="DIGIKEY-PN" value="490-6349-1-ND"/>
+</part>
+<part name="C10" library="rcl" deviceset="C-US" device="C0402" value="51 pF">
+<attribute name="DIGIKEY-PN" value="490-5944-1-ND"/>
+</part>
+<part name="C11" library="rcl" deviceset="C-US" device="C0402" value="51 pF">
+<attribute name="DIGIKEY-PN" value="490-5944-1-ND"/>
+</part>
+<part name="R11" library="rcl" deviceset="R-US_" device="R0402" value="1k">
+<attribute name="DIGIKEY-PN" value="RHM1.00KCDCT-ND"/>
+</part>
+<part name="R12" library="rcl" deviceset="R-US_" device="R0402" value="5.36k">
+<attribute name="DIGIKEY-PN" value="RHM5.36KCDCT-ND"/>
+</part>
 <part name="GND15" library="supply1" deviceset="GND" device=""/>
-<part name="R13" library="rcl" deviceset="R-US_" device="R0402" value="200R"/>
-<part name="R14" library="rcl" deviceset="R-US_" device="R0402" value="200R"/>
-<part name="C12" library="rcl" deviceset="C-US" device="C0402" value="300 pF"/>
-<part name="C13" library="rcl" deviceset="C-US" device="C0402" value="300 pF"/>
+<part name="R13" library="rcl" deviceset="R-US_" device="R0402" value="200R">
+<attribute name="DIGIKEY-PN" value="311-200LRCT-ND"/>
+</part>
+<part name="R14" library="rcl" deviceset="R-US_" device="R0402" value="200R">
+<attribute name="DIGIKEY-PN" value="311-200LRCT-ND"/>
+</part>
+<part name="C12" library="rcl" deviceset="C-US" device="C0402" value="300 pF">
+<attribute name="DIGIKEY-PN" value="490-3234-1-ND"/>
+</part>
+<part name="C13" library="rcl" deviceset="C-US" device="C0402" value="300 pF">
+<attribute name="DIGIKEY-PN" value="490-3234-1-ND"/>
+</part>
 <part name="GND16" library="supply1" deviceset="GND" device=""/>
 <part name="GND17" library="supply1" deviceset="GND" device=""/>
-<part name="R15" library="rcl" deviceset="R-US_" device="R0402" value="1k"/>
+<part name="R15" library="rcl" deviceset="R-US_" device="R0402" value="1k">
+<attribute name="DIGIKEY-PN" value="P1.0KDCCT-ND"/>
+</part>
 <part name="GND19" library="supply1" deviceset="GND" device=""/>
-<part name="C14" library="rcl" deviceset="C-US" device="C0402" value="10 nF"/>
-<part name="C15" library="rcl" deviceset="C-US" device="C0805K" value="10 uF"/>
+<part name="C14" library="rcl" deviceset="C-US" device="C0402" value="10 nF">
+<attribute name="DIGIKEY-PN" value="490-4516-1-ND"/>
+</part>
+<part name="C15" library="rcl" deviceset="C-US" device="C0805K" value="10 uF">
+<attribute name="DIGIKEY-PN" value="490-10516-1-ND"/>
+</part>
 <part name="FB2" library="rcl" deviceset="R-US_" device="R0603"/>
 <part name="VCC1" library="supply1" deviceset="VCCINT" device=""/>
 <part name="VCC2" library="supply1" deviceset="VCCINT" device=""/>
@@ -6483,6 +6575,9 @@ Source: AVX .. aphvc.pdf</description>
 <part name="JP2" library="custom_ics" deviceset="JST-PH-3PIN" device=""/>
 <part name="JP3" library="custom_ics" deviceset="JST-PH-3PIN" device=""/>
 <part name="VCC3" library="supply1" deviceset="VCCINT" device=""/>
+<part name="JP4" library="components" deviceset="MOMO-EDGE-6M-RIGHT" device=""/>
+<part name="P+2" library="supply1" deviceset="VCC" device=""/>
+<part name="GND11" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -6498,48 +6593,95 @@ Source: AVX .. aphvc.pdf</description>
 <instance part="GND2" gate="1" x="160.02" y="114.3"/>
 <instance part="P+1" gate="VCC" x="160.02" y="144.78"/>
 <instance part="P+3" gate="VCC" x="2.54" y="96.52"/>
-<instance part="R1" gate="G$1" x="101.6" y="152.4" rot="R90"/>
-<instance part="C1" gate="G$1" x="119.38" y="58.42"/>
-<instance part="C3" gate="G$1" x="30.48" y="149.86"/>
-<instance part="C4" gate="G$1" x="129.54" y="58.42"/>
+<instance part="R1" gate="G$1" x="101.6" y="152.4" rot="R90">
+<attribute name="DIGIKEY-PN" x="101.6" y="152.4" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
+<instance part="C1" gate="G$1" x="119.38" y="58.42">
+<attribute name="DIGIKEY-PN" x="119.38" y="58.42" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="C3" gate="G$1" x="30.48" y="149.86">
+<attribute name="DIGIKEY-PN" x="30.48" y="149.86" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="C4" gate="G$1" x="129.54" y="58.42">
+<attribute name="DIGIKEY-PN" x="129.54" y="58.42" size="1.778" layer="96" display="off"/>
+</instance>
 <instance part="GND3" gate="1" x="109.22" y="38.1"/>
-<instance part="R3" gate="G$1" x="86.36" y="58.42" rot="R180"/>
 <instance part="GND4" gate="1" x="17.78" y="25.4"/>
 <instance part="GND5" gate="1" x="20.32" y="104.14"/>
-<instance part="R4" gate="G$1" x="-73.66" y="127" rot="R90"/>
-<instance part="R5" gate="G$1" x="-66.04" y="127" rot="R90"/>
+<instance part="R4" gate="G$1" x="-73.66" y="127" rot="R90">
+<attribute name="DIGIKEY-PN" x="-73.66" y="127" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
+<instance part="R5" gate="G$1" x="-66.04" y="127" rot="R90">
+<attribute name="DIGIKEY-PN" x="-66.04" y="127" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
 <instance part="GND6" gate="1" x="-73.66" y="119.38"/>
 <instance part="GND7" gate="1" x="-66.04" y="119.38"/>
 <instance part="GND8" gate="1" x="30.48" y="142.24"/>
-<instance part="C5" gate="G$1" x="-55.88" y="127"/>
-<instance part="C6" gate="G$1" x="12.7" y="149.86"/>
+<instance part="C5" gate="G$1" x="-55.88" y="127">
+<attribute name="DIGIKEY-PN" x="-55.88" y="127" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="C6" gate="G$1" x="12.7" y="149.86">
+<attribute name="DIGIKEY-PN" x="12.7" y="149.86" size="1.778" layer="96" display="off"/>
+</instance>
 <instance part="GND9" gate="1" x="-55.88" y="119.38"/>
 <instance part="GND10" gate="1" x="12.7" y="142.24"/>
 <instance part="P+5" gate="VCC" x="-55.88" y="137.16"/>
 <instance part="P+6" gate="VCC" x="99.06" y="160.02"/>
-<instance part="R9" gate="G$1" x="-50.8" y="63.5" rot="R270"/>
-<instance part="R10" gate="G$1" x="-50.8" y="53.34" rot="R270"/>
-<instance part="C2" gate="G$1" x="-43.18" y="53.34"/>
+<instance part="R9" gate="G$1" x="-50.8" y="63.5" rot="R270">
+<attribute name="DIGIKEY-PN" x="-50.8" y="63.5" size="1.778" layer="96" rot="R270" display="off"/>
+</instance>
+<instance part="R10" gate="G$1" x="-50.8" y="53.34" rot="R270">
+<attribute name="DIGIKEY-PN" x="-50.8" y="53.34" size="1.778" layer="96" rot="R270" display="off"/>
+</instance>
+<instance part="C2" gate="G$1" x="-43.18" y="53.34">
+<attribute name="DIGIKEY-PN" x="-43.18" y="53.34" size="1.778" layer="96" display="off"/>
+</instance>
 <instance part="GND12" gate="1" x="-50.8" y="45.72"/>
 <instance part="GND13" gate="1" x="-43.18" y="45.72"/>
-<instance part="C8" gate="G$1" x="25.4" y="88.9"/>
+<instance part="C8" gate="G$1" x="25.4" y="88.9">
+<attribute name="DIGIKEY-PN" x="25.4" y="88.9" size="1.778" layer="96" display="off"/>
+</instance>
 <instance part="GND14" gate="1" x="25.4" y="81.28"/>
-<instance part="C9" gate="G$1" x="-2.54" y="55.88" rot="R90"/>
-<instance part="C10" gate="G$1" x="-25.4" y="50.8" rot="R90"/>
-<instance part="C11" gate="G$1" x="-17.78" y="45.72"/>
-<instance part="R11" gate="G$1" x="-10.16" y="50.8"/>
-<instance part="R12" gate="G$1" x="-33.02" y="53.34" rot="R270"/>
+<instance part="C9" gate="G$1" x="-2.54" y="55.88" rot="R90">
+<attribute name="DIGIKEY-PN" x="-2.54" y="55.88" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
+<instance part="C10" gate="G$1" x="-25.4" y="50.8" rot="R90">
+<attribute name="DIGIKEY-PN" x="-25.4" y="50.8" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
+<instance part="C11" gate="G$1" x="-17.78" y="45.72">
+<attribute name="DIGIKEY-PN" x="-17.78" y="45.72" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="R11" gate="G$1" x="-10.16" y="50.8">
+<attribute name="DIGIKEY-PN" x="-10.16" y="50.8" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="R12" gate="G$1" x="-33.02" y="53.34" rot="R270">
+<attribute name="DIGIKEY-PN" x="-33.02" y="53.34" size="1.778" layer="96" rot="R270" display="off"/>
+</instance>
 <instance part="GND15" gate="1" x="-17.78" y="38.1"/>
-<instance part="R13" gate="G$1" x="-22.86" y="71.12"/>
-<instance part="R14" gate="G$1" x="-12.7" y="66.04"/>
-<instance part="C12" gate="G$1" x="-2.54" y="68.58" rot="R90"/>
-<instance part="C13" gate="G$1" x="-33.02" y="63.5" rot="R90"/>
+<instance part="R13" gate="G$1" x="-22.86" y="71.12">
+<attribute name="DIGIKEY-PN" x="-22.86" y="71.12" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="R14" gate="G$1" x="-12.7" y="66.04">
+<attribute name="DIGIKEY-PN" x="-12.7" y="66.04" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="C12" gate="G$1" x="-2.54" y="68.58" rot="R90">
+<attribute name="DIGIKEY-PN" x="-2.54" y="68.58" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
+<instance part="C13" gate="G$1" x="-33.02" y="63.5" rot="R90">
+<attribute name="DIGIKEY-PN" x="-33.02" y="63.5" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
 <instance part="GND16" gate="1" x="-30.48" y="88.9"/>
 <instance part="GND17" gate="1" x="-48.26" y="88.9"/>
-<instance part="R15" gate="G$1" x="0" y="33.02" rot="R90"/>
+<instance part="R15" gate="G$1" x="0" y="33.02" rot="R90">
+<attribute name="DIGIKEY-PN" x="0" y="33.02" size="1.778" layer="96" rot="R90" display="off"/>
+</instance>
 <instance part="GND19" gate="1" x="0" y="25.4"/>
-<instance part="C14" gate="G$1" x="35.56" y="88.9"/>
-<instance part="C15" gate="G$1" x="45.72" y="88.9"/>
+<instance part="C14" gate="G$1" x="35.56" y="88.9">
+<attribute name="DIGIKEY-PN" x="35.56" y="88.9" size="1.778" layer="96" display="off"/>
+</instance>
+<instance part="C15" gate="G$1" x="45.72" y="88.9">
+<attribute name="DIGIKEY-PN" x="45.72" y="88.9" size="1.778" layer="96" display="off"/>
+</instance>
 <instance part="FB2" gate="G$1" x="10.16" y="91.44"/>
 <instance part="VCC1" gate="G$1" x="45.72" y="93.98"/>
 <instance part="VCC2" gate="G$1" x="20.32" y="157.48"/>
@@ -6547,6 +6689,9 @@ Source: AVX .. aphvc.pdf</description>
 <instance part="JP2" gate="G$1" x="-27.94" y="99.06" rot="R90"/>
 <instance part="JP3" gate="G$1" x="-45.72" y="99.06" rot="R90"/>
 <instance part="VCC3" gate="G$1" x="-50.8" y="71.12"/>
+<instance part="JP4" gate="G$1" x="154.94" y="83.82"/>
+<instance part="P+2" gate="VCC" x="160.02" y="106.68"/>
+<instance part="GND11" gate="1" x="160.02" y="76.2"/>
 </instances>
 <busses>
 <bus name="COMMS:SDA,SCL,ALARM,SDO,SDI,CS1000,CS7200,ENABLE,SCK,START,STOP,CLOCK,TRIG,CLKEN,CHSEL,ERR1000,RESET1000,INT7200">
@@ -6562,6 +6707,7 @@ Source: AVX .. aphvc.pdf</description>
 <wire x1="66.04" y1="109.22" x2="66.04" y2="35.56" width="0.762" layer="92"/>
 <wire x1="-15.24" y1="162.56" x2="-76.2" y2="162.56" width="0.762" layer="92"/>
 <wire x1="139.7" y1="129.54" x2="139.7" y2="111.76" width="0.762" layer="92"/>
+<wire x1="139.7" y1="111.76" x2="139.7" y2="86.36" width="0.762" layer="92"/>
 </segment>
 </bus>
 </busses>
@@ -6577,6 +6723,10 @@ Source: AVX .. aphvc.pdf</description>
 <wire x1="147.32" y1="134.62" x2="139.7" y2="134.62" width="0.1524" layer="91"/>
 <label x="142.24" y="134.62" size="1.778" layer="95"/>
 </segment>
+<segment>
+<pinref part="JP4" gate="G$1" pin="CLK"/>
+<wire x1="147.32" y1="96.52" x2="139.7" y2="96.52" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="SDA" class="0">
 <segment>
@@ -6589,6 +6739,10 @@ Source: AVX .. aphvc.pdf</description>
 <wire x1="147.32" y1="132.08" x2="139.7" y2="132.08" width="0.1524" layer="91"/>
 <label x="142.24" y="132.08" size="1.778" layer="95"/>
 </segment>
+<segment>
+<pinref part="JP4" gate="G$1" pin="DAT"/>
+<wire x1="147.32" y1="93.98" x2="139.7" y2="93.98" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="ALARM" class="0">
 <segment>
@@ -6600,6 +6754,10 @@ Source: AVX .. aphvc.pdf</description>
 <pinref part="U3" gate="G$1" pin="RB0/INT"/>
 <wire x1="66.04" y1="132.08" x2="78.74" y2="132.08" width="0.1524" layer="91"/>
 <label x="68.58" y="132.08" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="JP4" gate="G$1" pin="ALRM"/>
+<wire x1="147.32" y1="91.44" x2="139.7" y2="91.44" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="GND" class="0">
@@ -6688,6 +6846,10 @@ Source: AVX .. aphvc.pdf</description>
 <pinref part="JP2" gate="G$1" pin="1"/>
 <wire x1="-30.48" y1="91.44" x2="-30.48" y2="93.98" width="0.1524" layer="91"/>
 </segment>
+<segment>
+<pinref part="JP4" gate="G$1" pin="GND"/>
+<pinref part="GND11" gate="1" pin="GND"/>
+</segment>
 </net>
 <net name="VCC" class="0">
 <segment>
@@ -6712,6 +6874,10 @@ Source: AVX .. aphvc.pdf</description>
 <pinref part="P+3" gate="VCC" pin="VCC"/>
 <wire x1="5.08" y1="91.44" x2="2.54" y2="91.44" width="0.1524" layer="91"/>
 <wire x1="2.54" y1="91.44" x2="2.54" y2="93.98" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="JP4" gate="G$1" pin="2.8V"/>
+<pinref part="P+2" gate="VCC" pin="VCC"/>
 </segment>
 </net>
 <net name="SCK" class="0">
@@ -6808,9 +6974,11 @@ Source: AVX .. aphvc.pdf</description>
 <label x="-5.08" y="119.38" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="R3" gate="G$1" pin="2"/>
 <wire x1="81.28" y1="58.42" x2="66.04" y2="58.42" width="0.1524" layer="91"/>
 <label x="71.12" y="58.42" size="1.778" layer="95"/>
+<pinref part="XT1" gate="G$1" pin="CLK"/>
+<wire x1="99.06" y1="58.42" x2="91.44" y2="58.42" width="0.1524" layer="91"/>
+<wire x1="81.28" y1="58.42" x2="91.44" y2="58.42" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="CLKIN"/>
@@ -6855,13 +7023,6 @@ Source: AVX .. aphvc.pdf</description>
 <pinref part="U3" gate="G$1" pin="RA6"/>
 <wire x1="119.38" y1="116.84" x2="139.7" y2="116.84" width="0.1524" layer="91"/>
 <label x="129.54" y="116.84" size="1.778" layer="95"/>
-</segment>
-</net>
-<net name="N$3" class="0">
-<segment>
-<pinref part="XT1" gate="G$1" pin="CLK"/>
-<pinref part="R3" gate="G$1" pin="1"/>
-<wire x1="99.06" y1="58.42" x2="91.44" y2="58.42" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="CLKEN" class="0">
