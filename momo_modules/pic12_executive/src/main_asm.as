@@ -11,7 +11,7 @@
 
 ASM_INCLUDE_GLOBALS()
 
-global _get_magic, _wdt_delay, _bus_init, _register_module, _bus_is_idle
+global _get_magic, _wdt_delay, _bus_init, _register_module, _bus_is_idle, _verify_application
 
 #define k1SecondTimeout 0b010100
 
@@ -33,6 +33,11 @@ BEGINFUNCTION _restore_status
 	xorlw kMIBMagicNumber
 	btfsc ZERO
 		bsf BANKMASK(_status), ValidAppBit
+
+	;Make sure the checksum of the application is valid
+	call _verify_application
+	btfss ZERO
+		bcf BANKMASK(_status), ValidAppBit
 
 	;If we've already registered, we're done, otherwise register
 	btfsc BANKMASK(_status), RegisteredBit

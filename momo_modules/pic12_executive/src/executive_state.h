@@ -15,6 +15,8 @@ typedef struct
 } MIBState;
 
 //1 Byte
+//These bits are referenced in c and assembly code so they cannot change position without
+//also updating asm_locations.h
 typedef union
 {
 	struct
@@ -23,8 +25,8 @@ typedef union
 		uint16 valid_app 		: 1;
 		uint16 async_callback 	: 1;
 		uint16 registered		: 1;
-		uint16 dirty_reset 		: 1; //cannot change, referenced in watchdog_asm.as
-		uint16 slave_active 	: 1; //cannot change, referenced in i2c_utilities.as
+		uint16 dirty_reset 		: 1; 
+		uint16 slave_active 	: 1;
 		uint16 first_read		: 1;
 		uint16 trapped			: 1;
 	};
