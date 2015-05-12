@@ -78,7 +78,7 @@ ENDFUNCTION read_app_row
 ;Calculate an 8-bit checksum of all of application flash
 ;Uses FSR1H and FSR1L for temporary storage
 BEGINFUNCTION _verify_application
-	clrf FSR1H						;store checksum here
+	clrf 	FSR1H					;store checksum here
 	movlw 	kFirstApplicationRow
 	movwf 	FSR1L					;current row in FSR1L
 	read_app_loop:
@@ -88,7 +88,7 @@ BEGINFUNCTION _verify_application
 	incf 	FSR1L,f 				;current row++
 	xorlw	(kNumFlashRows-1)		;if last row read == kNumFlashRows-1, we're done
 	btfss	ZERO
-	goto 	read_app_loop
+		goto 	read_app_loop
 
 	movf    FSR1H,w
 	return

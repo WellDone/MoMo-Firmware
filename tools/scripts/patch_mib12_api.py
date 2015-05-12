@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #patch_mib12_api.py
 #XC8 is terrible.  It cannot add a table of API callbacks without dying because it 
 #gets confused about when the functions can be called and starts duplicating code like crazy.

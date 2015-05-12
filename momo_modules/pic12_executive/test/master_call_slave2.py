@@ -19,6 +19,10 @@ def prepare_call():
 
 	return (my_address, to_addr, packet)
 
+def process_response(response):
+	resp = ", ".join(map(hex, response))
+	print "[%s]" % resp
+	
 def _calculate_checksum(packet):
 	cnt = 0
 
