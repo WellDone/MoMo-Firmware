@@ -36,6 +36,7 @@ BEGINFUNCTION _restore_status
 
 	;Make sure the checksum of the application is valid
 	call _verify_application
+	banksel _status
 	btfss ZERO
 		bcf BANKMASK(_status), ValidAppBit
 
