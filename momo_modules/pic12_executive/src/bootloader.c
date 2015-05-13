@@ -17,20 +17,14 @@
 #include <string.h>
 #include "ioc.h"
 
-//The first N bytes of RAM in bank0 are used for reflashing, where N is 2*the flash row size for the uC.
-//they can also be used by the application since once we initiate a reflash
-//cycle, that application is gone.
+extern uint8 app_buffer[32];
+extern uint8 boot_source;
+extern uint8 boot_count;
+extern uint8 boot_id;
+extern uint8 invalid_row;
+extern uint8 offset;
 
-uint8 app_buffer[32] @ 0x20; //ends at 0x60 if 64 bytes, (xc8 chokes if this is larger than 32 bytes, so just fake it.)
-uint8 boot_source @ 0x65;
-uint8 boot_count  @ 0x66;
-uint8 boot_id @ 0x67;
-uint8 i @ 0x68;
-uint8 tmp @ 0x69;
-uint8 invalid_row @ 0x6A;
-uint8 offset @ 0x6B;
-
-void enter_bootloader()
+/*void enter_bootloader()
 {
 	boot_source = get_boot_source();
 	boot_id = get_firmware_id();
@@ -67,4 +61,4 @@ void enter_bootloader()
 	//Make sure we can still reset ourselves upon receipt of a reset pulse
 	PIN_DIR(ALARM, INPUT);
 	ioc_enable(ALARMPORT); 
-}
+}*/

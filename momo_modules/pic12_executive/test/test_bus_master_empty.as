@@ -32,6 +32,7 @@ BEGINFUNCTION _begin_tests
 	movwf BANKMASK(_mib_packet+3)
 	
 	;Send the RPC and make sure that we get the right response (0xFF in this case)
+	movlw 0
 	asm_call_bus_master_send_rpc()
 	assertlw 0xFF
 	return

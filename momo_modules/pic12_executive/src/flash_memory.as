@@ -131,7 +131,7 @@ ENDFUNCTION _load_boot_address
 ;is stored in the second to last word of the last flash row of the
 ;first page of flash memory.
 BEGINFUNCTION _get_boot_source
-	movlw 14
+	movlw kFirmwareSourceOffset
 	goto _get_mib_block
 ENDFUNCTION _get_boot_source
 
@@ -139,7 +139,7 @@ ENDFUNCTION _get_boot_source
 ;in high memory, return the firmware id that we should program
 ;this is stored in the 3rd word before the end of the first flash page
 BEGINFUNCTION _get_firmware_id
-	movlw 13
+	movlw kFirmwareIDOffset
 	goto _get_mib_block
 ENDFUNCTION _get_firmware_id
 
@@ -173,6 +173,7 @@ BEGINFUNCTION _flash_write_row
 	movwf	FSR0L
 	clrf	FSR0H 					;FSR0 now points to row array
 	bsf 	LWLO					;write N-1 latches only and then actually write the row on the Nth
+	bcf		FREE 					;Make sure we don't inadvertantly have the free bit set from a previous erase op
 	movlw	kFlashRowSize
 	movwf	FSR1H					;FSR1H has count of latches
 	write_row_loop:

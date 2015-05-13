@@ -58,6 +58,7 @@
 #define kAsynchronousResponseCode	0x3f
 
 #define kNoErrorStatus				make_mib_status(0, 1, 0x00)
+#define kNoErrorWithDataStatus		make_mib_status(1, 1, 0x00)
 #define kModuleBusyStatus			make_mib_status(0, 0, kModuleBusyCode)
 #define kChecksumMismatchStatus		make_mib_status(0, 0, kChecksumMismatchCode)
 #define kCommandNotFoundStatus 		make_mib_status(0, 0, kCommandNotFoundCode)

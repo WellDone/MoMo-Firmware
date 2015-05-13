@@ -17,7 +17,7 @@
 
 ASM_INCLUDE_GLOBALS()
 
-global _exec_readmem, _exec_status, _mib_to_fsr0, _copy_fsr
+global _exec_readmem, _exec_status, _mib_to_fsr0, _copy_fsr, _verify_application
 global _bus_slave_returndata
 
 PSECT text_executive_asm,local,class=CODE,delta=2
@@ -58,3 +58,17 @@ BEGINFUNCTION _exec_status
 
 	retlw 0x00
 ENDFUNCTION _exec_status
+
+
+;Verify the application checksum and return it as a little endian 16 bit integer 
+BEGINFUNCTION _exec_verify
+	banksel mib_buffer
+	call _verify_application
+	banksel mib_buffer
+	movwf BANKMASK(mib_buffer+0)
+	clrf BANKMASK(mib_buffer+1)
+
+	movlw 2
+	call _bus_slave_returndata
+	retlw 0x00
+ENDFUNCTION _exec_verify

@@ -19,12 +19,3 @@ uint8 exec_reset()
 
 	return 0x00;
 }
-
-uint8 exec_verify()
-{
-	plist_set_int8(0,1, 0);
-	plist_set_int8(0,0, verify_application());
-
-	bus_slave_returndata(2);
-	return 0x00;
-}

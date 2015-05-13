@@ -47,6 +47,7 @@ BEGINFUNCTION _register_module
 	movwf BANKMASK(bus_cmdlo)
 	clrf  BANKMASK(bus_cmdhi)
 
+	movlw 20
 	call _bus_master_send_rpc
 
 	;Check if we were successful (return value == 0 with app defined and has_data bits set)

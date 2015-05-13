@@ -17,8 +17,10 @@ PSECT text_bus_master,local,class=CODE,delta=2
 
 ;Send a master call containing the response to a previous MIB RPC that we are
 ;responding to asynchronously.
+;W should contain the length of the arguments to send
 BEGINFUNCTION _bus_master_async_callback
 	banksel _mib_state
+	movwf BANKMASK(_mib_packet+0)
 	movf BANKMASK(send_address),w
 	call _bus_master_begin_rpc
 
@@ -31,6 +33,7 @@ BEGINFUNCTION _bus_master_async_callback
 	movwf BANKMASK(bus_cmdlo)
 	movlw high kAsynchronousReponseCommand
 	movwf BANKMASK(bus_cmdhi)
+	movf BANKMASK(_mib_packet+0),w
 	goto _bus_master_send_rpc
 ENDFUNCTION _bus_master_async_callback
 
@@ -50,7 +53,9 @@ BEGINFUNCTION _bus_master_begin_rpc
 		goto $-2
 
 	movlw 1
-	goto _i2c_set_master_mode
+	call _i2c_set_master_mode
+	;TODO:,FIXME: clear the mib buffer here.
+	return
 ENDFUNCTION _bus_master_begin_rpc
 
 ;Attempt to send an RPC packet and return with DC set if there was a collision.
@@ -139,10 +144,15 @@ ENDFUNCTION _bus_master_tryrpc
 ;Uses: FSR0, FSR1, W
 ;Modifies: DC,C,Z
 ;Side Effects: 
+;Arguments: the length of the parameter set in the W register
 ;Returns: Status code from the call in W
 BEGINFUNCTION _bus_master_send_rpc
 	;Load from address into the appropriate spots and append a checksum
+	;Also save the length parameter in the appropriate spot
 	banksel _mib_state
+	andlw 0b00011111
+	movwf BANKMASK(_mib_packet)
+
 	movf BANKMASK(slave_address),w
 	movwf BANKMASK(bus_sender)
 	call _i2c_append_checksum
