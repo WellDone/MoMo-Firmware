@@ -58,16 +58,21 @@ BEGINFUNCTION _bus_slave_callcommand
 	movf BANKMASK(bus_sender),w
 	movwf BANKMASK(send_address)
 
-	;Initialize return status to busy by default
-	movlw 0x00
-	call _bus_slave_setreturn
+	;Make sure we initialize the bus_status
+	;which is shared with the param length, only clear the high order bits
+	;that cannot be shared with the length since the length is limited to 20 bytes
+	bcf BANKMASK(bus_status), kHasDataBit
+	bcf BANKMASK(bus_status), kAppDefinedBit
 
 	;Try to call the handler.  Whatever return status was given,
 	;combine that with what is in bus_status in case the slave handler
 	;called bus_slave_returndata, which will set the kHasData bit
 	call _bus_slave_callhandler
+	
 	banksel bus_status
-	iorwf BANKMASK(bus_status),f
+	btfsc BANKMASK(bus_status), kHasDataBit
+		bsf WREG, kHasDataBit
+	movwf bus_status
 
 	;Check if the handler told us to respond asynchronously
 	xorlw kAsynchronousResponseCode | (1 << 6)

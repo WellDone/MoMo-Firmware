@@ -60,7 +60,7 @@ BEGINFUNCTION _test_endpoint2
 	banksel slave_called
 	movlw 0xAB
 	movwf BANKMASK(slave_called)
-	return
+	retlw 0x00
 ENDFUNCTION _test_endpoint2
 
 BEGINFUNCTION _delay_cycles

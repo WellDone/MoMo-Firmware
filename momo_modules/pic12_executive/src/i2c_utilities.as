@@ -23,11 +23,7 @@ PSECT text_i2c_utils,local,class=CODE,delta=2
 ;w = 0 means disable
 BEGINFUNCTION _i2c_set_master_mode
 	movwf FSR1H
-	banksel _status
-	bcf   BANKMASK(_status),SlaveActiveBit
-	btfss FSR1H,0
-		bsf   BANKMASK(_status),SlaveActiveBit 		;set to slave if w==0
-
+	
 	movlb 1 
 	bcf SSP1IE ;bank 1
 	movlb 4

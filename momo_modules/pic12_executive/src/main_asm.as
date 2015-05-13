@@ -26,7 +26,6 @@ BEGINFUNCTION _restore_status
 	banksel _status
 	bcf BANKMASK(_status), BusyBit
 	bcf BANKMASK(_status), ValidAppBit
-	bsf BANKMASK(_status), SlaveActiveBit
 
 	;Check if we have a valid application module and set status
 	call _get_magic

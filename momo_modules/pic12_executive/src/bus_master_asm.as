@@ -6,6 +6,7 @@
 #include "i2c_defines.h"
 #include "asm_locations.h"
 #include "asm_branches.inc"
+#include "protocol_defines.h"
 
 ASM_INCLUDE_GLOBALS()
 
@@ -110,7 +111,7 @@ BEGINFUNCTION _bus_master_tryrpc
 
 	;Check if there is any data to receive, if not we're done.
 	moviw [-1]FSR0
-	btfss WREG, 6
+	btfss WREG, 7
 		return
 
 	;Read the whole 25 byte packet
@@ -173,7 +174,27 @@ BEGINFUNCTION _bus_master_send_rpc
 	movlw 0
 	call _i2c_set_master_mode
 	
-	banksel bus_status	
+	banksel bus_status
+
+	;Check if the slave is responding asynchronously
+	movlw   kAsynchronousResponseStatus
+	xorwf	BANKMASK(bus_status), w
+	btfsc 	ZERO
+		goto wait_for_async
 	movf 	BANKMASK(bus_status), w
   	return 
+
+  	;The slave elected to respond asynchronously, wait until we get that response.
+  	wait_for_async:
+  	bsf BANKMASK(_status), MasterWaitingBit
+
+  	async_loop:
+  	btfsc BANKMASK(_status), MasterWaitingBit
+  		goto async_loop
+  	
+  	movf BANKMASK(bus_length), f
+  	;If there was data, return the right status, otherwise return no data
+  	btfsc ZERO
+  		retlw kNoErrorStatus
+  	retlw kNoErrorWithDataStatus
 ENDFUNCTION _bus_master_send_rpc

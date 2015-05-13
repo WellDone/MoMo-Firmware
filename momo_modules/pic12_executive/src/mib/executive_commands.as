@@ -1,8 +1,9 @@
 #include <xc.inc>
 #include "asm_macros.inc"
 #include "executive.h"
+#include "protocol_defines.h"
 
-global _exec_prepare_reflash, _exec_reset, _exec_verify, _exec_readmem, _exec_status
+global _exec_prepare_reflash, _exec_reset, _exec_verify, _exec_readmem, _exec_status, _exec_async_response
 
 PSECT textexecmap,local,class=CODE,delta=2
 
@@ -18,6 +19,7 @@ ENDM
 
 ;Endpoints must be defined in order!
 BEGINREGION exec_new_cmd_map
+ 	define_endpoint kAsynchronousReponseCommand, _exec_async_response
 	define_endpoint kExecutivePrepareReflash, _exec_prepare_reflash
 	define_endpoint kExecutiveReset, _exec_reset
 	define_endpoint kExecutiveVerifyApplication, _exec_verify

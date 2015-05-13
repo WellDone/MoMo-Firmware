@@ -13,6 +13,7 @@
 #include "i2c_defines.h"
 #include "asm_locations.h"
 #include "constants.h"
+#include "protocol_defines.h"
 
 
 ASM_INCLUDE_GLOBALS()
@@ -40,6 +41,19 @@ BEGINFUNCTION _exec_readmem
 	call 	_bus_slave_returndata
 	retlw 	0x00
 ENDFUNCTION _exec_readmem
+
+BEGINFUNCTION _exec_async_response
+	banksel _status
+
+	;FIXME: If we were not waiting for an async response, tell the caller that
+	bcf BANKMASK(_status), MasterWaitingBit
+
+	;Move the length into the right place as if the call were not asynchronous
+  	movf BANKMASK(bus_spec),w
+  	movwf BANKMASK(bus_length)
+  	
+	retlw 0x00
+ENDFUNCTION _exec_async_response
 
 BEGINFUNCTION _exec_status
 	call 	_mib_to_fsr0

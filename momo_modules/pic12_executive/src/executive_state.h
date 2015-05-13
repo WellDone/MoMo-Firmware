@@ -21,14 +21,14 @@ typedef union
 {
 	struct
 	{
-		uint16 respond_busy 	: 1;
-		uint16 valid_app 		: 1;
-		uint16 async_callback 	: 1;
-		uint16 registered		: 1;
-		uint16 dirty_reset 		: 1; 
-		uint16 slave_active 	: 1;
-		uint16 first_read		: 1;
-		uint16 trapped			: 1;
+		uint8 respond_busy 		: 1;
+		uint8 valid_app 		: 1;
+		uint8 async_callback 	: 1;
+		uint8 registered		: 1;
+		uint8 dirty_reset 		: 1; 
+		uint8 master_waiting 	: 1;
+		uint8 first_read		: 1;
+		uint8 trapped			: 1;
 	};
 
 	uint8_t status;

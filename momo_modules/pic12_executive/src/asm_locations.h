@@ -29,14 +29,14 @@
 #define curr_loc		(_mib_state + 2)
 
 //Variables inside of ExecutiveStatus
-#define BusyBit			0
-#define ValidAppBit		1
-#define AsyncBit		2
-#define RegisteredBit	3
-#define DirtyResetBit	4
-#define SlaveActiveBit	5
-#define FirstReadBit	6
-#define TrapBit			7
+#define BusyBit				0
+#define ValidAppBit			1
+#define AsyncBit			2
+#define RegisteredBit		3
+#define DirtyResetBit		4
+#define MasterWaitingBit	5 //Set this bit when the master sent an RPC call and the slave elected to respond asynchronously
+#define FirstReadBit		6
+#define TrapBit				7
 
 #define ASM_INCLUDE_GLOBALS()	global _mib_packet, _mib_state, _status
 

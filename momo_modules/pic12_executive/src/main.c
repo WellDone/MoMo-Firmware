@@ -52,7 +52,7 @@ void interrupt service_isr() {
 
                 i2c_release_clock();
             }
-            else if (status.slave_active)
+            else
                 i2c_slave_interrupt();
             
             //Master i2c is not interrupt driven
