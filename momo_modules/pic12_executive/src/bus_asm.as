@@ -1,7 +1,6 @@
 #include <xc.inc>
 #include "i2c_defines.h"
 #include "asm_locations.h"
-#include "constants.h"
 #include "executive.h"
 #define __DEFINES_ONLY__
 #include "mib_definitions.h"

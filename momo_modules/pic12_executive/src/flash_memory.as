@@ -1,7 +1,6 @@
 #include <xc.inc>
 #define _DEFINES_ONLY
 #include "bootloader.h"
-#include "constants.h"
 #undef _DEFINES_ONLY
 
 #include "asm_locations.h"

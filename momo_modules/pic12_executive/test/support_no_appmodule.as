@@ -2,7 +2,6 @@
 ;3 structures defining the features, commands and handlers that we support
 
 #include <xc.inc>
-#include "constants.h"
 
 #define __DEFINES_ONLY__
 #include "mib_definitions.h"

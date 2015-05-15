@@ -40,10 +40,4 @@
 
 #define ASM_INCLUDE_GLOBALS()	global _mib_packet, _mib_state, _status
 
-#ifdef kMultipageDevice
-#define reset_page()			pagesel($)
-#else
-#define reset_page()
-#endif
-
 #endif

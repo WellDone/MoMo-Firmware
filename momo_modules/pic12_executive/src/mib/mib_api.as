@@ -1,7 +1,6 @@
 ;mib_api.as
 
 #include <xc.inc>
-#include "constants.h"
 #include "asm_macros.inc"
 
 PSECT mibapi,global,class=CODE,delta=2

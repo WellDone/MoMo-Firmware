@@ -8,10 +8,11 @@
 #include "i2c_defines.h"
 #include "asm_locations.h"
 #include "mib12_block.h"
+#include "asm_branches.inc"
 
 ASM_INCLUDE_GLOBALS()
 
-global _get_magic, _wdt_delay, _bus_init, _register_module, _bus_is_idle, _verify_application
+global _get_magic, _wdt_delay, _bus_init, _register_module, _bus_is_idle, _verify_application, _get_mib_block
 
 #define k1SecondTimeout 0b010100
 
@@ -37,6 +38,25 @@ BEGINFUNCTION _restore_status
 	call _verify_application
 	banksel _status
 	btfss ZERO
+		bcf BANKMASK(_status), ValidAppBit
+
+	;Make sure the hardware type is correct
+	movlw kMIBHWTypeOffset
+	call _get_mib_block
+	xorlw kModuleHWType
+	btfss ZERO
+		bcf BANKMASK(_status), ValidAppBit
+
+	;Make sure the API version is compatible (Major API numbers are equal and Minor API is <= executive version)
+	movlw kMIBMajorAPIOffset
+	call _get_mib_block
+	xorlw kMajorAPIVersion
+	btfss ZERO
+		bcf BANKMASK(_status), ValidAppBit
+
+	movlw kMIBMinorAPIOffset
+	call _get_mib_block
+	skipwltel kMinorAPIVersion
 		bcf BANKMASK(_status), ValidAppBit
 
 	;If we've already registered, we're done, otherwise register

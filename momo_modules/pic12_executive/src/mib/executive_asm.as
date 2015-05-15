@@ -12,7 +12,6 @@
 
 #include "i2c_defines.h"
 #include "asm_locations.h"
-#include "constants.h"
 #include "protocol_defines.h"
 
 

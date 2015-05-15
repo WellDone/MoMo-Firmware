@@ -8,7 +8,7 @@
 #include <xc.inc>
 
 global _bus_master_rpc_sync, _bus_slave_setreturn
-global _mib_buffer,_mib_packet,_mib_state,_slave_address
+global _mib_buffer, _mib_packet, _mib_state, _slave_address
 
 ;API Functions
 _bus_master_rpc_sync equ (kFirstApplicationRow-1)*16 + 14

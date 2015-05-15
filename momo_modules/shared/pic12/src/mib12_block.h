@@ -2,8 +2,9 @@
 #define __mib12_block_h__
 
 /*
- * MIB12 Application Modules must define a special structure in the 16 high words of program
- * memory so that the mib12 executive can find information about the loaded application
+ * MIB12 Application Modules must define a special structure in the 16 high words of the first
+ * 2k page of program memory so that the pic12_executive can find information about the loaded 
+ * application.
  */
 
 #define kMIBEndpointStructureSize 		16

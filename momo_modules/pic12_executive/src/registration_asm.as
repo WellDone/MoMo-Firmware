@@ -1,7 +1,6 @@
 ;registration_asm.as
 
 #include <xc.inc>
-#include "constants.h"
 #include "asm_branches.inc"
 #include "asm_locations.h"
 #include "mib12_block.h"
