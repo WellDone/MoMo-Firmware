@@ -5,6 +5,7 @@
 #include "mib_hal.h"
 #include "i2c.h"
 #include "protocol.h"
+#include "mib_definitions.h"
 
 //Bus error codes that can be returned
 enum
@@ -50,6 +51,8 @@ typedef struct
 	volatile uint8			first_read;
 	volatile uint8 			master_state;
 	volatile uint8			rpc_done;
+
+	uint8_t					slave_returns_data;
 } MIBState;
 
 typedef struct

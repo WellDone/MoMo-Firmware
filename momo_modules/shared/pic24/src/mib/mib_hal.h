@@ -11,6 +11,8 @@
 
 #include "common_types.h"
 
+#define kInvalidMIBIndex 255
+
 void  	call_handler(uint8 handler_index);
 uint8 	find_handler(void);
 void  	bus_init(uint8 address);

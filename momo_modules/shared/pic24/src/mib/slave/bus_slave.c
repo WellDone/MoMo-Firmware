@@ -22,24 +22,27 @@ void bus_slave_setreturn(uint8 status)
 
 inline void bus_slave_set_returnbuffer_length(uint8 length) 
 {
-	bus_slave_setreturn(pack_return_status( kNoMIBError, length ));	
+	mib_state.slave_returns_data = true;
+	mib_unified.packet.response.length = length;
 }
 
 void bus_slave_return_buffer( const void* buff, uint8 length ) 
 {
-	if (length > kBusMaxMessageSize) 
+	if (length > kMIBBufferSize) 
 	{
 		bus_slave_seterror( kUnknownError ); //TODO: Better
 		return;
 	}
-	memcpy( plist_get_buffer(0), buff, length );
+
+	memcpy(mib_unified.packet.data, buff, length);
 	bus_slave_set_returnbuffer_length( length );
 }
 
 void bus_slave_return_int16( int16 val ) 
 {
-	plist_set_int16( 0, val );
-	bus_slave_set_returnbuffer_length( kIntSize );
+	mib_unified.packet.data[0] = val & 0xFF;
+	mib_unified.packet.data[1] = val >> 8;
+	bus_slave_set_returnbuffer_length( sizeof(val) );
 }
 
 static void bus_slave_startcommand()
@@ -67,19 +70,12 @@ static void bus_slave_searchcommand()
 		bus_slave_seterror(kUnsupportedCommand);
 		return;
 	}
-
-	if (plist_param_length(mib_unified.bus_command.param_spec) > kBusMaxMessageSize)
-	{
-		bus_slave_seterror(kParameterTooLong);
-		return;
-	}
 }
 
 static void bus_slave_callcommand()
 {	
 	if (mib_state.slave_handler != kInvalidMIBIndex)
 	{
-		bus_slave_setreturn( pack_return_status( kNoMIBError, 0 ) );
 		call_handler(mib_state.slave_handler);
 	}
 }
@@ -96,8 +92,8 @@ void bus_slave_callback()
 				bus_slave_searchcommand();
 				bus_slave_callcommand();
 
-				bus_append_checksum((unsigned char*)&mib_unified.bus_returnstatus, 1);
-				bus_append_checksum((unsigned char*)&mib_unified.bus_returnstatus, mib_unified.bus_returnstatus.len+2);
+				bus_append_checksum((unsigned char*)&mib_unified.packet, 1);
+				bus_append_checksum((unsigned char*)&mib_unified.packet, kMIBMessageNoChecksumSize);
 				mib_state.first_read = 0;
 			}
 

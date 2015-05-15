@@ -5,33 +5,21 @@
 #include <stdlib.h>
 #include "protocol.h"
 
-void test_command(void)
+uint8_t test_command(uint8_t length)
 {
 	if ( plist_get_int16(0) != 42 )
-	{
-		bus_slave_seterror( kCallbackError );
-		return;
-	}
-	//_RA1 = !_RA1; //Blink light
+		return 7;
 	
 	const char* out = "testing...";
 	bus_slave_return_buffer( out, strlen(out) );
+
+	return kNoErrorCode;
 }
 
-/*
-void echo_buffer(void)
-{
-	MIBBufferParameter *buf = get_buffer_param(0);
-
-	memmove((void*)mib_buffer, buf, 2);
-	memmove((void*)mib_buffer+2, buf->data, buf->header.len);
-
-	bus_slave_setreturn(kNoMIBError| kHasReturnValue);
-}*/
 
 DEFINE_MIB_FEATURE_COMMANDS(test)
 {
-//	{0, echo_buffer, plist_define1(kMIBBufferType) },
-	{1, test_command, plist_spec(1,true) }
+	{1, test_command}
 };
+
 DEFINE_MIB_FEATURE(test);

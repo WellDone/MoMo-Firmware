@@ -2,11 +2,13 @@
 #define __mib_feature_h
 
 #include "protocol.h"
+#include <stdint.h>
+
+typedef uint8_t (*mib_callback)(uint8_t length);
 
 typedef struct {
 	unsigned char id;
 	mib_callback handler;
-	unsigned char params;
 } mib_command_handler;
 
 typedef struct {

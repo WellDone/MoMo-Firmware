@@ -32,7 +32,7 @@ static void bus_master_finish()
 		;			
 	
 	if (mib_state.master_callback != NULL)
-		mib_state.master_callback( mib_unified.bus_returnstatus.result );
+		mib_state.master_callback( mib_unified.packet.response.status_value );
 }
 
 void bus_master_init()
@@ -52,7 +52,7 @@ void bus_master_rpc_async_do( void* arg )
 
 void bus_master_rpc_async(mib_rpc_function callback, MIBUnified *data)
 {
-	bus_append_checksum((unsigned char*)&(data->bus_command), sizeof(MIBCommandPacket)+plist_param_length(data->bus_command.param_spec));	
+	bus_append_checksum((unsigned char*)&(data->packet), kMIBMessageNoChecksumSize);	
 	rpc_queue(callback, data);
 
 	if (mib_state.rpc_done)
@@ -79,19 +79,19 @@ void bus_master_sendrpc()
 	i2c_master_enable();
 
 	set_master_state(kMIBReadReturnStatus);
-	bus_send(master_rpcdata->data.address, (unsigned char *)&(master_rpcdata->data.bus_command), sizeof(MIBCommandPacket)+plist_param_length(master_rpcdata->data.bus_command.param_spec));
+	bus_send(master_rpcdata->data.address, (unsigned char *)&(master_rpcdata->data.packet), kMIBMessageSize);
 }
 
 void bus_master_readresult(unsigned int length)
 {
-	bus_receive(master_rpcdata->data.address, (unsigned char *)&mib_unified.bus_returnstatus, length);
+	bus_receive(master_rpcdata->data.address, (unsigned char *)&mib_unified.packet, length);
 }
 
 void bus_master_handleerror()
 {
-	switch(mib_unified.bus_returnstatus.result)
+	switch(mib_unified.packet.response.status_value)
 	{
-		case kChecksumError:
+		case kChecksumMismatchStatus:
 		bus_master_sendrpc(master_rpcdata->data.address);
 		break;
 
@@ -123,7 +123,7 @@ void bus_master_callback()
 			//Keep trying to read it until we don't get a checksum error, unless the slave is just gone
 
 			//Check if we received all 0xFF bytes indicating the slave is not there
-			if (mib_unified.bus_returnstatus.return_status == 0xFF)
+			if (mib_unified.packet.response.status_value == 0xFF)
 			{
 				bus_master_finish();
 				break;
@@ -132,11 +132,11 @@ void bus_master_callback()
 			//If the slave sent something, try again to read the status.
 			bus_master_readresult(1);
 		}
-		else if (mib_unified.bus_returnstatus.result != kNoMIBError)
+		else if (status_is_error(mib_unified.packet.response.status_value))
 			bus_master_handleerror();
-		else if (mib_unified.bus_returnstatus.len > 0)
+		else if (packet_has_data(mib_unified.packet.response.status_value))
 		{
-			bus_master_readresult(mib_unified.bus_returnstatus.len+2);
+			bus_master_readresult(kMIBMessageSize);
 			set_master_state(kMIBExecuteCallback);
 		}
 		else
@@ -146,7 +146,7 @@ void bus_master_callback()
 
 		case kMIBExecuteCallback:
 		if (i2c_master_lasterror() != kI2CNoError)
-			bus_master_readresult(mib_unified.bus_returnstatus.len+2); //Reread the return status and return value since there was a checksum error
+			bus_master_readresult(kMIBMessageSize); //Reread the return status and return value since there was a checksum error
 		else
 			bus_master_finish();
 		break;

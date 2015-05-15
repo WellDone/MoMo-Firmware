@@ -51,11 +51,13 @@
 
 #define make_mib_status(has_data, app_defined, code)	((((has_data & 1) << kHasDataBit)) | ((app_defined & 1) << kAppDefinedBit) | (code & 0b111111))
 
+#define kNoErrorCode				0x00
 #define kModuleBusyCode				0x00
 #define kChecksumMismatchCode 		0x01
 #define kCommandNotFoundCode		0x02
 #define kModuleNotPresentCode		0x3f
 #define kAsynchronousResponseCode	0x3f
+
 
 #define kNoErrorStatus				make_mib_status(0, 1, 0x00)
 #define kNoErrorWithDataStatus		make_mib_status(1, 1, 0x00)
@@ -64,6 +66,9 @@
 #define kCommandNotFoundStatus 		make_mib_status(0, 0, kCommandNotFoundCode)
 #define kAsynchronousResponseStatus make_mib_status(0, 0, kAsynchronousResponseCode)
 #define kModuleNotPresentStatus		make_mib_status(1, 1, kModuleNotPresentCode)	//a missing module responds 0xFF on the bus
+
+#define status_is_error(status)		((status & 0b01111111) != kNoErrorStatus)
+#define packet_has_data(status)		(status & (1 << kHasDataBit))
 
 //Well-Known MIB Addresses
 #define kMIBControllerAddress		8

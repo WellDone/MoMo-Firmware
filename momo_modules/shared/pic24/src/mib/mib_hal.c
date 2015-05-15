@@ -12,8 +12,6 @@
 extern const feature_map** the_features;
 extern unsigned int the_feature_count;
 
-static uint8 get_param_spec(uint8 handler_index);
-
 uint8 find_handler(void)
 {
 	uint8_t i, j, num_cmds;
@@ -46,7 +44,7 @@ uint8 find_handler(void)
 
 void  call_handler(uint8 handler_index)
 {
-	the_features[mib_state.feature_index]->commands[handler_index].handler();
+	the_features[mib_state.feature_index]->commands[handler_index].handler(mib_unified.packet.call.length);
 }
 
 void bus_init(uint8 address)
@@ -71,16 +69,6 @@ void bus_init(uint8 address)
 	bus_master_init();
 }
 
-static uint8 get_param_spec(uint8 handler_index)
-{
-	return the_features[mib_state.feature_index]->commands[handler_index].params;
-}
-
-uint8 plist_int_count(uint8 plist)
-{
-	return (plist & 0b01100000) >> 5;
-}
-
 uint8 plist_param_length(uint8 plist)
 {
 	return ((plist & 0b01100000) >> 4) + (plist & 0b00011111);
@@ -88,8 +76,7 @@ uint8 plist_param_length(uint8 plist)
 
 void bus_slave_seterror(uint8 error)
 {
-	mib_unified.bus_returnstatus.return_status = 0;
-	mib_unified.bus_returnstatus.return_status |= (error << 5);
+	bus_slave_setreturn(error);
 }
 
 uint8 bus_is_idle()
