@@ -12,7 +12,6 @@
 #include "common_types.h"
 
 void  	call_handler(uint8 handler_index);
-uint8 	validate_param_spec(uint8 handler_index);
 uint8 	find_handler(void);
 void  	bus_init(uint8 address);
 void 	bus_slave_seterror(uint8 error);

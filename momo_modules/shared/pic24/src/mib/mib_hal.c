@@ -16,11 +16,13 @@ static uint8 get_param_spec(uint8 handler_index);
 
 uint8 find_handler(void)
 {
-	uint8 i, j, num_cmds;
+	uint8_t i, j, num_cmds;
+	uint8_t feature = mib_unified.packet.call.command & 0xFF;
+	uint8_t command = mib_unified.packet.call.command >> 8;
 
 	for (i=0; i<the_feature_count; ++i)
 	{
-		if (the_features[i]->id == mib_unified.bus_command.feature)
+		if (the_features[i]->id == feature)
 		{
 			break;
 		}
@@ -28,15 +30,17 @@ uint8 find_handler(void)
 
 	if (i == the_feature_count)
 		return kInvalidMIBIndex;
+
 	mib_state.feature_index = i;
 
 	num_cmds = the_features[i]->command_count;
 
-	for (j=0; j<num_cmds; ++j) {
-		if ( the_features[i]->commands[j].id == mib_unified.bus_command.command) {
+	for (j=0; j<num_cmds; ++j) 
+	{
+		if ( the_features[i]->commands[j].id == command)
 			return j;
-		}
 	}
+
 	return kInvalidMIBIndex;
 }
 
@@ -70,13 +74,6 @@ void bus_init(uint8 address)
 static uint8 get_param_spec(uint8 handler_index)
 {
 	return the_features[mib_state.feature_index]->commands[handler_index].params;
-}
-
-uint8 validate_param_spec(uint8 handler_index)
-{
-	uint8 spec = get_param_spec(handler_index);
-
-	return (mib_unified.bus_command.param_spec & plist_spec_mask) == spec;
 }
 
 uint8 plist_int_count(uint8 plist)

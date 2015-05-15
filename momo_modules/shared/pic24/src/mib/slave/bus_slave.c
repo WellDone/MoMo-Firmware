@@ -11,12 +11,13 @@ static void bus_slave_callcommand();
  */
 
 /*
- * Set the return status, the high order 3 bits define the status, the low order 5 bits set the 
- * length of the return value
+ * Set the return status
  */
+
 void bus_slave_setreturn(uint8 status)
 {
-	mib_unified.bus_returnstatus.return_status = status;
+	mib_unified.packet.response.status_value = status;
+	mib_unified.packet.response.status_checksum = (~status) + 1;
 }
 
 inline void bus_slave_set_returnbuffer_length(uint8 length) 
@@ -48,7 +49,7 @@ static void bus_slave_startcommand()
 	mib_state.first_read = 1;
 
 	bus_slave_setreturn(kUnknownError); //Make sure that if nothing else happens we return an error status.
-	bus_slave_receive((unsigned char *)&mib_unified.bus_command, sizeof(MIBCommandPacket) + kBusMaxMessageSize);
+	bus_slave_receive((unsigned char *)&mib_unified.packet, kMIBMessageSize);
 }
 
 static void bus_slave_searchcommand()
@@ -74,31 +75,12 @@ static void bus_slave_searchcommand()
 	}
 }
 
-/*
- * @preconditions: mib_unified.mib_buffer is full of a packet of parameters or nothing
- * @return: 1 if the parameters are valid types and 0 otherwise
- * @side effects: sets mib slave error state appropriately
- */
-static uint8 bus_slave_validateparams()
-{
-	if (!validate_param_spec(mib_state.slave_handler))
-	{
-		bus_slave_seterror(kWrongParameterType); //Make sure the parameter checksum was valid.
-		return 0;
-	}
-
-	return 1;
-}
-
 static void bus_slave_callcommand()
 {	
 	if (mib_state.slave_handler != kInvalidMIBIndex)
 	{
-		if (bus_slave_validateparams()) 
-		{
-			bus_slave_setreturn( pack_return_status( kNoMIBError, 0 ) );
-			call_handler(mib_state.slave_handler);
-		}
+		bus_slave_setreturn( pack_return_status( kNoMIBError, 0 ) );
+		call_handler(mib_state.slave_handler);
 	}
 }
 
@@ -121,7 +103,7 @@ void bus_slave_callback()
 
 			//Position the i2c message pointer to the start of the return status.  This is located right before the return_value
 			//in memory, so we will send the return value, if there is one, automatically on subsequent reads.
-			bus_slave_send(&mib_unified.bus_returnstatus.return_status, sizeof(MIBReturnValueHeader)+kBusMaxMessageSize+2);
+			bus_slave_send((uint8_t*) &mib_unified.packet, kMIBMessageSize);
 		}
 		else
 			bus_slave_startcommand(); //A write always indicates a new command

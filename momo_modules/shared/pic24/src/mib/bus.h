@@ -22,8 +22,6 @@ enum
 //Need these because XC8 is really bad at optimizing bit operations
 #define set_master_state(state)			mib_state.master_state = state
 #define set_slave_state(state)			mib_state.slave_state = state
-#define bus_has_returnvalue()			(mib_state.bus_returnstatus.len != 0)
-#define bus_get_returnvalue_length()	(mib_unified.bus_returnstatus.len)
 
 //Callback type for master rpc routines
 typedef void (*mib_rpc_function)(unsigned char);
@@ -57,19 +55,7 @@ typedef struct
 typedef struct
 {
 	unsigned char 			address;
-	union
-	{
-		MIBCommandPacket	bus_command;	//3 bytes
-		struct
-		{
-			unsigned char 		 padding;
-			MIBReturnValueHeader bus_returnstatus;//1 byte
-			unsigned char		 status_checksum;
-		};
-	};
-
-	unsigned char 		mib_buffer[kBusMaxMessageSize];
-	unsigned char		buffer_checksum;	//need potentially one more byte for checksum if mib_buffer is completely full
+	MIBPacket				packet;
 } MIBUnified; 
 
 /*

@@ -8,9 +8,7 @@
 #ifndef __mib_definitions_h__
 #define __mib_definitions_h__
 
-#ifndef __DEFINES_ONLY__
 #include "common_types.h"
-#endif
 
 //Defined Flags
 
@@ -25,8 +23,6 @@
  * name - a 7 byte string with a user readable name for the module
  */
 
-#ifndef __DEFINES_ONLY__
-
 //Module descriptor size: 11 bytes
 typedef struct 
 {
@@ -38,9 +34,8 @@ typedef struct
 	uint8 	name[7];
 	uint8	feature_count;
 } momo_module_descriptor;
-#endif
 
-#define kModuleDescriptorSize 11
+#define kModuleDescriptorSize sizeof(momo_module_descriptor)
 
 //Macros for defining parameter lists
 #define plist_ints(count)		((count&0b11) << 5)
@@ -57,7 +52,6 @@ typedef struct
 
 #define plist_matches(plist,spec)     ((plist & plist_spec_mask) == spec)
 
-#ifndef _PIC12
 #define plist_set_int32(n, val)			((uint16*)mib_data.buffer)[n>>1] = val
 #define plist_set_int16(n, val)			((int*)(mib_unified.mib_buffer))[n] = val
 #define plist_set_int8(n, hi, val)		mib_unified.mib_buffer[(n<<1) + hi] = val
@@ -65,6 +59,5 @@ typedef struct
 #define plist_get_int8(n)				mib_unified.mib_buffer[n<<1]
 #define plist_get_buffer(n)				(mib_unified.mib_buffer + (n << 1))
 #define plist_get_buffer_length()		(mib_unified.bus_command.param_spec & 0b00011111)
-#endif
 
 #endif
