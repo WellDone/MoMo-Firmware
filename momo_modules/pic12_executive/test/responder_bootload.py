@@ -26,5 +26,5 @@ def handle_mib_endpoint(command, sender, params):
 
 #Load in the rom
 rompath = 'support_bootload.bin'
-with open(rompath, "r") as f:
+with open(rompath, "rb") as f: #Need the binary flag for this to work cross platform
 	rom = f.read()
