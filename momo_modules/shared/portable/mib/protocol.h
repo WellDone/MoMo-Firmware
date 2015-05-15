@@ -14,9 +14,6 @@
  * 
  * - Unified packet structure to make for simpler implementation on low-performance 8-bit
  *   devices. 
- *
- * - A fixed timeout for RPC calls so that the bus can never be locked forever if a slave
- *   receives an RPC call but never gets around to processing it.
  */
 
 #ifndef __protocol_structures_h__

@@ -2,9 +2,6 @@
 #include "i2c_defines.h"
 #include "asm_locations.h"
 #include "executive.h"
-#define __DEFINES_ONLY__
-#include "mib_definitions.h"
-#undef  __DEFINES_ONLY__
 
 ASM_INCLUDE_GLOBALS()
 

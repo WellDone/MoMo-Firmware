@@ -5,9 +5,6 @@
 #include "asm_locations.h"
 #include "mib12_block.h"
 
-#define __DEFINES_ONLY__
-#include "mib_definitions.h"
-
 ASM_INCLUDE_GLOBALS()
 
 global _mib_to_fsr0, _get_magic, _get_mib_block
@@ -36,7 +33,7 @@ BEGINFUNCTION _register_module
 
 	copy_and_send:
 	call _mib_to_fsr0
-	movlw kModuleDescriptorSize
+	movlw 11
 	call _copy_fsr
 
 	;mib_buffer now has the module descriptor

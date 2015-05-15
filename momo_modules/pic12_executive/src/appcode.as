@@ -1,7 +1,5 @@
 
 #include <xc.inc>
-#define __DEFINES_ONLY__
-#include "mib_definitions.h"
 #define _DEFINES_ONLY
 #include "bootloader.h"
 #undef  __DEFINES_ONLY__
