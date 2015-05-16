@@ -52,6 +52,7 @@ void bus_master_rpc_async_do( void* arg )
 
 void bus_master_rpc_async(mib_rpc_function callback, MIBUnified *data)
 {
+	data->packet.call.sender = mib_state.my_address;
 	bus_append_checksum((unsigned char*)&(data->packet), kMIBMessageNoChecksumSize);	
 	rpc_queue(callback, data);
 
@@ -79,7 +80,7 @@ void bus_master_sendrpc()
 	i2c_master_enable();
 
 	set_master_state(kMIBReadReturnStatus);
-	bus_send(master_rpcdata->data.address, (unsigned char *)&(master_rpcdata->data.packet), kMIBMessageSize);
+	bus_send(master_rpcdata->data.address, (unsigned char *)&(master_rpcdata->data.packet), kMIBMessageNoChecksumSize);
 }
 
 void bus_master_readresult(unsigned int length)
@@ -136,7 +137,7 @@ void bus_master_callback()
 			bus_master_handleerror();
 		else if (packet_has_data(mib_unified.packet.response.status_value))
 		{
-			bus_master_readresult(kMIBMessageSize);
+			bus_master_readresult(kMIBMessageNoChecksumSize);
 			set_master_state(kMIBExecuteCallback);
 		}
 		else
@@ -146,7 +147,7 @@ void bus_master_callback()
 
 		case kMIBExecuteCallback:
 		if (i2c_master_lasterror() != kI2CNoError)
-			bus_master_readresult(kMIBMessageSize); //Reread the return status and return value since there was a checksum error
+			bus_master_readresult(kMIBMessageNoChecksumSize); //Reread the return status and return value since there was a checksum error
 		else
 			bus_master_finish();
 		break;

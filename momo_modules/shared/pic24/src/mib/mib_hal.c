@@ -66,6 +66,8 @@ void bus_init(uint8 address)
 	i2c_configure(&config);
 	i2c_enable();
 
+	mib_state.my_address = address;
+
 	bus_master_init();
 }
 

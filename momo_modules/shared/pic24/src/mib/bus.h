@@ -53,6 +53,7 @@ typedef struct
 	volatile uint8			rpc_done;
 
 	uint8_t					slave_returns_data;
+	uint8_t					my_address;
 } MIBState;
 
 typedef struct

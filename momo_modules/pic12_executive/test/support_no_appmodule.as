@@ -3,10 +3,6 @@
 
 #include <xc.inc>
 
-#define __DEFINES_ONLY__
-#include "mib_definitions.h"
-#undef __DEFINES_ONLY__
-
 
 ;Define the number of supported features and where to store the callback table pointer
 ;in ROM

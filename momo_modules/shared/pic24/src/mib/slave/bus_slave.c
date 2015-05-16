@@ -52,7 +52,7 @@ static void bus_slave_startcommand()
 	mib_state.first_read = 1;
 
 	bus_slave_setreturn(kUnknownError); //Make sure that if nothing else happens we return an error status.
-	bus_slave_receive((unsigned char *)&mib_unified.packet, kMIBMessageSize);
+	bus_slave_receive((unsigned char *)&mib_unified.packet, kMIBMessageNoChecksumSize);
 }
 
 static void bus_slave_searchcommand()
@@ -99,7 +99,7 @@ void bus_slave_callback()
 
 			//Position the i2c message pointer to the start of the return status.  This is located right before the return_value
 			//in memory, so we will send the return value, if there is one, automatically on subsequent reads.
-			bus_slave_send((uint8_t*) &mib_unified.packet, kMIBMessageSize);
+			bus_slave_send((uint8_t*) &mib_unified.packet, kMIBMessageNoChecksumSize);
 		}
 		else
 			bus_slave_startcommand(); //A write always indicates a new command
