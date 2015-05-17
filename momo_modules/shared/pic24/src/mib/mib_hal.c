@@ -42,9 +42,9 @@ uint8 find_handler(void)
 	return kInvalidMIBIndex;
 }
 
-void  call_handler(uint8 handler_index)
+uint8_t  call_handler(uint8_t handler_index)
 {
-	the_features[mib_state.feature_index]->commands[handler_index].handler(mib_unified.packet.call.length);
+	return the_features[mib_state.feature_index]->commands[handler_index].handler(mib_unified.packet.call.length);
 }
 
 void bus_init(uint8 address)
@@ -69,11 +69,6 @@ void bus_init(uint8 address)
 	mib_state.my_address = address;
 
 	bus_master_init();
-}
-
-uint8 plist_param_length(uint8 plist)
-{
-	return ((plist & 0b01100000) >> 4) + (plist & 0b00011111);
 }
 
 void bus_slave_seterror(uint8 error)

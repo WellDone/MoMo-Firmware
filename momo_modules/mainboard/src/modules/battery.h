@@ -7,6 +7,7 @@
 #define __battery_h__
 
 #include "common.h"
+#include <stdint.h>
 
 #define kBatteryChargedLevel 	758 //This is 4.15V / 2.8V * 1024
 #define kBatteryHysteresisLevel	731 //This is 4V / 2.8V * 1024
@@ -16,7 +17,7 @@
 
 void battery_init();
 void battery_callback( void* );
-void report_battery();
+uint8_t report_battery(uint8_t length);
 
 void battery_set_charging_allowed(int allowed);
 

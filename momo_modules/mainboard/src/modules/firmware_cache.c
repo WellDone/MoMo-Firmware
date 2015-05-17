@@ -39,7 +39,7 @@ void fc_init( uint8 memory_subsection )
 		fb_read(&fc_flashlog, &fc_state);
 }
 
-void fc_startpush(void)
+uint8_t fc_startpush(uint8_t length)
 {
 	uint8 type = plist_get_int16(0)&0xFF;
 	uint8 i;
@@ -52,8 +52,7 @@ void fc_startpush(void)
 	{
 		if ( fc_state.count == kNumModuleFirmwareBuckets )
 		{
-			bus_slave_seterror(kCallbackError);
-			return;
+			return kCallbackError;
 		}
 
 		current_bucket = fc_state.count;
@@ -76,14 +75,14 @@ void fc_startpush(void)
 	taskloop_set_flag(kTaskLoopLightSleepBit, 1);
 
 	bus_slave_return_int16(current_bucket);
+	return kNoErrorStatus;
 }
 
-void fc_push(void)
+uint8_t fc_push(uint8_t call_length)
 {
 	if ( !firmware_push_started ) 
 	{
-		bus_slave_seterror(kCallbackError);
-		return;
+		return kCallbackError;
 	}
 
 	//TODO: Validate length
@@ -93,14 +92,14 @@ void fc_push(void)
 	{
 		// PARSE HEX16 AND DUMP TO FLASH
 		uint32 addr = hex->address;
-		uint8 length = plist_get_buffer_length()-3; /*address and record_type*/
+		uint8 length = call_length-3; /*address and record_type*/
 		uint32 max_addr = addr + length;
 		uint32 max_size = MEMORY_SUBSECTION_SIZE*bucket_lengths[current_bucket];
 
 		//Make sure we do not overwrite past the end of our bucket.
 		//This gets rid of the configuration bits that we cannot flash anyways
 		if ((max_addr >= max_size)) 
-			return;
+			return kNoErrorStatus;
 
 		if ( max_addr > fc_state.buckets[current_bucket].firmware_length)
 			fc_state.buckets[current_bucket].firmware_length = max_addr;
@@ -124,28 +123,29 @@ void fc_push(void)
 	}
 	//Ignore high address record sections since we don't support addresses path the first 64kb for controller firmware
 	//and past the first 16kb for module firmware.
+
+	return kNoErrorStatus;
 }
 
-void fc_cancelpush(void)
+uint8_t fc_cancelpush(uint8_t length)
 {
 	firmware_push_started = false;
+	return kNoErrorStatus;
 }
 
-void fc_getinfo(void)
+uint8_t fc_getinfo(uint8_t length)
 {
 	uint8 index = plist_get_int16(0)&0xFF;
 
 	//Make sure the index is valid and that there's a valid firmware there
 	if ( index >= kNumFirmwareBuckets) 
 	{
-		bus_slave_seterror(kCallbackError);
-		return;
+		return kCallbackError;
 	}
 
 	if (fc_state.buckets[index].firmware_length == 0)
 	{
-		bus_slave_seterror(kCallbackError);
-		return;
+		return kCallbackError;
 	}
 
 	plist_set_int16(0, fc_state.buckets[index].module_type );
@@ -156,9 +156,11 @@ void fc_getinfo(void)
 	plist_set_int16(5, bucket_subsectors[index]);
 	plist_set_int16(6, bucket_lengths[index]);
 
-	bus_slave_set_returnbuffer_length( 7*kIntSize ); // TODO: Is there a better way to return multiple ints?
+	bus_slave_set_returnbuffer_length( 7*2 ); // TODO: Is there a better way to return multiple ints?
+	return kNoErrorStatus;
 }
-void fc_pull(void)
+
+uint8_t fc_pull(uint8_t length)
 {
 	uint8 index = plist_get_int16(0)&0xFF; //TODO: Use module id/address instead?
 	uint16 offset = plist_get_int16(1);
@@ -166,14 +168,12 @@ void fc_pull(void)
 	//Make sure they are requesting a valid firmware and are using a valid offset
 	if ( index >= kNumFirmwareBuckets) 
 	{
-		bus_slave_seterror(kCallbackError);
-		return;
+		return kCallbackError;
 	}
 
 	if (offset >= fc_state.buckets[index].firmware_length) 
 	{
-		bus_slave_seterror(kCallbackError);
-		return;
+		return kCallbackError;
 	}
 
 	//TODO: Check to make sure firmware type matches device type.  No pic12 code on a pic24 please
@@ -182,16 +182,18 @@ void fc_pull(void)
 	address += offset;
 
 	uint32 chunk_size = fc_state.buckets[index].firmware_length - offset;
-	if ( chunk_size > kBusMaxMessageSize )
-		chunk_size = kBusMaxMessageSize;
+	if ( chunk_size > kMIBBufferSize )
+		chunk_size = kMIBBufferSize;
 
 	uint8 ret_size = chunk_size & 0xFF;
 
 	mem_read( address, plist_get_buffer(0), ret_size );
 	bus_slave_set_returnbuffer_length( ret_size );
+
+	return kNoErrorStatus;
 }
 
-void fc_getcount(void)
+uint8_t fc_getcount(uint8_t length)
 {
 	unsigned int con = 0;
 
@@ -205,9 +207,11 @@ void fc_getcount(void)
 
 	plist_set_int16(1, con);
 	bus_slave_set_returnbuffer_length(4);
+
+	return kNoErrorStatus;
 }
 
-void fc_clear(void)
+uint8_t fc_clear(uint8_t length)
 {
 	uint8 i;
 
@@ -219,17 +223,18 @@ void fc_clear(void)
 
 	//Update our persistent store with the new data
 	fb_write(&fc_flashlog, &fc_state);
+	return kNoErrorStatus;
 }
 
 DEFINE_MIB_FEATURE_COMMANDS(firmware_cache) 
 {
-	{0x00, fc_startpush, plist_spec( 1, false ) },
-	{0x01, fc_push, plist_spec( 0, true ) },
-	{0x02, fc_cancelpush, plist_spec_empty() },
-	{0x03, fc_getinfo, plist_spec( 1, false ) },
-	{0x04, fc_pull, plist_spec( 2, false ) },
-	{0x05, fc_getcount, plist_spec_empty() },
-	{0x0A, fc_clear, plist_spec_empty() }
+	{0x00, fc_startpush},
+	{0x01, fc_push},
+	{0x02, fc_cancelpush},
+	{0x03, fc_getinfo},
+	{0x04, fc_pull},
+	{0x05, fc_getcount},
+	{0x0A, fc_clear}
 };
 
 DEFINE_MIB_FEATURE(firmware_cache);

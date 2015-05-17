@@ -29,14 +29,15 @@ void init_comm_stream()
   comm_module_iterator = create_module_iterator( kMIBCommunicationType );
 }
 
-void report_rpc( MIBUnified *cmd, uint8 command, uint8 spec )
+void report_rpc( MIBUnified *cmd, uint8 command, uint8 len )
 {
   cmd->address = module_iter_address( &comm_module_iterator );
-  cmd->bus_command.feature = 11;
-  cmd->bus_command.command = command;
-  cmd->bus_command.param_spec = spec;
+  cmd->packet.call.command = 11 << 8;
+  cmd->packet.call.command |= command;
+  cmd->packet.call.length = len;
   bus_master_rpc_async(receive_gsm_stream_response, cmd);
 }
+
 void reset_comm_stream()
 {
   report_stream_offset = 0;
@@ -47,13 +48,13 @@ void open_stream()
   ++CONFIG.transmit_sequence;
   
   MIBUnified cmd;
-  *((uint16*)cmd.mib_buffer) = strlen(report_buffer);
+  *((uint16*)cmd.packet.data) = strlen(report_buffer);
   
   LOG_DEBUG(kOpenedCommStreamNotice);
   LOG_INT(module_iter_address(&comm_module_iterator));
-  LOG_INT(*((uint16*)cmd.mib_buffer));
+  LOG_INT(*((uint16*)cmd.packet.data));
 
-  report_rpc( &cmd, 0, plist_ints(1) );
+  report_rpc( &cmd, 0, 2);
 }
 void set_comm_destination(unsigned char a)
 {
@@ -65,24 +66,25 @@ void set_comm_destination(unsigned char a)
 
   MIBUnified cmd;
 
-  uint8 len = kBusMaxMessageSize - 2; // Leave room for the start integer
-  if ( strlen(report_route) - report_route_counter < len )
+  uint8 len = kMIBBufferSize - 2; // Leave room for the start integer
+  if ( (strlen(report_route) - report_route_counter) < len )
     len = strlen(report_route) - report_route_counter;
-  *((uint16*)cmd.mib_buffer) = report_route_counter;
+
+  *((uint16*)cmd.packet.data) = report_route_counter;
 
   LOG_DEBUG(kSetCommDestinationNotice);
   LOG_INT(report_route_counter);
   LOG_INT(len);
   LOG_STRING(report_route+report_route_counter);
 
-  memcpy( cmd.mib_buffer+2, report_route+report_route_counter, len );
+  memcpy( cmd.packet.data+2, report_route+report_route_counter, len );
 
   report_route_counter += len;
 
   cmd.address = module_iter_address( &comm_module_iterator );
-  cmd.bus_command.feature = 11;
-  cmd.bus_command.command = 4;
-  cmd.bus_command.param_spec = plist_with_buffer(1,len);
+  cmd.packet.call.command = 11 << 8;
+  cmd.packet.call.command |= 4;
+  cmd.packet.call.length = 2 + len;
   
   bus_master_rpc_async(set_comm_destination, &cmd);
 }
@@ -95,10 +97,11 @@ void set_apn() //TODO: Support non-GSM comm boards
 
   MIBUnified cmd;
   cmd.address = module_iter_address( &comm_module_iterator );
-  cmd.bus_command.feature = 10;
-  cmd.bus_command.command = 9;
-  cmd.bus_command.param_spec = plist_with_buffer(0,strlen(CONFIG.gprs_apn));
-  memcpy( cmd.mib_buffer, CONFIG.gprs_apn, strlen(CONFIG.gprs_apn) );
+  cmd.packet.call.command = 10 << 8;
+  cmd.packet.call.command |= 9;
+  cmd.packet.call.length = strlen(CONFIG.gprs_apn);
+
+  memcpy( cmd.packet.data, CONFIG.gprs_apn, strlen(CONFIG.gprs_apn) );
   
   bus_master_rpc_async(set_comm_destination, &cmd);
 }
@@ -123,20 +126,23 @@ void stream_to_gsm() {
   {
     LOG_DEBUG(kClosingCommStreamNotice);
     current_stream_finished = true;
-    report_rpc( &cmd, 2, plist_empty() );
+    report_rpc( &cmd, 2, 0);
     return;
   }
 
   LOG_DEBUG(kStreamingCommDataNotice);
   uint8 byte_count = strlen(report_buffer)-report_stream_offset;
-  if ( byte_count > kBusMaxMessageSize )
-    byte_count = kBusMaxMessageSize;
-  memcpy( cmd.mib_buffer, report_buffer+report_stream_offset, byte_count );
 
-  LOG_ARRAY(cmd.mib_buffer, byte_count);
+  if ( byte_count > kMIBBufferSize )
+    byte_count = kMIBBufferSize;
+
+  memcpy( cmd.packet.data, report_buffer+report_stream_offset, byte_count );
+
+  LOG_ARRAY(cmd.packet.data, byte_count);
   report_stream_offset += byte_count;
-  report_rpc( &cmd, 1, plist_with_buffer( 0, byte_count ) );
+  report_rpc( &cmd, 1, byte_count);
 }
+
 void receive_gsm_stream_response(unsigned char a) 
 {
   LOG_FLUSH();
@@ -163,9 +169,10 @@ void report_stream_abandon()
     
     MIBUnified cmd;
     cmd.address = module_iter_address( &comm_module_iterator );
-    cmd.bus_command.feature = 11;
-    cmd.bus_command.command = 3;
-    cmd.bus_command.param_spec = plist_empty();
+    cmd.packet.call.command = 11 << 8;
+    cmd.packet.call.command |= 3;
+    cmd.packet.call.length = 0;
+
     bus_master_rpc_async(NULL, &cmd);
 
     while ( module_iter_get( &comm_module_iterator ) != NULL )

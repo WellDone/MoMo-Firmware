@@ -382,9 +382,11 @@ void bt_start_transmission()
 	BT_UTX = bt_data.send_buffer[0];
 }
 
-void bt_debug_buffer()
+uint8_t bt_debug_buffer(uint8_t length)
 {
 	bus_slave_return_buffer(bt_data.receive_buffer, 20);
+
+	return kNoErrorStatus;
 }
 
 //FIXME: Finish this function

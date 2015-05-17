@@ -52,13 +52,13 @@ typedef struct
 	volatile uint8 			master_state;
 	volatile uint8			rpc_done;
 
-	uint8_t					slave_returns_data;
 	uint8_t					my_address;
 } MIBState;
 
 typedef struct
 {
-	unsigned char 			address;
+	uint8_t					return_length;
+	uint8_t 				address;
 	MIBPacket				packet;
 } MIBUnified; 
 

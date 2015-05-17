@@ -20,10 +20,9 @@ void bus_slave_setreturn(uint8 status)
 	mib_unified.packet.response.status_checksum = (~status) + 1;
 }
 
-inline void bus_slave_set_returnbuffer_length(uint8 length) 
+void bus_slave_set_returnbuffer_length(uint8_t length) 
 {
-	mib_state.slave_returns_data = true;
-	mib_unified.packet.response.length = length;
+	mib_unified.return_length = length;
 }
 
 void bus_slave_return_buffer( const void* buff, uint8 length ) 
@@ -52,6 +51,8 @@ static void bus_slave_startcommand()
 	mib_state.first_read = 1;
 
 	bus_slave_setreturn(kUnknownError); //Make sure that if nothing else happens we return an error status.
+	bus_slave_set_returnbuffer_length(0);
+
 	bus_slave_receive((unsigned char *)&mib_unified.packet, kMIBMessageNoChecksumSize);
 }
 
@@ -76,7 +77,24 @@ static void bus_slave_callcommand()
 {	
 	if (mib_state.slave_handler != kInvalidMIBIndex)
 	{
-		call_handler(mib_state.slave_handler);
+		uint8_t status = call_handler(mib_state.slave_handler);
+
+		status &= 0b00111111; //Get rid of any possible high bits set
+
+		//Queue up this packet for an asynchronous response
+		if (status == kAsynchronousResponseCode)
+		{
+			mib_unified.return_length = 0; //You can't return data in an asynchronous command
+			//FIXME: Do the queuing
+		}
+
+		status |= 1 << kAppDefinedBit;
+
+		if (mib_unified.return_length > 0)
+			status |= 1 << kHasDataBit;
+
+		mib_unified.packet.response.status_value = status;
+		mib_unified.packet.response.length = mib_unified.return_length;
 	}
 }
 
