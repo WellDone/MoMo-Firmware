@@ -14,7 +14,7 @@ void debug_init()
     
     peripheral_enable(kUART1Module);
 
-    params.baud = 115200;
+    params.baud = 125000;
     params.hw_flowcontrol = 0;
     params.parity = NoParity;
     configure_uart(DEBUG_UART, &params);

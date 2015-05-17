@@ -14,7 +14,13 @@
 						"field_service_unit/src/diagnostics"
 					],
 
-					"linker": "p24F16KA101.gld"
+					"linker": "p24F16KA101.gld",
+
+					"defines":
+					{
+						"kI2CBaud": 157,
+						"kClockspeed": "16000000L" 
+					}
 				}
 			},
 

@@ -17,7 +17,7 @@
 #pragma config GCP = OFF                // General Segment Code Flash Code Protection bit (No protection)
 
 // FOSCSEL
-#pragma config FNOSC = FRCPLL           // Oscillator Select (8 MHz FRC oscillator (FRC)) with PLL
+#pragma config FNOSC = FRCPLL              // Oscillator Select (8 MHz FRC oscillator (FRC) with PLL) so 32 mhz
 #pragma config IESO  = OFF              // Internal External Switch Over bit (Internal External Switchover mode disabled (Two-Speed Start-up disabled))
 
 // FOSC
@@ -52,6 +52,9 @@
 
 
 int main(void) {
+    //Speed up clock to 8 Mhz (from the default 4 Mhz).
+    _RCDIV = 000;
+
     AD1PCFG = 0xFFFF;
 
     if (eeprom_read(0) == 0xAA)
