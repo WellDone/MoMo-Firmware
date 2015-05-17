@@ -2,6 +2,7 @@
 #define __bus_master_h__
 
 #include "bus.h"
+#include "rtcc.h"
 
 #define kMaxAsyncRPCNUmber	16
 
@@ -19,4 +20,5 @@ void bus_master_init();
 void bus_master_finish_async_rpc(uint8_t sender);
 
 unsigned int bus_master_idle();
+rtcc_timestamp bus_master_rpc_start_timestamp();
 #endif

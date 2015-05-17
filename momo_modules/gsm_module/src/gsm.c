@@ -39,7 +39,7 @@ bool gsm_on()
 
 bool gsm_register()
 {
-	uint8 timeout_s = 240;
+	uint8 timeout_s = GSM_REGISTRATION_TIMEOUT_S;
 	while ( !gsm_registered() )
 	{
 		if ( timeout_s-- == 0 )
@@ -66,7 +66,7 @@ void gsm_remember_band()
 	gsm_cmd_raw( "AT+CBAND?" , kDEFAULT_CMD_TIMEOUT );
 	
 	uint8 i = 0;
-	while ( sticky_band[i] != '\0' && sticky_band[i] != ',' && sticky_band[i] != '\r' && i++ < sizeof(sticky_band) )
+	while ( sticky_band[i] != '\0' && sticky_band[i] != ',' && sticky_band[i] != '\r' && i++ < sizeof(sticky_band)-1 )
 		continue;
 	sticky_band[i] = '\0';
 }
