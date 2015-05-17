@@ -32,8 +32,7 @@ void init_comm_stream()
 void report_rpc( MIBUnified *cmd, uint8 command, uint8 len )
 {
   cmd->address = module_iter_address( &comm_module_iterator );
-  cmd->packet.call.command = 11 << 8;
-  cmd->packet.call.command |= command;
+  cmd->packet.call.command = pack_command(11, command);
   cmd->packet.call.length = len;
   bus_master_rpc_async(receive_gsm_stream_response, cmd);
 }
@@ -82,8 +81,7 @@ void set_comm_destination(unsigned char a)
   report_route_counter += len;
 
   cmd.address = module_iter_address( &comm_module_iterator );
-  cmd.packet.call.command = 11 << 8;
-  cmd.packet.call.command |= 4;
+  cmd.packet.call.command = pack_command(11, 4);
   cmd.packet.call.length = 2 + len;
   
   bus_master_rpc_async(set_comm_destination, &cmd);
@@ -97,8 +95,7 @@ void set_apn() //TODO: Support non-GSM comm boards
 
   MIBUnified cmd;
   cmd.address = module_iter_address( &comm_module_iterator );
-  cmd.packet.call.command = 10 << 8;
-  cmd.packet.call.command |= 9;
+  cmd.packet.call.command = pack_command(10, 9);
   cmd.packet.call.length = strlen(CONFIG.gprs_apn);
 
   memcpy( cmd.packet.data, CONFIG.gprs_apn, strlen(CONFIG.gprs_apn) );
@@ -169,8 +166,7 @@ void report_stream_abandon()
     
     MIBUnified cmd;
     cmd.address = module_iter_address( &comm_module_iterator );
-    cmd.packet.call.command = 11 << 8;
-    cmd.packet.call.command |= 3;
+    cmd.packet.call.command = pack_command(11, 3);
     cmd.packet.call.length = 0;
 
     bus_master_rpc_async(NULL, &cmd);

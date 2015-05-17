@@ -24,6 +24,8 @@ enum
 #define set_master_state(state)			mib_state.master_state = state
 #define set_slave_state(state)			mib_state.slave_state = state
 
+#define pack_command(feature, command)	((((uint16_t)command << 8)) | feature)
+
 //Callback type for master rpc routines
 typedef void (*mib_rpc_function)(unsigned char);
 
@@ -72,8 +74,6 @@ typedef struct
 #include "mib_state.h"
 
 #endif
-
-uint8 plist_param_length(uint8 plist);
 
 //Bus transmission functions
 void bus_send(unsigned char address, unsigned char *buffer, unsigned char len);
