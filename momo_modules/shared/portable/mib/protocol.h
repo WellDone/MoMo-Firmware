@@ -48,9 +48,9 @@ typedef struct
 	{
 		struct
 		{
-			uint8_t has_data: 1;
-			uint8_t app_defined: 1;
-			uint8_t status_code: 6;	
+			uint8_t status_code: 	6;	
+			uint8_t has_data: 		1;
+			uint8_t app_defined: 	1;
 		};
 
 		uint8_t status_value;
