@@ -32,7 +32,7 @@ void  	bus_master_begin_rpc(uint8_t address);
 uint8_t bus_master_send_rpc(uint8_t param_length);
 void  	bus_slave_returndata(uint8_t length);
 
-#define bus_master_prepare_rpc(feature, cmd) 	mib_packet.call.command = ((((uint16_t)cmd) << 8) | feature)
+#define bus_master_prepare_rpc(feature, cmd) 	mib_packet.call.command = ((((uint16_t)feature) << 8) | cmd)
 
 // MIB12 API Data Structures Shared Between Executive and Application
 extern uint8_t 			mib_buffer[kMIBBufferSize];

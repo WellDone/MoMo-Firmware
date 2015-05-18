@@ -28,9 +28,6 @@
 #define kMIBMessageSize				(kMIBBufferSize + 4 + 1)
 #define kMIBMessageNoChecksumSize	(kMIBMessageSize - 1)
 
-//Fixed Timeouts (in milliseconds, must be less than 256)
-#define kMIBSlaveTimeout 	50
-
 /*
  * Globally Known Status Codes
  * Each MIB call can return a 6-bit status code.  Some of these codes are application
@@ -48,6 +45,7 @@
 #define kHasDataBit		7
 
 #define kMIBStatusCodeMask	0b00111111
+#define kMIBParamLengthMask	0b00011111
 
 #define make_mib_status(has_data, app_defined, code)	((((has_data & 1) << kHasDataBit)) | ((app_defined & 1) << kAppDefinedBit) | (code & 0b111111))
 

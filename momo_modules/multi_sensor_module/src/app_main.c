@@ -241,9 +241,11 @@ uint8_t read_pulse(uint8_t length)
 	return kNoErrorStatus;
 }
 
-void scheduled_callback()
+uint8_t scheduled_callback(uint8_t length)
 {
 	state.push_pending = 1;
+
+	return kNoErrorStatus;
 }
 
 uint8_t read_periods(uint8_t length)
