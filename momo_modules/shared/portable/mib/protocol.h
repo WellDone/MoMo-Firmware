@@ -29,10 +29,10 @@ typedef struct
 	{
 		struct
 		{
+			uint8_t		length: 5;		//First defined bit is LSB of storage unit per XC16 User manual page 27 (section 2.4.15)
 			uint8_t 	reserved1: 1;
 			uint8_t 	reserved2: 1;
 			uint8_t		reserved3: 1;
-			uint8_t		length: 5;
 		};
 
 		uint8_t flags_and_length;

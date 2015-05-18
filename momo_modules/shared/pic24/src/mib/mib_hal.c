@@ -14,8 +14,8 @@ extern unsigned int the_feature_count;
 uint8 find_handler(void)
 {
 	uint8_t i, j, num_cmds;
-	uint8_t feature = mib_unified.packet.call.command & 0xFF;
-	uint8_t command = mib_unified.packet.call.command >> 8;
+	uint8_t command = mib_unified.packet.call.command & 0xFF;
+	uint8_t feature = mib_unified.packet.call.command >> 8;
 
 	for (i=0; i<the_feature_count; ++i)
 	{

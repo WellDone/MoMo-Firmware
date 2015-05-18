@@ -163,6 +163,11 @@ void taskloop_loop()
             if (taskqueue.sleep_handler == NULL || taskqueue.sleep_handler(kSleepCallback) == kCanEnterSleep)
             {
                 unsigned int sleep_start = TMR1;
+
+                //Check to be very sure we shouldn't be processing a task right now.
+                if (taskqueue.tasks.count != 0)
+                    continue;
+
                 asm_sleep();
                 sleep_time += TMR1 - sleep_start;
             }
@@ -171,6 +176,7 @@ void taskloop_loop()
         }
     }
 }
+
 int taskloop_process_one()
 {
     task_item task;

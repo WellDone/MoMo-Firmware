@@ -1,4 +1,5 @@
 #include "bus_slave.h"
+#include "ioport.h"
 #include <string.h>
 
 //static prototypes that are only to be used in this file
@@ -60,7 +61,7 @@ static void bus_slave_searchcommand()
 {
 	if (i2c_slave_lasterror() != kI2CNoError)
 	{
-		bus_slave_seterror(kChecksumError); //Make sure the parameter checksum was valid.
+		bus_slave_seterror(kChecksumMismatchStatus); //Make sure the parameter checksum was valid.
 		return;
 	}
 
@@ -68,7 +69,7 @@ static void bus_slave_searchcommand()
 
 	if (mib_state.slave_handler == kInvalidMIBIndex)
 	{
-		bus_slave_seterror(kUnsupportedCommand);
+		bus_slave_seterror(kCommandNotFoundStatus);
 		return;
 	}
 }
@@ -104,7 +105,6 @@ void bus_slave_callback()
 	{
 		if (i2c_slave_is_read())
 		{
-			
 			if (mib_state.first_read)
 			{
 				bus_slave_searchcommand();

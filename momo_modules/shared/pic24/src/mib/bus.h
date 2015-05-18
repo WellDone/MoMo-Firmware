@@ -11,10 +11,7 @@
 enum
 {
 	kNoMIBError = 0,
-	kUnsupportedCommand = 1,
-	kWrongParameterType = 2,
 	kParameterTooLong = 3,
-	kChecksumError = 4,
 	kUnknownError = 6,
 	kCallbackError = 7,
 	kSlaveNotAvailable = 255
@@ -24,7 +21,7 @@ enum
 #define set_master_state(state)			mib_state.master_state = state
 #define set_slave_state(state)			mib_state.slave_state = state
 
-#define pack_command(feature, command)	((((uint16_t)command << 8)) | feature)
+#define pack_command(feature, command)	((((uint16_t)feature << 8)) | command)
 
 //Callback type for master rpc routines
 typedef void (*mib_rpc_function)(unsigned char);

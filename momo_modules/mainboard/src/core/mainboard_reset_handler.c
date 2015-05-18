@@ -73,8 +73,8 @@ void handle_all_resets_after(unsigned int type)
 
     battery_init();
     //bt_init();
-    sanity_check_schedule();
-    report_manager_start();
+    //sanity_check_schedule();
+    //report_manager_start();
 
     LOG_CRITICAL(kDeviceInitializedNotice);
 }

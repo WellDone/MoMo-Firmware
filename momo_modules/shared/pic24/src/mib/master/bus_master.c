@@ -133,6 +133,8 @@ void bus_master_rpc_async_do( void* arg )
 void bus_master_rpc_async(mib_rpc_function callback, MIBUnified *data)
 {
 	data->packet.call.sender = mib_state.my_address;
+	data->packet.call.flags_and_length &= 0b00011111; //Make sure the flags are cleared out
+
 	bus_append_checksum((unsigned char*)&(data->packet), kMIBMessageNoChecksumSize);	
 	rpc_queue(callback, data);
 

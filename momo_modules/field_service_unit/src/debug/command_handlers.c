@@ -325,7 +325,7 @@ CommandStatus handle_binrpc(command_params *params)
     }
 
     data.address = buffer[0];
-    data.packet.call.command = (((uint16_t)buffer[2]) << 8) | buffer[1];
+    data.packet.call.command = (((uint16_t)buffer[1]) << 8) | buffer[2];
     data.packet.call.length = buffer[3];
 
     for(i=0; i<kMIBBufferSize; ++i)

@@ -90,7 +90,7 @@ uint8_t get_module_count(uint8_t length)
 
 uint8_t register_module(uint8_t length)
 {
-	if (length != sizeof( momo_module_descriptor ))
+	if (length != kMIBBufferSize)
 		return kCallbackError;
 
 	uint8 addr = add_module( (momo_module_descriptor*)plist_get_buffer(0) );
