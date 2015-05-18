@@ -1,4 +1,5 @@
 ;mib12_api.as
+;Version 1.1
 ;The mib12 executive defines an API that can be used to perform MIB functions
 ;like sending messages and setting the slave endpoint return status.  These
 ;functions are linked into a table at a special point in the mib12_executive
@@ -7,12 +8,15 @@
 
 #include <xc.inc>
 
-global _bus_master_rpc_sync, _bus_slave_setreturn
+global _bus_slave_returndata, _bus_master_send_rpc, _bus_master_begin_rpc, _trap, _reset_device
 global _mib_buffer, _mib_packet, _mib_state, _slave_address
 
 ;API Functions
-_bus_master_rpc_sync equ (kFirstApplicationRow-1)*16 + 14
-_bus_slave_setreturn equ (kFirstApplicationRow-1)*16 + 15
+_reset_device			equ	(kFirstApplicationRow)*kFlashRowSize - 5
+_trap					equ (kFirstApplicationRow)*kFlashRowSize - 4
+_bus_master_begin_rpc	equ	(kFirstApplicationRow)*kFlashRowSize - 3
+_bus_master_send_rpc 	equ (kFirstApplicationRow)*kFlashRowSize - 2
+_bus_slave_returndata 	equ (kFirstApplicationRow)*kFlashRowSize - 1
 
 ;API Data Structure
 psect mibstate class=BANK0,abs

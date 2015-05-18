@@ -5,6 +5,7 @@
 
 #include <xc.h>
 #include "platform.h"
+#include <stdint.h>
 
 #define kADC_CHAN_MASK			0b11111
 #define BUILD_ADC_CHAN(x)		((x & kADC_CHAN_MASK) << 2)
@@ -54,11 +55,11 @@
 #define ADCBuildConfig(just, clock, nref, pref)			(just | clock | nref | pref)
 
 //Module Functions
-void adc_setenabled(uint8 on);
+void adc_setenabled(uint8_t on);
 void adc_convertsync();
-void adc_setchannel(uint8 chan);
-void adc_configure(uint8 config);
-void adc_average(uint8 n);
+void adc_setchannel(uint8_t chan);
+void adc_configure(uint8_t config);
+void adc_average(uint8_t n);
 
 #ifndef __ADC_INTERNAL__
 extern unsigned int 	adc_result;

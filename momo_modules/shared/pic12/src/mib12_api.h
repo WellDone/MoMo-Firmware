@@ -23,17 +23,20 @@
 #define __mib12_api_h_
 
 #include "protocol.h"
+#include <stdint.h>
 
 // MIB12 API Functions 
-void  	trap(uint8 code);
+void  	trap(uint8_t code);
 void  	reset_device();
 void  	bus_master_begin_rpc(uint8_t address);
 uint8_t bus_master_send_rpc(uint8_t param_length);
 void  	bus_slave_returndata(uint8_t length);
 
+#define bus_master_prepare_rpc(feature, cmd) 	mib_packet.call.command = ((((uint16_t)cmd) << 8) | feature)
+
 // MIB12 API Data Structures Shared Between Executive and Application
-extern unsigned char 		mib_buffer[kBusMaxMessageSize];
-extern MIBCommandPacket   	mib_packet;
-extern uint8_t              slave_address;
+extern uint8_t 			mib_buffer[kMIBBufferSize];
+extern MIBPacket   		mib_packet;
+extern uint8_t			slave_address;
 
 #endif

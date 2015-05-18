@@ -6,7 +6,7 @@
 
 unsigned int 	adc_result;
 
-void adc_setenabled(uint8 on)
+void adc_setenabled(uint8_t on)
 {
 	ADON = on;
 }
@@ -20,20 +20,20 @@ void adc_convertsync()
 		;
 }
 
-void adc_setchannel(uint8 chan)
+void adc_setchannel(uint8_t chan)
 {
 	ADCON0 &= (~kADCChannelMask);
 	ADCON0 |= chan;
 }
 
-void adc_configure(uint8 config)
+void adc_configure(uint8_t config)
 {
 	ADCON1 = config;
 }
 
-void adc_average(uint8 n)
+void adc_average(uint8_t n)
 {
-	uint8 i;
+	uint8_t i;
 
 	adc_result = 0;
 
