@@ -5,9 +5,8 @@
 #include "bus_slave.h"
 #include "mib_feature.h"
 #include <string.h>
-
-//Include command map
-//#include "commands.h"
+#include "ioport.h"
+#include <xc.h>
 
 extern const feature_map** the_features;
 extern unsigned int the_feature_count;
@@ -76,15 +75,22 @@ void bus_slave_seterror(uint8 error)
 	bus_slave_setreturn(error);
 }
 
+#define kNumCheckCycles ((kClockspeed / 1000000)*16*10)
+
 uint8 bus_is_idle()
 {
-	//Make sure a transaction is not in progress
-	if (_S)
-		return 0;
+	unsigned int i = kNumCheckCycles;
 
 	//Make sure we are not curently using the I2C hardware.
 	if (I2C1CON & 0b11111)
 		return 0;
+
+	//Poll the bus for a fixed amount of time to make sure that there is no activity
+	while (i-- > 0)
+	{
+		if (PIN(SDA) == 0 || PIN(SCL) == 0)
+			return 0;
+	}
 
 	return 1;
 }
