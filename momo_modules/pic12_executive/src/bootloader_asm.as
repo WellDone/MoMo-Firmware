@@ -11,6 +11,8 @@
 #include "i2c_defines.h"
 #include "asm_locations.h"
 #include "mib12_block.h"
+#include "ioc.inc"
+#include "port.inc"
 
 ASM_INCLUDE_GLOBALS()
 
@@ -54,13 +56,14 @@ BEGINFUNCTION _get_half_row
 	movwf BANKMASK(mib_buffer+2)	;mib_buffer second int param to offset (low byte)
 	
 	;Load in the feature and comand info
-	movlf 0x07, bus_cmdlo
-	movlf 0x04, bus_cmdhi
+	movlf 0x07, bus_cmdhi
+	movlf 0x04, bus_cmdlo
 
 	call _load_boot_address
 
 	movlw 4
 	call _bus_master_send_rpc
+	movwf FSR0L
 
 	;Make sure that if any of the calls to get half_row succeed then we program the
 	;entire row.
@@ -69,11 +72,37 @@ BEGINFUNCTION _get_half_row
 	btfsc ZERO
 		clrf BANKMASK(_invalid_row),f
 
+	;If we did not get any valid data, do not copy this into the programming buffer
+	;so that it remains 0x3FFF
+	movf FSR0L,w
+	xorlw kNoErrorWithDataStatus
+	btfss ZERO
+		return
+
 	;Load the offset that we should copy to here
 	banksel _offset
 	movf BANKMASK(_offset),w
 	goto _copy_mib_to_boot
 ENDFUNCTION _get_half_row
+
+;Initialize the bootload buffer to contain 0x3FFF
+;Uses: FSR0L, FSR0H, W
+BEGINFUNCTION _init_bootbuffer
+	clrf  FSR0H
+	movlw kBootloaderBufferLoc
+	movwf FSR0L
+
+	clearloop:
+	movlw 0xFF
+	movwi FSR0++
+
+	movf FSR0L,w
+	xorlw kBootloaderBufferLoc + kBootloaderBufferSize
+	btfss ZERO
+		goto clearloop
+
+	return
+ENDFUNCTION _init_bootbuffer
 
 ;Given a uint8 in W that sets which firmware bucket to request from
 ;the firmware source, store that in the app_buffer for programming into
@@ -119,14 +148,15 @@ BEGINFUNCTION _enter_bootloader
 	movlw kFirstApplicationRow-1
 	movwf BANKMASK(_boot_count)
 
-	;FIXME IOC DISABLE and ALARM
-	;//Let everyone know that we are reflashing
-	;ioc_disable(); //make sure we don't reset ourselves when we take the bus down
-
-	;LATCH(ALARM) = 0;
-	;PIN_DIR(ALARM, OUTPUT);
+	;Let everyone know that we are reflashing
+	ioc_disable_asm()
+	banksel LAT(ALARMPORT_ASM)
+	bcf BANKMASK(LAT(ALARMPORT_ASM)), ALARMIOC
+	banksel TRIS(ALARMPORT_ASM)
+	bcf BANKMASK(TRIS(ALARMPORT_ASM)), ALARMIOC
 
 	bootload_loop:
+		call _init_bootbuffer
 		banksel _boot_count
 		incf BANKMASK(_boot_count),f
 
@@ -172,8 +202,9 @@ BEGINFUNCTION _enter_bootloader
 		btfss ZERO
 			goto bootload_loop
 
-	;FIXME: Reenable ioc and clear ALARM
-	;PIN_DIR(ALARM, INPUT);
-	;ioc_enable(ALARMPORT); 
+	;Reenable ioc and clear ALARM
+	banksel TRIS(ALARMPORT_ASM)
+	bsf BANKMASK(TRIS(ALARMPORT_ASM)), ALARMIOC
+	ioc_enable_asm() 
 	return
 ENDFUNCTION _enter_bootloader

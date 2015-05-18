@@ -17,6 +17,7 @@
 #define ALARM		A2
 #define ALARMIOC	2
 #define ALARMPORT	a
+#define ALARMPORT_ASM A
 
 #elif  __PIC12LF1822__
 #define SDAPIN		RA2	
@@ -29,6 +30,7 @@
 #define ALARM		A5
 #define ALARMIOC	5
 #define ALARMPORT	a
+#define ALARMPORT_ASM A
 
 #elif  __PIC16LF1847__
 #define SDAPIN		RB1
@@ -41,6 +43,7 @@
 #define ALARM		B0
 #define ALARMIOC	0
 #define ALARMPORT 	b
+#define ALARMPORT_ASM B
 #else
 #error Unsupported Platform, need to know i2c pin locations.
 #endif

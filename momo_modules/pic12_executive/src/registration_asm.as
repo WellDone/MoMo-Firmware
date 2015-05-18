@@ -40,8 +40,8 @@ BEGINFUNCTION _register_module
 	;send it to controller endpoint(42, 0)
 	banksel _mib_packet
 	movlw 42
-	movwf BANKMASK(bus_cmdlo)
-	clrf  BANKMASK(bus_cmdhi)
+	movwf BANKMASK(bus_cmdhi)
+	clrf  BANKMASK(bus_cmdlo)
 
 	movlw 20
 	call _bus_master_send_rpc
