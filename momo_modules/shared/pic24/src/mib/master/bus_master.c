@@ -74,6 +74,9 @@ void bus_master_finish_async_rpc(uint8_t sender)
 				async_rpcs[i].callback(status);
 			}
 
+			//Free up this spot in the async RPC queue
+			async_rpcs[i].sender = 0;
+			async_rpcs[i].callback = NULL;
 			break;
 		}
 	}
