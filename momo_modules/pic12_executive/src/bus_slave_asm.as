@@ -161,6 +161,7 @@ BEGINFUNCTION _bus_slave_callhandler
 	movwf PCLATH
 	moviw [2]FSR0
 	callw
+	movlp 0		;PCLATH must be cleared so that the next goto doesn't shoot off into randomness
 
 	;Make sure the application endpoint does not accidently overwrite any of our special bits
 	andlw kMIBStatusCodeMask
