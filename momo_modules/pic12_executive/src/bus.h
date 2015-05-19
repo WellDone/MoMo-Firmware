@@ -26,7 +26,4 @@ typedef enum
 #define plist_get_buffer(n)				(mib_packet.data + (n << 1))
 #define plist_get_buffer_length()		(mib_data.bus_command.param_spec & 0b00011111)
 
-uint8 plist_param_length(void);
-uint8 bus_retval_size();
-
 #endif
