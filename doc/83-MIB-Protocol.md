@@ -25,9 +25,9 @@ A fixed size packet of 25 bytes is used with a 4 byte header, 20 byte payload an
 |    RPC Call Packet 	|    Response Packet 	|
 -------------------------------------------------
 -------------------------------------------------
-| 0| Sender				| Return Status			|
+| 0| Flags + Length		| Return Status			|
 -------------------------------------------------
-| 1| Flags + Length 	| Checksum		 		|
+| 1| Sender			 	| Checksum		 		|
 -------------------------------------------------
 | 2| 	 				| Reserved (must be 0) 	|
 |  | Command ID			-------------------------
@@ -48,7 +48,7 @@ value from the slave.
 - Master waits for bus to become free
 - Master writes entire packet + checksum
 - Master reads 2 bytes
-- If bytes indicate no error and that there's a non-void return value then master reads the rest of the 25 byte packet.
+- If bytes indicate no error and that there's a non-void return value then master reads the entire 25 byte response packet.
 
 <Flowchart here>
 
@@ -75,7 +75,7 @@ The status code field has 2 special high bits that define how to interpret the r
 - **0b01xxxxxx**: The call was not successful because the slave endpoint had a problem.  The low order 6 bits correspond to an application defined error code describing the problem.
 
 ## Asynchronous callbacks
-TODO, finish this section. Async callbacks happen after task code.
+Asynchronous callbacks are handled partially at the protocol level and partially at the firmware level.  On the protocol level, an asynchronous response is the same as any other response with a status code of `kAsynchronousResponseStatus`.  However, the firmware, upon receiving this response does not return control to the master function that called the RPC, but instead releases the bus and blocks until the actual response data is received.  The initial slave sends the actual response data by, at a later time, sending a master rpc call back to the original caller to a special RPC endpoint `0x0000` that all mib implementations must define.  This endpoint wakes the original master back up and triggers the completion of the RPC call, as if it had been a synchronous RPC.  From the point of view of the caller making the original RPC call, there is no difference between a synchronous and an asynchronous RPC response and there is not provided way to distinguish whether a response came back synchronously or not.
 
 ## Frequently Asked Questions
 
