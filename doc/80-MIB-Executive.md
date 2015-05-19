@@ -9,6 +9,7 @@ Program ROM
 |  MIB Executive   |
 |				   |
 |  				   |
+
 --------------------
 |  Application 	   |
 |  Firmware		   |
@@ -33,44 +34,50 @@ All of the executive state is contained inside a single 2-byte state variables, 
 
 ```
 Executive State
---------------------|--------------------
-|00| Respond Busy	|08|
---------------------|--------------------
-|01| Valid App		|09|
---------------------|--------------------
-|02| Async Callback	|10|
---------------------|--------------------
-|03| Registered		|11|
---------------------|--------------------
-|04| Dirty Reset	|12|
---------------------|--------------------
-|05| Slave Active	|13|
---------------------|--------------------
-|06| First Read		|14|
---------------------|--------------------
-|07| Trapped		|15| 				|
---------------------|--------------------
+--------------------|
+|00| Respond Busy	|
+--------------------|
+|01| Valid App		|
+--------------------|
+|02| Async Callback	|
+--------------------|
+|03| Registered		|
+--------------------|
+|04| Dirty Reset	|
+--------------------|
+|05| Master Waiting	|
+--------------------|
+|06| First Read		|
+--------------------|
+|07| Trapped		|
+--------------------|
 ```
 
-Finish describing the roles of each bit here
+### Bit Meanings
+
+0. **Busy** All RPC calls sent to the module will be ignored and a busy signal will be returned.  This signal is distinct from the response given by a module that doesn't exist, so callers know that the module exists and is busy.
+1. **Valid App** Set during executive startup to indicate that a valid application has been loaded (including having the correct magic number and checksum to protect against corruption) 
+2. **Async Callback** Set when an RPC slave handler on this device returns `kAsynchronousResponseCode`, triggering the executive to enter asynchronous response mode until mainline code finishes sending the asynchronous response.
+3. **Registered** Set when the executive succesfully contacts a controller during startup and receives an address.
+4. **Dirty Reset** A safety flag that is set before jumping into application code for the first time.  Upon device reset, this bit is checked to see if it is set and if so, the executive calls `trap()` for debugging.  This lets us know anytime the device resets without calling the api function `device_reset()` which clears this bit before calling the the `reset` instruction to actually reset the device.
+5. **Master Waiting** Set when mainline code made an rpc call using `bus_master_rpc_send(uint8_t param_length)` and the slave elected to respond asynchronously.  Mainline code blocks polling this bit until it is cleared upon reception of the asynchronous response.
+6. **First Read** Set when a slave RPC is begun (upon receipt of our address with write indication over I2C).  Once the slave handler is successfully called, this bit is cleared so that subsequent attempts to read the slave's response packet do not trigger repeated handler execution.
+7. **Trapped** Set when the `trap(uint8_t reason)` API call is executed, causing mainline code to block and wait to be debugged.
 
 ## Handling MIB Master - Slave Transitions
 The executive processes all MIB slave call in interrupt context, leaving mainline code only for making master calls.  However, this means that some coordination needs to happen when an application wants to make a master MIB call because it has to make sure that it doesn't deadlock with the slave call waiting for some mainline code to run while the mainline code is blocked waiting for the MIB bus to become free.  
 
-So, whenever the application code wants to send a MIB master request, it needs to first request control of the bus from the slave by calling `bus_master_begin_rpc`.  This API call first waits for the bus to become idle by calling `bus_is_idle` and then transitions the bus over to master mode.  At this point the mainline code takes control of the bus and does not allow any other slave calls to be processed until it finishes sending its MIB message.
+So, whenever the application code wants to send a MIB master request, it needs to first request control of the bus from the slave by calling `bus_master_begin_rpc`.  This API call first waits for the bus to become idle by calling `bus_is_idle` and then transitions the bus over to master mode.  At this point the mainline code takes control of the bus and does not allow any other slave calls to be processed until it finishes sending its MIB message.  
 
-## Declaring Busy Status
-At any point where an application cannot respond to MIB calls, it can use the API function `bus_set_busy(1)` to begin ignoring all future MIB calls until `bus_set_busy(0)` is called.  `bus_set_busy(1)` can be called from either mainline or interrupt context.  `bus_set_busy(0)` should only be called from mainline context since it must wait for the bus to become free in order to make sure that there is not a call in progress toward this slave that would get responded to with gibberish once we stop ignoring the bytes coming at us.  In particular, `bus_set_busy(0)` must never be called from a MIB slave endpoint since that would lock the module and bus forever.
-
-Busy status is declared automatically when an application chooses to respond to a MIB endpoint asynchronously.  It is automatically released once the application completes the MIB endpoint response.
+**NB** Due to the nature of the I2C hardware in the PIC12 and PIC16 series, the module can only be in either master or slave mode at any given time, so once `bus_master_begin_rpc` returns, all subsequent slave RPC calls received will be ignored as if the module was nonexistent until `bus_master_send_rpc` returns.
 
 ## Responding to MIB Calls Asynchronously
-If a MIB callback is received that would take a long time to process, such as connecting to a website over cellular data, where you may have to turn the modem on, wait for a connection, etc, the handler can elect to respond asynchronously.  The handler does this by returning a special return value `0b00111111`.  When a handler returns asynchronously, the following actions are taken by the executive:
+If a MIB callback is received that would take a long time to process, such as connecting to a website over cellular data, where you may have to turn the modem on, wait for a connection, etc, the handler can elect to respond asynchronously.  The handler does this by returning a special return value `kAsynchronousResponseCode`.  When a handler returns asynchronously, the following actions are taken by the executive:
 
 - `Async Callback` bit is set.
-- The handler returns and mainline code is executed.
+- The handler returns and mainline code execution is resumed.
 - Whoever sent the RPC call that we are processing asynchronously will receive an Asynchronous Status response with no data.
-- If anyone else tries to send us an RPC call before we finish responding to this one then, upon receiving our address, we will set the `Busy` bit so that we do not disturb the contents of the MIB buffer.
+- If anyone else tries to send us an RPC call before we finish responding to this one then, upon receiving our address, we will set the `Busy` bit so that we do not disturb the contents of the MIB buffer.  All subsequent RPC calls received will be responded to as busy until the asnychronous call is finished by mainline code.
 
 It is the responsibility of the mainline application code to see an internal application flag set by the initial MIB handler, take the appropriate action and then call `bus_master_async_callback` once the appropriate response is ready.  Internally, `bus_master_async_callback` just makes a special master call back to the original caller in order to inform them about the result of their MIB call.
 

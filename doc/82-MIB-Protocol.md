@@ -56,7 +56,7 @@ value from the slave.
 The status code field has 2 special high bits that define how to interpret the rest of the respond and 6 low order bits that give additional information.  
 
 - Bit 7 (MSB) sets whether the response includes more data than just this status code.  If Bit 7 is 0 then the master should not read anymore.
-- Bit 6 sets whether the low order bits should be interpreted as having a globally agreed upon meaning or whether they must just be passed onto the application that made the MIB call for processing. Global status codes are things like "Command not found", and "Checksum error on command packet".  If Bit 6 is clear then the low order bits are globally significant otherwise they are only relevant to the specific MIB call that was attempted.
+- Bit 6 sets whether the low order bits should be interpreted as having a globally agreed upon meaning or whether they must just be passed onto the application that made the MIB call for processing. Global status codes are things like "Command not found", and "Checksum error on command packet".  If Bit 6 is clear then the low order bits are globally significant otherwise they are only relevant to the specific MIB call that was attempted.  The only exception to this rule is `kAsynchronousResponseCode` which must be reserved by each application to mean that the response will be sent asynchronously at a later time.
 
 ```
 -----------------------------------------------------------------

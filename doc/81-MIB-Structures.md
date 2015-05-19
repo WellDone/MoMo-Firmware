@@ -4,7 +4,8 @@ This section describes the required ROM structures that must be present inside o
 ### MIB Struct
 Each 8 bit enhanced midrange PIC application module must have a MIB identification structure located in the last 16 words of ROM of the first 2k ROM page.  This structure contains required information for loading the modules as well as jump tables for locating the commands and interfaces that this module supports.
 
-** 16 word structure with the following format **
+**16 word structure with the following format**
+
 Any values that are not prefaced by GOTO should be encoded as retlw instructions
 
 ```
