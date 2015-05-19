@@ -43,6 +43,7 @@ void bus_master_queue_async_rpc(uint8_t sender, mib_rpc_function callback)
 		{
 			async_rpcs[i].sender = sender;
 			async_rpcs[i].callback = callback;
+			break;
 		}
 	}
 

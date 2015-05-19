@@ -21,7 +21,7 @@ PSECT text_bus_master,local,class=CODE,delta=2
 ;W should contain the length of the arguments to send
 BEGINFUNCTION _bus_master_async_callback
 	banksel _mib_state
-	movwf BANKMASK(_mib_packet+0)
+	movwf BANKMASK(bus_spec)
 	movf BANKMASK(send_address),w
 	call _bus_master_begin_rpc
 
@@ -34,7 +34,7 @@ BEGINFUNCTION _bus_master_async_callback
 	movwf BANKMASK(bus_cmdlo)
 	movlw high kAsynchronousReponseCommand
 	movwf BANKMASK(bus_cmdhi)
-	movf BANKMASK(_mib_packet+0),w
+	movf BANKMASK(bus_spec),w
 	goto _bus_master_send_rpc
 ENDFUNCTION _bus_master_async_callback
 

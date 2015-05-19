@@ -9,7 +9,7 @@
 #include <xc.inc>
 
 global _bus_slave_returndata, _bus_master_send_rpc, _bus_master_begin_rpc, _trap, _reset_device
-global _mib_buffer, _mib_packet, _mib_state, _slave_address
+global _mib_buffer, _mib_packet, _mib_state, _slave_address, _bus_master_async_callback
 
 ;API Functions
 _bus_master_async_callback	equ (kFirstApplicationRow)*kFlashRowSize - 6
