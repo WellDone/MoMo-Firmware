@@ -31,6 +31,7 @@ void  	reset_device();
 void  	bus_master_begin_rpc(uint8_t address);
 uint8_t bus_master_send_rpc(uint8_t param_length);
 void  	bus_slave_returndata(uint8_t length);
+uint8_t	bus_master_async_callback(uint8_t result_length);
 
 #define bus_master_prepare_rpc(feature, cmd) 	mib_packet.call.command = ((((uint16_t)feature) << 8) | cmd)
 

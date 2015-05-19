@@ -12,11 +12,12 @@ global _bus_slave_returndata, _bus_master_send_rpc, _bus_master_begin_rpc, _trap
 global _mib_buffer, _mib_packet, _mib_state, _slave_address
 
 ;API Functions
-_reset_device			equ	(kFirstApplicationRow)*kFlashRowSize - 5
-_trap					equ (kFirstApplicationRow)*kFlashRowSize - 4
-_bus_master_begin_rpc	equ	(kFirstApplicationRow)*kFlashRowSize - 3
-_bus_master_send_rpc 	equ (kFirstApplicationRow)*kFlashRowSize - 2
-_bus_slave_returndata 	equ (kFirstApplicationRow)*kFlashRowSize - 1
+_bus_master_async_callback	equ (kFirstApplicationRow)*kFlashRowSize - 6
+_reset_device				equ	(kFirstApplicationRow)*kFlashRowSize - 5
+_trap						equ (kFirstApplicationRow)*kFlashRowSize - 4
+_bus_master_begin_rpc		equ	(kFirstApplicationRow)*kFlashRowSize - 3
+_bus_master_send_rpc 		equ (kFirstApplicationRow)*kFlashRowSize - 2
+_bus_slave_returndata 		equ (kFirstApplicationRow)*kFlashRowSize - 1
 
 ;API Data Structure
 psect mibstate class=BANK0,abs
