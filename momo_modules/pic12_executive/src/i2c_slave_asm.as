@@ -1,4 +1,3 @@
-;Assembly routines for dealing with I2C things in an efficient way
 ;very quickly and with minimal code overhead
 
 
@@ -14,10 +13,18 @@ global _i2c_loadbuffer
 
 PSECT text_i2c_slave,local,class=CODE,delta=2
 
-;If we just received an address, call callback to handle either read of write
+;If we just received an address, call callback to handle either read or write
 ;Otherwise send or receive the next byte in the i2c_buffer
 BEGINFUNCTION _i2c_slave_interrupt
-	banksel SSP1STAT
+	;If CKP is not low, then we are being called after receiving a NACK from a master
+	;for our last transmitted data byte. We should do nothing here.  It is important to
+	;do nothing otherwise a race condition could occur where this interrupt is executing
+	;while the master is sending an RS condition to read data from us again.  In that case;
+	;we could proceed like we received a write address, when in fact we did not.
+	banksel SSP1CON1
+	btfsc BANKMASK(SSP1CON1), 4 ;Check if CKP is down
+		return
+
 	btfsc 	BANKMASK(SSP1STAT), 5
 		goto 	transferdata
 

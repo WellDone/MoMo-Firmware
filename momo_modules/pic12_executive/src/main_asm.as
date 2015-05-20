@@ -89,10 +89,28 @@ ENDFUNCTION _restore_status
 ;Move WREG to EEDATL for safekeeping and loop forever
 ;Set trap bit so that RPC callers can tell we're dead
 BEGINFUNCTION _trap
+	movlp 0
+
+	;If interrupts are disabled we won't be able to receive MIB calls and interrupts
+	;should only be disabled in interrupt handlers, so test and see if GIE is set
+	btfsc GIE
+		goto do_trap
+
+	;We're likely in an interrupt handler since GIE is disabled
+	banksel TOSL
+	movwf BANKMASK(WREG_SHAD) ;save off our argument
+	movlw low _trap
+	movwf BANKMASK(TOSL)
+	movlw high _trap
+	movwf BANKMASK(TOSH)
+	retfie					;Just sets GIE, reloads the shadow registers and returns (to this same function but not in interrupt context anymore)
+
+	do_trap:
 	banksel EEDATL
 	movwf 	BANKMASK(EEDATL)
 	banksel _status
 	bsf 	BANKMASK(_status),TrapBit
+
 	loop_forever:
 	sleep
 	goto loop_forever

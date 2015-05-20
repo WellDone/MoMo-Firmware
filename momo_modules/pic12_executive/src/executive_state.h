@@ -7,11 +7,11 @@
 typedef struct 
 {
 	//Master variables
-	uint8   slave_address;
-	uint8	send_address;
+	uint8_t  	slave_address;
+	uint8_t		send_address;
 
 	//Slave variables
-	uint8 	curr_loc;
+	uint8_t 	curr_loc;
 } MIBState;
 
 //1 Byte
@@ -21,14 +21,14 @@ typedef union
 {
 	struct
 	{
-		uint8 respond_busy 		: 1;
-		uint8 valid_app 		: 1;
-		uint8 async_callback 	: 1;
-		uint8 registered		: 1;
-		uint8 dirty_reset 		: 1; 
-		uint8 master_waiting 	: 1;
-		uint8 first_read		: 1;
-		uint8 trapped			: 1;
+		uint8_t respond_busy 		: 1;
+		uint8_t valid_app 		: 1;
+		uint8_t async_callback 	: 1;
+		uint8_t registered		: 1;
+		uint8_t dirty_reset 		: 1; 
+		uint8_t master_waiting 	: 1;
+		uint8_t first_read		: 1;
+		uint8_t trapped			: 1;
 	};
 
 	uint8_t status;

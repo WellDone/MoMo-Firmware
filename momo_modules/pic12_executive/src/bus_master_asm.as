@@ -20,6 +20,7 @@ PSECT text_bus_master,local,class=CODE,delta=2
 ;responding to asynchronously.
 ;W should contain the length of the arguments to send
 BEGINFUNCTION _bus_master_async_callback
+	movlp 0
 	banksel _mib_state
 	movwf BANKMASK(bus_spec)
 	movf BANKMASK(send_address),w
@@ -45,6 +46,7 @@ ENDFUNCTION _bus_master_async_callback
 ;Returns: Nothing
 ;Side Effects: None
 BEGINFUNCTION _bus_master_begin_rpc
+	movlp 0
 	banksel _mib_state
 	movwf BANKMASK(send_address)
 
@@ -148,6 +150,7 @@ ENDFUNCTION _bus_master_tryrpc
 ;Arguments: the length of the parameter set in the W register
 ;Returns: Status code from the call in W
 BEGINFUNCTION _bus_master_send_rpc
+	movlp 0
 	;Load from address into the appropriate spots and append a checksum
 	;Also save the length parameter in the appropriate spot
 	banksel _mib_state

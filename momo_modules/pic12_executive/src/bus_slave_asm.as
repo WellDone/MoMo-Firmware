@@ -41,6 +41,7 @@ ENDFUNCTION _bus_slave_update_statuscheck
 ;Arguments: length of data to return in WREG
 ;Returns: Nothing
 BEGINFUNCTION _bus_slave_returndata
+	movlp 0
 	banksel bus_status
 	movwf BANKMASK(bus_length)
 	bsf   BANKMASK(bus_status), kHasDataBit
