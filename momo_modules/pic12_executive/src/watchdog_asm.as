@@ -5,18 +5,13 @@
 
 ASM_INCLUDE_GLOBALS()
 
-global	start
+global	start, _wdt_delay
 
 PSECT wdt_utils,local,class=CODE,delta=2
 
-BEGINFUNCTION _wdt_settimeout
+BEGINFUNCTION _wdt_delay
 	banksel WDTCON
 	movwf BANKMASK(WDTCON)
-	return
-ENDFUNCTION _wdt_settimeout
-
-BEGINFUNCTION _wdt_delay
-	call _wdt_settimeout
 	bsf SWDTEN
 	sleep
 	bcf SWDTEN

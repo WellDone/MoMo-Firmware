@@ -3,10 +3,11 @@
 #include "bootloader.h"
 #include "appcode.h"
 #include "watchdog.h"
-#include "mib_definitions.h"
 #include "i2c_defines.h"
+#include "executive_state.h"
 #include "port.h"
 #include "ioc.h"
+#include "protocol.h"
 
 #define _XTAL_FREQ          4000000
 
@@ -18,10 +19,9 @@
 #pragma config LVP=OFF
 #pragma config MCLRE=OFF
 
-extern __persistent bank1 MIBExecutiveStatus status;
-
 void initialize();
 extern void restore_status();
+extern uint8_t check_bootload();
 
 void interrupt service_isr() {
     //Check if an alarm occurred and reset if so.
@@ -42,7 +42,17 @@ void interrupt service_isr() {
         while (SSP1IF == 1)
         {
             SSP1IF = 0; //Do this because with our slow clock we might miss an interrupt
-            if (status.slave_active) 
+            if (status.respond_busy)
+            {
+                //If data is being read respond with 0s.  If it's being written, ignore it
+                if (SSP1STAT & (1<<2))
+                    SSP1BUF = 0;
+                else
+                    SSP1BUF;
+
+                i2c_release_clock();
+            }
+            else
                 i2c_slave_interrupt();
             
             //Master i2c is not interrupt driven
@@ -61,7 +71,7 @@ void main()
 
     restore_status();
 
-    if (status.bootload_mode)
+    if (check_bootload() == 0)
     {
         enter_bootloader();
         restore_status();   //Update our status on what mode we should be in now

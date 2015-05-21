@@ -50,13 +50,13 @@ void p_fun(spi, N, setstate)(PeripheralState state)
 }
 
 //spi_setrate
-void p_fun(spi, N, setrate)(uint8 baud)
+void p_fun(spi, N, setrate)(uint8_t baud)
 {
 	SSPADD = baud;
 }
 
 //spi_transfer
-uint8 p_fun(spi, N, transfer)(uint8 val)
+uint8_t p_fun(spi, N, transfer)(uint8_t val)
 {
 	bit_clear(SSP_WCOL);
 	bit_clear(SSP_OV);

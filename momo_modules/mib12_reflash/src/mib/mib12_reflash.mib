@@ -1,6 +1,4 @@
 #Module Information
-ModuleName = "new_mod";
-ModuleType = 0;
-ModuleFlags = 0;
-
-#Supported Feature Information
+ModuleName = "newmod";
+ModuleVersion = "1.1.0";
+APIVersion = "1.1";

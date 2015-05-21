@@ -3,7 +3,7 @@
 #Overwrite the goto at address 0 with a goto to a fixed address for skipping executive code
 #during unit tests
 
-import intelhex
+import pymomo.utilities.intelhex as intelhex
 import sys
 import os
 

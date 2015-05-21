@@ -12,13 +12,13 @@
 
 #include "i2c_defines.h"
 #include "asm_locations.h"
-#include "constants.h"
+#include "protocol_defines.h"
 
 
 ASM_INCLUDE_GLOBALS()
 
-global _exec_readmem, _exec_status, _mib_to_fsr0, _copy_fsr
-global _bus_slave_setreturn
+global _exec_readmem, _exec_status, _mib_to_fsr0, _copy_fsr, _verify_application
+global _bus_slave_returndata
 
 PSECT text_executive_asm,local,class=CODE,delta=2
 
@@ -35,9 +35,24 @@ BEGINFUNCTION _exec_readmem
 
 	movlw	20
 	call 	_copy_fsr
-	movlw 	pack_return_status(0, 20)
-	goto	_bus_slave_setreturn
+	
+	movlw   20
+	call 	_bus_slave_returndata
+	retlw 	0x00
 ENDFUNCTION _exec_readmem
+
+BEGINFUNCTION _exec_async_response
+	banksel _status
+
+	;FIXME: If we were not waiting for an async response, tell the caller that
+	bcf BANKMASK(_status), MasterWaitingBit
+
+	;Move the length into the right place as if the call were not asynchronous
+  	movf BANKMASK(bus_spec),w
+  	movwf BANKMASK(bus_length)
+  	
+	retlw 0x00
+ENDFUNCTION _exec_async_response
 
 BEGINFUNCTION _exec_status
 	call 	_mib_to_fsr0
@@ -51,6 +66,22 @@ BEGINFUNCTION _exec_status
 	movf 	BANKMASK(_status), w
 	movwi 	[3]FSR0
 
-	movlw 	pack_return_status(0, 4)
-	goto	_bus_slave_setreturn
+	movlw 4
+	call _bus_slave_returndata
+
+	retlw 0x00
 ENDFUNCTION _exec_status
+
+
+;Verify the application checksum and return it as a little endian 16 bit integer 
+BEGINFUNCTION _exec_verify
+	banksel mib_buffer
+	call _verify_application
+	banksel mib_buffer
+	movwf BANKMASK(mib_buffer+0)
+	clrf BANKMASK(mib_buffer+1)
+
+	movlw 2
+	call _bus_slave_returndata
+	retlw 0x00
+ENDFUNCTION _exec_verify

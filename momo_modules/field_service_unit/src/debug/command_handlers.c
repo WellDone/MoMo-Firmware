@@ -265,18 +265,22 @@ CommandStatus handle_rtcc(command_params *params)
 static void rpc_callback(unsigned char status) 
 {
     int i;
+    uint8_t len=0;
     put(DEBUG_UART, status);
 
-    if ( status != kNoMIBError )
+    if (status_is_error(status))
     {
         set_command_result( false );
         return;
     }
 
-    //Command was successful
-    put(DEBUG_UART, bus_get_returnvalue_length());
+    if (packet_has_data(status))
+        len = mib_unified.packet.response.length;
 
-    for (i=0; i<bus_get_returnvalue_length(); ++i)
+    //Command was successful
+    put(DEBUG_UART, len);
+
+    for (i=0; i<len; ++i)
         put(DEBUG_UART, plist_get_buffer(0)[i]);
 
     set_command_result( true );
@@ -321,12 +325,11 @@ CommandStatus handle_binrpc(command_params *params)
     }
 
     data.address = buffer[0];
-    data.bus_command.feature = buffer[1];
-    data.bus_command.command = buffer[2];
-    data.bus_command.param_spec = buffer[3];
+    data.packet.call.command = (((uint16_t)buffer[1]) << 8) | buffer[2];
+    data.packet.call.length = buffer[3];
 
-    for(i=0; i<kBusMaxMessageSize; ++i)
-        data.mib_buffer[i] = buffer[i+4];
+    for(i=0; i<kMIBBufferSize; ++i)
+        data.packet.data[i] = buffer[i+4];
 
     bus_master_rpc_async(rpc_callback, &data);
     return kPending;

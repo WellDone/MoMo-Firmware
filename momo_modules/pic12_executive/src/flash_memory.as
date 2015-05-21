@@ -1,7 +1,6 @@
 #include <xc.inc>
 #define _DEFINES_ONLY
 #include "bootloader.h"
-#include "constants.h"
 #undef _DEFINES_ONLY
 
 #include "asm_locations.h"
@@ -78,7 +77,7 @@ ENDFUNCTION read_app_row
 ;Calculate an 8-bit checksum of all of application flash
 ;Uses FSR1H and FSR1L for temporary storage
 BEGINFUNCTION _verify_application
-	clrf FSR1H						;store checksum here
+	clrf 	FSR1H					;store checksum here
 	movlw 	kFirstApplicationRow
 	movwf 	FSR1L					;current row in FSR1L
 	read_app_loop:
@@ -88,7 +87,7 @@ BEGINFUNCTION _verify_application
 	incf 	FSR1L,f 				;current row++
 	xorlw	(kNumFlashRows-1)		;if last row read == kNumFlashRows-1, we're done
 	btfss	ZERO
-	goto 	read_app_loop
+		goto 	read_app_loop
 
 	movf    FSR1H,w
 	return
@@ -131,7 +130,7 @@ ENDFUNCTION _load_boot_address
 ;is stored in the second to last word of the last flash row of the
 ;first page of flash memory.
 BEGINFUNCTION _get_boot_source
-	movlw 14
+	movlw kFirmwareSourceOffset
 	goto _get_mib_block
 ENDFUNCTION _get_boot_source
 
@@ -139,7 +138,7 @@ ENDFUNCTION _get_boot_source
 ;in high memory, return the firmware id that we should program
 ;this is stored in the 3rd word before the end of the first flash page
 BEGINFUNCTION _get_firmware_id
-	movlw 13
+	movlw kFirmwareIDOffset
 	goto _get_mib_block
 ENDFUNCTION _get_firmware_id
 
@@ -173,6 +172,7 @@ BEGINFUNCTION _flash_write_row
 	movwf	FSR0L
 	clrf	FSR0H 					;FSR0 now points to row array
 	bsf 	LWLO					;write N-1 latches only and then actually write the row on the Nth
+	bcf		FREE 					;Make sure we don't inadvertantly have the free bit set from a previous erase op
 	movlw	kFlashRowSize
 	movwf	FSR1H					;FSR1H has count of latches
 	write_row_loop:

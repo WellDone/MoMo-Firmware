@@ -10,7 +10,7 @@ goto _initialize
 goto _interrupt_handler
 goto _task
 
-PSECT mibblock,global,class=CODE,delta=2
+PSECT mibblock,global,class=CONST,delta=2
 
 intlevel1:
 

@@ -3,8 +3,6 @@
 #ifndef __appcode_h__
 #define __appcode_h__
 
-#include "constants.h"
-
 extern void call_app_init();	
 extern void call_app_interrupt();
 extern void call_app_task();

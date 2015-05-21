@@ -7,14 +7,12 @@
 #include <xc.inc>
 #include "i2c_defines.h"
 #include "asm_locations.h"
-#include "constants.h"
-#define __DEFINES_ONLY__
-#include "mib_definitions.h"
-#undef  __DEFINES_ONLY__
+#include "mib12_block.h"
+#include "asm_branches.inc"
 
 ASM_INCLUDE_GLOBALS()
 
-global _get_magic, _wdt_delay, _bus_init, _register_module
+global _get_magic, _wdt_delay, _bus_init, _register_module, _bus_is_idle, _verify_application, _get_mib_block
 
 #define k1SecondTimeout 0b010100
 
@@ -27,8 +25,8 @@ PSECT text_main_asm,local,class=CODE,delta=2
 BEGINFUNCTION _restore_status
 	;Initialize the bits that we know the value for
 	banksel _status
+	bcf BANKMASK(_status), BusyBit
 	bcf BANKMASK(_status), ValidAppBit
-	bsf BANKMASK(_status), SlaveActiveBit
 
 	;Check if we have a valid application module and set status
 	call _get_magic
@@ -36,11 +34,30 @@ BEGINFUNCTION _restore_status
 	btfsc ZERO
 		bsf BANKMASK(_status), ValidAppBit
 
-	;check if we should bootload
-	call _get_magic
-	xorlw kReflashMagicNumber
-	btfsc ZERO
-		bsf BANKMASK(_status), BootloadBit
+	;Make sure the checksum of the application is valid
+	call _verify_application
+	banksel _status
+	btfss ZERO
+		bcf BANKMASK(_status), ValidAppBit
+
+	;Make sure the hardware type is correct
+	movlw kMIBHWTypeOffset
+	call _get_mib_block
+	xorlw kModuleHWType
+	btfss ZERO
+		bcf BANKMASK(_status), ValidAppBit
+
+	;Make sure the API version is compatible (Major API numbers are equal and Minor API is <= executive version)
+	movlw kMIBMajorAPIOffset
+	call _get_mib_block
+	xorlw kMajorAPIVersion
+	btfss ZERO
+		bcf BANKMASK(_status), ValidAppBit
+
+	movlw kMIBMinorAPIOffset
+	call _get_mib_block
+	skipwltel kMinorAPIVersion
+		bcf BANKMASK(_status), ValidAppBit
 
 	;If we've already registered, we're done, otherwise register
 	btfsc BANKMASK(_status), RegisteredBit
@@ -72,11 +89,58 @@ ENDFUNCTION _restore_status
 ;Move WREG to EEDATL for safekeeping and loop forever
 ;Set trap bit so that RPC callers can tell we're dead
 BEGINFUNCTION _trap
+	movlp 0
+
+	;If interrupts are disabled we won't be able to receive MIB calls and interrupts
+	;should only be disabled in interrupt handlers, so test and see if GIE is set
+	btfsc GIE
+		goto do_trap
+
+	;We're likely in an interrupt handler since GIE is disabled
+	banksel TOSL
+	movwf BANKMASK(WREG_SHAD) ;save off our argument
+	movlw low _trap
+	movwf BANKMASK(TOSL)
+	movlw high _trap
+	movwf BANKMASK(TOSH)
+	retfie					;Just sets GIE, reloads the shadow registers and returns (to this same function but not in interrupt context anymore)
+
+	do_trap:
 	banksel EEDATL
 	movwf 	BANKMASK(EEDATL)
 	banksel _status
 	bsf 	BANKMASK(_status),TrapBit
+
 	loop_forever:
 	sleep
 	goto loop_forever
 ENDFUNCTION _trap
+
+;Set whether every subsequent i2c call should be responded to with all 0s
+;until we are told otherwise.
+BEGINFUNCTION _bus_set_busy
+	banksel _status
+	iorlw 0x00
+	btfss ZERO 
+		goto do_set_busy
+
+	;We can only clear the busy flag when the bus is idle since we don't want to clear the
+	;busy bit halfway through receiving a command and return gibberish.
+	call _bus_is_idle
+	btfss CARRY
+		goto $-2
+
+	bcf BANKMASK(_status), BusyBit
+	return
+	
+	do_set_busy:
+	bsf BANKMASK(_status), BusyBit
+	return
+ENDFUNCTION _bus_set_busy
+
+;Check if we should bootload, returns 0 if we should bootload
+BEGINFUNCTION _check_bootload
+	call _get_magic
+	xorlw kReflashMagicNumber
+	return
+ENDFUNCTION _check_bootload

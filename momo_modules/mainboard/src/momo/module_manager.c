@@ -11,10 +11,12 @@ uint8 add_module( momo_module_descriptor* module )
 	memcpy( (void*)(&the_modules[the_module_count]), module, sizeof( momo_module_descriptor ) );
 	return get_module_address( the_module_count++ );
 }
+
 uint8 module_count()
 {
 	return the_module_count;
 }
+
 momo_module_descriptor* get_module( uint8 index )
 {
 	if ( index >= the_module_count )
@@ -22,6 +24,7 @@ momo_module_descriptor* get_module( uint8 index )
 
 	return &the_modules[index];
 }
+
 uint8 get_module_address( uint8 index )
 {
 	return MODULE_BASE_ADDRESS + index;

@@ -4,7 +4,7 @@
 ;Additional: support_no_appmodule.as
 ;Description: Test to ensure that the executive detects when no application
 ;modules are installed.
-
+;FIXME Update this to exercise call_handler
 #include <xc.inc>
 #include "asm_macros.inc"
 #include "symbols.h"
@@ -29,11 +29,11 @@ ENDFUNCTION _begin_tests
 
 BEGINFUNCTION _test_app_endpoint
 	load_packet app1ication_packet
-	asm_call_find_handler()
-	assertlw 255
+	asm_call_bus_slave_callhandler()
+	assertlw 2
 
 	return
 ENDFUNCTION _test_app_endpoint
 
-define_packet app1ication_packet, 10, 0, 3
+define_packet app1ication_packet, 2000, 3, 11
 db 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ,14, 15, 16, 17, 18, 19, 20

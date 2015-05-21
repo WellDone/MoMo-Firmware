@@ -1,6 +1,5 @@
 #include <xc.inc>
 #define _DEFINES_ONLY
-#include "constants.h"
 #include "asm_macros.inc"
 #include "asm_branches.inc"
 #undef _DEFINES_ONLY
