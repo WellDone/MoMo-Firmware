@@ -1,0 +1,32 @@
+{
+	"modules":
+	{
+		"ultrasonic":
+		{
+			"defines": 
+			{
+				"CLOCKENABLE": "A1",
+				
+				"RESET1000": "A3",
+				"ERR1000": "B6",
+				"CHSEL": "B7",
+
+				
+				"INT7200": "B3",
+				"ENABLE": "A6",
+				"TRIG": "A7",
+
+				"SDO": "A0",
+				"SDI": "B2",
+				"SCK": "B5",
+				"CS7200": "A4",
+				"CS1000": "A2"
+			}
+		}
+	},
+
+	"module_targets":
+	{
+		"ultrasonic" : ["16lf1847/app"]
+	}
+}

@@ -1,0 +1,6 @@
+ModuleName = "ultras";
+ModuleVersion = "1.0.0";
+APIVersion = "1.1";
+
+#Debug interfaces (feature 110 -> 28160)
+28160: _set_power(1, no);
