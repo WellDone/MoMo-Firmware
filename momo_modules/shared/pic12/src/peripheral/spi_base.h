@@ -57,7 +57,7 @@ typedef union
 	struct 
 	{
 		uint8_t	mode: 4;
-		uint8_t 	line_idle : 1;
+		uint8_t line_idle : 1;
 		uint8_t	buffer_overwrite: 1;
 		uint8_t	clock_edge : 1;
 		uint8_t	sample_time: 1;

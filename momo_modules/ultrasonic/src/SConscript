@@ -11,7 +11,7 @@ env['INCLUDE'].extend(incs)
 env['NO_STARTUP'] = True
 
 asm_sources = ['app_startup.as']
-peri = ['../../../shared/pic12/src/peripheral/adc.c', '../../../shared/pic12/src/peripheral/timer1.c']
+peri = ['../../../shared/pic12/src/peripheral/spi2.c']
 api = ['../../../shared/pic12/src/mib12_api.as']
 
 srcfiles = asm_sources + Glob('./*.c') + peri  + [env['MIBFILE']] + api

@@ -8,7 +8,6 @@
 #define SSPSTAT 	p_reg(SSP, N, STAT)
 #define SSPCON1		p_reg(SSP, N, CON1)
 #define SSPCON3		p_reg(SSP, N, CON3)
-#define SSPADD		p_reg(SSP, N, ADD)
 #define SSPBUF		p_reg(SSP, N, BUF)
 
 #define SSP_WCOL		SSPCON1,7
@@ -47,12 +46,6 @@ void p_fun(spi, N, setstate)(PeripheralState state)
 
 		bit_set(SSP_ENABLE);
 	}
-}
-
-//spi_setrate
-void p_fun(spi, N, setrate)(uint8_t baud)
-{
-	SSPADD = baud;
 }
 
 //spi_transfer
