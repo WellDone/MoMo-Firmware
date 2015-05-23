@@ -22,7 +22,6 @@ void register_command_handlers()
     register_command("echo", handle_echo_params);
     register_command("device", handle_device);
     register_command("rtcc", handle_rtcc);
-    register_command("adc", handle_adc);
 
     register_command("binrpc", handle_binrpc);
     register_command("alarm", handle_alarm);
