@@ -7,12 +7,67 @@
 #include "watchdog.h"
 #include "ioc.h"
 #include "wpu.h"
-#include "ultrasound.h"
+#include "communication.h"
+#include "tdc1000.h"
+#include "tdc7200.h"
 #include <stdint.h>
+
+static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index);
+
+uint8_t test_level_measurement;
 
 void task(void)
 { 
-	
+	if (test_level_measurement)
+	{
+		uint8_t return_length = 1;
+		uint8_t retval;
+
+		enable_power();
+
+		tdc1000_setgain(mib_buffer[4], mib_buffer[6], mib_buffer[8]);
+		tdc1000_setexcitation(mib_buffer[0], mib_buffer[2]);
+		tdc1000_setmode(kTDC1000_LevelMode);
+
+		if (tdc1000_push() == 0)
+		{	
+			tdc7200_setstops(0b100);
+			retval = tdc7200_start();
+			if (retval == 0)
+			{
+				while (PIN(INT7200))
+					;
+
+				copy_tof_to_mib(0, 0);
+				copy_tof_to_mib(1, 4);
+				copy_tof_to_mib(2, 8);
+				copy_tof_to_mib(3, 12);
+				copy_tof_to_mib(4, 16);
+
+
+				return_length = 20;
+			}
+			else
+				mib_buffer[0] = retval;
+		}
+		else
+			mib_buffer[0] = tdc1000_push();
+
+		test_level_measurement = 0;
+		disable_power();
+
+		bus_master_async_callback(return_length);
+	}
+}
+
+static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index)
+{
+	int32_t tof = tdc7200_tof(tof_index);
+
+	mib_buffer[mib_index + 0] = (tof >> 0) & 0xFF;
+	mib_buffer[mib_index + 1] = (tof >> 8) & 0xFF;
+	mib_buffer[mib_index + 2] = (tof >> 16) & 0xFF;
+	mib_buffer[mib_index + 3] = (tof >> 24) & 0xFF;
 }
 
 void interrupt_handler(void)
@@ -68,6 +123,10 @@ void initialize(void)
 	PIN_DIR(CHSEL, OUTPUT);
 
 	init_spi();
+	tdc1000_init();
+	tdc7200_init();
+
+	test_level_measurement = 0;
 }
 
 void main(void)

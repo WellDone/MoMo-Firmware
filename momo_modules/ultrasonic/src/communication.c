@@ -1,4 +1,4 @@
-#include "ultrasound.h"
+#include "communication.h"
 #include <xc.h>
 #include "port.h"
 #include "spi2.h"

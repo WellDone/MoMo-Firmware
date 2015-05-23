@@ -1,7 +1,9 @@
 #include "mib12_api.h"
 #include "protocol_defines.h"
 #include "platform.h"
-#include "ultrasound.h"
+#include "communication.h"
+
+extern uint8_t test_level_measurement;
 
 uint8_t set_power(uint8_t length)
 {
@@ -57,4 +59,20 @@ uint8_t write_tdc1000_register(uint8_t length)
 	tdc1000_write8(mib_buffer[0], mib_buffer[2]);
 
 	return kNoErrorStatus;
+}
+
+/*
+ * Data format:
+ * mib_buffer[0]: number of expected stops
+ * mib_buffer[2]: number of transmitted pulses
+ * mib_buffer[4]: PGA gain
+ * mib_buffer[6]: LNA on
+ * mib_buffer[8]: Threshold
+ */
+
+uint8_t perform_test_level_measurement(uint8_t length)
+{
+	test_level_measurement = 1;
+	
+	return kAsynchronousResponseStatus;
 }
