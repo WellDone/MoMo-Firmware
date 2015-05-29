@@ -9,7 +9,13 @@ void 	tdc7200_init()
 	tdc7200_registers.config1.value = 0x00;
 	tdc7200_registers.config2.value = 0x40;
 	tdc7200_registers.intmask.value = 0x07;
+	tdc7200_registers.stop_mask = 0;
 
+}
+
+void tdc7200_setstopmask(uint16_t mask)
+{
+	tdc7200_registers.stop_mask = mask;
 }
 
 static uint8_t tdc7200_push()
@@ -28,12 +34,18 @@ static uint8_t tdc7200_push()
 	if (tdc7200_read8(kTDC7200_INTStatusReg) != 0)
 		return 15;
 
+	tdc7200_write8(kTDC7200_ClockStopHigh, tdc7200_registers.stop_mask >> 8);
+	if (tdc7200_read8(kTDC7200_ClockStopHigh) != (tdc7200_registers.stop_mask >> 8))
+		return 16;
+
+	tdc7200_write8(kTDC7200_ClockStopLow, tdc7200_registers.stop_mask & 0xFF);
+	if (tdc7200_read8(kTDC7200_ClockStopLow) != (tdc7200_registers.stop_mask & 0xFF))
+		return 17;
+
 	//Push this last since it can start a measurment
 	tdc7200_write8(kTDC7200_Config1Reg, tdc7200_registers.config1.value);
 	if ((tdc7200_read8(kTDC7200_Config1Reg) & 0b11111110) != (tdc7200_registers.config1.value & 0b11111110))
-		return 16;
-
-	
+		return 18;	
 
 	return 0;
 }

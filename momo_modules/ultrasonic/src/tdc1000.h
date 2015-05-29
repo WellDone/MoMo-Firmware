@@ -76,9 +76,9 @@ typedef enum
 
 typedef enum
 {
-	kTDC1000_LevelMode,
-	kTDC1000_TOFMode,
-	kTDC1000_MeterMode
+	kTDC1000_LevelMode = 0,
+	kTDC1000_TOFMode = 1,
+	kTDC1000_MeterMode = 2
 } MeasurementMode;
 
 enum
@@ -276,6 +276,9 @@ tdc1000_error 	tdc1000_readerror();
 
 void 			tdc1000_setgain(PGAGainLevel pga, LNAState lna, EchoThreshold threshold);
 void			tdc1000_setmode(MeasurementMode mode);
+void			tdc1000_setchannel(uint8_t channel);
+void 			tdc1000_setstarttime(uint16_t time);
+
 void 			tdc1000_setexcitation(uint8_t num_pulses, uint8_t num_expected);
 
 #endif

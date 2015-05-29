@@ -23,19 +23,20 @@ void task(void)
 		uint8_t return_length = 1;
 		uint8_t retval;
 
-		enable_power();
-
 		tdc1000_setgain(mib_buffer[4], mib_buffer[6], mib_buffer[8]);
 		tdc1000_setexcitation(mib_buffer[0], mib_buffer[2]);
-		tdc1000_setmode(kTDC1000_LevelMode);
-
+		tdc1000_setmode(mib_buffer[12]);
+		tdc1000_setchannel(mib_buffer[14]);
+		tdc1000_setstarttime(255);
+		
 		if (tdc1000_push() == 0)
 		{	
+			tdc7200_setstopmask(*(uint16_t *)&(mib_buffer[10]));
 			tdc7200_setstops(0b100);
 			retval = tdc7200_start();
 			if (retval == 0)
 			{
-				while (PIN(INT7200))
+				while (PIN(INT7200) && PIN(ERR1000))
 					;
 
 				copy_tof_to_mib(0, 0);
@@ -54,7 +55,6 @@ void task(void)
 			mib_buffer[0] = tdc1000_push();
 
 		test_level_measurement = 0;
-		disable_power();
 
 		bus_master_async_callback(return_length);
 	}

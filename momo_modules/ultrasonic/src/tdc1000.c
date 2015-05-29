@@ -20,6 +20,17 @@ void tdc1000_init()
 	registers.clockrate.value = 0x00;
 }
 
+void tdc1000_setstarttime(uint16_t time)
+{
+	registers.tof1.timing_msb = (time >> 8) & 0b11;
+	registers.tof0.timing_lsb = time & 0xFF;
+}
+
+void tdc1000_setchannel(uint8_t channel)
+{
+	registers.config2.ch_swp = channel & 1;
+}
+
 uint8_t tdc1000_push()
 {
 	tdc1000_write8(kTDC1000_Config0Reg, registers.config0.value);

@@ -100,9 +100,11 @@ typedef struct
 
 typedef struct
 {
+	uint16_t		stop_mask;
 	tdc7200_config1 config1;
 	tdc7200_config2 config2;
 	tdc7200_intmask intmask;
+
 } tdc7200_config;
 
 void 		tdc7200_init();
@@ -113,5 +115,6 @@ uint32_t 	tdc7200_calibration();
 int32_t 	tdc7200_tof(uint8_t index);
 
 void 		tdc7200_setstops(uint8_t stops);
+void		tdc7200_setstopmask(uint16_t mask);
 
 #endif
