@@ -1,0 +1,6 @@
+ModuleName = "test12";
+ModuleVersion = "1.0.0";
+APIVersion = "1.0";
+
+1235: _test_endpoint2(0, no);
+2560: _test_endpoint1(0, no);

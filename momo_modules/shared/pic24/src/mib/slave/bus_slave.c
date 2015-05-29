@@ -1,4 +1,5 @@
 #include "bus_slave.h"
+#include "ioport.h"
 #include <string.h>
 
 //static prototypes that are only to be used in this file
@@ -11,34 +12,37 @@ static void bus_slave_callcommand();
  */
 
 /*
- * Set the return status, the high order 3 bits define the status, the low order 5 bits set the 
- * length of the return value
+ * Set the return status
  */
+
 void bus_slave_setreturn(uint8 status)
 {
-	mib_unified.bus_returnstatus.return_status = status;
+	mib_unified.packet.response.status_value = status;
+	mib_unified.packet.response.status_checksum = (~status) + 1;
 }
 
-inline void bus_slave_set_returnbuffer_length(uint8 length) 
+void bus_slave_set_returnbuffer_length(uint8_t length) 
 {
-	bus_slave_setreturn(pack_return_status( kNoMIBError, length ));	
+	mib_unified.return_length = length;
 }
 
 void bus_slave_return_buffer( const void* buff, uint8 length ) 
 {
-	if (length > kBusMaxMessageSize) 
+	if (length > kMIBBufferSize) 
 	{
 		bus_slave_seterror( kUnknownError ); //TODO: Better
 		return;
 	}
-	memcpy( plist_get_buffer(0), buff, length );
+
+	memcpy(mib_unified.packet.data, buff, length);
 	bus_slave_set_returnbuffer_length( length );
 }
 
 void bus_slave_return_int16( int16 val ) 
 {
-	plist_set_int16( 0, val );
-	bus_slave_set_returnbuffer_length( kIntSize );
+	mib_unified.packet.data[0] = val & 0xFF;
+	mib_unified.packet.data[1] = val >> 8;
+	bus_slave_set_returnbuffer_length( sizeof(val) );
 }
 
 static void bus_slave_startcommand()
@@ -48,14 +52,16 @@ static void bus_slave_startcommand()
 	mib_state.first_read = 1;
 
 	bus_slave_setreturn(kUnknownError); //Make sure that if nothing else happens we return an error status.
-	bus_slave_receive((unsigned char *)&mib_unified.bus_command, sizeof(MIBCommandPacket) + kBusMaxMessageSize);
+	bus_slave_set_returnbuffer_length(0);
+
+	bus_slave_receive((unsigned char *)&mib_unified.packet, kMIBMessageNoChecksumSize);
 }
 
 static void bus_slave_searchcommand()
 {
 	if (i2c_slave_lasterror() != kI2CNoError)
 	{
-		bus_slave_seterror(kChecksumError); //Make sure the parameter checksum was valid.
+		bus_slave_seterror(kChecksumMismatchStatus); //Make sure the parameter checksum was valid.
 		return;
 	}
 
@@ -63,42 +69,33 @@ static void bus_slave_searchcommand()
 
 	if (mib_state.slave_handler == kInvalidMIBIndex)
 	{
-		bus_slave_seterror(kUnsupportedCommand);
+		bus_slave_seterror(kCommandNotFoundStatus);
 		return;
 	}
-
-	if (plist_param_length(mib_unified.bus_command.param_spec) > kBusMaxMessageSize)
-	{
-		bus_slave_seterror(kParameterTooLong);
-		return;
-	}
-}
-
-/*
- * @preconditions: mib_unified.mib_buffer is full of a packet of parameters or nothing
- * @return: 1 if the parameters are valid types and 0 otherwise
- * @side effects: sets mib slave error state appropriately
- */
-static uint8 bus_slave_validateparams()
-{
-	if (!validate_param_spec(mib_state.slave_handler))
-	{
-		bus_slave_seterror(kWrongParameterType); //Make sure the parameter checksum was valid.
-		return 0;
-	}
-
-	return 1;
 }
 
 static void bus_slave_callcommand()
 {	
 	if (mib_state.slave_handler != kInvalidMIBIndex)
 	{
-		if (bus_slave_validateparams()) 
+		uint8_t status = call_handler(mib_state.slave_handler);
+
+		status &= 0b00111111; //Get rid of any possible high bits set
+
+		//Queue up this packet for an asynchronous response
+		if (status == kAsynchronousResponseCode)
 		{
-			bus_slave_setreturn( pack_return_status( kNoMIBError, 0 ) );
-			call_handler(mib_state.slave_handler);
+			mib_unified.return_length = 0; //You can't return data in an asynchronous command
+			//FIXME: Do the queuing
 		}
+
+		status |= 1 << kAppDefinedBit;
+
+		if (mib_unified.return_length > 0)
+			status |= 1 << kHasDataBit;
+
+		mib_unified.packet.response.status_value = status;
+		mib_unified.packet.response.length = mib_unified.return_length;
 	}
 }
 
@@ -108,20 +105,19 @@ void bus_slave_callback()
 	{
 		if (i2c_slave_is_read())
 		{
-			
 			if (mib_state.first_read)
 			{
 				bus_slave_searchcommand();
 				bus_slave_callcommand();
 
-				bus_append_checksum((unsigned char*)&mib_unified.bus_returnstatus, 1);
-				bus_append_checksum((unsigned char*)&mib_unified.bus_returnstatus, mib_unified.bus_returnstatus.len+2);
+				bus_append_checksum((unsigned char*)&mib_unified.packet, 1);
+				bus_append_checksum((unsigned char*)&mib_unified.packet, kMIBMessageNoChecksumSize);
 				mib_state.first_read = 0;
 			}
 
 			//Position the i2c message pointer to the start of the return status.  This is located right before the return_value
 			//in memory, so we will send the return value, if there is one, automatically on subsequent reads.
-			bus_slave_send(&mib_unified.bus_returnstatus.return_status, sizeof(MIBReturnValueHeader)+kBusMaxMessageSize+2);
+			bus_slave_send((uint8_t*) &mib_unified.packet, kMIBMessageNoChecksumSize);
 		}
 		else
 			bus_slave_startcommand(); //A write always indicates a new command

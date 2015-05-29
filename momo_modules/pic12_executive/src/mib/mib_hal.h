@@ -11,15 +11,10 @@
 
 #include "common_types.h"
 
-void  	call_handler();
-uint8 	validate_param_spec();
-uint8 	find_handler();
-
 void  	bus_init(uint8 address);
-void 	bus_slave_seterror(uint8 error);
 uint8 	bus_is_idle();
 void	trap(uint8 code);
 
-void exec_reset();
+uint8 exec_reset();
 
 #endif

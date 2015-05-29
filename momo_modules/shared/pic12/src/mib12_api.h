@@ -1,29 +1,43 @@
-//mib12_api.h
+/*
+ * mib12_api.h
+ * Version 1.0 (5/13/2015)
+ * The API provided by the pic12_executive for use by application modules.
+ *
+ * This file defines the API functions that application modules can call
+ * as well as the shared data structures used for communication between
+ * the executive and application routines.
+ *
+ * Interaction between the executive and application modules proceeds in two ways.
+ * First, the executive can call application MIB endpoints in interrupt mode when
+ * the module receives the appropriate RPC call.  Second, the application can call
+ * into the executive from mainline or interrupt code to perform certain executive
+ * provided functions like sending an RPC call, resetting the device or trapping an
+ * error.
+ *
+ * The specific RAM locations for the the shared data structures and ROM locations
+ * for the shared API functions are stored in the associated mib12_api.as and must be 
+ * included in the compilation fo any mib12 module.
+ */
 
 #ifndef __mib12_api_h__
 #define __mib12_api_h_
 
 #include "protocol.h"
+#include <stdint.h>
 
-void  trap(uint8 code);
-void  reset_device();
-void  bus_master_begin_rpc();
-uint8 bus_master_send_rpc(uint8 address);
-void  bus_slave_setreturn(uint8 status);
+// MIB12 API Functions 
+void  	trap(uint8_t code);
+void  	reset_device();
+void  	bus_master_begin_rpc(uint8_t address);
+uint8_t bus_master_send_rpc(uint8_t param_length);
+void  	bus_slave_returndata(uint8_t length);
+uint8_t	bus_master_async_callback(uint8_t result_length);
 
-#define mib_buffer_length()			mib_packet.param_spec & 0b00011111
+#define bus_master_prepare_rpc(feature, cmd) 	mib_packet.call.command = ((((uint16_t)feature) << 8) | cmd)
 
-extern bank1 unsigned char 		mib_buffer[kBusMaxMessageSize];
-extern bank1 MIBCommandPacket   mib_packet;
-extern bank1 uint8              slave_address;
-
-#define mib_address             (slave_address >> 1)
-#define plist_get_int8(n)				mib_buffer[(n<<1) ]
-#define plist_get_int16(n)			((int*)mib_buffer)[n]
-
-#define bus_master_prepare_rpc(f, c, s) { \
-	mib_packet.feature = f; \
-	mib_packet.command = c; \
-	mib_packet.param_spec = s;}
+// MIB12 API Data Structures Shared Between Executive and Application
+extern uint8_t 			mib_buffer[kMIBBufferSize];
+extern MIBPacket   		mib_packet;
+extern uint8_t			slave_address;
 
 #endif

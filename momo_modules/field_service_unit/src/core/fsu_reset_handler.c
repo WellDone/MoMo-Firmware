@@ -5,10 +5,16 @@
 #include "uart.h"
 #include "task_manager.h"
 #include "scheduler.h"
+#include "mib_features.h"
 #include "debug.h"
 #include "oscillator.h"
 #include "pme.h"
 #include "bus.h"
+
+DEFINE_FEATURE_MAP()
+{
+    MIB_FEATURE(async)
+};
 
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
@@ -22,6 +28,7 @@ void handle_all_resets_before(unsigned int type)
     debug_init();
 
     bus_init( 10 );
+    REGISTER_FEATURE_MAP();
 
     mclr_triggered = false;
 }

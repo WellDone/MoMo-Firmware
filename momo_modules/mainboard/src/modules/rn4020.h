@@ -18,6 +18,8 @@
 #ifndef __rn4020_h__
 #define __rn4020_h__
 
+#include <stdint.h>
+
 #define MAX_RN4020_MSG_SIZE		100
 #define RN4020_TIMEROUT_PERIOD	800 		//50 ms on an 8mhz crystal
 #define RN4020_300ms			4800		//300 ms on an 8mhz crystal
@@ -97,7 +99,7 @@ typedef enum
 
 //Module API
 void 			bt_init();
-void 			bt_debug_buffer();
+uint8_t 		bt_debug_buffer(uint8_t length);
 BluetoothResult	bt_advertise();
 
 //FIXME: Add error statements for all bt required pins

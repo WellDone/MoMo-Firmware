@@ -10,12 +10,14 @@
 #define __mib_hal_h__
 
 #include "common_types.h"
+#include <stdint.h>
 
-void  	call_handler(uint8 handler_index);
-uint8 	validate_param_spec(uint8 handler_index);
-uint8 	find_handler(void);
+#define kInvalidMIBIndex 255
+
+uint8_t call_handler(uint8 handler_index);
+uint8_t find_handler(void);
 void  	bus_init(uint8 address);
 void 	bus_slave_seterror(uint8 error);
-uint8 	bus_is_idle();
+uint8_t bus_is_idle();
 
 #endif

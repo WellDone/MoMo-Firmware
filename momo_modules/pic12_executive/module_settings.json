@@ -14,7 +14,8 @@
 				{
 					"defines":
 					{
-						"kExecutiveTimer": "2"
+						"kMajorAPIVersion": 1,
+						"kMinorAPIVersion": 1
 					}
 				}
 			}

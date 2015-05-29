@@ -7,6 +7,8 @@
 #define MAX_MODULES 32
 #define MODULE_BASE_ADDRESS 11
 
+#define kMIBCommunicationType 10
+
 typedef struct {
 	uint8 module_type;
 	uint8 current_index;

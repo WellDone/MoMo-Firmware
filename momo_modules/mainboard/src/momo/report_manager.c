@@ -77,7 +77,7 @@ void report_manager_start()
     start_report_scheduling();
 }
 
-void init_report_config()
+uint8_t init_report_config(uint8_t call_length)
 {
   strcpy( CONFIG.route_primary, DEFAULT_WEB_ROUTE );
   strcpy( CONFIG.route_secondary, DEFAULT_SMS_ROUTE );
@@ -93,6 +93,8 @@ void init_report_config()
   report_task.flags = 0;
 
   init_comm_stream();
+
+  return kNoErrorStatus;
 }
 
 void update_interval_headers( Report* header, AlarmRepeatTime interval )

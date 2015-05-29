@@ -31,7 +31,7 @@
 #pragma config IOL1WAY = OFF            // IOLOCK One-Way Set Enable bit (The IOLOCK bit can be set and cleared using the unlock sequence)
 #pragma config OSCIOFCN = ON            // OSCO Pin Configuration (OSCO/CLKO/RC15 functions as port I/O (RC15))
 #pragma config FCKSM = CSECMD           // Clock Switching and Fail-Safe Clock Monitor Configuration bits (Clock switching Enabled and Fail-Safe Clock Monitor disabled)
-#pragma config FNOSC = FRCPLL           // Initial Oscillator Select (Fast RC Oscillator (FRC))
+#pragma config FNOSC = FRC             // Initial Oscillator Select (Fast RC Oscillator (FRC))
 #pragma config ALTVREF = DLT_AV_DLT_CV  // Alternate VREF/CVREF Pins Selection bit (Voltage reference input, ADC =RA9/RA10 Comparator =RA9,RA10)
 #pragma config IESO = OFF               // Internal External Switchover (Disabled)
 

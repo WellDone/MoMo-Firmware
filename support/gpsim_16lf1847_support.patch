@@ -1,6 +1,1196 @@
+Index: configure.ac
+===================================================================
+--- configure.ac	(revision 2308)
++++ configure.ac	(working copy)
+@@ -128,6 +128,9 @@
+ AC_HEADER_TIME
+ AC_TYPE_SIGNAL
+ 
++#Check for python so that we can compile MoMoPythonSlave
++AX_PYTHON_DEVEL(>='2.7.0')
++
+ # Checks for library functions.
+ AC_FUNC_ALLOCA
+ AC_PROG_GCC_TRADITIONAL
+@@ -168,9 +171,10 @@
+     ;;
+ esac
+ 
++CPPFLAGS="${PYTHON_CPPFLAGS}"
+ CFLAGS="${CFLAGS} ${AM_CFLAGS}"
+ CXXFLAGS="${CXXFLAGS} ${AM_CXXFLAGS}"
+-LDFLAGS="${LDFLAGS} ${AM_LDFLAGS}"
++LDFLAGS="${LDFLAGS} ${AM_LDFLAGS} ${PYTHON_LDFLAGS} ${PYTHON_EXTRA_LDFLAGS} ${PYTHON_EXTRA_LIBS}"
+ 
+ # Host filesystem options
+ case "${host}" in
+Index: m4/m4_ax_python_devel.m4
+===================================================================
+--- m4/m4_ax_python_devel.m4	(revision 0)
++++ m4/m4_ax_python_devel.m4	(working copy)
+@@ -0,0 +1,324 @@
++# ===========================================================================
++#      http://www.gnu.org/software/autoconf-archive/ax_python_devel.html
++# ===========================================================================
++#
++# SYNOPSIS
++#
++#   AX_PYTHON_DEVEL([version])
++#
++# DESCRIPTION
++#
++#   Note: Defines as a precious variable "PYTHON_VERSION". Don't override it
++#   in your configure.ac.
++#
++#   This macro checks for Python and tries to get the include path to
++#   'Python.h'. It provides the $(PYTHON_CPPFLAGS) and $(PYTHON_LDFLAGS)
++#   output variables. It also exports $(PYTHON_EXTRA_LIBS) and
++#   $(PYTHON_EXTRA_LDFLAGS) for embedding Python in your code.
++#
++#   You can search for some particular version of Python by passing a
++#   parameter to this macro, for example ">= '2.3.1'", or "== '2.4'". Please
++#   note that you *have* to pass also an operator along with the version to
++#   match, and pay special attention to the single quotes surrounding the
++#   version number. Don't use "PYTHON_VERSION" for this: that environment
++#   variable is declared as precious and thus reserved for the end-user.
++#
++#   This macro should work for all versions of Python >= 2.1.0. As an end
++#   user, you can disable the check for the python version by setting the
++#   PYTHON_NOVERSIONCHECK environment variable to something else than the
++#   empty string.
++#
++#   If you need to use this macro for an older Python version, please
++#   contact the authors. We're always open for feedback.
++#
++# LICENSE
++#
++#   Copyright (c) 2009 Sebastian Huber <sebastian-huber@web.de>
++#   Copyright (c) 2009 Alan W. Irwin
++#   Copyright (c) 2009 Rafael Laboissiere <rafael@laboissiere.net>
++#   Copyright (c) 2009 Andrew Collier
++#   Copyright (c) 2009 Matteo Settenvini <matteo@member.fsf.org>
++#   Copyright (c) 2009 Horst Knorr <hk_classes@knoda.org>
++#   Copyright (c) 2013 Daniel Mullner <muellner@math.stanford.edu>
++#
++#   This program is free software: you can redistribute it and/or modify it
++#   under the terms of the GNU General Public License as published by the
++#   Free Software Foundation, either version 3 of the License, or (at your
++#   option) any later version.
++#
++#   This program is distributed in the hope that it will be useful, but
++#   WITHOUT ANY WARRANTY; without even the implied warranty of
++#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
++#   Public License for more details.
++#
++#   You should have received a copy of the GNU General Public License along
++#   with this program. If not, see <http://www.gnu.org/licenses/>.
++#
++#   As a special exception, the respective Autoconf Macro's copyright owner
++#   gives unlimited permission to copy, distribute and modify the configure
++#   scripts that are the output of Autoconf when processing the Macro. You
++#   need not follow the terms of the GNU General Public License when using
++#   or distributing such scripts, even though portions of the text of the
++#   Macro appear in them. The GNU General Public License (GPL) does govern
++#   all other use of the material that constitutes the Autoconf Macro.
++#
++#   This special exception to the GPL applies to versions of the Autoconf
++#   Macro released by the Autoconf Archive. When you make and distribute a
++#   modified version of the Autoconf Macro, you may extend this special
++#   exception to the GPL to apply to your modified version as well.
++
++#serial 17
++
++AU_ALIAS([AC_PYTHON_DEVEL], [AX_PYTHON_DEVEL])
++AC_DEFUN([AX_PYTHON_DEVEL],[
++	#
++	# Allow the use of a (user set) custom python version
++	#
++	AC_ARG_VAR([PYTHON_VERSION],[The installed Python
++		version to use, for example '2.3'. This string
++		will be appended to the Python interpreter
++		canonical name.])
++
++	AC_PATH_PROG([PYTHON],[python[$PYTHON_VERSION]])
++	if test -z "$PYTHON"; then
++	   AC_MSG_ERROR([Cannot find python$PYTHON_VERSION in your system path])
++	   PYTHON_VERSION=""
++	fi
++
++	#
++	# Check for a version of Python >= 2.1.0
++	#
++	AC_MSG_CHECKING([for a version of Python >= '2.1.0'])
++	ac_supports_python_ver=`$PYTHON -c "import sys; \
++		ver = sys.version.split ()[[0]]; \
++		print (ver >= '2.1.0')"`
++	if test "$ac_supports_python_ver" != "True"; then
++		if test -z "$PYTHON_NOVERSIONCHECK"; then
++			AC_MSG_RESULT([no])
++			AC_MSG_FAILURE([
++This version of the AC@&t@_PYTHON_DEVEL macro
++doesn't work properly with versions of Python before
++2.1.0. You may need to re-run configure, setting the
++variables PYTHON_CPPFLAGS, PYTHON_LDFLAGS, PYTHON_SITE_PKG,
++PYTHON_EXTRA_LIBS and PYTHON_EXTRA_LDFLAGS by hand.
++Moreover, to disable this check, set PYTHON_NOVERSIONCHECK
++to something else than an empty string.
++])
++		else
++			AC_MSG_RESULT([skip at user request])
++		fi
++	else
++		AC_MSG_RESULT([yes])
++	fi
++
++	#
++	# if the macro parameter ``version'' is set, honour it
++	#
++	if test -n "$1"; then
++		AC_MSG_CHECKING([for a version of Python $1])
++		ac_supports_python_ver=`$PYTHON -c "import sys; \
++			ver = sys.version.split ()[[0]]; \
++			print (ver $1)"`
++		if test "$ac_supports_python_ver" = "True"; then
++		   AC_MSG_RESULT([yes])
++		else
++			AC_MSG_RESULT([no])
++			AC_MSG_ERROR([this package requires Python $1.
++If you have it installed, but it isn't the default Python
++interpreter in your system path, please pass the PYTHON_VERSION
++variable to configure. See ``configure --help'' for reference.
++])
++			PYTHON_VERSION=""
++		fi
++	fi
++
++	#
++	# Check if you have distutils, else fail
++	#
++	AC_MSG_CHECKING([for the distutils Python package])
++	ac_distutils_result=`$PYTHON -c "import distutils" 2>&1`
++	if test -z "$ac_distutils_result"; then
++		AC_MSG_RESULT([yes])
++	else
++		AC_MSG_RESULT([no])
++		AC_MSG_ERROR([cannot import Python module "distutils".
++Please check your Python installation. The error was:
++$ac_distutils_result])
++		PYTHON_VERSION=""
++	fi
++
++	#
++	# Check for Python include path
++	#
++	AC_MSG_CHECKING([for Python include path])
++	if test -z "$PYTHON_CPPFLAGS"; then
++		python_path=`$PYTHON -c "import distutils.sysconfig; \
++			print (distutils.sysconfig.get_python_inc ());"`
++		plat_python_path=`$PYTHON -c "import distutils.sysconfig; \
++			print (distutils.sysconfig.get_python_inc (plat_specific=1));"`
++		if test -n "${python_path}"; then
++			if test "${plat_python_path}" != "${python_path}"; then
++				python_path="-I$python_path -I$plat_python_path"
++			else
++				python_path="-I$python_path"
++			fi
++		fi
++		PYTHON_CPPFLAGS=$python_path
++	fi
++	AC_MSG_RESULT([$PYTHON_CPPFLAGS])
++	AC_SUBST([PYTHON_CPPFLAGS])
++
++	#
++	# Check for Python library path
++	#
++	AC_MSG_CHECKING([for Python library path])
++	if test -z "$PYTHON_LDFLAGS"; then
++		# (makes two attempts to ensure we've got a version number
++		# from the interpreter)
++		ac_python_version=`cat<<EOD | $PYTHON -
++
++# join all versioning strings, on some systems
++# major/minor numbers could be in different list elements
++from distutils.sysconfig import *
++e = get_config_var('VERSION')
++if e is not None:
++	print(e)
++EOD`
++
++		if test -z "$ac_python_version"; then
++			if test -n "$PYTHON_VERSION"; then
++				ac_python_version=$PYTHON_VERSION
++			else
++				ac_python_version=`$PYTHON -c "import sys; \
++					print (sys.version[[:3]])"`
++			fi
++		fi
++
++		# Make the versioning information available to the compiler
++		AC_DEFINE_UNQUOTED([HAVE_PYTHON], ["$ac_python_version"],
++                                   [If available, contains the Python version number currently in use.])
++
++		# First, the library directory:
++		ac_python_libdir=`cat<<EOD | $PYTHON -
++
++# There should be only one
++import distutils.sysconfig
++e = distutils.sysconfig.get_config_var('LIBDIR')
++if e is not None:
++	print (e)
++EOD`
++
++		# Now, for the library:
++		ac_python_library=`cat<<EOD | $PYTHON -
++
++import distutils.sysconfig
++c = distutils.sysconfig.get_config_vars()
++if 'LDVERSION' in c:
++	print ('python'+c[['LDVERSION']])
++else:
++	print ('python'+c[['VERSION']])
++EOD`
++
++		# This small piece shamelessly adapted from PostgreSQL python macro;
++		# credits goes to momjian, I think. I'd like to put the right name
++		# in the credits, if someone can point me in the right direction... ?
++		#
++		if test -n "$ac_python_libdir" -a -n "$ac_python_library"
++		then
++			# use the official shared library
++			ac_python_library=`echo "$ac_python_library" | sed "s/^lib//"`
++			PYTHON_LDFLAGS="-L$ac_python_libdir -l$ac_python_library"
++		else
++			# old way: use libpython from python_configdir
++			ac_python_libdir=`$PYTHON -c \
++			  "from distutils.sysconfig import get_python_lib as f; \
++			  import os; \
++			  print (os.path.join(f(plat_specific=1, standard_lib=1), 'config'));"`
++			PYTHON_LDFLAGS="-L$ac_python_libdir -lpython$ac_python_version"
++		fi
++
++		if test -z "PYTHON_LDFLAGS"; then
++			AC_MSG_ERROR([
++  Cannot determine location of your Python DSO. Please check it was installed with
++  dynamic libraries enabled, or try setting PYTHON_LDFLAGS by hand.
++			])
++		fi
++	fi
++	AC_MSG_RESULT([$PYTHON_LDFLAGS])
++	AC_SUBST([PYTHON_LDFLAGS])
++
++	#
++	# Check for site packages
++	#
++	AC_MSG_CHECKING([for Python site-packages path])
++	if test -z "$PYTHON_SITE_PKG"; then
++		PYTHON_SITE_PKG=`$PYTHON -c "import distutils.sysconfig; \
++			print (distutils.sysconfig.get_python_lib(0,0));"`
++	fi
++	AC_MSG_RESULT([$PYTHON_SITE_PKG])
++	AC_SUBST([PYTHON_SITE_PKG])
++
++	#
++	# libraries which must be linked in when embedding
++	#
++	AC_MSG_CHECKING(python extra libraries)
++	if test -z "$PYTHON_EXTRA_LIBS"; then
++	   PYTHON_EXTRA_LIBS=`$PYTHON -c "import distutils.sysconfig; \
++                conf = distutils.sysconfig.get_config_var; \
++                print (conf('LIBS') + ' ' + conf('SYSLIBS'))"`
++	fi
++	AC_MSG_RESULT([$PYTHON_EXTRA_LIBS])
++	AC_SUBST(PYTHON_EXTRA_LIBS)
++
++	#
++	# linking flags needed when embedding
++	#
++	AC_MSG_CHECKING(python extra linking flags)
++	if test -z "$PYTHON_EXTRA_LDFLAGS"; then
++		PYTHON_EXTRA_LDFLAGS=`$PYTHON -c "import distutils.sysconfig; \
++			conf = distutils.sysconfig.get_config_var; \
++			print (conf('LINKFORSHARED'))"`
++	fi
++	AC_MSG_RESULT([$PYTHON_EXTRA_LDFLAGS])
++	AC_SUBST(PYTHON_EXTRA_LDFLAGS)
++
++	#
++	# final check to see if everything compiles alright
++	#
++	AC_MSG_CHECKING([consistency of all components of python development environment])
++	# save current global flags
++	ac_save_LIBS="$LIBS"
++	ac_save_CPPFLAGS="$CPPFLAGS"
++	LIBS="$ac_save_LIBS $PYTHON_LDFLAGS $PYTHON_EXTRA_LDFLAGS $PYTHON_EXTRA_LIBS"
++	CPPFLAGS="$ac_save_CPPFLAGS $PYTHON_CPPFLAGS"
++	AC_LANG_PUSH([C])
++	AC_LINK_IFELSE([
++		AC_LANG_PROGRAM([[#include <Python.h>]],
++				[[Py_Initialize();]])
++		],[pythonexists=yes],[pythonexists=no])
++	AC_LANG_POP([C])
++	# turn back to default flags
++	CPPFLAGS="$ac_save_CPPFLAGS"
++	LIBS="$ac_save_LIBS"
++
++	AC_MSG_RESULT([$pythonexists])
++
++        if test ! "x$pythonexists" = "xyes"; then
++	   AC_MSG_FAILURE([
++  Could not link test program to Python. Maybe the main Python library has been
++  installed in some non-standard library path. If so, pass it to configure,
++  via the LDFLAGS environment variable.
++  Example: ./configure LDFLAGS="-L/usr/non-standard-path/python/lib"
++  ============================================================================
++   ERROR!
++   You probably have to install the development version of the Python package
++   for your distribution.  The exact name of this package varies among them.
++  ============================================================================
++	   ])
++	  PYTHON_VERSION=""
++	fi
++
++	#
++	# all done!
++	#
++])
+Index: modules/Makefile.am
+===================================================================
+--- modules/Makefile.am	(revision 2308)
++++ modules/Makefile.am	(working copy)
+@@ -15,6 +15,8 @@
+ 	push_button.cc push_button.h \
+ 	encoder.cc encoder.h \
+ 	i2c-eeprom.cc i2c-eeprom.h \
++	momo_slave.cc momo_slave.h \
++	momo_python_slave.cc momo_python_slave.h \
+ 	stimuli.h stimuli.cc \
+ 	ttl.cc ttl.h \
+ 	video.cc video.h \
+Index: modules/gpsim_modules.cc
+===================================================================
+--- modules/gpsim_modules.cc	(revision 2308)
++++ modules/gpsim_modules.cc	(working copy)
+@@ -68,6 +68,8 @@
+ #include "ttl.h"
+ #include "i2c-eeprom.h"
+ #include "i2c.h"
++#include "momo_slave.h"
++#include "momo_python_slave.h"
+ 
+ 
+ Module_Types available_modules[] =
+@@ -128,7 +130,8 @@
+   { {"I2C-EEPROM16k", "e24xx16b"}, I2C_EEPROM_Modules::I2C_EE_Module::construct_16k},
+   { {"I2C-EEPROM256k", "e24xx256"}, I2C_EEPROM_Modules::I2C_EE_Module::construct_256k},
+   { {"i2cmaster", "I2CMaster"},   I2C_Module::I2CMaster::construct },
+-
++  { {"MoMoSlave", "momo_slave"}, MoMoSlaveModule::MoMoSlave::construct },
++  { {"MoMoPythonSlave", "momo_python_slave"}, MoMoSlaveModule::MoMoPythonSlave::construct },
+   // No more modules
+   { {0,0},0}
+ };
+Index: modules/makefile.mingw
+===================================================================
+--- modules/makefile.mingw	(revision 2308)
++++ modules/makefile.mingw	(working copy)
+@@ -39,6 +39,8 @@
+ 	encoder.o		\
+ 	i2c.o			\
+ 	i2c-eeprom.o		\
++	momo_slave.o    \
++	momo_python_slave.o \
+ 	led.o			\
+ 	logic.o			\
+ 	push_button.o		\
+Index: modules/momo_python_slave.cc
+===================================================================
+--- modules/momo_python_slave.cc	(revision 0)
++++ modules/momo_python_slave.cc	(working copy)
+@@ -0,0 +1,232 @@
++#include "momo_python_slave.h"
++#include <string>
++
++namespace MoMoSlaveModule 
++{
++
++size_t MoMoPythonSlave::num_instances = 0;
++
++MoMoPythonSlave::MoMoPythonSlave(const char *name) : MoMoSlave(name), python_module("python_module", "", "path to python module implementing this MIB slave"),
++													 initialized(false), module_object(NULL), handler_object(NULL)
++{
++	addSymbol(&python_module);
++	Py_Initialize();
++	PySys_SetPath("."); //make sure we can find modules in our current working dir
++
++	++num_instances;
++}
++
++MoMoPythonSlave::~MoMoPythonSlave()
++{
++	--num_instances;
++
++	if (module_object)
++		Py_DECREF(module_object);
++
++	if (handler_object)
++		Py_DECREF(handler_object);
++
++	if (num_instances == 0)
++		Py_Finalize();
++}
++
++void MoMoPythonSlave::load_module()
++{
++	std::string module_string = python_module.getVal();
++
++	if (initialized == true)
++		return;
++
++	if (module_string.size() == 0)
++		return;
++
++	PyObject *module_path = PyString_FromString(module_string.c_str());
++	if (module_path == NULL)
++		return;
++
++	PyObject *module_obj = PyImport_Import(module_path);
++
++	Py_DECREF(module_path);
++	if (module_obj == NULL)
++		return;
++
++	PyObject *handler = PyObject_GetAttrString(module_obj, kMoMoSlavePythonFunction);
++	if (handler == NULL || !PyCallable_Check(handler))
++	{
++		Py_DECREF(module_obj);
++		return;
++	}
++
++	module_object = module_obj;
++	handler_object = handler;
++	initialized = true;
++}
++
++Module* MoMoPythonSlave::construct(const char *name)
++{
++	return new MoMoPythonSlave(name);
++}
++
++/*
++ * Check if retval is a valid sequence object and attempt to unpack it into a vector
++ * for sending on the line.  
++ * 
++ * retval should be a sequence of 2 items, with the first an integer (status code)
++ * and the second a sequence that contains the response if there is one.
++ */
++bool MoMoPythonSlave::interpret_response(PyObject *retval, uint8_t *status, std::vector<uint8_t> &output)
++{
++	if (PySequence_Check(retval) == 0)
++	{
++		printf("Invalid response from python code, was not a sequence object\n");
++		return false;
++	}
++
++	if (PySequence_Length(retval) != 2)
++	{
++		printf("Invalid response from python code, was not a sequence of length 2\n");
++		return false;
++	}
++
++	PyObject *status_obj = PySequence_GetItem(retval, 0);
++	PyObject *value_obj = PySequence_GetItem(retval, 1);
++
++	if (!status_obj || !value_obj)
++	{
++		printf("Invalid response from python code, could not get 2 items from return value\n");
++		Py_XDECREF(status_obj);
++		Py_XDECREF(value_obj);
++		return false;
++	}
++
++	if (PyNumber_Check(status_obj) == 0)
++	{
++		printf("Invalid response from python code, first item in tuple not a number.\n");
++		Py_XDECREF(status_obj);
++		Py_XDECREF(value_obj);
++		return false;
++	}
++
++	*status = (uint8_t)PyNumber_AsSsize_t(status_obj, NULL);
++	Py_DECREF(status_obj);
++
++	if (PySequence_Check(value_obj) == 0)
++	{
++		printf("Invalid response from python code, second item is not a sequence.\n");
++		Py_DECREF(value_obj);
++		return false;
++	}
++
++	size_t len = PySequence_Length(value_obj);
++
++	output.resize(len);
++	for (size_t i=0; i<len; ++i)
++	{
++		PyObject *obj = PySequence_GetItem(value_obj, i);
++		if (!obj)
++			continue;
++
++		uint8_t val = PyNumber_AsSsize_t(obj, NULL);
++		output[i] = val;
++
++		Py_DECREF(obj);
++	}
++
++	return true;
++}
++
++MomoResponse MoMoPythonSlave::handle_mib_endpoint(uint8_t feature, uint8_t command, uint8_t type, uint8_t sender, const std::vector<uint8_t> &params)
++{
++	MomoResponse resp;
++	bool 		 success = false;
++	
++	load_module();
++	
++	if (initialized == true)
++	{
++		PyObject *args = PyTuple_New(5);
++		if (args != NULL)
++		{
++			PyObject *feature_obj 	= PyInt_FromLong(feature);
++			PyObject *cmd_obj 		= PyInt_FromLong(command);
++			PyObject *type_obj 		= PyInt_FromLong(type);
++			PyObject *sender_obj 	= PyInt_FromLong(sender);
++			PyObject *params_obj	= PyTuple_New(params.size());
++
++			if (feature_obj && cmd_obj && type_obj && sender_obj && params_obj)
++			{
++				bool can_call = true;
++
++				PyTuple_SetItem(args, 0, feature_obj);
++				feature_obj = NULL;
++
++				PyTuple_SetItem(args, 1, cmd_obj);
++				cmd_obj = NULL;
++
++				PyTuple_SetItem(args, 2, type_obj);
++				type_obj = NULL;
++
++				PyTuple_SetItem(args, 3, sender_obj);
++				sender_obj = NULL;
++
++				//Create the param tuple with bytes
++				for (size_t i=0; i<params.size(); ++i)
++				{
++					PyObject *obj = PyInt_FromLong(params[i]);
++					if (obj == NULL)
++					{
++						can_call = false;
++						break;
++					}
++
++					PyTuple_SetItem(params_obj, i, obj);
++				}
++
++				PyTuple_SetItem(args, 4, params_obj);
++				params_obj = NULL;
++
++				if (can_call)
++				{
++					PyObject *retval = PyObject_CallObject(handler_object, args);
++					if (retval)
++					{
++						if (interpret_response(retval, &resp.status, resp.response))
++							success = true;
++						else
++							printf("Could not interpret response from python code.\n");
++
++						Py_DECREF(retval);
++					}
++				}
++
++				Py_DECREF(args); //tuple holds the refs to all of its contents so they are released as well
++			}
++
++			if (feature_obj)
++				Py_DECREF(feature_obj);
++
++			if (cmd_obj)
++				Py_DECREF(cmd_obj);
++
++			if (type_obj)
++				Py_DECREF(type_obj);
++
++			if (sender_obj)
++				Py_DECREF(sender_obj);
++
++			if (params_obj)
++				Py_DECREF(params_obj);			
++		}
++	}
++
++	if (success == false)
++	{
++		printf("MoMoPythonSlave called but python code could not be loaded or executed successfully.\n");
++		resp.status = 0b00000000;
++		resp.response.clear();
++	}
++	
++	return resp;
++}
++
++};
+\ No newline at end of file
+Index: modules/momo_python_slave.h
+===================================================================
+--- modules/momo_python_slave.h	(revision 0)
++++ modules/momo_python_slave.h	(working copy)
+@@ -0,0 +1,37 @@
++#ifndef __MOMO_PYTHON_SLAVE_H__
++#define __MOMO_PYTHON_SLAVE_H__
++
++#include "momo_slave.h"
++#include <Python.h>
++
++#define kMoMoSlavePythonFunction "handle_mib_endpoint"
++
++namespace MoMoSlaveModule 
++{
++
++class MoMoPythonSlave : public MoMoSlave
++{
++	public:
++	MoMoPythonSlave(const char *name);
++	virtual ~MoMoPythonSlave();
++
++	static Module* construct(const char *name);
++
++	protected:
++	virtual MomoResponse handle_mib_endpoint(uint8_t feature, uint8_t command, uint8_t type, uint8_t sender, const std::vector<uint8_t> &params);
++	static size_t num_instances;
++
++	private:
++	String		python_module;
++	bool		initialized;
++
++	PyObject 	*module_object;
++	PyObject	*handler_object;
++
++	void load_module();
++	bool interpret_response(PyObject *retval, uint8_t *status, std::vector<uint8_t> &output);
++};
++
++};
++
++#endif
+\ No newline at end of file
+Index: modules/momo_slave.cc
+===================================================================
+--- modules/momo_slave.cc	(revision 0)
++++ modules/momo_slave.cc	(working copy)
+@@ -0,0 +1,394 @@
++#include "momo_slave.h"
++#include <string>
++#include <fstream>
++#include <iomanip>
++
++namespace MoMoSlaveModule
++{
++
++class I2CPin : public IO_open_collector
++{
++	public:
++	MoMoSlave *slave;
++
++	I2CPin (MoMoSlave *new_slave, const char *_name): IO_open_collector(_name), slave(new_slave)
++	{
++		bDrivingState = true;
++		bDrivenState = true;
++
++		// Make the pin an output.
++		update_direction(IO_bi_directional::DIR_OUTPUT,true);
++	}
++
++	void setDrivingState(bool new_state) 
++	{
++		bDrivingState = new_state;
++		bDrivenState = new_state;
++
++		if(snode)
++			snode->update();
++	}
++};
++
++
++class I2CSDAPin : public I2CPin
++{
++	public:
++	I2CSDAPin(MoMoSlave *new_slave, const char *_name) : I2CPin (new_slave, _name)
++	{
++
++	}
++
++	void setDrivenState(bool new_dstate) 
++	{
++		bool diff = new_dstate ^ bDrivenState;
++
++		if(slave && diff) 
++		{
++			bDrivenState = new_dstate;
++			slave->new_sda_edge(new_dstate);
++		}
++	}
++};
++
++class I2CSCLPin : public I2CPin
++{
++	public:
++	I2CSCLPin(MoMoSlave *new_slave, const char *_name) : I2CPin (new_slave, _name)
++	{
++
++	}
++
++	void setDrivenState(bool new_dstate) 
++	{
++		bool diff = new_dstate ^ bDrivenState;
++
++		if(slave && diff) 
++		{
++			bDrivenState = new_dstate;
++			slave->new_scl_edge(new_dstate);
++		}
++	}
++};
++
++MoMoSlave::MoMoSlave(const char *new_name) : Module(new_name, "momoslave"), package(2), address_value("address", 0, "I2C Address"),
++											 log_value("logfile", "mib_calls.log", "Path to log file")
++{
++	std::string pin_name;
++
++	pin_name = name() + ".sda";
++	sda = new I2CSDAPin(this, pin_name.c_str());
++
++	pin_name = name() + ".scl";
++	scl = new I2CSCLPin(this, pin_name.c_str());
++
++	package.assign_pin(1, scl);
++	package.assign_pin(2, sda);
++
++	addSymbol(&address_value);
++	addSymbol(&log_value);
++
++	state = kIdleState;
++	send_acknowledge = kNoAcknowledge;
++	ack_value = false;
++}
++
++MoMoSlave::~MoMoSlave()
++{
++	delete sda;
++	delete scl;
++}
++
++Module * MoMoSlave::construct(const char *name)
++{
++	return new MoMoSlave(name);
++}
++
++bool MoMoSlave::is_start_condition(bool sda_edge)
++{
++	if (sda_edge == false && scl->getDrivenState() == true)
++		return true;
++
++	return false;
++}
++
++bool MoMoSlave::is_stop_condition(bool sda_edge)
++{
++	if (sda_edge == true && scl->getDrivenState() == true)
++		return true;
++
++	return false;
++}
++
++void MoMoSlave::begin_reading()
++{
++	current_byte = 0;
++	bits_read = 0;
++}
++
++void MoMoSlave::begin_writing()
++{
++	current_i = 0;
++	bits_written = 0;
++}
++
++/*
++ * Shift in 1 bit and if we have shifted in an entire byte, return true
++ */
++bool MoMoSlave::shift_read_bit()
++{
++	bool value = sda->getDrivenState();
++
++	current_byte <<= 1;
++	current_byte |= int(value);
++
++	++bits_read;
++
++	if (bits_read == 8)
++		return true;
++
++	return false;
++}
++
++void MoMoSlave::acknowledge_byte(bool ack)
++{
++	send_acknowledge = kStartAcknowledge;
++	ack_value = ack;
++}
++
++void MoMoSlave::log_error(const std::string &message)
++{
++	std::ofstream log;
++	std::string logfile = log_value.getVal();
++
++	if (logfile.size() == 0)
++		return;
++
++	log.open(logfile.c_str(), std::ios_base::app);
++
++	log << "INVALID MIB PACKET:" << message << ": ";
++	log_packet(log, data);
++	log << "\n";
++}
++
++void MoMoSlave::log_packet(std::ofstream &log, const std::vector<uint8_t> &data)
++{
++	log << "[";
++	for (size_t i=0; i< data.size(); ++i)
++	{
++		if (i>0)
++			log << ", ";
++
++		log << "0x" << std::hex << int(data[i]);
++	}
++
++	log << "]";
++}
++
++MomoResponse MoMoSlave::handle_mib_endpoint(uint8_t feature, uint8_t command, uint8_t type, uint8_t sender, const std::vector<uint8_t> &params)
++{
++	//Return a busy response
++	MomoResponse resp;
++	resp.status = 0;
++
++	return resp;
++}
++
++/*
++ * Validate that the data we received was appropriate and
++ * if we have a log file specified, log that we received
++ * the packet.  Subclasses can choose to respond in their
++ * own ways.
++ */
++void MoMoSlave::process_mib_packet()
++{
++	uint8_t	sum = 0;
++
++	if (data.size() != kMIBPacketLength)
++	{
++		log_error("Invalid packet length");
++		return;
++	}
++
++	for (size_t i=0; i<data.size(); ++i)
++		sum += data[i];
++
++	//Validate checksum
++	if (sum != 0)
++	{
++		log_error("Invalid packet checksum");
++		return; 
++	}
++
++	//Log reception of packet
++	std::ofstream log;
++	std::string logfile = log_value.getVal();
++
++	//Log that we received this valid mib packet
++	if (logfile.size() > 0)
++	{
++		log.open(logfile.c_str(), std::ios_base::app);
++
++		log << "VALID MIB PACKET: ";
++		log_packet(log, data);
++		log << "\n";
++	}
++
++	uint8_t feature, command, type, sender;
++	feature = data[0];
++	command = data[1];
++	type = data[2];
++	sender = data[3];
++
++	//Copy over the parameters and call the handler function
++	std::vector<uint8_t> params;
++	for (int i=4; i < (kMIBPacketLength-1); ++i)
++		params.push_back(data[i]);
++
++	MomoResponse resp;
++	resp = handle_mib_endpoint(feature, command, type, sender, params);
++
++	//Copy the response back
++	resp.response.resize(kMIBDataLength);
++	data.resize(kMIBPacketLength);
++
++	data[0] = resp.status;
++	data[1] = (~resp.status) + 1;
++	data[2] = 0;
++	data[3] = (uint8_t)resp.response.size();
++
++	sum = data[3];
++	for (size_t i=0; i<resp.response.size(); ++i)
++	{
++		sum += resp.response[i];
++		data[i+4] = resp.response[i];
++	}
++
++	data[kMIBPacketLength - 1] = (~sum) + 1;
++
++	//Log that we received this valid mib packet
++	if (logfile.size() > 0)
++	{
++		log << "RESPONSE: 0x" << std::hex << int(resp.status) << ": ";
++		log_packet(log, data);
++		log << "\n"; 
++	}
++}
++
++void MoMoSlave::new_scl_edge(bool value)
++{
++	if (value && (state == kReadingAddress || state == kReadingData) && send_acknowledge == kNoAcknowledge)
++	{
++		bool done_reading = shift_read_bit();
++		
++		if (done_reading)
++		{
++			if (state == kReadingAddress)
++			{
++				/*
++				 * Only acknowledge and respond to queries send to our address.  
++				 * If we are being written to, just start to clock in the bytes 
++				 * that will form the MIB packet and header.  
++				 * 
++				 * If we are being read from, first execute the command
++				 * contained in the current MIB buffer and then get ready to send
++				 * the response.
++				 */
++
++				uint8_t send_addr = current_byte >> 1;
++				bool	reading   = (current_byte & 1);
++
++				if (send_addr != address_value.getVal())
++				{
++					acknowledge_byte(false);
++					state = kIdleState;
++				}
++				else if (reading == false)
++				{
++					data.clear();
++					acknowledge_byte(true);
++					begin_reading();
++					state = kReadingData;
++					first_read = true;
++				}
++				else
++				{
++					acknowledge_byte(true);
++
++					//Only call the handler the first time we are asked for data since subsequent calls
++					//are only to try to get the data that we've already read
++					if (first_read)
++					{
++						process_mib_packet();
++						first_read = false;
++					}
++
++					state = kWritingData;
++					begin_writing();
++				}
++			}
++			else if (state == kReadingData)
++			{
++				acknowledge_byte(true);
++				data.push_back(current_byte);
++				begin_reading();
++			}
++		}
++	}
++
++	//Send appropriate acknowledge bit if required
++	if (value == false && send_acknowledge == kStartAcknowledge)
++	{
++		sda->setDrivingState(!ack_value);
++		send_acknowledge = kFinishAcknowledge;
++	}
++	else if (value == false && send_acknowledge == kFinishAcknowledge)
++	{
++		sda->setDrivingState(true);
++		send_acknowledge = kNoAcknowledge;
++	}
++
++	/* If we're responding, clock out data on falling clock edges
++	 * We only clock out a data bit on the falling edge of a clock pulse under the following conditions
++	 * - we are asked to write data (i.e. the master is reading frmo us)
++	 * - the bit is bit 0-7 of the 9-bit words (the last bit is for the master to acknowledge)
++	 * - we are writing the first byte after the address or the master ACKed our last byte.
++	 *	 if the master NACKED our last byte then we must not write another bit so as to not lock the bus.
++	 */
++	if (value == false && state == kWritingData && send_acknowledge == kNoAcknowledge)
++	{
++		//Make sure that if we're starting a new byte, the last one wasn't NACKed
++		if (!(current_i > 0 && bits_written == 0 && sda->getDrivenState() == true))
++		{
++			uint8_t byteval = 0;
++			if (current_i < data.size())
++				byteval = data[current_i];
++
++			//Data is clocked out MSB first
++			bool bit = (byteval & (1 << (7-bits_written)));
++			sda->setDrivingState(bit);
++
++			++bits_written;
++			if (bits_written == 8)
++			{
++				acknowledge_byte(false); //Give the bus to the master to acknowledge the byte;
++				bits_written = 0;
++				++current_i;
++			}
++		}
++	}
++
++}
++
++void MoMoSlave::new_sda_edge(bool value)
++{
++	if (is_start_condition(value))
++	{
++		state = kReadingAddress;
++		begin_reading();
++	}
++	else if (is_stop_condition(value))
++		state = kIdleState;
++}
++
++};
+\ No newline at end of file
+Index: modules/momo_slave.h
+===================================================================
+--- modules/momo_slave.h	(revision 0)
++++ modules/momo_slave.h	(working copy)
+@@ -0,0 +1,99 @@
++#ifndef __MOMO_SLAVE_H__
++#define __MOMO_SLAVE_H__
++
++#define kMIBHeaderLength	4
++#define kMIBDataLength		20
++#define kMIBPacketLength	(kMIBHeaderLength + kMIBDataLength + 1)
++
++/* IN_MODULE should be defined for modules */
++#define IN_MODULE
++
++#include "../src/modules.h"
++#include "../src/ioports.h"
++#include "../src/stimuli.h"
++#include "../src/packages.h"
++#include "../src/value.h"
++#include <stdint.h>
++#include <vector>
++#include <fstream>
++
++namespace MoMoSlaveModule
++{
++
++//Forward Declarations
++class I2CSDAPin;
++class I2CSCLPin;
++
++enum MoMoSlaveState
++{
++	kIdleState,
++	kReadingAddress,
++	kReadingData,
++	kWritingData
++};
++
++enum AcknowledgeState
++{
++	kStartAcknowledge,
++	kFinishAcknowledge,
++	kNoAcknowledge
++};
++
++struct MomoResponse
++{
++	uint8_t				 status;
++	std::vector<uint8_t> response;
++};
++
++class MoMoSlave : public Module 
++{
++	public:
++	MoMoSlave(const char *name);
++	virtual ~MoMoSlave();
++
++	static Module * construct(const char *name);
++
++	void new_sda_edge(bool value);
++	void new_scl_edge(bool value);
++
++	private:
++	Package 			package;
++	I2CSCLPin			*scl;
++	I2CSDAPin			*sda;
++
++	Integer				address_value;
++	String				log_value;
++
++	uint8_t				current_byte;
++	uint8_t				bits_read;
++
++	uint8_t				bits_written;
++	size_t				current_i;
++
++	AcknowledgeState	send_acknowledge;
++	bool				ack_value;
++	MoMoSlaveState		state;
++
++	bool				first_read;
++
++	std::vector<uint8_t> data;
++
++	bool is_stop_condition(bool sda_edge);
++	bool is_start_condition(bool sda_edge);
++	void acknowledge_byte(bool ack);
++
++	void begin_reading();
++	void begin_writing();
++	bool shift_read_bit();
++
++	protected:
++	virtual void process_mib_packet();
++	virtual MomoResponse handle_mib_endpoint(uint8_t feature, uint8_t command, uint8_t type, uint8_t sender, const std::vector<uint8_t> &params);
++
++	void log_error(const std::string &message);
++	void log_packet(std::ofstream &log, const std::vector<uint8_t> &data);
++};
++
++};
++
++#endif
+\ No newline at end of file
 Index: src/14bit-hexdecode.cc
 ===================================================================
---- src/14bit-hexdecode.cc	(revision 2299)
+--- src/14bit-hexdecode.cc	(revision 2308)
 +++ src/14bit-hexdecode.cc	(working copy)
 @@ -77,9 +77,6 @@
    { 0x3f00,  0x0400,  IORWF::construct },
@@ -14,7 +1204,7 @@ Index: src/14bit-hexdecode.cc
    { 0x3fff,  0x0020,  NOP::construct },
 Index: src/14bit-instructions.h
 ===================================================================
---- src/14bit-instructions.h	(revision 2299)
+--- src/14bit-instructions.h	(revision 2308)
 +++ src/14bit-instructions.h	(working copy)
 @@ -94,7 +94,6 @@
  class BRW : public instruction
@@ -24,73 +1214,9 @@ Index: src/14bit-instructions.h
    unsigned int absolute_destination_index;
  
    BRW(Processor *new_cpu, unsigned int new_opcode, unsigned int address);
-Index: src/14bit-processors.cc
-===================================================================
---- src/14bit-processors.cc	(revision 2299)
-+++ src/14bit-processors.cc	(working copy)
-@@ -497,6 +497,24 @@
-     pic_processor::enter_sleep();
- }
- 
-+/*
-+ * BUGFIX: there are 4 possible states for the watchdog timer on the
-+ * enhanced midrange cores, 0b01 in wdt_flag means that the watchdog
-+ * timer is under software control, so it can be enabled during sleep
-+ * if SWDTEN is enabled before putting the chip to sleep.  
-+ * Make sure that in that case we properly wake from sleep rather than
-+ * resetting.
-+ */
-+bool _14bit_e_processor::exit_wdt_sleep() 
-+{
-+  if (wdt_flag & 2)
-+    return true;
-+  else if (wdt_flag == 0b01 && wdt.isEnabled())
-+    return true;
-+
-+  return false;
-+}
-+
-  //-------------------------------------------------------------------
- void _14bit_e_processor::exit_sleep()
- {
-Index: src/14bit-processors.h
-===================================================================
---- src/14bit-processors.h	(revision 2299)
-+++ src/14bit-processors.h	(working copy)
-@@ -211,7 +211,7 @@
-   virtual void create_symbols();
-   virtual void create_sfr_map();
-   virtual void interrupt();
--  virtual bool exit_wdt_sleep() {return wdt_flag & 2;}
-+  virtual bool exit_wdt_sleep();
-   virtual void enter_sleep();
-   virtual void exit_sleep();
-   virtual void reset(RESET_TYPE r);
-Index: src/14bit-registers.cc
-===================================================================
---- src/14bit-registers.cc	(revision 2299)
-+++ src/14bit-registers.cc	(working copy)
-@@ -325,7 +325,7 @@
- 	break;
- 
-     case HF:
--	mask = OSCSTAT::HFIOFL | OSCSTAT::HFIOFR;
-+	mask = OSCSTAT::HFIOFL | OSCSTAT::HFIOFR | OSCSTAT::HFIOFS; //BUGFIX: add HFIOFS to set stable flag (oscillator within 0.5%)
- 	break;
- 
-     case PLL:
-@@ -1013,7 +1013,7 @@
-     else if (fsr_adj >= 0x2000 && fsr_adj < 0x29b0) // Linear GPR region
-     {
- 	unsigned int bank = (fsr_adj & 0xfff) / 0x50;
--	unsigned int low_bits = ((fsr_adj & 0xff) % 0x50) + 0x20;
-+	unsigned int low_bits = ((fsr_adj & 0xfff) % 0x50) + 0x20;
-         return(cpu_pic->registers[bank * 0x80 + low_bits]->get()); 
-     }
-     else if (fsr_adj >= 0x8000 && fsr_adj <= 0xffff) // program memory
 Index: src/Makefile.am
 ===================================================================
---- src/Makefile.am	(revision 2299)
+--- src/Makefile.am	(revision 2308)
 +++ src/Makefile.am	(working copy)
 @@ -44,6 +44,7 @@
  	modules.cc \
@@ -110,7 +1236,7 @@ Index: src/Makefile.am
  	p16x6x.h \
 Index: src/a2d_v2.h
 ===================================================================
---- src/a2d_v2.h	(revision 2299)
+--- src/a2d_v2.h	(revision 2308)
 +++ src/a2d_v2.h	(working copy)
 @@ -22,7 +22,7 @@
  // For A2D modules which have ADCON0, ADCON1 and ADCON2 registers
@@ -123,7 +1249,7 @@ Index: src/a2d_v2.h
  #include "trigger.h"
 Index: src/makefile.mingw
 ===================================================================
---- src/makefile.mingw	(revision 2299)
+--- src/makefile.mingw	(revision 2308)
 +++ src/makefile.mingw	(working copy)
 @@ -71,6 +71,7 @@
  	operator.o		\
@@ -295,12 +1421,11 @@ Index: src/p16f1847.cc
 +  package->assign_pin(15, 0);
 +  package->assign_pin(16, 0);
 +}
-\ No newline at end of file
 Index: src/p16f1847.h
 ===================================================================
 --- src/p16f1847.h	(revision 0)
 +++ src/p16f1847.h	(working copy)
-@@ -0,0 +1,44 @@
+@@ -0,0 +1,126 @@
 +#ifndef __p16f1847__h__
 +#define __p16f1847__h__
 +
@@ -345,11 +1470,93 @@ Index: src/p16f1847.h
 +};
 +
 +#endif
++#ifndef __p16f1847__h__
++#define __p16f1847__h__
++
++#include "p1xf1xxx.h"
++
++/*
++ * PIC16F1847 - Enhanced Midrange Microcontroller with 1K RAM, 8K Flash and 256 bytes of EEPROM
++ *
++ * The processor is a larger version of the 16f1823 family (implemented in p1xf1xxx.{h,cc})
++ */
++
++class P16F1847 : public P12F1822
++{
++public:
++  //Port B with interrupt on change
++  PicPortIOCRegister *m_portb;
++  PicTrisRegister    *m_trisb;
++  PicLatchRegister   *m_latb;
++
++  IOC                *m_iocbp;
++  IOC                *m_iocbn;
++  IOCxF              *m_iocbf;
++
++  WPU                *m_wpub;
++  ANSEL_P            m_anselb;
++
++  virtual unsigned int program_memory_size() const {return 8192;}
++  virtual unsigned int register_memory_size() const {return 0x1000;}
++  virtual PROCESSOR_TYPE isa() {return _P16F1847_;}
++
++  virtual void create(int ram_top, int eeprom_size);
++  virtual void create_iopin_map();
++  virtual void create_sfr_map();
++
++   P16F1847(const char *_name=0, const char *desc=0);
++  ~P16F1847();
++
++  static Processor *construct(const char *name);
++
++private:
++  void create_ports();
++};
++
++#endif
++#ifndef __p16f1847__h__
++#define __p16f1847__h__
++
++#include "p1xf1xxx.h"
++
++/*
++ * PIC16F1847 - Enhanced Midrange Microcontroller with 1K RAM, 8K Flash and 256 bytes of EEPROM
++ *
++ * The processor is a larger version of the 16f1823 family (implemented in p1xf1xxx.{h,cc})
++ */
++
++class P16F1847 : public P12F1822
++{
++public:
++  PicPortBRegister   *m_portb;
++  PicTrisRegister    *m_trisb;
++  PicLatchRegister   *m_latb;
++  WPU                *m_wpub;
++  ANSEL_P            m_anselb;
++
++  virtual unsigned int program_memory_size() const {return 8192;}
++  virtual unsigned int register_memory_size() const {return 0x1000;}
++  virtual PROCESSOR_TYPE isa() {return _P16F1847_;}
++
++  virtual void create(int ram_top, int eeprom_size);
++  virtual void create_iopin_map();
++  virtual void create_sfr_map();
++
++   P16F1847(const char *_name=0, const char *desc=0);
++  ~P16F1847();
++
++  static Processor *construct(const char *name);
++
++private:
++  void create_ports();
++};
++
++#endif
 Index: src/p1xf1xxx.cc
 ===================================================================
---- src/p1xf1xxx.cc	(revision 2299)
+--- src/p1xf1xxx.cc	(revision 2308)
 +++ src/p1xf1xxx.cc	(working copy)
-@@ -463,7 +463,6 @@
+@@ -464,7 +464,6 @@
  
  
    //add_sfr_register(indf,    0x00);
@@ -357,7 +1564,7 @@ Index: src/p1xf1xxx.cc
    add_sfr_register(m_porta, 0x0c);
    add_sfr_register(pir1,    0x11, RegisterValue(0,0),"pir1");
    add_sfr_register(pir2,    0x12, RegisterValue(0,0),"pir2");
-@@ -719,6 +718,8 @@
+@@ -720,6 +719,8 @@
    e->get_reg_eecon1()->set_valid_bits(0xff);
  
    add_file_registers(0x20, ram_top, 0x00);
@@ -366,7 +1573,7 @@ Index: src/p1xf1xxx.cc
    _14bit_e_processor::create_sfr_map();
    P12F1822::create_sfr_map();
    // Set DeviceID
-@@ -1774,6 +1775,8 @@
+@@ -1776,6 +1777,8 @@
    e->get_reg_eecon1()->set_valid_bits(0xff);
  
    add_file_registers(0x20, ram_top, 0x00);
@@ -377,7 +1584,7 @@ Index: src/p1xf1xxx.cc
    P16F1823::create_sfr_map();
 Index: src/p1xf1xxx.h
 ===================================================================
---- src/p1xf1xxx.h	(revision 2299)
+--- src/p1xf1xxx.h	(revision 2308)
 +++ src/p1xf1xxx.h	(working copy)
 @@ -41,8 +41,6 @@
  SSP1_MODULE 	*m_ssp;
@@ -404,9 +1611,9 @@ Index: src/p1xf1xxx.h
  #endif //__P1xF1xxx_H__
 Index: src/pic-instructions.cc
 ===================================================================
---- src/pic-instructions.cc	(revision 2299)
+--- src/pic-instructions.cc	(revision 2308)
 +++ src/pic-instructions.cc	(working copy)
-@@ -753,15 +753,14 @@
+@@ -753,8 +753,7 @@
  BRW::BRW (Processor *new_cpu, unsigned int new_opcode, unsigned int address)
    : instruction(new_cpu, new_opcode, address)
  {
@@ -416,6 +1623,7 @@ Index: src/pic-instructions.cc
  
    new_name("brw");
  }
+@@ -761,7 +760,7 @@
  
  void BRW::execute()
  {
@@ -435,7 +1643,7 @@ Index: src/pic-instructions.cc
    return(return_str);
 Index: src/pic-processor.cc
 ===================================================================
---- src/pic-processor.cc	(revision 2299)
+--- src/pic-processor.cc	(revision 2308)
 +++ src/pic-processor.cc	(working copy)
 @@ -55,6 +55,7 @@
  #include "p12x.h"
@@ -457,7 +1665,7 @@ Index: src/pic-processor.cc
                                "__17C7xx", "pic17c7xx",  "p17c7xx", "17c7xx");
 Index: src/pic-processor.h
 ===================================================================
---- src/pic-processor.h	(revision 2299)
+--- src/pic-processor.h	(revision 2308)
 +++ src/pic-processor.h	(working copy)
 @@ -125,6 +125,7 @@
    _P16F886_,
@@ -467,7 +1675,7 @@ Index: src/pic-processor.h
    _P16F1788_,
    _P16F1789_,
    _P17C7xx_,
-@@ -260,6 +261,8 @@
+@@ -261,6 +262,8 @@
    void set_breakpoint(unsigned int bpn);
    bool hasBreak() { return breakpoint != 0;}
  

@@ -1,14 +1,10 @@
 
 #include <xc.inc>
-#define __DEFINES_ONLY__
-#include "mib_definitions.h"
 #define _DEFINES_ONLY
 #include "bootloader.h"
 #undef  __DEFINES_ONLY__
 #include "i2c_defines.h"
 #include "asm_locations.h"
-#include "constants.h"
-
 
 ASM_INCLUDE_GLOBALS()
 
