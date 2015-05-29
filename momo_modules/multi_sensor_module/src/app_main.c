@@ -156,7 +156,13 @@ void initialize(void)
 
 void main()
 {
+	initialize();
 
+	while(1)
+	{
+		task();
+		asm("sleep");
+	}
 }
 
 uint8_t check_v1(uint8_t length)

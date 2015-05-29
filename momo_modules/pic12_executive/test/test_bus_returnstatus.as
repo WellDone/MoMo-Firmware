@@ -1,6 +1,7 @@
 ;Name: test_bus_returnstatus
 ;Targets: all
 ;Type: executive
+;Additional: support_basic_mib.mib
 ;Description:Test to ensure that i2c_append_checksum works and that
 ;bus_slave_setreturn works correctly
 #include <xc.inc>

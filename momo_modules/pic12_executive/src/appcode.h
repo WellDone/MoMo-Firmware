@@ -16,4 +16,10 @@ extern void call_app_task();
 
 #define sleep()  				asm("sleep")
 
+#define goto_address_r(address)	asm("goto " # address)
+#define goto_address(address)	goto_address_r(address)
+
+#define goto_application()		goto_address(kApplicationAddress)
+#define goto_interrupt()		goto_address(kApplicationAddress+4)
+
 #endif
