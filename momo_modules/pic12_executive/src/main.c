@@ -59,10 +59,7 @@ void interrupt service_isr() {
         }
     } 
     else if (status.valid_app)
-    {
-        call_app_interrupt();
-        reset_page();
-    }
+        goto_interrupt();
 }
 
 void main() 
@@ -91,18 +88,8 @@ void main()
     status.dirty_reset = 1;
     
     if (status.valid_app)
-    {
-        call_app_init();
-        reset_page();
+        goto_application();
 
-        while(1)
-        {
-            call_app_task();
-            reset_page();
-
-            sleep();
-        }
-    }
     //Otherwise wait forever for new firmware to be downloaded
     while (1)
         sleep();

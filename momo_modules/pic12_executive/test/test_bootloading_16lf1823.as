@@ -6,7 +6,6 @@
 ;Attach Slave:8, responder_registration.py
 ;Attach Slave:15, responder_bootload.py
 ;Additional: support_bus_slave_mib.mib
-;Checkpoints: _main=0
 ;Copy: support_bootload_16lf1823.bin, support_bootload.bin
 ;Description:Test that the executive can bootload new application firmware
 ;correctly, validate that firmware's checksum and jump into it.  The firmware

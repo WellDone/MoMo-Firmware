@@ -1,5 +1,6 @@
 ;Name: test_flash_write
 ;Type: executive
+;Additional: support_basic_mib.mib
 ;Description: Test to ensure that flash_write_row works correctly
 
 #include <xc.inc>

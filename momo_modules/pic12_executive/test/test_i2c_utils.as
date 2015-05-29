@@ -1,6 +1,7 @@
 ;Name: test_i2c_utils
 ;Targets: all
 ;Type: executive
+;Additional: support_basic_mib.mib
 ;Description: Test to ensure that i2c utility functions
 ;are working correctly
 
