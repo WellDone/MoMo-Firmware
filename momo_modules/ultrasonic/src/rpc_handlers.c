@@ -2,8 +2,10 @@
 #include "protocol_defines.h"
 #include "platform.h"
 #include "communication.h"
+#include "measure.h"
 
 extern uint8_t test_level_measurement;
+extern uint8_t take_delta_tof_measurement;
 
 uint8_t set_power(uint8_t length)
 {
@@ -75,4 +77,17 @@ uint8_t perform_test_level_measurement(uint8_t length)
 	test_level_measurement = 1;
 	
 	return kAsynchronousResponseStatus;
+}
+
+uint8_t take_delta_tof(uint8_t length)
+{
+	take_delta_tof_measurement = 1;
+	return kAsynchronousResponseStatus;
+}
+
+uint8_t set_measurement_parameters(uint8_t length)
+{
+	set_parameters(mib_buffer[0], mib_buffer[2], mib_buffer[4], *(uint16_t *)(&mib_buffer[6]));
+
+	return kNoErrorStatus;
 }

@@ -18,6 +18,11 @@ void tdc7200_setstopmask(uint16_t mask)
 	tdc7200_registers.stop_mask = mask;
 }
 
+void tdc7200_setaverages(uint8_t averages)
+{
+	tdc7200_registers.config2.avg_cycles = averages;
+}
+
 static uint8_t tdc7200_push()
 {
 	tdc7200_write8(kTDC7200_Config2Reg, tdc7200_registers.config2.value);
@@ -57,6 +62,11 @@ uint8_t tdc7200_start()
 	return tdc7200_push();
 }
 
+void tdc7200_trigger()
+{
+	tdc7200_write8(kTDC7200_Config1Reg, tdc7200_registers.config1.value);
+}
+
 void tdc7200_setstops(uint8_t stops)
 {
 	tdc7200_registers.config2.num_stops = stops;
@@ -78,12 +88,12 @@ uint32_t tdc7200_calibration()
 	return lsb; //lsb is the time in picoseconds of each ring oscillator cycle
 }
 
-int32_t tdc7200_tof(uint8_t index)
+int32_t tdc7200_tof(uint8_t index, uint8_t average_cycles)
 {
-	int32_t lsb = (int32_t)tdc7200_calibration();
-	int32_t time1 = (int32_t)tdc7200_read24(kTDC7200_Time1);
-	int32_t timeN = (int32_t)tdc7200_read24(kTDC7200_Time1 + 2 + (index << 1));
-	int32_t clockN = (int32_t)tdc7200_read24(kTDC7200_Clock1 + (index << 1));
+	uint32_t lsb = (int32_t)tdc7200_calibration();
+	uint32_t time1 = (int32_t)tdc7200_read24(kTDC7200_Time1);
+	uint32_t timeN = (int32_t)tdc7200_read24(kTDC7200_Time1 + 2 + (index << 1));
+	uint32_t clockN = (int32_t)tdc7200_read24(kTDC7200_Clock1 + (index << 1));
 
-	return 125000LL*clockN + (time1 - timeN)*lsb;
+	return 125000ULL*(clockN >> average_cycles) + (time1 - timeN)*lsb;
 }

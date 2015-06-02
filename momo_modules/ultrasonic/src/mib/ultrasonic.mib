@@ -10,3 +10,5 @@ APIVersion = "1.1";
 28164: _write_tdc1000_register(2, no);
 28165: _read_tdc7200_register24(1, no);
 28166: _perform_test_level_measurement(4, no);
+28167: _set_measurement_parameters(4, no);
+28168: _take_delta_tof(1, no);

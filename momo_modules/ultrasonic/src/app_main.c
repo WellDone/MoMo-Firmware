@@ -10,11 +10,14 @@
 #include "communication.h"
 #include "tdc1000.h"
 #include "tdc7200.h"
+#include "measure.h"
 #include <stdint.h>
 
 static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index);
 
 uint8_t test_level_measurement;
+uint8_t take_delta_tof_measurement;
+
 
 void task(void)
 { 
@@ -23,11 +26,12 @@ void task(void)
 		uint8_t return_length = 1;
 		uint8_t retval;
 
+		enable_power();
 		tdc1000_setgain(mib_buffer[4], mib_buffer[6], mib_buffer[8]);
 		tdc1000_setexcitation(mib_buffer[0], mib_buffer[2]);
 		tdc1000_setmode(mib_buffer[12]);
 		tdc1000_setchannel(mib_buffer[14]);
-		tdc1000_setstarttime(255);
+		//tdc1000_setstarttime(255);
 		
 		if (tdc1000_push() == 0)
 		{	
@@ -39,14 +43,22 @@ void task(void)
 				while (PIN(INT7200) && PIN(ERR1000))
 					;
 
-				copy_tof_to_mib(0, 0);
-				copy_tof_to_mib(1, 4);
-				copy_tof_to_mib(2, 8);
-				copy_tof_to_mib(3, 12);
-				copy_tof_to_mib(4, 16);
+				if (PIN(INT7200) == 0)
+				{
+					copy_tof_to_mib(0, 0);
+					copy_tof_to_mib(1, 4);
+					copy_tof_to_mib(2, 8);
+					copy_tof_to_mib(3, 12);
+					copy_tof_to_mib(4, 16);
 
-
-				return_length = 20;
+					return_length = 20;
+				}
+				else
+				{
+					mib_buffer[0] = tdc1000_readerror().value;
+					mib_buffer[2] = tdc7200_read8(kTDC7200_INTStatusReg);
+					return_length = 2;
+				}
 			}
 			else
 				mib_buffer[0] = retval;
@@ -56,13 +68,29 @@ void task(void)
 
 		test_level_measurement = 0;
 
+		disable_power();
 		bus_master_async_callback(return_length);
+	}
+
+	if (take_delta_tof_measurement)
+	{
+		int32_t tof;
+
+		tof = measure_delta_tof();
+
+		mib_buffer[0 + 0] = (tof >> 0) & 0xFF;
+		mib_buffer[0 + 1] = (tof >> 8) & 0xFF;
+		mib_buffer[0 + 2] = (tof >> 16) & 0xFF;
+		mib_buffer[0 + 3] = (tof >> 24) & 0xFF;
+
+		take_delta_tof_measurement = 0;
+		bus_master_async_callback(4);
 	}
 }
 
 static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index)
 {
-	int32_t tof = tdc7200_tof(tof_index);
+	int32_t tof = tdc7200_tof(tof_index, 0);
 
 	mib_buffer[mib_index + 0] = (tof >> 0) & 0xFF;
 	mib_buffer[mib_index + 1] = (tof >> 8) & 0xFF;
@@ -127,6 +155,7 @@ void initialize(void)
 	tdc7200_init();
 
 	test_level_measurement = 0;
+	take_delta_tof_measurement = 0;
 }
 
 void main(void)

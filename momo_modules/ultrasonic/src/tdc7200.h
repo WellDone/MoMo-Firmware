@@ -109,12 +109,13 @@ typedef struct
 
 void 		tdc7200_init();
 uint8_t 	tdc7200_start();
+void		tdc7200_trigger();
 
 //Data Fetching
 uint32_t 	tdc7200_calibration();
-int32_t 	tdc7200_tof(uint8_t index);
+int32_t 	tdc7200_tof(uint8_t index, uint8_t average_cycles);
 
 void 		tdc7200_setstops(uint8_t stops);
 void		tdc7200_setstopmask(uint16_t mask);
-
+void		tdc7200_setaverages(uint8_t averages);
 #endif
