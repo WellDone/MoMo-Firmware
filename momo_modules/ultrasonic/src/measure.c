@@ -3,21 +3,26 @@
 #include "tdc7200.h"
 #include "communication.h"
 #include <xc.h>
+#include <stddef.h>
 #include "port.h"
 
-#define kMedianWindowSize	11
-#define kScratchSize		100
+#define kMedianWindowSize			11
+#define kNumberOfTriggerSettings	128
+#define kMaximumTOFDelta			500000LL
 
 int32_t measurements[kMedianWindowSize];
-int32_t scratch[100];
 
 /*
  *  The TDC1000 has 2 settings for qualifying echos for tof measurements. The echo must:
  *   - exceed a fixed theshold voltage
- *	 - after being amplified by a certain amount
+ *	 - after being amplified by a certain amount of decibels
+ *
+ *  This array contains an ordered list of all of the corresponding voltages that can be achieved
+ *  by combining a gain setting with a threshold voltage.  The gains are listed in db and the thresholds
+ *  using their threshold index.
  */
 
-const trigger_conditions triggers[128] = 
+const trigger_condition triggers[kNumberOfTriggerSettings] = 
 {
 	{41, 0}, {38, 0}, {41, 1}, {35, 0}, {38, 1}, {41, 2}, {32, 0}, {35, 1}, {38, 2}, {41, 3}, {29, 0}, {32, 1}, {35, 2},
 	{38, 3}, {26, 0}, {29, 1}, {32, 2}, {41, 4}, {35, 3}, {23, 0}, {26, 1}, {29, 2}, {38, 4}, {21, 0}, {32, 3}, {20, 0}, 
@@ -29,7 +34,14 @@ const trigger_conditions triggers[128] =
 	{23, 6}, {12, 4}, {6, 3}, {21, 6}, {15, 5}, {0, 2}, {26, 7}, {20, 6}, {9, 4}, {3, 3}, {18, 6}, {12, 5}, {23, 7}, {6, 4}, 
 	{0, 3}, {21, 7}, {15, 6}, {9, 5}, {20, 7}, {3, 4}, {18, 7}, {12, 6}, {6, 5}, {0, 4}, {15, 7}, {9, 6}, {3, 5}, {12, 7}, 
 	{6, 6}, {0, 5}, {9, 7}, {3, 6}, {6, 7}, {0, 6}, {3, 7}, {0, 7}
-}
+};
+
+//Trigger levels in nanovolts
+const uint32_t trigger_levels[8] = {35000000, 50000000, 75000000, 125000000, 220000000, 410000000, 775000000, 1500000000};
+
+//Gain levels in V/V encoded as fixed point .3 decimal digits (so * 1000)
+//So integer division between a trigger_level and a gain_level produces a trigger voltage in microvolts
+const uint32_t gain_levels[16] = {1000, 1412, 1995, 2818, 3981, 5623, 7943, 10000, 11220, 14125, 19952, 28183, 39810, 56234, 79432, 112201};
 
 void set_parameters(uint8_t gain, uint8_t threshold, uint8_t pulses, uint16_t mask)
 {
@@ -48,9 +60,64 @@ void set_parameters(uint8_t gain, uint8_t threshold, uint8_t pulses, uint16_t ma
 /*
  * Given a situation where the probes are not connected to each other acoustically
  * so there should be no signal, attempt to figure out where the noise floor is.
+ *
+ * Find the noise floor by starting with the highest trigger voltage (highest threshold with lowest gain)
+ * and then decreasing the trigger until the device triggers without any signal present, indicating that
+ * noise is causing the triggering.
+ *
+ * TODO: 
+ *	- 	We can use a mask with a large mask value to make this work even with a signal present, at the cost
+ *  	of a longer measurement time.  This would require leaving the TDC1000 on forever without a timeout.
+ *
+ *  - 	We should also not hardcode the number of pulses here so that we can take that from a configuration
+ *		setting.
  */
 
-uint32_t noise_floor()
+uint8_t noise_floor_index()
+{
+	int8_t i = kNumberOfTriggerSettings-1;
+	trigger_condition trigger;
+	uint8_t gain_index = 0;
+
+	for (i=kNumberOfTriggerSettings-1; i>=0; --i)
+	{
+		UltrasoundError err;
+
+		trigger = triggers[i];
+		set_parameters(trigger.gain, trigger.threshold, 8, 64);	//FIXME: Don't hardcode the number of pulses and the mask here, take it from a previous config
+
+		err = measure_delta_tof(NULL);
+		if (err != kNoSignalError)
+			break;
+	}
+
+	return i;
+}
+
+uint32_t noise_floor_voltage()
+{
+	uint8_t index = noise_floor_index();	
+	trigger_condition trigger = triggers[index];
+	uint8_t gain_index = 0;
+
+	//Figure out the index that corresponds to this gain setting
+	if (trigger.gain > 20)
+	{
+		trigger.gain -= 20;
+		gain_index = 8;
+	}
+
+	gain_index += trigger.gain / 3;
+
+	return trigger_levels[trigger.threshold] / gain_levels[gain_index];
+}
+
+/*
+ * Find the combination of trigger voltage and gain that minimizes the standard
+ * deviation of a delta TOF measurement given the stop mask that we have
+ */
+
+trigger_condition find_optimal_settings(uint16_t mask)
 {
 
 }
@@ -60,11 +127,12 @@ uint32_t noise_floor()
  * fixed size median filter
  */
 
-measure_delta_tof(int32_t *out)
+UltrasoundError measure_delta_tof(int32_t *out)
 {
+	uint8_t i;
 	int32_t tof1, tof2;
 	int32_t delta = 0;
-	uint8_t i;
+	uint8_t error_code = kNoUltrasoundError;
 
 	tdc7200_setaverages(0);
 	tdc1000_prepare_deltatof(0);
@@ -84,13 +152,37 @@ measure_delta_tof(int32_t *out)
 		tof2 = tdc7200_tof(0, 0);
 
 		measurements[i] = tof2 - tof1;
+
+		if (tof1 == 0 && tof2 == 0)
+		{
+			error_code = kNoSignalError;
+			break;
+		}
+		else if (tof1 == 0 || tof2 == 0)
+		{
+			error_code = kWeakSignalError;
+			break;
+		}
+		else if ((tof2 - tof1) > kMaximumTOFDelta || (tof2 - tof1) < -kMaximumTOFDelta)
+		{
+			error_code = kHighNoiseError;
+			break;
+		}
 	}
 
 	disable_power();
 
-	//Median filter 
+	if (error_code != kNoUltrasoundError)
+		return error_code;
+
+	if (out == NULL)
+		return kNoUltrasoundError;
+
+	//Median filter and output the result
 	sort_measurements();
-	return measurements[kMedianWindowSize/2];
+	*out = measurements[kMedianWindowSize/2];
+
+	return kNoUltrasoundError;
 }
 
 uint8_t take_measurement()

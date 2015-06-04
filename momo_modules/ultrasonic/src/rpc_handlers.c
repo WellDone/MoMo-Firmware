@@ -6,6 +6,7 @@
 
 extern uint8_t test_level_measurement;
 extern uint8_t take_delta_tof_measurement;
+extern uint8_t find_noise_floor_flag;
 
 uint8_t set_power(uint8_t length)
 {
@@ -76,6 +77,13 @@ uint8_t perform_test_level_measurement(uint8_t length)
 {
 	test_level_measurement = 1;
 	
+	return kAsynchronousResponseStatus;
+}
+
+uint8_t find_noise_floor(uint8_t length)
+{
+	find_noise_floor_flag = 1;
+
 	return kAsynchronousResponseStatus;
 }
 

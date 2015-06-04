@@ -12,3 +12,4 @@ APIVersion = "1.1";
 28166: _perform_test_level_measurement(4, no);
 28167: _set_measurement_parameters(4, no);
 28168: _take_delta_tof(1, no);
+28169: _find_noise_floor(0, no);

@@ -17,6 +17,7 @@ static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index);
 
 uint8_t test_level_measurement;
 uint8_t take_delta_tof_measurement;
+uint8_t find_noise_floor_flag;
 
 
 void task(void)
@@ -74,16 +75,22 @@ void task(void)
 
 	if (take_delta_tof_measurement)
 	{
-		int32_t tof;
-
-		tof = measure_delta_tof();
-
-		mib_buffer[0 + 0] = (tof >> 0) & 0xFF;
-		mib_buffer[0 + 1] = (tof >> 8) & 0xFF;
-		mib_buffer[0 + 2] = (tof >> 16) & 0xFF;
-		mib_buffer[0 + 3] = (tof >> 24) & 0xFF;
+		mib_buffer[4] = measure_delta_tof((int32_t *)&mib_buffer[0]);
 
 		take_delta_tof_measurement = 0;
+		bus_master_async_callback(5);
+	}
+
+	if (find_noise_floor_flag)
+	{
+		uint32_t noise = noise_floor_voltage();
+
+		mib_buffer[0] = (noise >> 0) & 0xFF;
+		mib_buffer[1] = (noise >> 8) & 0xFF;
+		mib_buffer[2] = (noise >> 16) & 0xFF;
+		mib_buffer[3] = (noise >> 24) & 0xFF;
+
+		find_noise_floor_flag = 0;
 		bus_master_async_callback(4);
 	}
 }
@@ -156,6 +163,7 @@ void initialize(void)
 
 	test_level_measurement = 0;
 	take_delta_tof_measurement = 0;
+	find_noise_floor_flag = 0;
 }
 
 void main(void)
