@@ -121,6 +121,13 @@ BluetoothResult bt_init()
 				set_oscillator_speed(k8MhzFRC, false);
 				bt_configure_uart(true, k38400Baud);
 
+				//Wait for tx pin to go low and high indicating that we've rebooted
+				while (PIN(BT_TXPIN))
+					;
+
+				while (!PIN(BT_TXPIN))
+					;
+
 				bt_prepare_rcv_buffer();
 				err = bt_rcv_sync(RN4020_2s);
 				if (err == kBT_NoError && (strcmp(bt_data.receive_buffer, "CMD") == 0))
@@ -293,7 +300,10 @@ BluetoothResult bt_cmd_sync(const char *cmd, unsigned int flags, unsigned int ti
 
 	//Check if we should parse the response as AOK or ERR
 	if (!(flags & kBT_ParseResponse))
+	{
+		DELAY_MS(10); //Give the device time to process the command
 		return kBT_NoError;
+	}
 
 	//Valid responses to commands should be AOK or ERR so check to
 	//see what we got.
@@ -481,8 +491,54 @@ BluetoothResult bt_advertise(unsigned int interval, unsigned int duration)
 		return result;
 	}
 
-	//result = bt_disable_module();
+	result = bt_disable_module();
 	return kBT_NoError;
+}
+
+BluetoothResult bt_setname(const char *name)
+{
+	BluetoothResult result;
+	unsigned int len = strlen(name);
+
+	result = bt_enable_module();
+	if (result != kBT_NoError)
+		return result;
+
+	//Copy the command over
+	bt_data.send_buffer[0] = 'S';
+	bt_data.send_buffer[1] = '-';
+	bt_data.send_buffer[2] = ',';
+	bt_data.send_cursor = 3;
+
+	strcpy(bt_data.send_buffer+3, name);
+	bt_data.send_cursor += len;
+
+	result = bt_cmd_sync(NULL, kBT_CommandPreloaded | kBT_ParseResponse, 0);
+	if (result != kBT_NoError)
+	{
+		bt_disable_module();
+		return result;
+	}
+
+	bt_reboot();
+
+	//Wait for tx pin to go low and high indicating that we've rebooted
+	while (PIN(BT_TXPIN))
+		;
+
+	while (!PIN(BT_TXPIN))
+		;
+
+	bt_prepare_rcv_buffer();
+	result = bt_rcv_sync(RN4020_2s);
+	if (result == kBT_NoError && (strcmp(bt_data.receive_buffer, "CMD") == 0))
+	{
+		result = bt_disable_module();
+		return result;
+	}
+
+	result = bt_disable_module();
+	return kBT_Timeout;
 }
 
 /* 
@@ -503,13 +559,6 @@ BluetoothResult bt_broadcast(const char *data, unsigned int length)
 	result = bt_enable_module();
 	if (result != kBT_NoError)
 		return result;
-
-	result = bt_cmd_sync("Y", kBT_ParseResponse, 0);
-	if (result != kBT_NoError && result != kBT_ErrorResponseReceived)
-	{
-		bt_disable_module();
-		return result;
-	}
 
 	//Copy the command over
 	bt_data.send_buffer[0] = 'N';

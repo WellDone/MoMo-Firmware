@@ -105,6 +105,7 @@ BluetoothResult bt_init();
 uint8_t 		bt_debug_buffer(uint8_t length);
 BluetoothResult bt_advertise(unsigned int interval, unsigned int duration);
 BluetoothResult bt_broadcast(const char *data, unsigned int length);
+BluetoothResult bt_setname(const char *name);
 
 //FIXME: Add error statements for all bt required pins
 //Make sure all of the appropriate pins are defined

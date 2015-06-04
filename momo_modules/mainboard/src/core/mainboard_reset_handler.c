@@ -75,21 +75,28 @@ void handle_all_resets_after(unsigned int type)
     battery_init();
     err = bt_init();
     
+
     if (err == kBT_NoError)
     {
-        err = bt_broadcast("Hello, friend!", 13);
+        err = bt_setname("ULTRA");
+
         if (err == kBT_NoError)
-            err = bt_advertise(100, 0);
-        
-        if (err != kBT_NoError)
         {
-            LOG_CRITICAL(kCouldNotBroadcastNotice);
-            LOG_INT(err);
+            err = bt_broadcast("Hello", 5);
+            if (err == kBT_NoError)
+                err = bt_advertise(100, 0);
+            
+           
+            if (err == kBT_NoError)
+                LOG_CRITICAL(kStartedBroadcastNotice);
         }
-        else
-            LOG_CRITICAL(kStartedBroadcastNotice);
     }
 
+    if (err != kBT_NoError)
+    {
+        LOG_CRITICAL(kCouldNotBroadcastNotice);
+        LOG_INT(err);
+    }
     //sanity_check_schedule();
     //report_manager_start();
 
