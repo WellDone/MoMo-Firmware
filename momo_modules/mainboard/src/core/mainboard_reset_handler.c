@@ -70,9 +70,17 @@ void handle_all_resets_after(unsigned int type)
     /*
      * Add code that should be called after all other reset code here
      */
+    BluetoothResult err;
 
     battery_init();
     bt_init();
+    err = bt_broadcast("Hello, friend!", 13);
+    if (err != kBT_NoError)
+    {
+        LOG_CRITICAL(kCouldNotBroadcastNotice);
+        LOG_INT(err);
+    }
+
     //sanity_check_schedule();
     //report_manager_start();
 

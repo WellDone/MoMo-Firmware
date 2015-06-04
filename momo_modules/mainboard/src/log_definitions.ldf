@@ -133,6 +133,7 @@ BTCouldNotCommunicate
 BTCouldNotTalkAt115200
 "Attempted to communicate with the BTLE module at 115200 baud and could not"
 - "Error Code" as integer, format unsigned
+- "Receive Buffer" as string
 
 BTResetBaud
 "Sucessfully set the baud rate of the BTLE module down to 38400"
@@ -140,4 +141,9 @@ BTResetBaud
 BTCouldNotResetBaud
 "Could not reset the baud rate of the BTLE module"
 - "Error Code" as integer, format unsigned
+- "Buffer Length" as integer, format unsigned
 - "Receive Buffer" as string
+
+CouldNotBroadcastNotice
+"Could not start broadcasting BTLE data"
+- "Error Code" as integer, format unsigned

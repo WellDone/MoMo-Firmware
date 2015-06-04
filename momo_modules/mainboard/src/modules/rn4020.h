@@ -58,11 +58,11 @@ typedef struct
 	unsigned int awake: 	  		1;
 	unsigned int dormant: 	  		1;
 	unsigned int resp_received:		1;
-	unsigned int cmd_sync    :		1;
+	unsigned int cmd_sync :			1;
 
 	unsigned int timeout: 			1;
 	unsigned int receive_overflow:	1; 
-	unsigned int reserved: 	  10;
+	unsigned int reserved: 	  		9;
 } rn4020_flags;
 
 typedef struct
@@ -94,13 +94,15 @@ typedef enum
 
 typedef enum
 {
-	kBT_ParseResponse = 1 << 0
+	kBT_ParseResponse = 1 << 0,
+	kBT_CommandPreloaded = 1 << 1
 } BluetoothCommandFlags;
 
 //Module API
 void 			bt_init();
 uint8_t 		bt_debug_buffer(uint8_t length);
 BluetoothResult	bt_advertise();
+BluetoothResult bt_broadcast(const char *data, unsigned int length);
 
 //FIXME: Add error statements for all bt required pins
 //Make sure all of the appropriate pins are defined
