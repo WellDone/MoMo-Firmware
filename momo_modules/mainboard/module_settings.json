@@ -39,6 +39,7 @@
 				"BT_SOFTWAKEPIN": "D3",
 				"BT_HARDWAKEPIN": "D10",
 				"BT_CMDPIN": "D2",
+				"BT_TXPIN": "D5",
 				"BT_UART": 1,
 				"BT_TIMER": 4,
 

@@ -17,7 +17,7 @@
 rn4020_info bt_data;
 
 //Internal functions that should not called outside of this module
-static BluetoothResult	bt_cmd_sync(const char *cmd, unsigned int flags);
+static BluetoothResult bt_cmd_sync(const char *cmd, unsigned int flags, unsigned int timeout);
 static BluetoothResult 	bt_rcv_sync(unsigned int timeout);
 static void 			bt_start_transmission();
 static void 			bt_prepare_rcv_buffer();
@@ -28,7 +28,7 @@ static BluetoothResult 	bt_disable_module();
 static void bt_encode(uint8_t input, char *output);
 static char bt_encode_nibble(uint8_t nibble);
 
-void bt_init()
+BluetoothResult bt_init()
 {
 	BluetoothResult err;
 
@@ -52,7 +52,6 @@ void bt_init()
 	MAP_PERIPHERAL_OUT(BT_TXRP, BT_TX_NAME);
 
 	//Setup timeout timer information
-	timer_load_period(BT_TIMER, RN4020_TIMEROUT_PERIOD);
 	timer_function_idle(BT_TIMER, 1);
 	timer_set_prescaler(BT_TIMER, kTimerPrescale256);
 	timer_int_priority(BT_TIMER) = 0b100;
@@ -71,9 +70,28 @@ void bt_init()
 	 */
 
 	bt_configure_uart(true, k38400Baud);
+
+	//In case this is a hardware powerup, wait for the UART RX line to go high indicating the RN4020
+	//has finished powering up.  This should take < 2s.
+	timer_load_period(BT_TIMER, RN4020_2s);
+
+	bt_data.flags.timeout = 0;
+
+	timer_clear(BT_TIMER);
+	timer_start(BT_TIMER);
+
+	while (!bt_data.flags.timeout && !PIN(BT_TXPIN))
+		;
+
+	//Give the module time to initialize itself
+	DELAY_MS(10);
+
+	timer_load_period(BT_TIMER, RN4020_TIMEROUT_PERIOD);
+
 	err = bt_enable_module();
 	if (err != kBT_NoError)
 	{
+		
 		//If we couldn't talk to the module at 38400, try at 115200 and attempt to set the 
 		//baud rate down to 38400
 		bool config_successful = false;
@@ -83,7 +101,10 @@ void bt_init()
 
 		//Try talking at 115200 baud (we need to use a 32Mhz oscillator to get the baud error low enough)
 		set_oscillator_speed(k8MhzFRC, true);
+		DELAY_US(128*4);
+
 		bt_configure_uart(true, k115200Baud);
+
 		err = bt_enable_module();
 		if (err != kBT_NoError)
 		{
@@ -92,7 +113,7 @@ void bt_init()
 		else
 		{
 			//Set the baud rate down to 38400
-			err = bt_cmd_sync("SB,3", kBT_ParseResponse);
+			err = bt_cmd_sync("SB,3", kBT_ParseResponse, RN4020_TIMEROUT_PERIOD*4);
 			if (err == kBT_NoError)
 			{
 				bt_reboot();
@@ -101,7 +122,7 @@ void bt_init()
 				bt_configure_uart(true, k38400Baud);
 
 				bt_prepare_rcv_buffer();
-				err = bt_rcv_sync(RN4020_300ms); //CHECK: may need to up the timeout here since reboots are slow
+				err = bt_rcv_sync(RN4020_2s);
 				if (err == kBT_NoError && (strcmp(bt_data.receive_buffer, "CMD") == 0))
 					config_successful = true;
 			}
@@ -131,12 +152,10 @@ void bt_init()
 		bt_disable_module();
 
 		LOG_CRITICAL(kBTModuleInitializedCorrectly);
-
-		if (bt_advertise() != kBT_NoError)
-			LOG_DEBUG(kCouldNotAdvertise);
-		else
-			LOG_DEBUG(kBTAdvertisementSuccessful);
+		return kBT_NoError;
 	}
+
+	return kBT_InitializationError;
 }
 
 void bt_configure_uart(bool highspeed, unsigned int baud)
@@ -205,7 +224,7 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 			unsigned char data = BT_URX;
 
 			//Check if we've received the end of a command
-			if (data == '\n' && bt_data.receive_buffer[bt_data.receive_cursor-1] == '\r')
+			if (bt_data.receive_cursor > 0 && data == '\n' && bt_data.receive_buffer[bt_data.receive_cursor-1] == '\r')
 			{
 				bt_data.receive_buffer[--bt_data.receive_cursor] = '\0';
 				bt_data.flags.resp_received = 1;
@@ -236,7 +255,7 @@ void __attribute__((interrupt,no_auto_psv)) _T4Interrupt()
 	timer_int_flag(BT_TIMER) = 0;
 }
 
-BluetoothResult bt_cmd_sync(const char *cmd, unsigned int flags)
+BluetoothResult bt_cmd_sync(const char *cmd, unsigned int flags, unsigned int timeout)
 {
 	BluetoothResult result;
 
@@ -263,7 +282,7 @@ BluetoothResult bt_cmd_sync(const char *cmd, unsigned int flags)
 	bt_data.flags.cmd_sync = 1;
 	bt_start_transmission();
 
-	result = bt_rcv_sync(0);
+	result = bt_rcv_sync(timeout);
 	if (result != kBT_NoError)
 	{
 		LOG_DEBUG(kBTErrorSendingCommand);
@@ -413,6 +432,8 @@ char bt_encode_nibble(uint8_t nibble)
 	if (nibble < 10)
 		return '0' + nibble;
 
+	nibble -= 10;
+
 	return 'A' + nibble;
 }
 
@@ -420,7 +441,7 @@ BluetoothResult bt_reboot()
 {
 	BluetoothResult err;
 
-	err = bt_cmd_sync("R,1", 0);
+	err = bt_cmd_sync("R,1", 0, 0);
 	if (err != kBT_NoError)
 		return err;
 
@@ -430,7 +451,7 @@ BluetoothResult bt_reboot()
 	return kBT_NoError;
 }
 
-BluetoothResult bt_advertise()
+BluetoothResult bt_advertise(unsigned int interval, unsigned int duration)
 {
 	BluetoothResult result;
 
@@ -438,15 +459,30 @@ BluetoothResult bt_advertise()
 	if (result != kBT_NoError)
 		return result;
 
-	result = bt_cmd_sync("A", kBT_ParseResponse);
+	bt_data.send_buffer[0] = 'A';
+	bt_data.send_buffer[1] = ',';
+	bt_encode(interval >> 8, &bt_data.send_buffer[2]);
+	bt_encode(interval & 0xFF, &bt_data.send_buffer[4]);
+
+	if (duration == 0)
+		bt_data.send_cursor = 6;
+	else
+	{
+		bt_data.send_buffer[6] = ',';
+		bt_encode(duration >> 8, &bt_data.send_buffer[7]);
+		bt_encode(duration & 0xFF, &bt_data.send_buffer[8]);
+		bt_data.send_cursor = 9;
+	}
+
+	result = bt_cmd_sync(NULL, kBT_CommandPreloaded | kBT_ParseResponse, 0);
 	if (result != kBT_NoError)
 	{
 		bt_disable_module();
 		return result;
 	}
 
-	result = bt_disable_module();
-	return result;
+	//result = bt_disable_module();
+	return kBT_NoError;
 }
 
 /* 
@@ -468,7 +504,7 @@ BluetoothResult bt_broadcast(const char *data, unsigned int length)
 	if (result != kBT_NoError)
 		return result;
 
-	result = bt_cmd_sync("Y", kBT_ParseResponse);
+	result = bt_cmd_sync("Y", kBT_ParseResponse, 0);
 	if (result != kBT_NoError && result != kBT_ErrorResponseReceived)
 	{
 		bt_disable_module();
@@ -486,14 +522,7 @@ BluetoothResult bt_broadcast(const char *data, unsigned int length)
 		bt_data.send_cursor += 2;
 	}
 
-	result = bt_cmd_sync(NULL, kBT_CommandPreloaded | kBT_ParseResponse);
-	if (result != kBT_NoError)
-	{
-		bt_disable_module();
-		return result;
-	}
-
-	result = bt_cmd_sync("A", kBT_ParseResponse);
+	result = bt_cmd_sync(NULL, kBT_CommandPreloaded | kBT_ParseResponse, 0);
 	if (result != kBT_NoError)
 	{
 		bt_disable_module();

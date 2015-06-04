@@ -36,9 +36,9 @@ void handle_all_resets_before(unsigned int type)
     //All modules that need to schedule tasks MUST BE called after
     //rtcc is on and enabled. Use the SOSC oscillator since the internal RC
     //32.25 khz oscillator is +- 20% precision, causing lots of skew.
-    if (!rtcc_enabled() || _RTCLK != kRTCCSoscSource)
+    if (!rtcc_enabled() || _RTCLK != kRTCCLPRCSource)
     {
-        configure_rtcc(kRTCCSoscSource);
+        configure_rtcc(kRTCCLPRCSource);
         enable_rtcc();
         rtcc_disabled = 1;
     }
@@ -73,12 +73,21 @@ void handle_all_resets_after(unsigned int type)
     BluetoothResult err;
 
     battery_init();
-    bt_init();
-    err = bt_broadcast("Hello, friend!", 13);
-    if (err != kBT_NoError)
+    err = bt_init();
+    
+    if (err == kBT_NoError)
     {
-        LOG_CRITICAL(kCouldNotBroadcastNotice);
-        LOG_INT(err);
+        err = bt_broadcast("Hello, friend!", 13);
+        if (err == kBT_NoError)
+            err = bt_advertise(100, 0);
+        
+        if (err != kBT_NoError)
+        {
+            LOG_CRITICAL(kCouldNotBroadcastNotice);
+            LOG_INT(err);
+        }
+        else
+            LOG_CRITICAL(kStartedBroadcastNotice);
     }
 
     //sanity_check_schedule();

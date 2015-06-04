@@ -147,3 +147,6 @@ BTCouldNotResetBaud
 CouldNotBroadcastNotice
 "Could not start broadcasting BTLE data"
 - "Error Code" as integer, format unsigned
+
+StartedBroadcastNotice
+"Started unconnectably broadcasting BTLE data"

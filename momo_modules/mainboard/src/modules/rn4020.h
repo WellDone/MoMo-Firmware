@@ -22,7 +22,8 @@
 
 #define MAX_RN4020_MSG_SIZE		100
 #define RN4020_TIMEROUT_PERIOD	800 		//50 ms on an 8mhz crystal
-#define RN4020_300ms			4800		//300 ms on an 8mhz crystal
+#define RN4020_300ms			4800		//300 ms on an 8mhz crystal FIXME: shouldn't this be for a 32mhz crystal
+#define RN4020_2s 				32000		//2s on an 8mhz crystal
 
 #define build_register_r(prefix, middle, postfix)  	prefix ## middle ## postfix
 #define build_register(prefix, middle, postfix)  	build_register_r(prefix, middle, postfix)
@@ -89,7 +90,8 @@ typedef enum
 	kBT_ReceiveOverflow = 3,
 	kBT_InvalidResponse = 4,
 	kBT_InvalidResponseLength = 5,
-	kBT_ErrorResponseReceived = 6
+	kBT_ErrorResponseReceived = 6,
+	kBT_InitializationError
 } BluetoothResult;
 
 typedef enum
@@ -99,9 +101,9 @@ typedef enum
 } BluetoothCommandFlags;
 
 //Module API
-void 			bt_init();
+BluetoothResult bt_init();
 uint8_t 		bt_debug_buffer(uint8_t length);
-BluetoothResult	bt_advertise();
+BluetoothResult bt_advertise(unsigned int interval, unsigned int duration);
 BluetoothResult bt_broadcast(const char *data, unsigned int length);
 
 //FIXME: Add error statements for all bt required pins

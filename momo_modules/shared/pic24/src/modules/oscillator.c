@@ -1,6 +1,7 @@
 #include "oscillator.h"
 #include "pic24.h"
 #include "utilities.h"
+#include "ioport.h"
 
 void oscillator_init()
 {
@@ -23,7 +24,7 @@ int set_oscillator_speed(FRCPostscaler speed, int use_pll)
     oscconl = OSCCONL;
 
     //select new speed
-    oscconh &= ~(0b111);
+    oscconh &= 0b11111000;
 
     if (use_pll)
         oscconh |= kFRCDIVPLL;
@@ -34,19 +35,15 @@ int set_oscillator_speed(FRCPostscaler speed, int use_pll)
 
     _RCDIV = speed;
 
+    CLEAR_BIT(oscconl, 0);
+    __builtin_write_OSCCONL(oscconl);
+
     SET_BIT(oscconl, 0);
     __builtin_write_OSCCONL(oscconl);
 
     //Wait for the switch to happen
     while (_OSWEN)
         ;
-
-    //If we're using the PLL, wait for it to stabilize
-    if (use_pll)
-    {
-        while (_LOCK == 0)
-            ;
-    }
 
     uninterruptible_end();
 
