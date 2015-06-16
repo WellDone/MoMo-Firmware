@@ -18,7 +18,8 @@ static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index);
 uint8_t test_level_measurement;
 uint8_t take_delta_tof_measurement;
 uint8_t find_noise_floor_flag;
-
+uint8_t find_variance_flag;
+uint8_t optimize_flag;
 
 void task(void)
 { 
@@ -32,7 +33,6 @@ void task(void)
 		tdc1000_setexcitation(mib_buffer[0], mib_buffer[2]);
 		tdc1000_setmode(mib_buffer[12]);
 		tdc1000_setchannel(mib_buffer[14]);
-		//tdc1000_setstarttime(255);
 		
 		if (tdc1000_push() == 0)
 		{	
@@ -75,7 +75,7 @@ void task(void)
 
 	if (take_delta_tof_measurement)
 	{
-		mib_buffer[4] = measure_delta_tof((int32_t *)&mib_buffer[0]);
+		//FIXME: Do delta tof measurement and return the values
 
 		take_delta_tof_measurement = 0;
 		bus_master_async_callback(5);
@@ -83,7 +83,7 @@ void task(void)
 
 	if (find_noise_floor_flag)
 	{
-		uint32_t noise = noise_floor_voltage();
+		uint32_t noise = noise_floor_voltage((uint32_t *)&mib_buffer[4], (uint32_t *)&mib_buffer[8]);
 
 		mib_buffer[0] = (noise >> 0) & 0xFF;
 		mib_buffer[1] = (noise >> 8) & 0xFF;
@@ -91,7 +91,19 @@ void task(void)
 		mib_buffer[3] = (noise >> 24) & 0xFF;
 
 		find_noise_floor_flag = 0;
+		bus_master_async_callback(12);
+	}
+
+	if (find_variance_flag)
+	{
+		find_variance_flag = 0;
 		bus_master_async_callback(4);
+	}
+
+	if (optimize_flag)
+	{
+		optimize_flag = 0;
+		bus_master_async_callback(7);
 	}
 }
 
@@ -105,7 +117,7 @@ static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index)
 	mib_buffer[mib_index + 3] = (tof >> 24) & 0xFF;
 }
 
-void interrupt_handler(void)
+void interrupt service_isr()
 {
 	
 }
@@ -161,13 +173,22 @@ void initialize(void)
 	tdc1000_init();
 	tdc7200_init();
 
+	initialize_parameters();
+
 	test_level_measurement = 0;
 	take_delta_tof_measurement = 0;
 	find_noise_floor_flag = 0;
+	optimize_flag = 0;
 }
 
 void main(void)
 {
+	initialize();
 
+	while(1)
+	{
+		task();
+		asm("sleep");
+	}
 }
 

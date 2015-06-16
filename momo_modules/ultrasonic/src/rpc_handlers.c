@@ -7,6 +7,8 @@
 extern uint8_t test_level_measurement;
 extern uint8_t take_delta_tof_measurement;
 extern uint8_t find_noise_floor_flag;
+extern uint8_t find_variance_flag;
+extern uint8_t optimize_flag;
 
 uint8_t set_power(uint8_t length)
 {
@@ -39,7 +41,6 @@ uint8_t read_tdc7200_register24(uint8_t length)
 
 	return kNoErrorStatus;
 }
-
 
 uint8_t write_tdc7200_register(uint8_t length)
 {
@@ -98,4 +99,16 @@ uint8_t set_measurement_parameters(uint8_t length)
 	set_parameters(mib_buffer[0], mib_buffer[2], mib_buffer[4], *(uint16_t *)(&mib_buffer[6]));
 
 	return kNoErrorStatus;
+}
+
+uint8_t get_variance(uint8_t length)
+{
+	find_variance_flag = 1;
+	return kAsynchronousResponseStatus;
+}
+
+uint8_t get_optimal_settings(uint8_t length)
+{
+	optimize_flag = 1;
+	return kAsynchronousResponseStatus;
 }

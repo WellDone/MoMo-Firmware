@@ -82,7 +82,7 @@ void task(void)
 	wdt_enable();
 }
 
-void interrupt_handler(void)
+void interrupt service_isr() 
 {
 	if (ioc_flag_b(PULSE_IOC))
 	{

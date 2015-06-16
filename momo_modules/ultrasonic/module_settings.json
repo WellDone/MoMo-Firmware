@@ -20,7 +20,9 @@
 				"SDI": "B2",
 				"SCK": "B5",
 				"CS7200": "A4",
-				"CS1000": "A2"
+				"CS1000": "A2",
+
+				"MEASUREMENT_TIMER": 2
 			}
 		}
 	},
