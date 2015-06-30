@@ -102,9 +102,9 @@ ReportSchedulingStartedNotice
 ReportSchedulingStoppedNotice
 "Report scheduling stopped"
 
-
-CouldNotAdvertise
-"Could not start bluetooth module advertisements"
+BTModuleNotInitiailizeCorrectly
+"Could not initialize BTLE module"
+- "Error Code" as integer, format unsigned
 
 BTModuleInitializedCorrectly
 "Correctly initialized the BTLE module"
@@ -135,8 +135,25 @@ BTCouldNotTalkAt115200
 - "Error Code" as integer, format unsigned
 - "Receive Buffer" as string
 
+BTConnectionTimedout
+"No activity on the bluetooth connection for longer than the timeout period, so we're forcing the connection closed"
+
 BTResetBaud
 "Sucessfully set the baud rate of the BTLE module down to 38400"
+
+BTReceivedUnsolicitedData
+"Received an unsolicited message from the RN4020 module"
+- "Message" as string, format repr
+
+BTReceivedUnknownMessage
+"Received an unsolicited message from the RN4020 module"
+- "Message" as string, format repr
+
+BTReceivedConnection
+"Received a BTLE connection notice"
+
+BTConnectionStopped
+"BTLE Connection Stopped"
 
 BTCouldNotResetBaud
 "Could not reset the baud rate of the BTLE module"
@@ -144,8 +161,16 @@ BTCouldNotResetBaud
 - "Buffer Length" as integer, format unsigned
 - "Receive Buffer" as string
 
-CouldNotBroadcastNotice
-"Could not start broadcasting BTLE data"
+BTServiceSpecification
+"Displaying Current BTLE Module Server Settings"
+- "Settings" as integer, format hex
+
+BTWrongName
+"BTLE module name is not correct, current name is logged below"
+- "Name" as string
+
+CouldNotAdvertise
+"Could not start advertising"
 - "Error Code" as integer, format unsigned
 
 StartedBroadcastNotice

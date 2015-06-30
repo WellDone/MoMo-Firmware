@@ -12,9 +12,14 @@
 #include <string.h>
 
 //Mocked functions
-void asm_sleep()
+void asm_safe_sleep()
 {
 	// do nothing
+}
+
+void asm_sleep()
+{
+	
 }
 
 void asm_reset()

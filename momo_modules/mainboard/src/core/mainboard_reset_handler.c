@@ -71,32 +71,36 @@ void handle_all_resets_after(unsigned int type)
      * Add code that should be called after all other reset code here
      */
     BluetoothResult err;
+    uint32_t        services;
+    char            name[20];
 
     battery_init();
     err = bt_init();
-    
-
-    if (err == kBT_NoError)
-    {
-        err = bt_setname("ULTRA");
-
-        if (err == kBT_NoError)
-        {
-            err = bt_broadcast("Hello", 5);
-            if (err == kBT_NoError)
-                err = bt_advertise(100, 0);
-            
-           
-            if (err == kBT_NoError)
-                LOG_CRITICAL(kStartedBroadcastNotice);
-        }
-    }
 
     if (err != kBT_NoError)
     {
-        LOG_CRITICAL(kCouldNotBroadcastNotice);
+        LOG_CRITICAL(kBTModuleNotInitiailizeCorrectly);
         LOG_INT(err);
     }
+    else
+    {
+        //Log the service spec
+        err = bt_readservices(&services);
+        if (err == kBT_NoError)
+        {
+            LOG_DEBUG(kBTServiceSpecification);
+            LOG_ARRAY(&services, 4);
+        }
+
+        //Log the name
+        err = bt_readname(name, 20);
+        if (err == kBT_NoError)
+        {
+            LOG_DEBUG(kBTWrongName);
+            LOG_STRING(name);
+        }
+    }
+
     //sanity_check_schedule();
     //report_manager_start();
 
