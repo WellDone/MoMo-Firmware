@@ -165,6 +165,10 @@ BTCouldNotEnterMLDP
 BTCouldNotLeaveMDLP
 "Error leaving MLDP mode"
 
+BTMLPDEvent
+"MLPD Event signaled"
+- "Level" as integer, formwat unsigned
+
 BTCouldNotResetBaud
 "Could not reset the baud rate of the BTLE module"
 - "Error Code" as integer, format unsigned

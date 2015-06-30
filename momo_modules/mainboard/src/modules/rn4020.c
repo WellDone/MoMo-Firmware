@@ -19,9 +19,6 @@
 #include "task_manager.h"
 
 static rn4020_info 	 bt_data;
-static ScheduledTask pruning_task;
-static unsigned int  connection_traffic;
-
 
 //Internal functions that should not called outside of this module
 static BluetoothResult 	bt_cmd_sync(const char *cmd, unsigned int flags, unsigned int timeout);
@@ -45,40 +42,10 @@ static uint8_t 			bt_decode_byte(char *data);
 static void 			bt_process_unsolicited(void *arg);
 static void 			bt_process_mib_packet(void *arg);
 
-static void 			bt_prune_connections(void *arg);
-
 static BluetoothResult 	bt_setupservices();
 static BluetoothResult 	bt_setupmib();
 
-/*
- * If a connection has no activity for between 10 and 20 seconds, stop waiting on it
- * so that we can sleep and save power.
- */
-void bt_prune_connections(void *arg)
-{
-	BluetoothResult err;
-
-	if (connection_traffic == 0)
-	{
-		bt_data.flags.connected = 0;
-		taskloop_set_flag(kTaskLoopSleepBit, 1);
-
-		LOG_DEBUG(kBTConnectionTimedout);
-		connection_traffic = 255;
-
-		//We can't do really do anything if there are errors here so ignore them, this is best effort
-		err = bt_leave_mldp();
-		if (err != kBT_NoError)
-			LOG_CRITICAL(kBTCouldNotLeaveMDLP);
-
-		bt_enable_module();
-		bt_reboot(1);	//disables module once the reboot is complete
-
-		bt_advertise(100, 0);
-	}
-	else if (connection_traffic != 255)
-		--connection_traffic;
-}
+static void log_mldp_event(void *val);
 
 BluetoothResult bt_init()
 {
@@ -97,6 +64,16 @@ BluetoothResult bt_init()
 	DIR(BT_CMDPIN) = OUTPUT;
 	ENSURE_DIGITAL(BT_CMDPIN);
 
+	DIR(BT_MLDP_EV) = INPUT;
+	ENSURE_DIGITAL(BT_MLDP_EV);
+
+	//Setup CN on MLDP_EV pin
+	_CN50IE = 1;
+
+	_CNIF = 0;
+	_CNIP = 0b010;
+	_CNIE = 1;
+
 	//Setup the reprogrammable pins
 	MAP_PERIPHERAL_IN(BT_RXRP, BT_RX_NAME);
 	MAP_PERIPHERAL_IN(BT_CTSRP, BT_CTS_NAME);
@@ -113,10 +90,6 @@ BluetoothResult bt_init()
 	//Initialize state
 	bt_data.flags_value = 0;
 	bt_data.unsolicited_cursor = 0;
-
-	connection_traffic = 255;
-	pruning_task.flags = 0;
-	scheduler_schedule_task(bt_prune_connections, kEvery10Seconds, kScheduleForever, &pruning_task, NULL);
 
 	/*
 	 * The BTLE module defaults (on factory config) to 115200 baud but we can't
@@ -413,7 +386,6 @@ void bt_process_unsolicited(void *arg)
 	if (bt_data.unsolicited_cursor == 0 || strcmp("Connected", bt_data.unsolicited_buffer) == 0)
 	{
 		bt_data.flags.connected = 1;
-		connection_traffic = 1;
 		taskloop_set_flag(kTaskLoopSleepBit, 0);
 
 		LOG_DEBUG(kBTReceivedConnection);
@@ -427,7 +399,6 @@ void bt_process_unsolicited(void *arg)
 	else if (strcmp("Connection End", bt_data.unsolicited_buffer) == 0)
 	{
 		bt_data.flags.connected = 0;
-		connection_traffic = 255;
 		taskloop_set_flag(kTaskLoopSleepBit, 1);
 
 		LOG_DEBUG(kBTConnectionStopped);
@@ -453,6 +424,24 @@ void bt_process_mib_packet(void *arg)
 	bt_data.receive_cursor = 0;
 }
 
+void log_mldp_event(void *val)
+{
+	int value = (int)val;
+
+	LOG_DEBUG(kBTMLPDEvent);
+	LOG_INT(value);
+}
+
+void __attribute__((interrupt, auto_psv)) _CNInterrupt()
+{
+	int value = PIN(BT_MLDP_EV);
+
+	if (value)
+		taskloop_add(log_mldp_event, (void*)value);
+
+	_CNIF = 0;	
+}
+
 //FIXME: Change interrupt name to match BT UART name
 void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 {
@@ -468,7 +457,6 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 		 */
 
 		taskloop_set_flag(kTaskLoopSleepBit, 0);
-		connection_traffic = 1;
 	}
 
 	while(BT_USTA.URXDA == 1)
@@ -1012,10 +1000,15 @@ BluetoothResult bt_enter_mldp()
 	if (bt_data.flags.mldp_enabled)
 		return kBT_NoError;
 
+	result = bt_enable_module();
+	if (result != kBT_NoError)
+		return result;
+
 	bt_prepare_rcv_buffer();
 	LAT(BT_CMDPIN) = 1;
 
 	result = bt_rcv_sync(0, 0);
+	bt_data.receive_cursor = 0;
 
 	if (result != kBT_NoError)
 	{
@@ -1040,7 +1033,6 @@ BluetoothResult bt_leave_mldp()
 		return kBT_NoError;
 
 	bt_prepare_rcv_buffer();
-	LAT(BT_SOFTWAKEPIN) = 1;
 	LAT(BT_CMDPIN) = 0;
 
 	bt_data.flags.awake = 1;
