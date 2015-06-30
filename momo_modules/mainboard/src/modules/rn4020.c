@@ -32,6 +32,8 @@ static void 			bt_configure_uart(bool highspeed, unsigned int baud);
 static BluetoothResult bt_reboot(int sync);
 static BluetoothResult 	bt_enable_module();
 static BluetoothResult 	bt_disable_module();
+static BluetoothResult 	bt_enter_mldp();
+static BluetoothResult 	bt_leave_mldp();
 
 static void 			bt_encode(uint8_t input, char *output);
 static char 			bt_encode_nibble(uint8_t nibble);
@@ -41,10 +43,9 @@ static uint8_t 			bt_decode_nibble(char *data);
 static uint8_t 			bt_decode_byte(char *data);
 
 static void 			bt_process_unsolicited(void *arg);
+static void 			bt_process_mib_packet(void *arg);
+
 static void 			bt_prune_connections(void *arg);
-static void 			bt_load_mib_packet(uint8_t *dest, unsigned int max_length);
-static BTMessageDestination bt_process_destination();
-static BluetoothResult 	bt_write_characteristic(unsigned int handle, uint8_t *data, unsigned int length, unsigned int notify);
 
 static BluetoothResult 	bt_setupservices();
 static BluetoothResult 	bt_setupmib();
@@ -55,6 +56,8 @@ static BluetoothResult 	bt_setupmib();
  */
 void bt_prune_connections(void *arg)
 {
+	BluetoothResult err;
+
 	if (connection_traffic == 0)
 	{
 		bt_data.flags.connected = 0;
@@ -64,6 +67,10 @@ void bt_prune_connections(void *arg)
 		connection_traffic = 255;
 
 		//We can't do really do anything if there are errors here so ignore them, this is best effort
+		err = bt_leave_mldp();
+		if (err != kBT_NoError)
+			LOG_CRITICAL(kBTCouldNotLeaveMDLP);
+
 		bt_enable_module();
 		bt_reboot(1);	//disables module once the reboot is complete
 
@@ -247,6 +254,15 @@ BluetoothResult bt_setupservices()
 			return err;
 	}
 
+	//Make sure we are using MLDP and have flow control enabled
+	err = bt_readfeatures(&services);
+	if (services != kRN4020Config)
+	{
+		err = bt_setfeatures(kRN4020Config);
+		if (err != kBT_NoError)
+			return err;
+	}
+
 	//Configure the private service
 	err = bt_setupmib();
 	if (err != kBT_NoError)
@@ -290,6 +306,25 @@ BluetoothResult bt_readservices(uint32_t *out)
 		return result;
 
 	result = bt_cmd_sync("GS", 0, 0);
+	if (result == kBT_NoError)
+	{
+		*out = bt_decode_uint32(bt_data.receive_buffer);
+		return bt_disable_module();
+	}
+	
+	bt_disable_module();
+	return result;
+}
+
+BluetoothResult bt_readfeatures(uint32_t *out)
+{
+	BluetoothResult result;
+
+	result = bt_enable_module();
+	if (result != kBT_NoError)
+		return result;
+
+	result = bt_cmd_sync("GR", 0, 0);
 	if (result == kBT_NoError)
 	{
 		*out = bt_decode_uint32(bt_data.receive_buffer);
@@ -375,20 +410,19 @@ void bt_process_unsolicited(void *arg)
 {
 	BluetoothResult err;
 
-	if (bt_data.unsolicited_cursor == 0)
-	{
-		//This happens when we receive a connection notification in sleep mode and it's garbled due to the wake-up delay
-		bt_data.flags.connected = 1;	
-		LOG_DEBUG(kBTReceivedConnection);
-		return;
-	}
-
-	if (strcmp("Connected", bt_data.unsolicited_buffer) == 0)
+	if (bt_data.unsolicited_cursor == 0 || strcmp("Connected", bt_data.unsolicited_buffer) == 0)
 	{
 		bt_data.flags.connected = 1;
 		connection_traffic = 1;
 		taskloop_set_flag(kTaskLoopSleepBit, 0);
+
 		LOG_DEBUG(kBTReceivedConnection);
+
+		err = bt_enter_mldp();
+		if (err != kBT_NoError)
+			LOG_CRITICAL(kBTCouldNotEnterMLDP);
+
+		return;
 	}
 	else if (strcmp("Connection End", bt_data.unsolicited_buffer) == 0)
 	{
@@ -403,42 +437,6 @@ void bt_process_unsolicited(void *arg)
         if (err != kBT_NoError)
             LOG_CRITICAL(kCouldNotAdvertise);
 	}
-	else if (bt_data.flags.connected)
-	{
-		//Record that we observed connection traffic so that we don't timeout the connection
-		connection_traffic = 1;
-		
-		if (bt_data.unsolicited_cursor > 3)
-		{
-			//We received a write to one of our characteristics
-			if (bt_data.unsolicited_buffer[0] == 'W' && bt_data.unsolicited_buffer[1] == 'V' && bt_data.unsolicited_buffer[2] == ',')
-			{
-				BTMessageDestination dest = bt_process_destination();
-
-				switch(dest)
-				{
-					case kPayloadMessage:
-					bt_load_mib_packet(bt_data.cmd_payload, 20);
-					break;
-
-					case kCommandMessage:
-					bt_load_mib_packet(bt_data.cmd_packet, kBTCommandPacketSize);
-
-					//For debugging, echo these back
-					//Fixme: remvove hardcored characteristic IDs
-					bt_write_characteristic(0x001F, bt_data.cmd_payload, 20, 0);
-					bt_write_characteristic(0x001C, bt_data.cmd_packet, kBTCommandPacketSize, 1);
-					break;
-
-					default:
-					case kUnknownMessage:
-					LOG_DEBUG(kBTReceivedUnsolicitedData);
-					LOG_STRING(bt_data.unsolicited_buffer);
-					break;
-				}
-			}
-		}
-	}
 	else
 	{
 		LOG_DEBUG(kBTReceivedUnknownMessage);
@@ -448,32 +446,11 @@ void bt_process_unsolicited(void *arg)
 	bt_data.unsolicited_cursor = 0;
 }
 
-void bt_load_mib_packet(uint8_t *dest, unsigned int max_length)
+void bt_process_mib_packet(void *arg)
 {
-	unsigned int i;
-	unsigned int j=0;
-
-	//Unsolicited messages from the rn4020 start with WV,XXXX,<data in hex>.
-	for (i=8; i<(bt_data.unsolicited_cursor-1); i+=2)
-	{
-		if (j >= max_length)
-			return;
-
-		dest[j++] = bt_decode_byte(&bt_data.unsolicited_buffer[i]);
-	}
-}
-
-BTMessageDestination bt_process_destination()
-{
-	if (bt_data.unsolicited_cursor <= 8)
-		return kUnknownMessage;
-
-	if (bt_data.unsolicited_buffer[5] == '1' && bt_data.unsolicited_buffer[6] == 'A')
-		return kPayloadMessage;
-	else if (bt_data.unsolicited_buffer[5] == '1' && bt_data.unsolicited_buffer[6] == '8')
-		return kCommandMessage;
-
-	return kUnknownMessage;
+	LOG_DEBUG(kBTReceivedMIBPacket);
+	LOG_ARRAY(bt_data.receive_buffer, bt_data.receive_cursor);
+	bt_data.receive_cursor = 0;
 }
 
 //FIXME: Change interrupt name to match BT UART name
@@ -486,17 +463,31 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 	}
 	else if (!bt_data.flags.waiting_for_resp)
 	{
+		/*
+		 * We got some UART traffic that was not solicited, make sure we remain awake to finish receiving it without corruption
+		 */
+
 		taskloop_set_flag(kTaskLoopSleepBit, 0);
 		connection_traffic = 1;
 	}
 
 	while(BT_USTA.URXDA == 1)
 	{
-		//Check if this is an unsolicited response
-		if (!bt_data.flags.waiting_for_resp)
-		{
-			unsigned char data = BT_URX;
+		unsigned char data = BT_URX;
 
+		if (bt_data.flags.mldp_enabled)
+		{
+			if (bt_data.receive_cursor >= MAX_RN4020_RECEIVE_SIZE)
+				bt_data.receive_cursor = 0;
+
+			bt_data.receive_buffer[bt_data.receive_cursor++] = data;
+
+			//After receiving 25 bytes, process the MIB packet
+			if (bt_data.receive_cursor == 25)
+				taskloop_add(bt_process_mib_packet, NULL);
+		}
+		else if (!bt_data.flags.waiting_for_resp)
+		{
 			//Don't allow null bytes that can be caused by rebooting the RN4020
 			if(data == 0)
 				continue;
@@ -528,7 +519,6 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 			}
 			else
 			{
-				unsigned char data = BT_URX;
 				//Don't allow null bytes that can be caused by rebooting the RN4020
 				if(data == 0)
 					continue;
@@ -538,9 +528,6 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 				{
 					bt_data.receive_buffer[--bt_data.receive_cursor] = '\0';
 					bt_data.flags.resp_received = 1;
-
-					if (!bt_data.flags.cmd_sync)
-						; //FIXME: schedule callback to handle event if it's not synchronous
 				}
 				else
 					bt_data.receive_buffer[bt_data.receive_cursor++] = data;
@@ -826,6 +813,37 @@ BluetoothResult bt_advertise(unsigned int interval, unsigned int duration)
 	return kBT_NoError;
 }
 
+BluetoothResult bt_setfeatures(uint32_t services)
+{
+	BluetoothResult result;
+	int i;
+	result = bt_enable_module();
+	if (result != kBT_NoError)
+		return result;
+
+	//Copy the command over
+	bt_data.send_buffer[0] = 'S';
+	bt_data.send_buffer[1] = 'R';
+	bt_data.send_buffer[2] = ',';
+	bt_data.send_cursor = 3;
+
+	for (i=3; i>=0; --i)
+	{
+		uint8_t *data = (uint8_t*)&services;
+		bt_encode(data[i], &bt_data.send_buffer[bt_data.send_cursor]);
+		bt_data.send_cursor += 2;
+	}
+
+	result = bt_cmd_sync(NULL, kBT_CommandPreloaded | kBT_ParseResponse, 0);
+	if (result != kBT_NoError)
+	{
+		bt_disable_module();
+		return result;
+	}
+
+	return bt_disable_module();
+}
+
 BluetoothResult bt_setservices(uint32_t services)
 {
 	BluetoothResult result;
@@ -854,7 +872,7 @@ BluetoothResult bt_setservices(uint32_t services)
 		return result;
 	}
 
-	return bt_reboot(1);
+	return bt_disable_module();
 }
 
 BluetoothResult bt_setupmib()
@@ -914,7 +932,6 @@ BluetoothResult bt_setupmib()
 		return result;
 	}	
 
-	//Reboot to let the new services take effect
 	DELAY_MS(10);
 	return bt_reboot(1);
 }
@@ -988,71 +1005,59 @@ BluetoothResult bt_broadcast(const char *data, unsigned int length)
 	return result;
 }
 
-BluetoothResult bt_write_characteristic(unsigned int handle, uint8_t *data, unsigned int length, unsigned int notify)
+BluetoothResult bt_enter_mldp()
 {
 	BluetoothResult result;
-	unsigned int i;
 
-	if (length > 20)
-		return kBT_SendOverflow;
+	if (bt_data.flags.mldp_enabled)
+		return kBT_NoError;
 
-	result = bt_enable_module();
-	if (result != kBT_NoError)
-		return result;
+	bt_prepare_rcv_buffer();
+	LAT(BT_CMDPIN) = 1;
 
-	//Copy the command over
-	bt_data.send_buffer[0] = 'S';
-	bt_data.send_buffer[1] = 'H';
-	bt_data.send_buffer[2] = 'W';
-	bt_data.send_buffer[3] = ',';
-	bt_data.send_cursor = 4;
-
-	bt_encode(handle >> 8, &bt_data.send_buffer[bt_data.send_cursor]);
-	bt_data.send_cursor += 2;
-
-	bt_encode(handle & 0xFF, &bt_data.send_buffer[bt_data.send_cursor]);
-	bt_data.send_cursor += 2;
-
-	bt_data.send_buffer[bt_data.send_cursor++] = ',';
-	
-	for (i=0; i<length; ++i)
-	{
-		bt_encode(data[i], &bt_data.send_buffer[bt_data.send_cursor]);
-		bt_data.send_cursor += 2;
-	}
-
-	if (notify)
-		result = bt_cmd_sync(NULL, kBT_CommandPreloaded | kBT_ParseResponse | kBT_ContinueWaiting, 0);
-	else
-		result = bt_cmd_sync(NULL, kBT_CommandPreloaded | kBT_ParseResponse, 0);
+	result = bt_rcv_sync(0, 0);
 
 	if (result != kBT_NoError)
 	{
-		bt_data.flags.waiting_for_resp = 0;
-		bt_disable_module();
+		LOG_CRITICAL(kBTTimeout);
+		LAT(BT_CMDPIN) = 0;
+		DELAY_MS(20);				//Wait long enough for the rn4020 to clock out CMD if it is trying to
 		return result;
 	}
 
-	if (notify)
+	if (strcmp("MLDP", bt_data.receive_buffer) != 0)
+		return kBT_InvalidResponse;
+
+	bt_data.flags.mldp_enabled = 1;
+	return kBT_NoError;
+}
+
+BluetoothResult bt_leave_mldp()
+{
+	BluetoothResult result;
+
+	if (!bt_data.flags.mldp_enabled)
+		return kBT_NoError;
+
+	bt_prepare_rcv_buffer();
+	LAT(BT_SOFTWAKEPIN) = 1;
+	LAT(BT_CMDPIN) = 0;
+
+	bt_data.flags.awake = 1;
+
+	result = bt_rcv_sync(0, 0);
+
+	if (result != kBT_NoError)
 	{
-		PIN(ALARM) = 0;
-		DIR(ALARM) = OUTPUT;
-		bt_data.flags.timeout = 0;
-
-		//Wait for the confirmation of notification
-		timer_clear(BT_TIMER);
-		timer_start(BT_TIMER);
-
-		while (!bt_data.flags.resp_received && !bt_data.flags.timeout)
-			;
-
-		DIR(ALARM) = INPUT;
-		
-		bt_data.flags.waiting_for_resp = 0;
-
-		timer_stop(BT_TIMER);
+		LOG_CRITICAL(kBTTimeout);
+		LAT(BT_CMDPIN) = 0;
+		DELAY_MS(20);				//Wait long enough for the rn4020 to clock out CMD if it is trying to
+		return result;
 	}
-	
-	result = bt_disable_module();
-	return result;
+
+	if (strcmp("CMD", bt_data.receive_buffer) != 0)
+		return kBT_InvalidResponse;
+
+	bt_data.flags.mldp_enabled = 0;
+	return bt_disable_module();
 }

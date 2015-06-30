@@ -149,11 +149,21 @@ BTReceivedUnknownMessage
 "Received an unsolicited message from the RN4020 module"
 - "Message" as string, format repr
 
+BTReceivedMIBPacket
+"Received a MIB packet from the RN4020 module"
+- "Packet" as string, format repr
+
 BTReceivedConnection
 "Received a BTLE connection notice"
 
 BTConnectionStopped
 "BTLE Connection Stopped"
+
+BTCouldNotEnterMLDP
+"Error entering MLDP mode"
+
+BTCouldNotLeaveMDLP
+"Error leaving MLDP mode"
 
 BTCouldNotResetBaud
 "Could not reset the baud rate of the BTLE module"

@@ -65,7 +65,7 @@
 #define BT_TX_IP 	build_register(_U, BT_UART, TXIP)
 #define BT_TX_IE 	build_register(_U, BT_UART, TXIE)
 
-#define kRN4020Config	(kEnableOTA | kEnableRemoteCommand | kUARTFlowControl | kEnableMLDP | kAutoMLDPDisble | kServerOnly)
+#define kRN4020Config	(kEnableOTA | kEnableRemoteCommand | kUARTFlowControl | kEnableMLDP | kServerOnly | kAutoMLDPDisable)
 
 enum
 {
@@ -94,7 +94,7 @@ enum
 	kScriptAfterPoweron = 0x01000000ULL,
 	kUARTFlowControl = 0x02000000ULL,
 	kNoDirectAdvertisement = 0x04000000ULL,
-	kAutoMLDPDisble = 0x08000000ULL,
+	kAutoMLDPDisable = 0x08000000ULL,
 	kEnableMLDP = 0x10000000ULL
 };
 
@@ -111,7 +111,9 @@ typedef struct
 	unsigned int waiting_for_resp:	1;
 	unsigned int connected		 :  1;
 	unsigned int ignore_received : 	1;
-	unsigned int reserved 		 :	6;
+	unsigned int mldp_enabled	 :  1;
+	unsigned int mib_in_progress :	1;
+	unsigned int reserved 		 :	4;
 } rn4020_flags;
 
 typedef struct
@@ -164,6 +166,8 @@ BluetoothResult bt_setname(const char *name);
 BluetoothResult bt_readname(char *out, unsigned int length);
 BluetoothResult bt_readservices(uint32_t *out);
 BluetoothResult bt_setservices(uint32_t services);
+BluetoothResult bt_readfeatures(uint32_t *out);
+BluetoothResult bt_setfeatures(uint32_t services);
 
 //FIXME: Add error statements for all bt required pins
 //Make sure all of the appropriate pins are defined
