@@ -30,7 +30,6 @@ static BluetoothResult bt_reboot(int sync);
 static BluetoothResult 	bt_enable_module();
 static BluetoothResult 	bt_disable_module();
 static BluetoothResult 	bt_enter_mldp();
-static BluetoothResult 	bt_leave_mldp();
 
 static void 			bt_encode(uint8_t input, char *output);
 static char 			bt_encode_nibble(uint8_t nibble);
@@ -45,7 +44,7 @@ static void 			bt_process_mib_packet(void *arg);
 static BluetoothResult 	bt_setupservices();
 static BluetoothResult 	bt_setupmib();
 
-static void log_mldp_event(void *val);
+static void				bt_close_connection(void *arg);
 
 BluetoothResult bt_init()
 {
@@ -66,13 +65,6 @@ BluetoothResult bt_init()
 
 	DIR(BT_MLDP_EV) = INPUT;
 	ENSURE_DIGITAL(BT_MLDP_EV);
-
-	//Setup CN on MLDP_EV pin
-	_CN50IE = 1;
-
-	_CNIF = 0;
-	_CNIP = 0b010;
-	_CNIE = 1;
 
 	//Setup the reprogrammable pins
 	MAP_PERIPHERAL_IN(BT_RXRP, BT_RX_NAME);
@@ -421,25 +413,35 @@ void bt_process_mib_packet(void *arg)
 {
 	LOG_DEBUG(kBTReceivedMIBPacket);
 	LOG_ARRAY(bt_data.receive_buffer, bt_data.receive_cursor);
-	bt_data.receive_cursor = 0;
+	bt_data.flags.mib_in_progress = 0;
 }
 
-void log_mldp_event(void *val)
+void bt_close_connection(void *arg)
 {
-	int value = (int)val;
+	BluetoothResult res;
 
-	LOG_DEBUG(kBTMLPDEvent);
-	LOG_INT(value);
-}
+	LAT(BT_CMDPIN) = 0;
+	bt_data.flags.mldp_enabled = 0;
+	bt_data.unsolicited_cursor = 0;
+	bt_data.flags.connected = 0;
 
-void __attribute__((interrupt, auto_psv)) _CNInterrupt()
-{
-	int value = PIN(BT_MLDP_EV);
+	res = bt_disable_module();
+	if (res == kBT_NoError)
+	{
+		res = bt_advertise(100, 0);
+		if (res != kBT_NoError)
+		{
+			LOG_DEBUG(kCouldNotAdvertise);
+			LOG_INT(res);
+		}
+	}
+	else
+	{
+		LOG_DEBUG(kBTNoShutdown);
+	}
 
-	if (value)
-		taskloop_add(log_mldp_event, (void*)value);
-
-	_CNIF = 0;	
+	LOG_DEBUG(kBTConnectionStopped);
+	taskloop_set_flag(kTaskLoopSleepBit, 1);
 }
 
 //FIXME: Change interrupt name to match BT UART name
@@ -453,7 +455,8 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 	else if (!bt_data.flags.waiting_for_resp)
 	{
 		/*
-		 * We got some UART traffic that was not solicited, make sure we remain awake to finish receiving it without corruption
+		 * We got some UART traffic that was not solicited, make sure we remain awake to finish receiving it without corruption.
+		 * This happens when we get a connection notice from the RN4020.
 		 */
 
 		taskloop_set_flag(kTaskLoopSleepBit, 0);
@@ -465,14 +468,30 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 
 		if (bt_data.flags.mldp_enabled)
 		{
-			if (bt_data.receive_cursor >= MAX_RN4020_RECEIVE_SIZE)
-				bt_data.receive_cursor = 0;
+			if (bt_data.receive_cursor > 1 && data == '\n' && bt_data.receive_buffer[bt_data.receive_cursor-2] == 'd')
+			{
+				bt_data.receive_buffer[bt_data.receive_cursor++] = data;
+				taskloop_add(bt_close_connection, NULL);
+			}
+			else
+			{
+				if (bt_data.receive_cursor >= MAX_RN4020_RECEIVE_SIZE)
+					bt_data.receive_cursor = 0;
 
-			bt_data.receive_buffer[bt_data.receive_cursor++] = data;
-
-			//After receiving 25 bytes, process the MIB packet
-			if (bt_data.receive_cursor == 25)
-				taskloop_add(bt_process_mib_packet, NULL);
+				/*
+				 * MIB packets are framed base64 encoded data in the format
+				 * @<mib data>!
+				 */
+				if (data == '@')
+				{
+					bt_data.receive_cursor = 0;
+					bt_data.flags.mib_in_progress = 1;
+				}
+				else if (data == '!')
+					taskloop_add(bt_process_mib_packet, NULL);
+				else
+					bt_data.receive_buffer[bt_data.receive_cursor++] = data;
+			}
 		}
 		else if (!bt_data.flags.waiting_for_resp)
 		{
@@ -1023,33 +1042,4 @@ BluetoothResult bt_enter_mldp()
 
 	bt_data.flags.mldp_enabled = 1;
 	return kBT_NoError;
-}
-
-BluetoothResult bt_leave_mldp()
-{
-	BluetoothResult result;
-
-	if (!bt_data.flags.mldp_enabled)
-		return kBT_NoError;
-
-	bt_prepare_rcv_buffer();
-	LAT(BT_CMDPIN) = 0;
-
-	bt_data.flags.awake = 1;
-
-	result = bt_rcv_sync(0, 0);
-
-	if (result != kBT_NoError)
-	{
-		LOG_CRITICAL(kBTTimeout);
-		LAT(BT_CMDPIN) = 0;
-		DELAY_MS(20);				//Wait long enough for the rn4020 to clock out CMD if it is trying to
-		return result;
-	}
-
-	if (strcmp("CMD", bt_data.receive_buffer) != 0)
-		return kBT_InvalidResponse;
-
-	bt_data.flags.mldp_enabled = 0;
-	return bt_disable_module();
 }
