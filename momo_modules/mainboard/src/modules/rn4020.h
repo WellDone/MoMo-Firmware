@@ -65,7 +65,7 @@
 #define BT_TX_IP 	build_register(_U, BT_UART, TXIP)
 #define BT_TX_IE 	build_register(_U, BT_UART, TXIE)
 
-#define kRN4020Config	(kEnableOTA | kEnableRemoteCommand | kUARTFlowControl | kEnableMLDP | kServerOnly | kAutoMLDPDisable)
+#define kRN4020Config	(kEnableOTA | kEnableRemoteCommand | kUARTFlowControl | kEnableMLDP | kAutoMLDPDisable)
 
 enum
 {
@@ -132,7 +132,7 @@ typedef struct
 	uint8_t cmd_payload[20];
 	uint8_t cmd_packet[kBTCommandPacketSize];
 
-	unsigned int transmitted_cursor;
+	volatile unsigned int transmitted_cursor;
 	unsigned int send_cursor;
 	unsigned int receive_cursor;
 	unsigned int unsolicited_cursor;

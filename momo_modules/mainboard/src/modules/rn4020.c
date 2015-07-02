@@ -13,6 +13,7 @@
 #include <string.h>
 #include "bus_slave.h"
 #include "log_definitions.h"
+#include "mib_definitions.h"
 
 #include "scheduler.h"
 #include "common.h"
@@ -45,6 +46,7 @@ static BluetoothResult 	bt_setupservices();
 static BluetoothResult 	bt_setupmib();
 
 static void				bt_close_connection(void *arg);
+static BluetoothResult 	bt_send_mldp(char *data, unsigned int length);
 
 BluetoothResult bt_init()
 {
@@ -65,6 +67,8 @@ BluetoothResult bt_init()
 
 	DIR(BT_MLDP_EV) = INPUT;
 	ENSURE_DIGITAL(BT_MLDP_EV);
+
+	DIR(D9) = OUTPUT;
 
 	//Setup the reprogrammable pins
 	MAP_PERIPHERAL_IN(BT_RXRP, BT_RX_NAME);
@@ -343,6 +347,7 @@ void bt_configure_uart(bool highspeed, unsigned int baud)
 	BT_UMODE.STSEL = 0; //1 stop bit
 
 	BT_UMODE.BRGH = highspeed? 1 : 0;
+	BT_UMODE.UEN = 0b10;
 	BT_UBRG = baud; 
 
 	//Initialize the buffer information
@@ -365,7 +370,7 @@ void bt_configure_uart(bool highspeed, unsigned int baud)
 	//Setup interrupt information
 	BT_RX_IF = 0;
 	BT_TX_IF = 0;
-	BT_RX_IP = 0b100;
+	BT_RX_IP = 0b111;
 	BT_TX_IP = 0b010;
 	BT_RX_IE = 1;
 	BT_TX_IE = 1;
@@ -375,7 +380,10 @@ void bt_process_unsolicited(void *arg)
 {
 	BluetoothResult err;
 
-	if (bt_data.unsolicited_cursor == 0 || strcmp("Connected", bt_data.unsolicited_buffer) == 0)
+	//Sometimes the first character can be corrupted when we wake from sleep
+	//Other times all of the characters are except for the newline
+	//Interfacing with the RN4020 sucks...
+	if (bt_data.unsolicited_cursor == 0 || strcmp("onnected", &bt_data.unsolicited_buffer[1]) == 0)
 	{
 		bt_data.flags.connected = 1;
 		taskloop_set_flag(kTaskLoopSleepBit, 0);
@@ -411,9 +419,9 @@ void bt_process_unsolicited(void *arg)
 
 void bt_process_mib_packet(void *arg)
 {
+	bt_send_mldp(bt_data.receive_buffer, bt_data.receive_cursor);
 	LOG_DEBUG(kBTReceivedMIBPacket);
-	LOG_ARRAY(bt_data.receive_buffer, bt_data.receive_cursor);
-	bt_data.flags.mib_in_progress = 0;
+	LOG_ARRAY(bt_data.send_buffer, bt_data.send_cursor);
 }
 
 void bt_close_connection(void *arg)
@@ -468,30 +476,21 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 
 		if (bt_data.flags.mldp_enabled)
 		{
-			if (bt_data.receive_cursor > 1 && data == '\n' && bt_data.receive_buffer[bt_data.receive_cursor-2] == 'd')
+			//Clear the buffer when we receive the start of a MIB packet
+			if (bt_data.receive_cursor >= MAX_RN4020_RECEIVE_SIZE || data == '@')
+				bt_data.receive_cursor = 0;
+			else if (bt_data.receive_cursor > 1 && data == '\n' && bt_data.receive_buffer[bt_data.receive_cursor-1] == '\r')
 			{
+				unsigned char selector = bt_data.receive_buffer[bt_data.receive_cursor-2];
 				bt_data.receive_buffer[bt_data.receive_cursor++] = data;
-				taskloop_add(bt_close_connection, NULL);
+
+				if (selector == '!')
+					taskloop_add(bt_process_mib_packet, NULL);
+				else if (selector == 'd')
+					taskloop_add(bt_close_connection, NULL);
 			}
 			else
-			{
-				if (bt_data.receive_cursor >= MAX_RN4020_RECEIVE_SIZE)
-					bt_data.receive_cursor = 0;
-
-				/*
-				 * MIB packets are framed base64 encoded data in the format
-				 * @<mib data>!
-				 */
-				if (data == '@')
-				{
-					bt_data.receive_cursor = 0;
-					bt_data.flags.mib_in_progress = 1;
-				}
-				else if (data == '!')
-					taskloop_add(bt_process_mib_packet, NULL);
-				else
-					bt_data.receive_buffer[bt_data.receive_cursor++] = data;
-			}
+				bt_data.receive_buffer[bt_data.receive_cursor++] = data;
 		}
 		else if (!bt_data.flags.waiting_for_resp)
 		{
@@ -504,7 +503,6 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 			{
 				bt_data.unsolicited_buffer[--bt_data.unsolicited_cursor] = '\0';
 				taskloop_add(bt_process_unsolicited, NULL);
-				
 			}
 			else if (data == '\n' && !bt_data.flags.connected)
 			{
@@ -543,6 +541,11 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 	}
 
 	BT_RX_IF = 0; //Clear IFS flag
+
+	//If we had an overflow, clear the condition so that we receive more data.  The bytes have already been read from the buffer in the above code
+	//so we won't lose data provided that the rn4020 actually abided by the RTS signal
+	if (BT_USTA.OERR)
+		BT_USTA.OERR = 0;
 }
 
 void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt()
@@ -709,6 +712,25 @@ void bt_prepare_rcv_buffer()
 	bt_data.receive_cursor = 0;
 }
 
+BluetoothResult bt_send_mldp(char *data, unsigned int length)
+{
+	if (length > MAX_RN4020_MSG_SIZE)
+		return kBT_SendOverflow;
+
+	if (length == 0)
+		return kBT_NoError;
+
+	memcpy(bt_data.send_buffer, data, length);
+	bt_data.send_cursor = length;
+	bt_data.transmitted_cursor = 1;
+	BT_UTX = bt_data.send_buffer[0];
+
+	while (bt_data.transmitted_cursor != bt_data.send_cursor)
+		;
+
+	return kBT_NoError;
+}
+
 void bt_start_transmission()
 {
 	bt_data.transmitted_cursor = 1;
@@ -719,8 +741,8 @@ void bt_start_transmission()
 
 uint8_t bt_debug_buffer(uint8_t length)
 {
-	bus_slave_return_buffer(bt_data.receive_buffer, 20);
 
+	bus_slave_return_buffer(((unsigned char *)&bt_data) + plist_get_int16(0), 20);
 	return kNoErrorStatus;
 }
 
