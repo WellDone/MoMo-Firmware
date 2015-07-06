@@ -36,14 +36,9 @@ _asm_safe_sleep:
     disi #4
     nop ;1
     nop ;2
-#ifdef __PIC24FJ64GA306__
-    BSET _U1MODE, #7        ;Set the wake bit so that we can wakeup from reception of a character 
-#else
     nop ;3
-#endif
     btss    INTTREG, #15            
     pwrsav  #SLEEP_MODE
-    BCLR _U1MODE, #7
     return
 
 .global _asm_enable_rtcon_write ;note the underscore to handle C name mangling rules

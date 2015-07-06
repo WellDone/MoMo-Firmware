@@ -44,6 +44,7 @@
 				"BT_TIMER": 4,
 				"BT_CN_MLDP_EV": "50",
 				"BT_MLDP_EV": "D1",
+				"BT_PIO3": "E4",
 
 				"SCL":					"G2",
 				"BUS_ENABLE":			"F3",
