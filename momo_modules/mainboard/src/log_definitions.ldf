@@ -189,6 +189,3 @@ CouldNotAdvertise
 
 StartedBroadcastNotice
 "Started unconnectably broadcasting BTLE data"
-
-BTScriptLoaded
-"Bluetooth Module has script loaded and is ready to use"

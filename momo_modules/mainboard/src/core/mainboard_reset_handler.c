@@ -71,6 +71,8 @@ void handle_all_resets_after(unsigned int type)
      * Add code that should be called after all other reset code here
      */
     BluetoothResult err;
+    uint32_t        services;
+    char            name[20];
 
     battery_init();
     err = bt_init();
@@ -79,6 +81,24 @@ void handle_all_resets_after(unsigned int type)
     {
         LOG_CRITICAL(kBTModuleNotInitiailizeCorrectly);
         LOG_INT(err);
+    }
+    else
+    {
+        //Log the service spec
+        err = bt_readservices(&services);
+        if (err == kBT_NoError)
+        {
+            LOG_DEBUG(kBTServiceSpecification);
+            LOG_ARRAY(&services, 4);
+        }
+
+        //Log the name
+        err = bt_readname(name, 20);
+        if (err == kBT_NoError)
+        {
+            LOG_DEBUG(kBTWrongName);
+            LOG_STRING(name);
+        }
     }
 
     //sanity_check_schedule();

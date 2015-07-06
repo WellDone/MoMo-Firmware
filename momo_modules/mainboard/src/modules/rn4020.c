@@ -20,7 +20,6 @@
 #include "task_manager.h"
 
 static rn4020_info 	 bt_data;
-static uint32_t 	 bt_settings;
 
 //Internal functions that should not called outside of this module
 static BluetoothResult 	bt_cmd_sync(const char *cmd, unsigned int flags, unsigned int timeout);
@@ -28,7 +27,7 @@ static BluetoothResult  bt_rcv_sync(unsigned int timeout, unsigned int flags);
 static void 			bt_start_transmission();
 static void 			bt_prepare_rcv_buffer();
 static void 			bt_configure_uart(bool highspeed, unsigned int baud);
-static BluetoothResult 	bt_reboot(int sync);
+static BluetoothResult bt_reboot(int sync);
 static BluetoothResult 	bt_enable_module();
 static BluetoothResult 	bt_disable_module();
 static BluetoothResult 	bt_enter_mldp();
@@ -71,8 +70,6 @@ BluetoothResult bt_init()
 
 	DIR(D9) = OUTPUT;
 
-	DIR(BT_PIO3) = INPUT;
-
 	//Setup the reprogrammable pins
 	MAP_PERIPHERAL_IN(BT_RXRP, BT_RX_NAME);
 	MAP_PERIPHERAL_IN(BT_CTSRP, BT_CTS_NAME);
@@ -90,6 +87,14 @@ BluetoothResult bt_init()
 	bt_data.flags_value = 0;
 	bt_data.unsolicited_cursor = 0;
 
+	/*
+	 * The BTLE module defaults (on factory config) to 115200 baud but we can't
+	 * generate that within 2% error using an 8Mhz crystal, so we need to use 38400
+	 * baud. However, if the BTLE module has not been configured yet, we temporarily
+	 * increase our clockspeed to 32 Mhz so we can talk to the module and send it the
+	 * command to change its baud rate.
+	 */
+
 	bt_configure_uart(true, k38400Baud);
 
 	//In case this is a hardware powerup, wait for the UART RX line to go high indicating the RN4020
@@ -100,129 +105,105 @@ BluetoothResult bt_init()
 
 	timer_clear(BT_TIMER);
 	timer_start(BT_TIMER);
+
 	while (!bt_data.flags.timeout && !PIN(BT_TXPIN))
 		;
 
-	/*
-	 * Check if the RN4020 has been programmed with the appropriate script already,
-	 * if not, put the RN4020 in connectable mode so that we can download a script to it
-	 */
+	//Give the module time to initialize itself
+	DELAY_MS(10);
 
-	DELAY_MS(100);
+	timer_load_period(BT_TIMER, RN4020_TIMEROUT_PERIOD);
 
-	if (PIN(BT_PIO3))
+	err = bt_enable_module();
+	if (err != kBT_NoError)
 	{
-		//We don't use RX interrupts in receive mode since we use DMA
-		BT_RX_IE = 0;
-		LOG_CRITICAL(kBTScriptLoaded);
-		return kBT_NoError;
-	}
-	else
-	{
-		/*
-		 * The BTLE module defaults (on factory config) to 115200 baud but we can't
-		 * generate that within 2% error using an 8Mhz crystal, so we need to use 38400
-		 * baud. However, if the BTLE module has not been configured yet, we temporarily
-		 * increase our clockspeed to 32 Mhz so we can talk to the module and send it the
-		 * command to change its baud rate.
-		 */
+		
+		//If we couldn't talk to the module at 38400, try at 115200 and attempt to set the 
+		//baud rate down to 38400
+		bool config_successful = false;
+		
+		LOG_DEBUG(kBTCouldNotCommunicate);
+		LOG_INT(err);
 
-		timer_load_period(BT_TIMER, RN4020_TIMEROUT_PERIOD);
+		//Try talking at 115200 baud (we need to use a 32Mhz oscillator to get the baud error low enough)
+		set_oscillator_speed(k8MhzFRC, true);
+		DELAY_US(128*4);
+
+		bt_configure_uart(true, k115200Baud);
 
 		err = bt_enable_module();
 		if (err != kBT_NoError)
 		{
-			
-			//If we couldn't talk to the module at 38400, try at 115200 and attempt to set the 
-			//baud rate down to 38400
-			bool config_successful = false;
-			
-			LOG_DEBUG(kBTCouldNotCommunicate);
-			LOG_INT(err);
-
-			//Try talking at 115200 baud (we need to use a 32Mhz oscillator to get the baud error low enough)
-			set_oscillator_speed(k8MhzFRC, true);
-			DELAY_US(128*4);
-
-			bt_configure_uart(true, k115200Baud);
-
-			err = bt_enable_module();
-			if (err != kBT_NoError)
-			{
-				LOG_DEBUG(kBTCouldNotTalkAt115200);
-			}
-			else
-			{
-				//Set the baud rate down to 38400
-				err = bt_cmd_sync("SB,3", kBT_ParseResponse, RN4020_TIMEROUT_PERIOD*4);
-				if (err == kBT_NoError)
-				{
-					bt_reboot(0);
-
-					set_oscillator_speed(k8MhzFRC, false);
-					bt_configure_uart(true, k38400Baud);
-
-					//Wait for tx pin to go low and high indicating that we've rebooted
-					while (PIN(BT_TXPIN))
-						;
-
-					while (!PIN(BT_TXPIN))
-						;
-
-					bt_prepare_rcv_buffer();
-					err = bt_rcv_sync(RN4020_2s, 0);
-					if (err == kBT_NoError && (strcmp(bt_data.receive_buffer, "CMD") == 0))
-						config_successful = true;
-				}
-			}
-
-			//Make sure we always set the oscillator back to the correct setting
-			set_oscillator_speed(k8MhzFRC, false);
-
-			if (config_successful)
-				LOG_DEBUG(kBTResetBaud);
-			else
-			{
-				LOG_DEBUG(kBTCouldNotResetBaud);
-				LOG_INT(err);
-				LOG_INT(bt_data.receive_cursor);
-				LOG_ARRAY(bt_data.receive_buffer, bt_data.receive_cursor);
-			}
-			
+			LOG_DEBUG(kBTCouldNotTalkAt115200);
 		}
-		
-		bt_disable_module();
-
-		/*
-		 * Make sure we can talk to the module now (in case we had to reset the baud rate above)
-		 * 
-		 * Also begin the process of setting the module up to have the correct services so that 
-		 * we can send MIB commands over BTLE
-		 */
-
-		if (bt_enable_module() == kBT_NoError)
+		else
 		{
-			bt_data.flags.initialized = 1;
-			bt_disable_module();
-
-			err = bt_setupservices();
+			//Set the baud rate down to 38400
+			err = bt_cmd_sync("SB,3", kBT_ParseResponse, RN4020_TIMEROUT_PERIOD*4);
 			if (err == kBT_NoError)
 			{
-				LOG_CRITICAL(kBTModuleInitializedCorrectly);
+				bt_reboot(0);
 
-				if (bt_settings != kRN4020ProgrammedConfig)
-				{
-					err = bt_advertise(100, 0);
-	       
-	        		if (err != kBT_NoError)
-	            		LOG_CRITICAL(kCouldNotAdvertise);
-	            }
-	        }
-			return err;
+				set_oscillator_speed(k8MhzFRC, false);
+				bt_configure_uart(true, k38400Baud);
+
+				//Wait for tx pin to go low and high indicating that we've rebooted
+				while (PIN(BT_TXPIN))
+					;
+
+				while (!PIN(BT_TXPIN))
+					;
+
+				bt_prepare_rcv_buffer();
+				err = bt_rcv_sync(RN4020_2s, 0);
+				if (err == kBT_NoError && (strcmp(bt_data.receive_buffer, "CMD") == 0))
+					config_successful = true;
+			}
 		}
 
-		return kBT_InitializationError;
+		//Make sure we always set the oscillator back to the correct setting
+		set_oscillator_speed(k8MhzFRC, false);
+
+		if (config_successful)
+			LOG_DEBUG(kBTResetBaud);
+		else
+		{
+			LOG_DEBUG(kBTCouldNotResetBaud);
+			LOG_INT(err);
+			LOG_INT(bt_data.receive_cursor);
+			LOG_ARRAY(bt_data.receive_buffer, bt_data.receive_cursor);
+		}
+		
 	}
+	
+	bt_disable_module();
+
+	/*
+	 * Make sure we can talk to the module now (in case we had to reset the baud rate above)
+	 * 
+	 * Also begin the process of setting the module up to have the correct services so that 
+	 * we can send MIB commands over BTLE
+	 */
+
+	if (bt_enable_module() == kBT_NoError)
+	{
+		bt_data.flags.initialized = 1;
+		bt_disable_module();
+
+		err = bt_setupservices();
+		if (err == kBT_NoError)
+		{
+			LOG_CRITICAL(kBTModuleInitializedCorrectly);
+
+			err = bt_advertise(100, 0);
+       
+        	if (err != kBT_NoError)
+            	LOG_CRITICAL(kCouldNotAdvertise);
+        }
+		return err;
+	}
+
+	return kBT_InitializationError;
 }
 
 BluetoothResult bt_setupservices()
@@ -243,8 +224,8 @@ BluetoothResult bt_setupservices()
 	}
 
 	//Make sure we are using MLDP and have flow control enabled
-	err = bt_readfeatures(&bt_settings);
-	if (bt_settings != kRN4020Config && bt_settings != kRN4020ProgrammedConfig)
+	err = bt_readfeatures(&services);
+	if (services != kRN4020Config)
 	{
 		err = bt_setfeatures(kRN4020Config);
 		if (err != kBT_NoError)
@@ -399,8 +380,39 @@ void bt_process_unsolicited(void *arg)
 {
 	BluetoothResult err;
 
-	LOG_DEBUG(kBTReceivedUnknownMessage);
-	LOG_ARRAY(bt_data.unsolicited_buffer, bt_data.unsolicited_cursor);
+	//Sometimes the first character can be corrupted when we wake from sleep
+	//Other times all of the characters are except for the newline
+	//Interfacing with the RN4020 sucks...
+	if (bt_data.unsolicited_cursor == 0 || strcmp("onnected", &bt_data.unsolicited_buffer[1]) == 0)
+	{
+		bt_data.flags.connected = 1;
+		taskloop_set_flag(kTaskLoopSleepBit, 0);
+
+		LOG_DEBUG(kBTReceivedConnection);
+
+		err = bt_enter_mldp();
+		if (err != kBT_NoError)
+			LOG_CRITICAL(kBTCouldNotEnterMLDP);
+
+		return;
+	}
+	else if (strcmp("Connection End", bt_data.unsolicited_buffer) == 0)
+	{
+		bt_data.flags.connected = 0;
+		taskloop_set_flag(kTaskLoopSleepBit, 1);
+
+		LOG_DEBUG(kBTConnectionStopped);
+
+		//Restart the advertisement process now that we have lost the connection
+		err = bt_advertise(100, 0);
+        if (err != kBT_NoError)
+            LOG_CRITICAL(kCouldNotAdvertise);
+	}
+	else
+	{
+		LOG_DEBUG(kBTReceivedUnknownMessage);
+		LOG_ARRAY(bt_data.unsolicited_buffer, bt_data.unsolicited_cursor);
+	}
 
 	bt_data.unsolicited_cursor = 0;
 }
@@ -447,6 +459,15 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 	{
 		while(BT_USTA.URXDA == 1)
 			BT_URX;
+	}
+	else if (!bt_data.flags.waiting_for_resp)
+	{
+		/*
+		 * We got some UART traffic that was not solicited, make sure we remain awake to finish receiving it without corruption.
+		 * This happens when we get a connection notice from the RN4020.
+		 */
+
+		taskloop_set_flag(kTaskLoopSleepBit, 0);
 	}
 
 	while(BT_USTA.URXDA == 1)

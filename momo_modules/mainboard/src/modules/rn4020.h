@@ -65,8 +65,7 @@
 #define BT_TX_IP 	build_register(_U, BT_UART, TXIP)
 #define BT_TX_IE 	build_register(_U, BT_UART, TXIE)
 
-#define kRN4020Config			(kEnableOTA | kEnableRemoteCommand | kUARTFlowControl | kEnableMLDP | kAutoEnterMLDP | kMLDPWithoutStatus | kEnableUARTInScript)
-#define kRN4020ProgrammedConfig	(kEnableOTA | kEnableRemoteCommand | kUARTFlowControl | kEnableMLDP | kAutoEnterMLDP | kMLDPWithoutStatus | kScriptAfterPoweron | kEnableUARTInScript)
+#define kRN4020Config	(kEnableOTA | kEnableRemoteCommand | kUARTFlowControl | kEnableMLDP | kAutoMLDPDisable)
 
 enum
 {
@@ -148,8 +147,7 @@ typedef enum
 	kBT_InvalidResponse = 4,
 	kBT_InvalidResponseLength = 5,
 	kBT_ErrorResponseReceived = 6,
-	kBT_InitializationError = 7,
-	kBT_FactoryResetError
+	kBT_InitializationError
 } BluetoothResult;
 
 typedef enum
