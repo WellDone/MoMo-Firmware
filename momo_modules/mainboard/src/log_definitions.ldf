@@ -109,6 +109,12 @@ BTModuleNotInitiailizeCorrectly
 BTModuleInitializedCorrectly
 "Correctly initialized the BTLE module"
 
+BTModuleInAutonomousMode
+"Correctly set BTLE Module to autonomous mode upon next reset"
+
+BTModuleRunningInAutonomousMode
+"The BTLE Module has started up in autonmous mode"
+
 BTAdvertisementSuccessful
 "Succesfully started bluetooth advertisement"
 
@@ -174,6 +180,9 @@ BTCouldNotResetBaud
 - "Error Code" as integer, format unsigned
 - "Buffer Length" as integer, format unsigned
 - "Receive Buffer" as string
+
+BTLoadedScript
+"Successfully loaded the command script onto the RN4020"
 
 BTServiceSpecification
 "Displaying Current BTLE Module Server Settings"

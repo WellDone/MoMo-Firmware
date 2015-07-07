@@ -14,12 +14,16 @@
 #include "bus_slave.h"
 #include "log_definitions.h"
 #include "mib_definitions.h"
+#include "memory_manager.h"
+#include "flashblock.h"
 
 #include "scheduler.h"
 #include "common.h"
 #include "task_manager.h"
 
 static rn4020_info 	 bt_data;
+static rn4020_persistant_state rn4020_state;
+static flash_block_info rn4020_fb;
 
 //Internal functions that should not called outside of this module
 static BluetoothResult 	bt_cmd_sync(const char *cmd, unsigned int flags, unsigned int timeout);
@@ -27,10 +31,9 @@ static BluetoothResult  bt_rcv_sync(unsigned int timeout, unsigned int flags);
 static void 			bt_start_transmission();
 static void 			bt_prepare_rcv_buffer();
 static void 			bt_configure_uart(bool highspeed, unsigned int baud);
-static BluetoothResult bt_reboot(int sync);
+static BluetoothResult 	bt_reboot(int sync);
 static BluetoothResult 	bt_enable_module();
 static BluetoothResult 	bt_disable_module();
-static BluetoothResult 	bt_enter_mldp();
 
 static void 			bt_encode(uint8_t input, char *output);
 static char 			bt_encode_nibble(uint8_t nibble);
@@ -39,13 +42,16 @@ static uint32_t 		bt_decode_uint32(char *data);
 static uint8_t 			bt_decode_nibble(char *data);
 static uint8_t 			bt_decode_byte(char *data);
 
-static void 			bt_process_unsolicited(void *arg);
 static void 			bt_process_mib_packet(void *arg);
 
 static BluetoothResult 	bt_setupservices();
-static BluetoothResult 	bt_setupmib();
+static BluetoothResult 	bt_load_script();
+
+static void 			bt_configure_automode();
 
 static void				bt_close_connection(void *arg);
+static void 			bt_open_connection(void *arg);
+
 static BluetoothResult 	bt_send_mldp(char *data, unsigned int length);
 
 BluetoothResult bt_init()
@@ -85,7 +91,16 @@ BluetoothResult bt_init()
 
 	//Initialize state
 	bt_data.flags_value = 0;
-	bt_data.unsolicited_cursor = 0;
+
+	//Check our state
+	fb_init(&rn4020_fb, kRN4020ConfigSubsector, sizeof(rn4020_persistant_state));
+	if (fb_count(&rn4020_fb) > 0)
+		fb_read(&rn4020_fb, &rn4020_state);
+	else
+	{
+		rn4020_state.state = kScriptNotLoaded;
+		fb_write(&rn4020_fb, &rn4020_state);
+	}
 
 	/*
 	 * The BTLE module defaults (on factory config) to 115200 baud but we can't
@@ -109,101 +124,212 @@ BluetoothResult bt_init()
 	while (!bt_data.flags.timeout && !PIN(BT_TXPIN))
 		;
 
+	timer_stop(BT_TIMER);
+
 	//Give the module time to initialize itself
 	DELAY_MS(10);
 
 	timer_load_period(BT_TIMER, RN4020_TIMEROUT_PERIOD);
 
-	err = bt_enable_module();
-	if (err != kBT_NoError)
+	if (rn4020_state.state == kScriptNotLoaded)
 	{
-		
-		//If we couldn't talk to the module at 38400, try at 115200 and attempt to set the 
-		//baud rate down to 38400
-		bool config_successful = false;
-		
-		LOG_DEBUG(kBTCouldNotCommunicate);
-		LOG_INT(err);
-
-		//Try talking at 115200 baud (we need to use a 32Mhz oscillator to get the baud error low enough)
-		set_oscillator_speed(k8MhzFRC, true);
-		DELAY_US(128*4);
-
-		bt_configure_uart(true, k115200Baud);
-
 		err = bt_enable_module();
 		if (err != kBT_NoError)
 		{
-			LOG_DEBUG(kBTCouldNotTalkAt115200);
-		}
-		else
-		{
-			//Set the baud rate down to 38400
-			err = bt_cmd_sync("SB,3", kBT_ParseResponse, RN4020_TIMEROUT_PERIOD*4);
-			if (err == kBT_NoError)
-			{
-				bt_reboot(0);
-
-				set_oscillator_speed(k8MhzFRC, false);
-				bt_configure_uart(true, k38400Baud);
-
-				//Wait for tx pin to go low and high indicating that we've rebooted
-				while (PIN(BT_TXPIN))
-					;
-
-				while (!PIN(BT_TXPIN))
-					;
-
-				bt_prepare_rcv_buffer();
-				err = bt_rcv_sync(RN4020_2s, 0);
-				if (err == kBT_NoError && (strcmp(bt_data.receive_buffer, "CMD") == 0))
-					config_successful = true;
-			}
-		}
-
-		//Make sure we always set the oscillator back to the correct setting
-		set_oscillator_speed(k8MhzFRC, false);
-
-		if (config_successful)
-			LOG_DEBUG(kBTResetBaud);
-		else
-		{
-			LOG_DEBUG(kBTCouldNotResetBaud);
+			
+			//If we couldn't talk to the module at 38400, try at 115200 and attempt to set the 
+			//baud rate down to 38400
+			bool config_successful = false;
+			
+			LOG_DEBUG(kBTCouldNotCommunicate);
 			LOG_INT(err);
-			LOG_INT(bt_data.receive_cursor);
-			LOG_ARRAY(bt_data.receive_buffer, bt_data.receive_cursor);
+
+			//Try talking at 115200 baud (we need to use a 32Mhz oscillator to get the baud error low enough)
+			set_oscillator_speed(k8MhzFRC, true);
+			DELAY_US(128*4);
+
+			bt_configure_uart(true, k115200Baud);
+
+			err = bt_enable_module();
+			if (err != kBT_NoError)
+			{
+				LOG_DEBUG(kBTCouldNotTalkAt115200);
+			}
+			else
+			{
+				//Set the baud rate down to 38400
+				err = bt_cmd_sync("SB,3", kBT_ParseResponse, RN4020_TIMEROUT_PERIOD*4);
+				if (err == kBT_NoError)
+				{
+					bt_reboot(0);
+
+					set_oscillator_speed(k8MhzFRC, false);
+					bt_configure_uart(true, k38400Baud);
+
+					//Wait for tx pin to go low and high indicating that we've rebooted
+					while (PIN(BT_TXPIN))
+						;
+
+					while (!PIN(BT_TXPIN))
+						;
+
+					bt_prepare_rcv_buffer();
+					err = bt_rcv_sync(RN4020_2s, 0);
+					if (err == kBT_NoError && (strcmp(bt_data.receive_buffer, "CMD") == 0))
+						config_successful = true;
+				}
+			}
+
+			//Make sure we always set the oscillator back to the correct setting
+			set_oscillator_speed(k8MhzFRC, false);
+
+			if (config_successful)
+				LOG_DEBUG(kBTResetBaud);
+			else
+			{
+				LOG_DEBUG(kBTCouldNotResetBaud);
+				LOG_INT(err);
+				LOG_INT(bt_data.receive_cursor);
+				LOG_ARRAY(bt_data.receive_buffer, bt_data.receive_cursor);
+			}
+			
 		}
 		
-	}
-	
-	bt_disable_module();
-
-	/*
-	 * Make sure we can talk to the module now (in case we had to reset the baud rate above)
-	 * 
-	 * Also begin the process of setting the module up to have the correct services so that 
-	 * we can send MIB commands over BTLE
-	 */
-
-	if (bt_enable_module() == kBT_NoError)
-	{
-		bt_data.flags.initialized = 1;
 		bt_disable_module();
 
-		err = bt_setupservices();
-		if (err == kBT_NoError)
-		{
-			LOG_CRITICAL(kBTModuleInitializedCorrectly);
+		/*
+		 * Make sure we can talk to the module now (in case we had to reset the baud rate above)
+		 * 
+		 * Also begin the process of setting the module up to have the correct services so that 
+		 * we can send MIB commands over BTLE.  If everything is successful, load in the automatic
+		 * configuration script onto the RN4020 so that it sets itself up correctly.  This will not
+		 * take effect until the device is next power cycled but it is a one-time setup event.
+		 */
 
-			err = bt_advertise(100, 0);
-       
-        	if (err != kBT_NoError)
-            	LOG_CRITICAL(kCouldNotAdvertise);
-        }
-		return err;
+		if (bt_enable_module() == kBT_NoError)
+		{
+			bt_data.flags.initialized = 1;
+			bt_disable_module();
+
+			err = bt_setupservices();
+			if (err == kBT_NoError)
+			{
+				err = bt_load_script();
+	       
+	        	if (err == kBT_NoError)
+	        	{
+	            	LOG_CRITICAL(kBTLoadedScript);
+	            	
+	        		//Now configure the module for autonomous mode
+	            	err = bt_setfeatures(kRN4020AutonomousConfig);
+	            	if (err == kBT_NoError)
+	            	{
+	            		LOG_CRITICAL(kBTModuleInAutonomousMode);
+	            		rn4020_state.state = kScriptLoaded;
+	            		fb_write(&rn4020_fb, &rn4020_state);
+	            	}
+	            }
+	        }
+
+			return err;
+		}
+
+		return kBT_InitializationError;
+	}
+	else
+	{
+		//The script has already been loaded
+		bt_configure_automode();
+		LOG_CRITICAL(kBTModuleRunningInAutonomousMode);
+		return kBT_NoError;
+	}
+}
+
+void bt_configure_automode()
+{
+	//Setup CN on connection pin so that we know when there's a connection pending
+	//Pin E4, CN62
+	_ANSE4 = 0;
+	DIR(E4) = INPUT;
+	_CN62IE = 1;
+	_CNIF = 0;
+	_CNIP = 0b010;
+	_CNIE = 1;
+
+	BT_RX_IE = 0;
+}
+
+BluetoothResult bt_load_script()
+{
+	BluetoothResult result;
+	const char *script = "@PW_ON\nA,07D0\n|O,04,04\n@CONN\n|O,04,00\n@DISCON\nA,07D0\n|O,04,04\n\x1b";
+	unsigned int script_length = strlen(script);
+
+	result = bt_enable_module();
+	if (result != kBT_NoError)
+		return result;
+
+	result = bt_cmd_sync("WP", kBT_ParseResponse, 0);
+	if (result != kBT_NoError)
+	{
+		bt_disable_module();
+		return result;
 	}
 
-	return kBT_InitializationError;
+	result = bt_cmd_sync("WC", kBT_ParseResponse, RN4020_2s);
+	if (result != kBT_NoError)
+	{
+		bt_disable_module();
+		return result;
+	}
+
+	result = bt_cmd_sync("WW", kBT_ParseResponse, RN4020_2s);
+	if (result != kBT_NoError)
+	{
+		bt_disable_module();
+		return result;
+	}
+
+	//Now enter the script
+	strcpy(bt_data.send_buffer, script);
+	bt_data.send_cursor = script_length;
+	bt_data.flags.cmd_sync = 1;
+	bt_start_transmission();
+
+	/*
+	 * The module responds to the command by sending \r\nEND\r\n
+	 * so we need to receive 2 separate responses.
+	 */
+	result = bt_rcv_sync(RN4020_2s, kBT_ContinueWaiting);
+	if (result != kBT_NoError)
+	{
+		LOG_DEBUG(kBTReceivedUnknownMessage);
+		bt_data.receive_buffer[bt_data.receive_cursor] = '\0';
+		LOG_STRING(bt_data.receive_buffer);
+		bt_disable_module();
+		return result;
+	}
+
+	result = bt_rcv_sync(RN4020_2s, 0);
+	if (result != kBT_NoError)
+	{
+		LOG_DEBUG(kBTReceivedUnknownMessage);
+		bt_data.receive_buffer[bt_data.receive_cursor] = '\0';
+		LOG_STRING(bt_data.receive_buffer);
+		bt_disable_module();
+		return result;
+	}
+
+	if (strcmp("END", bt_data.receive_buffer) != 0)
+	{
+		LOG_DEBUG(kBTReceivedUnknownMessage);
+		bt_data.receive_buffer[bt_data.receive_cursor] = '\0';
+		LOG_STRING(bt_data.receive_buffer);
+		bt_disable_module();
+		return kBT_InvalidResponse;
+	}
+
+	return bt_disable_module();
 }
 
 BluetoothResult bt_setupservices()
@@ -222,20 +348,6 @@ BluetoothResult bt_setupservices()
 		if (err != kBT_NoError)
 			return err;
 	}
-
-	//Make sure we are using MLDP and have flow control enabled
-	err = bt_readfeatures(&services);
-	if (services != kRN4020Config)
-	{
-		err = bt_setfeatures(kRN4020Config);
-		if (err != kBT_NoError)
-			return err;
-	}
-
-	//Configure the private service
-	err = bt_setupmib();
-	if (err != kBT_NoError)
-		return err;
 
 	return kBT_NoError;
 }
@@ -354,7 +466,6 @@ void bt_configure_uart(bool highspeed, unsigned int baud)
 	bt_data.send_cursor = 0;
 	bt_data.receive_cursor = 0;
 	bt_data.flags_value = 0;
-	bt_data.unsolicited_cursor = 0;
 
 	BT_RX_IE = 0;
 	BT_TX_IE = 0;
@@ -376,80 +487,118 @@ void bt_configure_uart(bool highspeed, unsigned int baud)
 	BT_TX_IE = 1;
 }
 
-void bt_process_unsolicited(void *arg)
-{
-	BluetoothResult err;
-
-	//Sometimes the first character can be corrupted when we wake from sleep
-	//Other times all of the characters are except for the newline
-	//Interfacing with the RN4020 sucks...
-	if (bt_data.unsolicited_cursor == 0 || strcmp("onnected", &bt_data.unsolicited_buffer[1]) == 0)
-	{
-		bt_data.flags.connected = 1;
-		taskloop_set_flag(kTaskLoopSleepBit, 0);
-
-		LOG_DEBUG(kBTReceivedConnection);
-
-		err = bt_enter_mldp();
-		if (err != kBT_NoError)
-			LOG_CRITICAL(kBTCouldNotEnterMLDP);
-
-		return;
-	}
-	else if (strcmp("Connection End", bt_data.unsolicited_buffer) == 0)
-	{
-		bt_data.flags.connected = 0;
-		taskloop_set_flag(kTaskLoopSleepBit, 1);
-
-		LOG_DEBUG(kBTConnectionStopped);
-
-		//Restart the advertisement process now that we have lost the connection
-		err = bt_advertise(100, 0);
-        if (err != kBT_NoError)
-            LOG_CRITICAL(kCouldNotAdvertise);
-	}
-	else
-	{
-		LOG_DEBUG(kBTReceivedUnknownMessage);
-		LOG_ARRAY(bt_data.unsolicited_buffer, bt_data.unsolicited_cursor);
-	}
-
-	bt_data.unsolicited_cursor = 0;
-}
-
 void bt_process_mib_packet(void *arg)
 {
+	bt_data.receive_buffer[bt_data.receive_cursor++] = '\r';
+	bt_data.receive_buffer[bt_data.receive_cursor++] = '\n';
 	bt_send_mldp(bt_data.receive_buffer, bt_data.receive_cursor);
+
+	bt_data.flags.mib_in_progress = 0;
+	
+	//Start polling for start bytes again ('@' characters)
+	DMACH0 = 0;
+
+	DMASRC0 = (unsigned int)&BT_URX;
+	DMADST0 = (unsigned int)bt_data.receive_buffer;
+	DMACNT0 = 1;
+
+	DMACH0bits.SAMODE = 0; //Fixed source address
+	DMACH0bits.DAMODE = 0; //Don't Increment destination
+	DMACH0bits.TRMODE = 1; //Repeated one-shot
+	DMACH0bits.BYTE = 1;
+	DMACH0bits.RELOAD = 1; //do reload source and dest
+	DMACH0bits.CHEN = 1;
+
 	LOG_DEBUG(kBTReceivedMIBPacket);
 	LOG_ARRAY(bt_data.send_buffer, bt_data.send_cursor);
 }
 
+void bt_open_connection(void *arg)
+{
+	LOG_DEBUG(kBTReceivedConnection);
+
+	DMACONbits.DMAEN = 1;
+	DMACONbits.PRSSEL = 1;
+
+	DMAL = (unsigned int)bt_data.receive_buffer;
+	DMAH = (unsigned int)&bt_data.receive_buffer[MAX_RN4020_MSG_SIZE-1];
+
+	DMACH0 = 0;
+
+	DMASRC0 = (unsigned int)&BT_URX;
+	DMADST0 = (unsigned int)bt_data.receive_buffer;
+	DMACNT0 = 1;
+
+	DMACH0bits.SAMODE = 0; //Fixed source address
+	DMACH0bits.DAMODE = 0; //Don't Increment destination
+	DMACH0bits.TRMODE = 1; //Repeated one-shot
+	DMACH0bits.BYTE = 1;
+	DMACH0bits.RELOAD = 1; //do reload source and dest
+	
+	DMAINT0bits.CHSEL = 0b110001; //UART1 Receive Interrupt
+	DMAINT0bits.HALFEN = 0;
+
+	DMACH0bits.CHEN = 1;
+
+	_DMA0IF = 0;
+	_DMA0IP = 0b111;
+
+	if (BT_USTA.OERR)
+		BT_USTA.OERR = 0;
+
+	_DMA0IE = 1;
+
+	taskloop_set_flag(kTaskLoopSleepBit, 0);
+}
+
 void bt_close_connection(void *arg)
 {
-	BluetoothResult res;
-
-	LAT(BT_CMDPIN) = 0;
-	bt_data.flags.mldp_enabled = 0;
-	bt_data.unsolicited_cursor = 0;
-	bt_data.flags.connected = 0;
-
-	res = bt_disable_module();
-	if (res == kBT_NoError)
-	{
-		res = bt_advertise(100, 0);
-		if (res != kBT_NoError)
-		{
-			LOG_DEBUG(kCouldNotAdvertise);
-			LOG_INT(res);
-		}
-	}
-	else
-	{
-		LOG_DEBUG(kBTNoShutdown);
-	}
+	_DMA0IE = 0;
+	DMACONbits.DMAEN = 0;	
 
 	LOG_DEBUG(kBTConnectionStopped);
 	taskloop_set_flag(kTaskLoopSleepBit, 1);
+}
+
+void __attribute__((interrupt,no_auto_psv)) _DMA0Interrupt()
+{
+	_DMA0IF = 0;
+
+	if (bt_data.flags.mib_in_progress)
+	{
+		bt_data.receive_cursor = 25;
+		taskloop_add(bt_process_mib_packet, NULL);
+	}
+	else if (bt_data.receive_buffer[0] == '@')
+	{
+		DMACH0 = 0;
+
+		DMASRC0 = (unsigned int)&BT_URX;
+		DMADST0 = (unsigned int)&bt_data.receive_buffer[1];
+		DMACNT0 = 24;
+
+		DMACH0bits.SAMODE = 0; //Fixed source address
+		DMACH0bits.DAMODE = 1; //Increment destination
+		DMACH0bits.TRMODE = 0; //one-shot mode
+		DMACH0bits.BYTE = 1;
+		DMACH0bits.RELOAD = 0; //don't reload source and dest
+		DMACH0bits.CHEN = 1;
+
+		bt_data.flags.mib_in_progress = 1;
+	}
+}
+
+void __attribute__((interrupt,no_auto_psv)) _CNInterrupt()
+{
+	//Read register to clear mismatch
+	uint16_t value = PORTE;
+
+	if (value & (1 << 4))
+		taskloop_add(bt_close_connection, NULL);
+	else
+		taskloop_add(bt_open_connection, NULL);
+
+	_CNIF = 0;
 }
 
 //FIXME: Change interrupt name to match BT UART name
@@ -460,62 +609,12 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 		while(BT_USTA.URXDA == 1)
 			BT_URX;
 	}
-	else if (!bt_data.flags.waiting_for_resp)
-	{
-		/*
-		 * We got some UART traffic that was not solicited, make sure we remain awake to finish receiving it without corruption.
-		 * This happens when we get a connection notice from the RN4020.
-		 */
-
-		taskloop_set_flag(kTaskLoopSleepBit, 0);
-	}
 
 	while(BT_USTA.URXDA == 1)
 	{
 		unsigned char data = BT_URX;
 
-		if (bt_data.flags.mldp_enabled)
-		{
-			//Clear the buffer when we receive the start of a MIB packet
-			if (bt_data.receive_cursor >= MAX_RN4020_RECEIVE_SIZE || data == '@')
-				bt_data.receive_cursor = 0;
-			else if (bt_data.receive_cursor > 1 && data == '\n' && bt_data.receive_buffer[bt_data.receive_cursor-1] == '\r')
-			{
-				unsigned char selector = bt_data.receive_buffer[bt_data.receive_cursor-2];
-				bt_data.receive_buffer[bt_data.receive_cursor++] = data;
-
-				if (selector == '!')
-					taskloop_add(bt_process_mib_packet, NULL);
-				else if (selector == 'd')
-					taskloop_add(bt_close_connection, NULL);
-			}
-			else
-				bt_data.receive_buffer[bt_data.receive_cursor++] = data;
-		}
-		else if (!bt_data.flags.waiting_for_resp)
-		{
-			//Don't allow null bytes that can be caused by rebooting the RN4020
-			if(data == 0)
-				continue;
-
-			//Check if we've received the end of a command
-			if (bt_data.unsolicited_cursor > 0 && data == '\n' && bt_data.unsolicited_buffer[bt_data.unsolicited_cursor-1] == '\r')
-			{
-				bt_data.unsolicited_buffer[--bt_data.unsolicited_cursor] = '\0';
-				taskloop_add(bt_process_unsolicited, NULL);
-			}
-			else if (data == '\n' && !bt_data.flags.connected)
-			{
-				/*
-				 * The connection message is garbled but ends with a valid \n character, so process that we've received a connection
-				 */
-				 bt_data.unsolicited_cursor = 0;
-				 taskloop_add(bt_process_unsolicited, NULL);
-			}
-			else if (bt_data.unsolicited_cursor < MAX_RN4020_MSG_SIZE)
-				bt_data.unsolicited_buffer[bt_data.unsolicited_cursor++] = data;
-		}
-		else
+		if (bt_data.flags.waiting_for_resp)
 		{
 			if (bt_data.receive_cursor >= MAX_RN4020_RECEIVE_SIZE)
 			{
@@ -904,67 +1003,6 @@ BluetoothResult bt_setservices(uint32_t services)
 	return bt_disable_module();
 }
 
-BluetoothResult bt_setupmib()
-{
-	BluetoothResult result;
-
-	result = bt_enable_module();
-	if (result != kBT_NoError)
-		return result;
-
-	//Clear any old settings that might be there
-	result = bt_cmd_sync("PZ", kBT_ParseResponse, 0);
-	if (result != kBT_NoError)
-	{
-		bt_disable_module();
-		return result;
-	}
-
-	DELAY_MS(10);
-	result = bt_cmd_sync(kBTMIBServiceCommand, kBT_ParseResponse, RN4020_300ms);
-	if (result != kBT_NoError)
-	{
-		bt_disable_module();
-		return result;
-	}
-
-	//Setup characteristics
-	DELAY_MS(10);
-	result = bt_cmd_sync(kBTMIBCommandCharCommand, kBT_ParseResponse, RN4020_300ms);
-	if (result != kBT_NoError)
-	{
-		bt_disable_module();
-		return result;
-	}
-
-	DELAY_MS(10);
-	result = bt_cmd_sync(kBTMIBPayloadCharCommand, kBT_ParseResponse, RN4020_300ms);
-	if (result != kBT_NoError)
-	{
-		bt_disable_module();
-		return result;
-	}
-
-	DELAY_MS(10);
-	result = bt_cmd_sync(kBTMIBResponseCharCommand, kBT_ParseResponse, RN4020_300ms);
-	if (result != kBT_NoError)
-	{
-		bt_disable_module();
-		return result;
-	}
-
-	DELAY_MS(10);
-	result = bt_cmd_sync(kBTMIBResponsePayloadCharCommand, kBT_ParseResponse, RN4020_300ms);
-	if (result != kBT_NoError)
-	{
-		bt_disable_module();
-		return result;
-	}	
-
-	DELAY_MS(10);
-	return bt_reboot(1);
-}
-
 BluetoothResult bt_setname(const char *name)
 {
 	BluetoothResult result;
@@ -1032,36 +1070,4 @@ BluetoothResult bt_broadcast(const char *data, unsigned int length)
 
 	result = bt_disable_module();
 	return result;
-}
-
-BluetoothResult bt_enter_mldp()
-{
-	BluetoothResult result;
-
-	if (bt_data.flags.mldp_enabled)
-		return kBT_NoError;
-
-	result = bt_enable_module();
-	if (result != kBT_NoError)
-		return result;
-
-	bt_prepare_rcv_buffer();
-	LAT(BT_CMDPIN) = 1;
-
-	result = bt_rcv_sync(0, 0);
-	bt_data.receive_cursor = 0;
-
-	if (result != kBT_NoError)
-	{
-		LOG_CRITICAL(kBTTimeout);
-		LAT(BT_CMDPIN) = 0;
-		DELAY_MS(20);				//Wait long enough for the rn4020 to clock out CMD if it is trying to
-		return result;
-	}
-
-	if (strcmp("MLDP", bt_data.receive_buffer) != 0)
-		return kBT_InvalidResponse;
-
-	bt_data.flags.mldp_enabled = 1;
-	return kBT_NoError;
 }

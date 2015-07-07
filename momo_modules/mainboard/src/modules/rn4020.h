@@ -42,6 +42,7 @@
 #define RN4020_TIMEROUT_PERIOD	800 		//50 ms on an 8mhz crystal
 #define RN4020_300ms			4800		//300 ms on an 8mhz crystal FIXME: shouldn't this be for a 32mhz crystal
 #define RN4020_2s 				32000		//2s on an 8mhz crystal
+#define RN4020_4s 				64000		//2s on an 8mhz crystal
 
 #define build_register_r(prefix, middle, postfix)  	prefix ## middle ## postfix
 #define build_register(prefix, middle, postfix)  	build_register_r(prefix, middle, postfix)
@@ -65,7 +66,8 @@
 #define BT_TX_IP 	build_register(_U, BT_UART, TXIP)
 #define BT_TX_IE 	build_register(_U, BT_UART, TXIE)
 
-#define kRN4020Config	(kEnableOTA | kEnableRemoteCommand | kUARTFlowControl | kEnableMLDP | kAutoMLDPDisable)
+//0x1B209C00
+#define kRN4020AutonomousConfig	(kEnableOTA | kEnableRemoteCommand | kUARTFlowControl | kEnableMLDP | kAutoMLDPDisable | kAutoEnterMLDP | kMLDPWithoutStatus | kScriptAfterPoweron | kEnableUARTInScript)
 
 enum
 {
@@ -98,6 +100,12 @@ enum
 	kEnableMLDP = 0x10000000ULL
 };
 
+typedef enum
+{
+	kScriptNotLoaded = 1,
+	kScriptLoaded = 2
+} RN4020State;
+
 typedef struct
 {
 	unsigned int initialized: 		1;
@@ -127,16 +135,18 @@ typedef struct
 	char send_buffer[MAX_RN4020_MSG_SIZE];
 	char receive_buffer[MAX_RN4020_RECEIVE_SIZE];
 
-	char unsolicited_buffer[MAX_RN4020_MSG_SIZE];
-
 	uint8_t cmd_payload[20];
 	uint8_t cmd_packet[kBTCommandPacketSize];
 
 	volatile unsigned int transmitted_cursor;
 	unsigned int send_cursor;
 	unsigned int receive_cursor;
-	unsigned int unsolicited_cursor;
 } rn4020_info;
+
+typedef struct
+{
+	RN4020State state;
+} rn4020_persistant_state;
 
 typedef enum
 {
@@ -147,7 +157,7 @@ typedef enum
 	kBT_InvalidResponse = 4,
 	kBT_InvalidResponseLength = 5,
 	kBT_ErrorResponseReceived = 6,
-	kBT_InitializationError
+	kBT_InitializationError = 7
 } BluetoothResult;
 
 typedef enum

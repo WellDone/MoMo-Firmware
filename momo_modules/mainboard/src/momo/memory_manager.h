@@ -18,6 +18,7 @@ enum
 {
 	kMomoConfigSubsector    = MEMORY_SECTION_TO_SUB(kConfigurationSector) + 0,
 	kFirmwareConfigSubector	= MEMORY_SECTION_TO_SUB(kConfigurationSector) + 1,
+	kRN4020ConfigSubsector	= MEMORY_SECTION_TO_SUB(kConfigurationSector) + 2,
 };
 
 //LogSector subsector assignments
