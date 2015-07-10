@@ -1,4 +1,5 @@
 #include "bus_master.h"
+#include "bus_slave.h"
 #include <string.h>
 #include "mib_state.h"
 #include "rpc_queue.h"
@@ -6,13 +7,15 @@
 #include "log_definitions.h"
 
 //Local Prototypes that should not be called outside of this file
-static void		bus_master_finish();
+static void 	bus_master_finish(bool send_stop);
+static void		bus_master_localrpc(void *arg);
 void 			bus_master_handleerror();
 void 			bus_master_sendrpc();
 void 			bus_master_readresult(unsigned int length);
 void 			bus_master_rpc_async_do();
 void 			bus_master_queue_async_rpc(uint8_t sender, mib_rpc_function callback);
 void 			bus_master_init_async();
+
 
 const rpc_info *master_rpcdata;
 
@@ -96,7 +99,7 @@ unsigned int bus_master_idle()
 	return mib_state.rpc_done;
 }
 
-static void bus_master_finish()
+static void bus_master_finish(bool send_stop)
 {
 	unsigned int i=0;
 
@@ -107,12 +110,15 @@ static void bus_master_finish()
 	if ( !rpc_queue_empty() )
 			taskloop_add_critical( bus_master_rpc_async_do, NULL );
 
-	i2c_finish_transmission(); 
-	for(i=0; i<200; ++i)
-		;			
-	
+	if (send_stop)
+	{
+		i2c_finish_transmission(); 
+		for(i=0; i<200; ++i)
+			;			
+	}
+
 	if (mib_unified.packet.response.status_value == kAsynchronousResponseStatus)
-			bus_master_queue_async_rpc(master_rpcdata->data.address, mib_state.master_callback);
+		bus_master_queue_async_rpc(master_rpcdata->data.address, mib_state.master_callback);
 	else if (mib_state.master_callback != NULL)
 		mib_state.master_callback(mib_unified.packet.response.status_value);
 }
@@ -150,6 +156,26 @@ void bus_master_rpc_async(mib_rpc_function callback, MIBUnified *data)
  * Send or resend the rpc call currently pointed to .  
  */
 
+void bus_master_localrpc(void *arg)
+{
+	memcpy((char *)&mib_unified.packet, (char*)&master_rpcdata->data.packet, kMIBMessageSize);
+	
+	//Attempt to call the local handler
+	bus_slave_set_returnbuffer_length(0);
+	mib_state.slave_handler = find_handler();
+
+	if (mib_state.slave_handler == kInvalidMIBIndex)
+	{
+		mib_unified.packet.response.length = 0;
+		bus_slave_setreturn(kCommandNotFoundStatus); //Make sure that if nothing else happens we return an error status.
+	}
+	else
+		bus_slave_callcommand();
+
+	bus_append_checksum((unsigned char*)&(mib_unified.packet), kMIBMessageNoChecksumSize);
+	bus_master_finish(0);
+}
+
 void bus_master_sendrpc()
 {
 	//Always clear the rpc_done flag so that we don't repeatedly call sendrpc if someone else does
@@ -163,11 +189,17 @@ void bus_master_sendrpc()
 		return;
 	}
 
-	rpc_start_time = rtcc_get_timestamp();
-	i2c_master_enable();
-
-	set_master_state(kMIBReadReturnStatus);
-	bus_send(master_rpcdata->data.address, (unsigned char *)&(master_rpcdata->data.packet), kMIBMessageNoChecksumSize);
+	//If we're sending this packet to ourselves, just execute the callback
+	//We can't execute this here because the call to bus_master_finish can requeue the RPC.
+	if (master_rpcdata->data.address == kMIBControllerAddress)
+		taskloop_add_critical(bus_master_localrpc, NULL);
+	else
+	{
+		rpc_start_time = rtcc_get_timestamp();
+		i2c_master_enable();
+		set_master_state(kMIBReadReturnStatus);
+		bus_send(master_rpcdata->data.address, (unsigned char *)&(master_rpcdata->data.packet), kMIBMessageNoChecksumSize);
+	}
 }
 
 void bus_master_readresult(unsigned int length)
@@ -184,7 +216,7 @@ void bus_master_handleerror()
 		break;
 
 		default:
-		bus_master_finish();
+		bus_master_finish(1);
 		break;
 	}
 }
@@ -213,7 +245,7 @@ void bus_master_callback()
 			//Check if we received all 0xFF bytes indicating the slave is not there
 			if (mib_unified.packet.response.status_value == 0xFF)
 			{
-				bus_master_finish();
+				bus_master_finish(1);
 				break;
 			}
 
@@ -228,7 +260,7 @@ void bus_master_callback()
 			set_master_state(kMIBExecuteCallback);
 		}
 		else
-			bus_master_finish();
+			bus_master_finish(1);
 		
 		break;
 
@@ -236,7 +268,7 @@ void bus_master_callback()
 		if (i2c_master_lasterror() != kI2CNoError)
 			bus_master_readresult(kMIBMessageNoChecksumSize); //Reread the return status and return value since there was a checksum error
 		else
-			bus_master_finish();
+			bus_master_finish(1);
 		break;
 	}
 }

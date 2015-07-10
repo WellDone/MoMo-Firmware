@@ -5,7 +5,7 @@
 //static prototypes that are only to be used in this file
 static void bus_slave_startcommand();
 static void bus_slave_searchcommand();
-static void bus_slave_callcommand();
+void bus_slave_callcommand();
 
 /*
  * MIB Slave Logic 
@@ -74,7 +74,7 @@ static void bus_slave_searchcommand()
 	}
 }
 
-static void bus_slave_callcommand()
+void bus_slave_callcommand()
 {	
 	if (mib_state.slave_handler != kInvalidMIBIndex)
 	{

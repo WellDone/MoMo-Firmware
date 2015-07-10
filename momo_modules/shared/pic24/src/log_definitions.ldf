@@ -31,3 +31,7 @@ AsyncRPCQueueFullError
 CouldNotFindRPCError
 "Received an asynchronous response, but could not find a record of making the call"
 - "sender" as integer, format unsigned
+
+SentRPCToOurselvesMessage
+"Sent an RPC to ourselves"
+- "contents" as string, format repr

@@ -16,10 +16,12 @@
 #include "mib_definitions.h"
 #include "memory_manager.h"
 #include "flashblock.h"
+#include "base64.h"
 
 #include "scheduler.h"
 #include "common.h"
 #include "task_manager.h"
+#include "bus_master.h"
 
 static rn4020_info 	 bt_data;
 static rn4020_persistant_state rn4020_state;
@@ -43,6 +45,7 @@ static uint8_t 			bt_decode_nibble(char *data);
 static uint8_t 			bt_decode_byte(char *data);
 
 static void 			bt_process_mib_packet(void *arg);
+static void 			bt_return_mib_response(uint8_t status);
 
 static BluetoothResult 	bt_setupservices();
 static BluetoothResult 	bt_load_script();
@@ -91,6 +94,7 @@ BluetoothResult bt_init()
 
 	//Initialize state
 	bt_data.flags_value = 0;
+	bt_data.checksum_errors = 0;
 
 	//Check our state
 	fb_init(&rn4020_fb, kRN4020ConfigSubsector, sizeof(rn4020_persistant_state));
@@ -450,8 +454,8 @@ void bt_configure_uart(bool highspeed, unsigned int baud)
 	BT_UMODE.ABAUD = 0;
 	BT_UMODE.RXINV = 0;
 	BT_USTA.UTXINV = 0;
-	BT_USTA.UTXISEL1 = 1;
-	BT_USTA.UTXISEL0 = 0; //Transmit interrupt when buffer if empty
+	BT_USTA.UTXISEL1 = 0;
+	BT_USTA.UTXISEL0 = 1; //Transmit interrupt when shift is done
 	BT_USTA.URXISEL = 0b00; //Receive interrupt on every character
 
 	//Configure speed and parity (spec is 115200 baud, 8n1)
@@ -489,63 +493,107 @@ void bt_configure_uart(bool highspeed, unsigned int baud)
 
 void bt_process_mib_packet(void *arg)
 {
-	bt_data.receive_buffer[bt_data.receive_cursor++] = '\r';
-	bt_data.receive_buffer[bt_data.receive_cursor++] = '\n';
-	bt_send_mldp(bt_data.receive_buffer, bt_data.receive_cursor);
+	char *packet = (char *)arg;
+	MIBUnified mib_packet;
+	uint8_t i;
+	uint8_t sum = 0;
 
-	bt_data.flags.mib_in_progress = 0;
+	//Get rid of the '@' prepended to the packet (keep a copy for debugging purposes)
+	//Copy the address + packet + checksum
+	memcpy(bt_data.cmd_payload, packet+1, kMIBMessageSize+1);
+
+	//Verify the checksum
+	for (i=0; i<kMIBMessageSize+1; ++i)
+		sum += bt_data.cmd_payload[i];
+
+	if (sum != 0)
+		++bt_data.checksum_errors;
+
+	memcpy((char*)&mib_packet.packet, bt_data.cmd_payload+1, kMIBMessageSize);
+	mib_packet.address = (uint8_t)bt_data.cmd_payload[0];
+
+	bus_master_rpc_async(bt_return_mib_response, &mib_packet);
+}
+
+void bt_return_mib_response(uint8_t status)
+{
+	char *packet = (char *)&mib_unified.packet;
+
+	base64_encode((unsigned char *)packet, kMIBMessageSize, bt_data.mib_response_buffer+1, 36);
+
+	//Add back in the @<data>!\r\n framing
+	bt_data.mib_response_buffer[0] = '@';
+	bt_data.mib_response_buffer[37] = '!';
+	bt_data.mib_response_buffer[38] = '\r';
+	bt_data.mib_response_buffer[39] = '\n';
+	bt_send_mldp(bt_data.mib_response_buffer, 40);
 	
-	//Start polling for start bytes again ('@' characters)
 	DMACH0 = 0;
-
 	DMASRC0 = (unsigned int)&BT_URX;
 	DMADST0 = (unsigned int)bt_data.receive_buffer;
 	DMACNT0 = 1;
 
 	DMACH0bits.SAMODE = 0; //Fixed source address
-	DMACH0bits.DAMODE = 0; //Don't Increment destination
+	DMACH0bits.DAMODE = 1; //Increment destination
 	DMACH0bits.TRMODE = 1; //Repeated one-shot
 	DMACH0bits.BYTE = 1;
-	DMACH0bits.RELOAD = 1; //do reload source and dest
-	DMACH0bits.CHEN = 1;
+	DMACH0bits.RELOAD = 0; //don't reload source and dest
+	
+	DMAINT0bits.CHSEL = 0b110001; //UART1 Receive Interrupt
+	DMAINT0bits.HALFEN = 0;
 
-	LOG_DEBUG(kBTReceivedMIBPacket);
-	LOG_ARRAY(bt_data.send_buffer, bt_data.send_cursor);
+	if (BT_USTA.OERR)
+		BT_USTA.OERR = 0;
+
+	//Clear out the receive buffer
+	if (BT_USTA.OERR)
+		BT_USTA.OERR = 0;
+
+	while(BT_USTA.URXDA == 1)
+		BT_URX;
+
+	DMACH0bits.CHEN = 1;
 }
 
 void bt_open_connection(void *arg)
 {
 	LOG_DEBUG(kBTReceivedConnection);
 
+	LAT(BT_CMDPIN) = 1;
+	LAT(BT_SOFTWAKEPIN) = 1;
+
 	DMACONbits.DMAEN = 1;
 	DMACONbits.PRSSEL = 1;
 
 	DMAL = (unsigned int)bt_data.receive_buffer;
 	DMAH = (unsigned int)&bt_data.receive_buffer[MAX_RN4020_MSG_SIZE-1];
-
+	
 	DMACH0 = 0;
-
 	DMASRC0 = (unsigned int)&BT_URX;
 	DMADST0 = (unsigned int)bt_data.receive_buffer;
 	DMACNT0 = 1;
 
 	DMACH0bits.SAMODE = 0; //Fixed source address
-	DMACH0bits.DAMODE = 0; //Don't Increment destination
+	DMACH0bits.DAMODE = 1; //Increment destination
 	DMACH0bits.TRMODE = 1; //Repeated one-shot
 	DMACH0bits.BYTE = 1;
-	DMACH0bits.RELOAD = 1; //do reload source and dest
+	DMACH0bits.RELOAD = 0; //don't reload source and dest
 	
 	DMAINT0bits.CHSEL = 0b110001; //UART1 Receive Interrupt
 	DMAINT0bits.HALFEN = 0;
 
-	DMACH0bits.CHEN = 1;
 
 	_DMA0IF = 0;
 	_DMA0IP = 0b111;
 
+	//Clear out the receive buffer
 	if (BT_USTA.OERR)
 		BT_USTA.OERR = 0;
 
+	while(BT_USTA.URXDA == 1)
+		BT_URX;
+
+	DMACH0bits.CHEN = 1;
 	_DMA0IE = 1;
 
 	taskloop_set_flag(kTaskLoopSleepBit, 0);
@@ -556,35 +604,23 @@ void bt_close_connection(void *arg)
 	_DMA0IE = 0;
 	DMACONbits.DMAEN = 0;	
 
+	LAT(BT_SOFTWAKEPIN) = 0;
+
 	LOG_DEBUG(kBTConnectionStopped);
 	taskloop_set_flag(kTaskLoopSleepBit, 1);
 }
 
 void __attribute__((interrupt,no_auto_psv)) _DMA0Interrupt()
 {
+	char *last_data = (char *)(DMADST0 - 1);
+
 	_DMA0IF = 0;
 
-	if (bt_data.flags.mib_in_progress)
+	if (*last_data == '!' && *(last_data - 27) == '@')
 	{
-		bt_data.receive_cursor = 25;
-		taskloop_add(bt_process_mib_packet, NULL);
-	}
-	else if (bt_data.receive_buffer[0] == '@')
-	{
+		//Don't receive any more mib commands until we process this one
 		DMACH0 = 0;
-
-		DMASRC0 = (unsigned int)&BT_URX;
-		DMADST0 = (unsigned int)&bt_data.receive_buffer[1];
-		DMACNT0 = 24;
-
-		DMACH0bits.SAMODE = 0; //Fixed source address
-		DMACH0bits.DAMODE = 1; //Increment destination
-		DMACH0bits.TRMODE = 0; //one-shot mode
-		DMACH0bits.BYTE = 1;
-		DMACH0bits.RELOAD = 0; //don't reload source and dest
-		DMACH0bits.CHEN = 1;
-
-		bt_data.flags.mib_in_progress = 1;
+		taskloop_add(bt_process_mib_packet, last_data-27);
 	}
 }
 
@@ -649,8 +685,10 @@ void __attribute__((interrupt,no_auto_psv)) _U1RXInterrupt()
 
 void __attribute__((interrupt,no_auto_psv)) _U1TXInterrupt()
 {
-	while ( BT_USTA.UTXBF == 0 && bt_data.transmitted_cursor != bt_data.send_cursor) 
+	if ( BT_USTA.UTXBF == 0 && bt_data.transmitted_cursor != bt_data.send_cursor)
+	{
 		BT_UTX = bt_data.send_buffer[bt_data.transmitted_cursor++];
+	}
 
 	BT_TX_IF = 0; //Clear IFS flag
 }
@@ -819,10 +857,22 @@ BluetoothResult bt_send_mldp(char *data, unsigned int length)
 	if (length == 0)
 		return kBT_NoError;
 
+	//We need to send 1 byte followed by a delay followed by the rest of the bytes since
+	//there is an undocumented sleep feature of the rn4020 that needs time to wakeup
 	memcpy(bt_data.send_buffer, data, length);
-	bt_data.send_cursor = length;
+	bt_data.send_cursor = 1;
 	bt_data.transmitted_cursor = 1;
+
 	BT_UTX = bt_data.send_buffer[0];
+
+	while (!BT_USTA.TRMT)
+		;
+
+	DELAY_MS(2);
+
+	BT_UTX = bt_data.send_buffer[1];
+	bt_data.transmitted_cursor = 2;
+	bt_data.send_cursor = length;
 
 	while (bt_data.transmitted_cursor != bt_data.send_cursor)
 		;

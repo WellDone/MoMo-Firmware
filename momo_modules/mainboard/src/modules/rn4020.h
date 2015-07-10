@@ -19,6 +19,7 @@
 #define __rn4020_h__
 
 #include <stdint.h>
+#include "protocol_defines.h"
 
 /*
  * Service and Characteristic IDs for BTLE MIB characteristics
@@ -135,12 +136,14 @@ typedef struct
 	char send_buffer[MAX_RN4020_MSG_SIZE];
 	char receive_buffer[MAX_RN4020_RECEIVE_SIZE];
 
-	uint8_t cmd_payload[20];
-	uint8_t cmd_packet[kBTCommandPacketSize];
+	uint8_t cmd_payload[kMIBMessageSize+1];
 
 	volatile unsigned int transmitted_cursor;
 	unsigned int send_cursor;
 	unsigned int receive_cursor;
+	unsigned int checksum_errors;
+
+	char mib_response_buffer[36+2+2];
 } rn4020_info;
 
 typedef struct
