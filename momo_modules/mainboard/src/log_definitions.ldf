@@ -102,12 +102,18 @@ ReportSchedulingStartedNotice
 ReportSchedulingStoppedNotice
 "Report scheduling stopped"
 
-
-CouldNotAdvertise
-"Could not start bluetooth module advertisements"
+BTModuleNotInitiailizeCorrectly
+"Could not initialize BTLE module"
+- "Error Code" as integer, format unsigned
 
 BTModuleInitializedCorrectly
 "Correctly initialized the BTLE module"
+
+BTModuleInAutonomousMode
+"Correctly set BTLE Module to autonomous mode upon next reset"
+
+BTModuleRunningInAutonomousMode
+"The BTLE Module has started up in autonmous mode"
 
 BTAdvertisementSuccessful
 "Succesfully started bluetooth advertisement"
@@ -135,8 +141,39 @@ BTCouldNotTalkAt115200
 - "Error Code" as integer, format unsigned
 - "Receive Buffer" as string
 
+BTConnectionTimedout
+"No activity on the bluetooth connection for longer than the timeout period, so we're forcing the connection closed"
+
 BTResetBaud
 "Sucessfully set the baud rate of the BTLE module down to 38400"
+
+BTReceivedUnsolicitedData
+"Received an unsolicited message from the RN4020 module"
+- "Message" as string, format repr
+
+BTReceivedUnknownMessage
+"Received an unsolicited message from the RN4020 module"
+- "Message" as string, format repr
+
+BTReceivedMIBPacket
+"Received a MIB packet from the RN4020 module"
+- "Packet" as string, format repr
+
+BTReceivedConnection
+"Received a BTLE connection notice"
+
+BTConnectionStopped
+"BTLE Connection Stopped"
+
+BTCouldNotEnterMLDP
+"Error entering MLDP mode"
+
+BTCouldNotLeaveMDLP
+"Error leaving MLDP mode"
+
+BTMLPDEvent
+"MLPD Event signaled"
+- "Level" as integer, formwat unsigned
 
 BTCouldNotResetBaud
 "Could not reset the baud rate of the BTLE module"
@@ -144,8 +181,19 @@ BTCouldNotResetBaud
 - "Buffer Length" as integer, format unsigned
 - "Receive Buffer" as string
 
-CouldNotBroadcastNotice
-"Could not start broadcasting BTLE data"
+BTLoadedScript
+"Successfully loaded the command script onto the RN4020"
+
+BTServiceSpecification
+"Displaying Current BTLE Module Server Settings"
+- "Settings" as integer, format hex
+
+BTWrongName
+"BTLE module name is not correct, current name is logged below"
+- "Name" as string
+
+CouldNotAdvertise
+"Could not start advertising"
 - "Error Code" as integer, format unsigned
 
 StartedBroadcastNotice

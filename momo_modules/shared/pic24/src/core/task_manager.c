@@ -168,7 +168,7 @@ void taskloop_loop()
                 if (taskqueue.tasks.count != 0)
                     continue;
 
-                asm_sleep();
+                asm_safe_sleep();
                 sleep_time += TMR1 - sleep_start;
             }
             else

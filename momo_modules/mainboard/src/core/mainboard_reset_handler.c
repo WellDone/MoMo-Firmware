@@ -73,30 +73,14 @@ void handle_all_resets_after(unsigned int type)
     BluetoothResult err;
 
     battery_init();
-    err = bt_init();
     
-
-    if (err == kBT_NoError)
-    {
-        err = bt_setname("ULTRA");
-
-        if (err == kBT_NoError)
-        {
-            err = bt_broadcast("Hello", 5);
-            if (err == kBT_NoError)
-                err = bt_advertise(100, 0);
-            
-           
-            if (err == kBT_NoError)
-                LOG_CRITICAL(kStartedBroadcastNotice);
-        }
-    }
-
+    err = bt_init();
     if (err != kBT_NoError)
     {
-        LOG_CRITICAL(kCouldNotBroadcastNotice);
+        LOG_CRITICAL(kBTModuleNotInitiailizeCorrectly);
         LOG_INT(err);
     }
+
     //sanity_check_schedule();
     //report_manager_start();
 

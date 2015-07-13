@@ -335,6 +335,12 @@ uint8_t set_uuid(uint8_t length)
 	return kNoErrorStatus;
 }
 
+uint8_t echo(uint8_t length)
+{
+	bus_slave_set_returnbuffer_length(length);
+	return kNoErrorStatus;
+}
+
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x00, register_module},
@@ -366,6 +372,7 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x23, clear_log},
 
 	{0x26, get_perf_counter},
-	{0x27, bt_debug_buffer}
+	{0x27, bt_debug_buffer},
+	{0x28, echo}
 };
 DEFINE_MIB_FEATURE(controller);
