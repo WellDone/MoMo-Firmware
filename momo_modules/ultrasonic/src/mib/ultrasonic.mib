@@ -15,3 +15,5 @@ APIVersion = "1.1";
 28169: _find_noise_floor(0, no);
 28170: _get_variance(2, no);
 28171: _get_optimal_settings(0, no);
+28172: _get_parameters(0, no);
+28173: _get_tof(1, no);

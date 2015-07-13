@@ -5,7 +5,7 @@
 #include "oscillator.h"
 #include "tdc7200.h"
 
-#define _XTAL_FREQ			4000000
+#define _XTAL_FREQ			32000000
 
 static uint8_t tdc7200_transfer8(uint8_t cmd, uint8_t value);
 static uint8_t tdc1000_transfer8(uint8_t cmd, uint8_t value);

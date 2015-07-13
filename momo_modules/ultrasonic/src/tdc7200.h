@@ -113,7 +113,7 @@ void		tdc7200_trigger();
 
 //Data Fetching
 uint32_t 	tdc7200_calibration();
-int32_t 	tdc7200_tof(uint8_t index, uint8_t average_cycles);
+int32_t 	tdc7200_tof(uint8_t index);
 
 void 		tdc7200_setstops(uint8_t stops);
 void		tdc7200_setstopmask(uint16_t mask);

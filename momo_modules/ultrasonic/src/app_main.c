@@ -23,6 +23,10 @@ uint8_t find_noise_floor_flag;
 uint8_t find_variance_flag;
 uint8_t optimize_flag;
 
+extern int32_t 	delta_tof_accum;
+extern uint8_t	g_code;
+extern uint16_t num_measurements;
+
 void task(void)
 {
 	tdc1000_setmode(kTDC1000_TOFMode);
@@ -88,10 +92,17 @@ void task(void)
 
 	if (take_delta_tof_measurement)
 	{
-		//FIXME: Do delta tof measurement and return the values
+		UltrasoundError err;
+		int32_t *mib = (int32_t *)mib_buffer;
+		err = accumulate_delta_tof(mib_buffer[0]);
+
+		mib[0] = delta_tof_accum;
+		mib[1] = num_measurements;
+		mib_buffer[8] = err;
 
 		take_delta_tof_measurement = 0;
-		bus_master_async_callback(5);
+
+		bus_master_async_callback(9);
 	}
 
 	if (find_noise_floor_flag)
@@ -122,7 +133,7 @@ void task(void)
 
 static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index)
 {
-	int32_t tof = tdc7200_tof(tof_index, 0);
+	int32_t tof = tdc7200_tof(tof_index);
 
 	mib_buffer[mib_index + 0] = (tof >> 0) & 0xFF;
 	mib_buffer[mib_index + 1] = (tof >> 8) & 0xFF;

@@ -27,7 +27,7 @@ void tdc1000_prepare_deltatof(uint8_t channel_averages)
 {
 	registers.config1.num_avg = channel_averages;
 	registers.config2.ch_swp = 1;
-	registers.config2.ext_chsel = 0;
+	registers.config2.ext_chsel = 1;
 	registers.config2.chsel = 0;
 	registers.config2.tof_mode = kTDC1000_MeterMode;
 }

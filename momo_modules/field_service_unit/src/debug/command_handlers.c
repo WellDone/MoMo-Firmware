@@ -148,7 +148,7 @@ static void rpc_callback(unsigned char status)
     uint8_t len=0;
     put(DEBUG_UART, status);
 
-    if (status_is_error(status))
+    if (status_is_error(status) || status == kModuleBusyStatus)
     {
         set_command_result( false );
         return;

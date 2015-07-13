@@ -22,7 +22,8 @@
 				"CS7200": "A4",
 				"CS1000": "A2",
 
-				"MEASUREMENT_TIMER": 2
+				"MEASUREMENT_TIMER": 2,
+				"ACCUM_TIMER": 4
 			}
 		}
 	},

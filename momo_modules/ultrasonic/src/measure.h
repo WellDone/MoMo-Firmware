@@ -14,7 +14,7 @@ typedef enum
 	kNoUltrasoundError = 0,
 	kNoSignalError,
 	kWeakSignalError,
-	kHighNoiseError
+	kTimeoutError
 } UltrasoundError;
 
 void 			initialize_parameters();
@@ -27,9 +27,15 @@ UltrasoundError wait_for_measurement(uint8_t timeout);
 
 void 			sort_measurements();
 
+void 			fill_parameters();
+
 uint8_t 		noise_floor_index();
 uint32_t 		noise_floor_voltage(uint32_t *threshold, uint32_t *gain);
 int32_t 		find_variance(const trigger_condition cond);
 UltrasoundError optimize_settings(trigger_condition *out, int32_t *out_variance);
+UltrasoundError accumulate_delta_tof(uint8_t bits);
+uint8_t 		accumulate_samples();
+
+int32_t abs32(int32_t val);
 
 #endif
