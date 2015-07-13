@@ -6,7 +6,7 @@
 void oscillator_init()
 {
     set_oscillator_speed(k8MhzFRC, false);
-    set_sosc_status(1); //Secondary oscillator always needs to be enabled, disable sosc
+    set_sosc_status(1); //Secondary oscillator always needs to be enabled
 }
 
 int set_oscillator_speed(FRCPostscaler speed, int use_pll)
