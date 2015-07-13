@@ -2,6 +2,7 @@
 #include "tdc1000.h"
 #include "tdc7200.h"
 #include "communication.h"
+#include "mib12_api.h"
 #include <xc.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -18,6 +19,11 @@ int32_t measurements[kMedianWindowSize];
 
 int32_t tof1[kNumTOFPulses];
 int32_t tof2[kNumTOFPulses];
+
+int32_t 	delta_tof_accum;
+uint16_t 	num_measurements;
+uint16_t	desired_measurements;
+uint16_t 	desired_shift;
 
 uint8_t 	g_noise_floor;
 uint8_t 	g_gain;
@@ -59,12 +65,16 @@ const uint32_t gain_levels[16] = {1000ULL, 1412ULL, 1995ULL, 2818ULL, 3981ULL, 5
 void initialize_parameters()
 {
 	uint8_t lna, gain;
+	uint8_t stops;
 
 	g_noise_floor 	= 0;
 	g_pulses		= 5;
 	g_mask 			= 8*8;
 	g_threshold 	= 1;
 	g_gain 			= 30;
+
+	desired_shift = 7;
+	desired_measurements = 128;
 
 	gain = g_gain;
 	uint8_t lna = (gain < 20);
@@ -77,13 +87,14 @@ void initialize_parameters()
 	tdc1000_setgain(gain, lna, g_threshold);
 	tdc1000_setexcitation(g_pulses, g_pulses);
 	tdc7200_setstopmask(g_mask);
-	tdc1000_setstarttime(30);
+	tdc1000_setstarttime(0);
+	tdc7200_setstops(0b100);
 }
 
 void set_parameters(uint8_t gain, uint8_t threshold, uint8_t pulses, uint16_t mask)
 {
-	uint8_t lna = (gain < 20);
-
+	uint8_t lna = (gain < 20)
+;
 	g_gain = gain;
 	g_threshold = threshold;
 	g_pulses = pulses;
@@ -98,6 +109,16 @@ void set_parameters(uint8_t gain, uint8_t threshold, uint8_t pulses, uint16_t ma
 	tdc1000_setgain(gain, lna, threshold);
 	tdc1000_setexcitation(pulses, pulses);
 	tdc7200_setstopmask(mask);
+}
+
+void fill_parameters()
+{
+	mib_buffer[0] = g_gain;
+	mib_buffer[1] = 0;
+	mib_buffer[2] = g_threshold;
+	mib_buffer[3] = 0;
+	mib_buffer[4] = g_pulses;
+	mib_buffer[5] = 0;
 }
 
 /*
@@ -256,19 +277,26 @@ UltrasoundError measure_delta_tof(uint8_t control_power, uint8_t averages)
 
 	if (control_power)
 		enable_power();
+
+	LATCH(CHSEL) = 0;
 	
 	error_code = take_measurement();
-
-	for (i=0; i<kNumTOFPulses; ++i)
-		tof1[i] = tdc7200_tof(i, 0);
-
+	
 	if (error_code == kNoUltrasoundError)
 	{
+		for (i=0; i<kNumTOFPulses; ++i)
+			tof1[i] = tdc7200_tof(i);
+
+		LATCH(CHSEL) = 1;
+
 		tdc7200_trigger();
 		error_code = wait_for_measurement(200);
 
-		for (i=0; i<kNumTOFPulses; ++i)
-			tof2[i] = tdc7200_tof(i, 0);
+		if (error_code == kNoUltrasoundError)
+		{
+			for (i=0; i<kNumTOFPulses; ++i)
+				tof2[i] = tdc7200_tof(i);
+		}
 	}
 
 	if (control_power)
@@ -277,22 +305,111 @@ UltrasoundError measure_delta_tof(uint8_t control_power, uint8_t averages)
 	return error_code;
 }
 
+UltrasoundError accumulate_delta_tof(uint8_t bits)
+{
+	enable_power();
+
+	delta_tof_accum = 0;
+	num_measurements = 0;
+	desired_measurements = 1 << bits;
+	//FIXME: Add bit shift count here;
+
+	tmr_config(ACCUM_TIMER, kTMRPrescale_64, kTMRPostscale1_16);
+	tmr_intenable(ACCUM_TIMER) = 0;
+	tmr_flag(ACCUM_TIMER) = 0;
+	tmr_loadperiod(ACCUM_TIMER, 255);
+	tmr_load(ACCUM_TIMER, 0);
+	tmr_setstate(ACCUM_TIMER, 1);
+
+	do
+	{
+		if (tmr_flag(ACCUM_TIMER))
+			break;
+
+		measure_delta_tof(0, 0);
+	} while (accumulate_samples() == 0);
+
+	tmr_setstate(ACCUM_TIMER, 0);
+	disable_power();
+
+	if (tmr_flag(ACCUM_TIMER))
+		return kTimeoutError;
+
+	return kNoUltrasoundError;
+}
+
+/*
+ * Attempt to accumulate tof difference samples based on the last measurement
+ * until we have accumulated the deisred number of samples.  
+ * Return 1 if we have reached the desired number and 0 otherwise.
+ */
+
+uint8_t accumulate_samples()
+{
+	uint8_t i, j;
+
+	for (i=0; i<kNumTOFPulses; ++i)
+	{
+		int32_t val = INT32_MAX;
+		int32_t dist;
+
+		if (tof1[i] == 0)
+			continue;
+
+		for (j=0; j<kNumTOFPulses; ++j)
+		{
+			if (tof2[j] == 0)
+				continue;
+			
+			dist = tof1[i] - tof2[j];
+
+			if (abs32(dist) > INT16_MAX)
+				continue;
+
+			val = dist;
+			break;
+		}
+
+		if (val == INT32_MAX)
+			continue;
+
+		delta_tof_accum += val;
+		num_measurements += 1;
+		
+		if (num_measurements == desired_measurements)
+			return 1;	
+	}
+
+	return 0;
+}
+
+int32_t abs32(int32_t val)
+{
+	if (val < 0)
+		return -val;
+
+	return val;
+}
+
 UltrasoundError wait_for_measurement(uint8_t timeout)
 {
-	tmr_config(MEASUREMENT_TIMER, kTMRPrescale_4, kTMRPostscale1_1);
+	tmr_config(MEASUREMENT_TIMER, kTMRPrescale_64, kTMRPostscale1_16);
 	tmr_intenable(MEASUREMENT_TIMER) = 0;
 	tmr_flag(MEASUREMENT_TIMER) = 0;
 	tmr_loadperiod(MEASUREMENT_TIMER, timeout);
+	tmr_load(MEASUREMENT_TIMER, 0);
 	tmr_setstate(MEASUREMENT_TIMER, 1);
 
-	while (PIN(INT7200) && PIN(ERR1000))
+	while (PIN(INT7200))
 	{
 		if (tmr_flag(MEASUREMENT_TIMER))
 			break;
 	}
 
+	tmr_setstate(MEASUREMENT_TIMER, 0);
+
 	if (tmr_flag(MEASUREMENT_TIMER))
-		return kNoSignalError;
+		return kTimeoutError;
 
 	return kNoUltrasoundError;
 }
@@ -306,7 +423,7 @@ uint8_t take_measurement()
 	{	
 		retval = tdc7200_start();
 		if (retval == 0)
-			retval = wait_for_measurement(200);
+			retval = wait_for_measurement(255);
 	}
 
 	return retval;

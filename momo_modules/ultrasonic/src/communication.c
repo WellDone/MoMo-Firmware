@@ -3,7 +3,7 @@
 #include "port.h"
 #include "spi2.h"
 
-#define _XTAL_FREQ			4000000
+#define _XTAL_FREQ			32000000
 
 static uint8_t tdc7200_transfer8(uint8_t cmd, uint8_t value);
 static uint8_t tdc1000_transfer8(uint8_t cmd, uint8_t value);
@@ -13,13 +13,20 @@ void enable_power(void)
 	LATCH(CLOCKENABLE) = 1;
 	LATCH(ENABLE) = 1;
 
-	__delay_ms(5);
+	//Turn up oscillator clock for faster computation
+	OSCCON = (1 << 7) | ((0b1110) << 3);
+	while(!PLLR)
+		;
+
+	__delay_ms(10);
 }
 
 void disable_power(void)
 {
 	LATCH(CLOCKENABLE) = 0;
 	LATCH(ENABLE) = 0;
+
+	OSCCON = (0 << 7) | ((0b1101) << 3);
 }
 
 void init_spi(void)

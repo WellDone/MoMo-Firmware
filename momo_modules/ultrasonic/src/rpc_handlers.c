@@ -10,6 +10,9 @@ extern uint8_t find_noise_floor_flag;
 extern uint8_t find_variance_flag;
 extern uint8_t optimize_flag;
 
+extern int32_t tof1[5];
+extern int32_t tof2[5];
+
 uint8_t set_power(uint8_t length)
 {
 	if (mib_buffer[0] == 0)
@@ -17,6 +20,14 @@ uint8_t set_power(uint8_t length)
 	else
 		enable_power();
 
+	return kNoErrorStatus;
+}
+
+uint8_t get_parameters(uint8_t length)
+{
+	fill_parameters();
+
+	bus_slave_returndata(6);
 	return kNoErrorStatus;
 }
 
@@ -111,4 +122,32 @@ uint8_t get_optimal_settings(uint8_t length)
 {
 	optimize_flag = 1;
 	return kAsynchronousResponseStatus;
+}
+
+uint8_t get_tof(uint8_t length)
+{
+	int32_t *mib = (int32_t *)mib_buffer;
+
+	if (mib_buffer[0] == 1)
+	{
+		mib[0] = tof1[0];
+		mib[1] = tof1[1];
+		mib[2] = tof1[2];
+		mib[3] = tof1[3];
+		mib[4] = tof1[4];
+
+		bus_slave_returndata(20);
+	}
+	else if (mib_buffer[0] == 2)
+	{
+		mib[0] = tof2[0];
+		mib[1] = tof2[1];
+		mib[2] = tof2[2];
+		mib[3] = tof2[3];
+		mib[4] = tof2[4];
+
+		bus_slave_returndata(20);
+	}
+
+	return kNoErrorStatus;
 }
