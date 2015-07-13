@@ -13,6 +13,8 @@
 #include "measure.h"
 #include <stdint.h>
 
+#define _XTAL_FREQ			4000000
+
 static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index);
 
 uint8_t test_level_measurement;
@@ -22,8 +24,19 @@ uint8_t find_variance_flag;
 uint8_t optimize_flag;
 
 void task(void)
-{ 
-	if (test_level_measurement)
+{
+	tdc1000_setmode(kTDC1000_TOFMode);
+	tdc1000_setexternal(1);
+	while (1)
+	{
+		enable_power();
+		take_measurement();
+		__delay_ms(10);
+		disable_power();
+		__delay_ms(20);
+	}
+
+	/*if (test_level_measurement)
 	{
 		uint8_t return_length = 1;
 		uint8_t retval;
@@ -104,7 +117,7 @@ void task(void)
 	{
 		optimize_flag = 0;
 		bus_master_async_callback(7);
-	}
+	}*/
 }
 
 static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index)
@@ -165,7 +178,7 @@ void initialize(void)
 	PIN_DIR(ERR1000, INPUT);
 	enable_pullup(ERR1000);
 
-	//Channel select is largely ignored in the measurement modes we us
+	//Channel select is largely ignored in the measurement modes we use
 	LATCH(CHSEL) = 0;
 	PIN_DIR(CHSEL, OUTPUT);
 
@@ -174,6 +187,9 @@ void initialize(void)
 	tdc7200_init();
 
 	initialize_parameters();
+
+	tdc1000_setmode(kTDC1000_TOFMode);
+	tdc1000_setexternal(1);
 
 	test_level_measurement = 0;
 	take_delta_tof_measurement = 0;

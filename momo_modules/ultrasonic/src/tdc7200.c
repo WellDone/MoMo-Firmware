@@ -48,23 +48,31 @@ static uint8_t tdc7200_push()
 		return 17;
 
 	//Push this last since it can start a measurment
-	tdc7200_write8(kTDC7200_Config1Reg, tdc7200_registers.config1.value);
-	if ((tdc7200_read8(kTDC7200_Config1Reg) & 0b11111110) != (tdc7200_registers.config1.value & 0b11111110))
-		return 18;	
+	//Don't read it back since we don't want to have a CS edge in the middle of the TOF measurement
+	//tdc7200_write8(kTDC7200_Config1Reg, tdc7200_registers.config1.value);
+	//if ((tdc7200_read8(kTDC7200_Config1Reg) & 0b11111110) != (tdc7200_registers.config1.value & 0b11111110))
+	//	return 18;	
 
 	return 0;
 }
 
 uint8_t tdc7200_start()
 {
+	uint8_t err;
+
 	tdc7200_registers.config1.meas_mode = 0b01;
 	tdc7200_registers.config1.start_meas = 1;
-	return tdc7200_push();
+	err = tdc7200_push();
+	if (err != 0)
+		return err;
+
+	tdc7200_send_start(tdc7200_registers.config1.value);
+	return 0;
 }
 
 void tdc7200_trigger()
 {
-	tdc7200_write8(kTDC7200_Config1Reg, tdc7200_registers.config1.value);
+	tdc7200_send_start(tdc7200_registers.config1.value);
 }
 
 void tdc7200_setstops(uint8_t stops)

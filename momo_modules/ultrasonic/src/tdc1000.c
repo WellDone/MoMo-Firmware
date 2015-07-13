@@ -18,6 +18,9 @@ void tdc1000_init()
 	registers.timeout.timeout_ctrl = 3; //FIXME: Hardcoded 128 us timeout for TOF measurement
 
 	registers.clockrate.value = 0x00;
+
+	//FIXME: this is only for testing purposes
+	registers.timeout.force_short_tof = 0;
 }
 
 void tdc1000_prepare_deltatof(uint8_t channel_averages)
@@ -38,6 +41,11 @@ void tdc1000_setstarttime(uint16_t time)
 void tdc1000_setchannel(uint8_t channel)
 {
 	registers.config2.ch_swp = channel & 1;
+}
+
+void tdc1000_setexternal(uint8_t ext)
+{
+	registers.config2.ext_chsel = ext;
 }
 
 uint8_t tdc1000_push()

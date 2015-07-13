@@ -279,6 +279,7 @@ void			tdc1000_setmode(MeasurementMode mode);
 void			tdc1000_setchannel(uint8_t channel);
 void			tdc1000_prepare_deltatof(uint8_t channel_averages);
 void 			tdc1000_setstarttime(uint16_t time);
+void 			tdc1000_setexternal(uint8_t ext);
 
 void 			tdc1000_setexcitation(uint8_t num_pulses, uint8_t num_expected);
 

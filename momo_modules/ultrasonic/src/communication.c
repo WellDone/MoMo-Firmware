@@ -2,6 +2,8 @@
 #include <xc.h>
 #include "port.h"
 #include "spi2.h"
+#include "oscillator.h"
+#include "tdc7200.h"
 
 #define _XTAL_FREQ			4000000
 
@@ -13,6 +15,8 @@ void enable_power(void)
 	LATCH(CLOCKENABLE) = 1;
 	LATCH(ENABLE) = 1;
 
+	//Speed up to 32 mhz
+	set_32mhz_speed();
 	__delay_ms(5);
 }
 
@@ -20,6 +24,9 @@ void disable_power(void)
 {
 	LATCH(CLOCKENABLE) = 0;
 	LATCH(ENABLE) = 0;
+
+	//Reduce speed back to normal
+	set_hf_speed(k4MhzHFOsc);
 }
 
 void init_spi(void)
@@ -100,6 +107,19 @@ static uint8_t transfer8(uint8_t cmd, uint8_t value)
 {
 	spi2_transfer(cmd);
 	return spi2_transfer(value);
+}
+
+void tdc7200_send_start(uint8_t value)
+{
+	LATCH(CS7200) = 0;
+	__delay_us(20);
+
+	SSP2BUF =(kTDC7200_Config1Reg | (1<<6));
+	__delay_us(9);
+	SSP2BUF = value;
+	__delay_us(9);
+
+	LATCH(CS7200) = 1;
 }
 
 static uint8_t tdc7200_transfer8(uint8_t cmd, uint8_t value)
