@@ -9,6 +9,7 @@ extern uint8_t take_delta_tof_measurement;
 extern uint8_t find_noise_floor_flag;
 extern uint8_t find_variance_flag;
 extern uint8_t optimize_flag;
+extern uint8_t take_tof_measurement_flag;
 
 extern int32_t tof1[5];
 extern int32_t tof2[5];
@@ -115,6 +116,12 @@ uint8_t set_measurement_parameters(uint8_t length)
 uint8_t get_variance(uint8_t length)
 {
 	find_variance_flag = 1;
+	return kAsynchronousResponseStatus;
+}
+
+uint8_t measure_tof(uint8_t length)
+{
+	take_tof_measurement_flag = 1;
 	return kAsynchronousResponseStatus;
 }
 

@@ -11,9 +11,10 @@
 #include "tdc1000.h"
 #include "tdc7200.h"
 #include "measure.h"
+#include "oscillator.h"
 #include <stdint.h>
 
-#define _XTAL_FREQ			4000000
+//#define _XTAL_FREQ			4000000
 
 static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index);
 
@@ -22,6 +23,7 @@ uint8_t take_delta_tof_measurement;
 uint8_t find_noise_floor_flag;
 uint8_t find_variance_flag;
 uint8_t optimize_flag;
+uint8_t take_tof_measurement_flag;
 
 extern int32_t 	delta_tof_accum;
 extern uint8_t	g_code;
@@ -29,7 +31,7 @@ extern uint16_t num_measurements;
 
 void task(void)
 {
-	tdc1000_setmode(kTDC1000_TOFMode);
+	/*tdc1000_setmode(kTDC1000_TOFMode);
 	tdc1000_setexternal(1);
 	while (1)
 	{
@@ -38,7 +40,7 @@ void task(void)
 		__delay_ms(10);
 		disable_power();
 		__delay_ms(20);
-	}
+	}*/
 
 	/*if (test_level_measurement)
 	{
@@ -88,7 +90,7 @@ void task(void)
 
 		disable_power();
 		bus_master_async_callback(return_length);
-	}
+	}*/
 
 	if (take_delta_tof_measurement)
 	{
@@ -105,7 +107,34 @@ void task(void)
 		bus_master_async_callback(9);
 	}
 
-	if (find_noise_floor_flag)
+
+	if (take_tof_measurement_flag)
+	{
+		uint8_t direction = mib_buffer[0];
+
+		enable_power();
+		tdc7200_setaverages(0);
+		tdc1000_prepare_deltatof(0);
+
+		LATCH(CHSEL) = direction;
+		
+		take_measurement();
+
+		copy_tof_to_mib(0, 0);
+		copy_tof_to_mib(1, 4);
+		copy_tof_to_mib(2, 8);
+		copy_tof_to_mib(3, 12);
+		mib_buffer[16] = tdc7200_read8(kTDC7200_INTStatusReg);
+
+		//copy_tof_to_mib(4, 16);
+
+		take_tof_measurement_flag = 0;
+		disable_power();
+
+		bus_master_async_callback(17);
+		
+	}	
+	/*if (find_noise_floor_flag)
 	{
 		uint32_t noise = noise_floor_voltage((uint32_t *)&mib_buffer[4], (uint32_t *)&mib_buffer[8]);
 
@@ -206,6 +235,7 @@ void initialize(void)
 	take_delta_tof_measurement = 0;
 	find_noise_floor_flag = 0;
 	optimize_flag = 0;
+	take_tof_measurement_flag = 0;
 }
 
 void main(void)

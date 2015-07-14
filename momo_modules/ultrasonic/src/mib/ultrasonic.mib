@@ -17,3 +17,4 @@ APIVersion = "1.1";
 28171: _get_optimal_settings(0, no);
 28172: _get_parameters(0, no);
 28173: _get_tof(1, no);
+28174: _measure_tof(1, no);

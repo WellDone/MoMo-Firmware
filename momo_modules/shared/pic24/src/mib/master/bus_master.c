@@ -70,6 +70,7 @@ void bus_master_finish_async_rpc(uint8_t sender)
 			{
 				uint8_t status = kNoErrorStatus;
 				mib_unified.packet.response.length = mib_unified.packet.call.length;
+				mib_unified.packet.response.status_value = status;
 
 				if (mib_unified.packet.response.length > 0)
 					status = kNoErrorWithDataStatus;

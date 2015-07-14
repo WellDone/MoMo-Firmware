@@ -24,6 +24,7 @@ void beacon_callback(void *data)
 	bus_master_rpc_async(beacon_update, &cmd);
 }
 
+//FIXME: This does not currently work with the new btle implementation
 void beacon_update(uint8_t status)
 {
 	unsigned char update[23];
@@ -33,7 +34,7 @@ void beacon_update(uint8_t status)
 	update[2] = mib_unified.packet.response.length;
 	memcpy(&update[3], mib_unified.packet.data, update[2]);
 
-	bt_stop_advertising();
+	/*bt_stop_advertising();
 	bt_broadcast((char *)update, 23);
-	bt_advertise(bc_state.beacon_interval, 0);
+	bt_advertise(bc_state.beacon_interval, 0);*/
 }

@@ -22,7 +22,6 @@ void battery_init()
     LAT(CHARGE_ENABLE) = 0;
     ENSURE_DIGITAL(CHARGE_ENABLE);
 
-
 	//Store ADC configuration
     batt_adc_config.output_format = kUIntegerFormat;
     batt_adc_config.trigger = kInternalCounter;

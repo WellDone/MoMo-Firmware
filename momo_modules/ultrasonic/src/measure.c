@@ -87,7 +87,7 @@ void initialize_parameters()
 	tdc1000_setgain(gain, lna, g_threshold);
 	tdc1000_setexcitation(g_pulses, g_pulses);
 	tdc7200_setstopmask(g_mask);
-	tdc1000_setstarttime(0);
+	tdc1000_setstarttime(25);
 	tdc7200_setstops(0b100);
 }
 
@@ -307,6 +307,8 @@ UltrasoundError measure_delta_tof(uint8_t control_power, uint8_t averages)
 
 UltrasoundError accumulate_delta_tof(uint8_t bits)
 {
+	uint8_t num_periods = 0;
+
 	enable_power();
 
 	delta_tof_accum = 0;
@@ -324,7 +326,17 @@ UltrasoundError accumulate_delta_tof(uint8_t bits)
 	do
 	{
 		if (tmr_flag(ACCUM_TIMER))
-			break;
+		{
+			num_periods += 1;
+
+			if (num_periods == 16)
+				break;
+
+			tmr_flag(ACCUM_TIMER) = 0;
+			tmr_loadperiod(ACCUM_TIMER, 255);
+			tmr_load(ACCUM_TIMER, 0);
+			tmr_setstate(ACCUM_TIMER, 1);
+		}
 
 		measure_delta_tof(0, 0);
 	} while (accumulate_samples() == 0);
@@ -419,6 +431,7 @@ uint8_t take_measurement()
 	uint8_t retval;
 
 	retval = tdc1000_push();
+	
 	if (retval == 0)
 	{	
 		retval = tdc7200_start();

@@ -114,10 +114,16 @@ void tdc7200_send_start(uint8_t value)
 	LATCH(CS7200) = 0;
 	__delay_us(20);
 
+	SSP2IF = 0;
 	SSP2BUF =(kTDC7200_Config1Reg | (1<<6));
-	__delay_us(9);
+	while (!SSP2IF)
+		;
+
+	SSP2IF = 0;
 	SSP2BUF = value;
-	__delay_us(9);
+	
+	while (!SSP2IF)
+		;
 
 	LATCH(CS7200) = 1;
 }
