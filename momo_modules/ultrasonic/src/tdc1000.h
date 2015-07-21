@@ -271,8 +271,7 @@ typedef struct
 } tdc1000_config;
 
 void 			tdc1000_init();
-uint8_t 		tdc1000_push();
-tdc1000_error 	tdc1000_readerror();
+void 			tdc1000_pushfast();
 
 void 			tdc1000_setgain(PGAGainLevel pga, LNAState lna, EchoThreshold threshold);
 void			tdc1000_setmode(MeasurementMode mode);
@@ -280,6 +279,7 @@ void			tdc1000_setchannel(uint8_t channel);
 void			tdc1000_prepare_deltatof(uint8_t channel_averages);
 void 			tdc1000_setstarttime(uint16_t time);
 void 			tdc1000_setexternal(uint8_t ext);
+void 			tdc1000_reset();
 
 void 			tdc1000_setexcitation(uint8_t num_pulses, uint8_t num_expected);
 

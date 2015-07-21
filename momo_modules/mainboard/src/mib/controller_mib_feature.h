@@ -6,5 +6,6 @@
 
 void con_init();
 void con_reset_bus();
+void con_enter_safe_mode();
 
 #endif

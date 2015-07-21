@@ -81,6 +81,19 @@ void con_reset_bus()
 	bus_init(kMIBControllerAddress);
 }
 
+void con_enter_safe_mode()
+{
+	clear_modules();
+
+	LAT(ALARM) = 0;
+	DIR(ALARM) = OUTPUT;
+}
+
+void con_leave_safe_mode()
+{
+	DIR(ALARM) = INPUT;
+}
+
 uint8_t get_module_count(uint8_t length)
 {	
 	bus_slave_return_int16( module_count() );
@@ -341,6 +354,16 @@ uint8_t echo(uint8_t length)
 	return kNoErrorStatus;
 }
 
+uint8_t con_safe_mode(uint8_t length)
+{
+	if (plist_get_int16(0) == 0)
+		con_leave_safe_mode();
+	else
+		con_enter_safe_mode();
+
+	return kNoErrorStatus;
+}
+
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x00, register_module},
@@ -373,6 +396,7 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 
 	{0x26, get_perf_counter},
 	{0x27, bt_debug_buffer},
-	{0x28, echo}
+	{0x28, echo},
+	{0x29, con_safe_mode}
 };
 DEFINE_MIB_FEATURE(controller);

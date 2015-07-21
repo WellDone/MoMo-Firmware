@@ -98,7 +98,11 @@ uint8_t fc_push(uint8_t call_length)
 
 		//Make sure we do not overwrite past the end of our bucket.
 		//This gets rid of the configuration bits that we cannot flash anyways
-		if ((max_addr >= max_size)) 
+		
+		//BUGFIX: Note that max_addr is perhaps poorly named because it is actually 1 greater
+		//than the maximum address we write to, so we need to compare > the size of our bucket
+		//not >=, otherwise we will incorrectly cut off the last row of large firmware images
+		if ((max_addr > max_size)) 
 			return kNoErrorStatus;
 
 		if ( max_addr > fc_state.buckets[current_bucket].firmware_length)

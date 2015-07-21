@@ -98,22 +98,57 @@ typedef struct
 	};
 } tdc7200_intmask;
 
+typedef union
+{
+	struct
+	{
+		uint8_t msb;
+		uint8_t nsb;
+		uint8_t lsb;
+	};
+
+	uint8_t bytes[3];
+} tdc7200_24bit_register;
+
 typedef struct
 {
-	uint16_t		stop_mask;
-	tdc7200_config1 config1;
-	tdc7200_config2 config2;
-	tdc7200_intmask intmask;
+	tdc7200_24bit_register time;
+	tdc7200_24bit_register clock;
+} tdc7200_tof_result;
 
+typedef union
+{
+	struct
+	{
+		tdc7200_tof_result		tofs[5];
+		tdc7200_24bit_register 	time6;
+		tdc7200_24bit_register 	calibration1;
+		tdc7200_24bit_register 	calibrationN;
+	};
+
+	uint8_t bytes[3*13];
+} tdc7200_result_registers;
+
+typedef struct
+{
+	uint16_t					stop_mask;
+	tdc7200_config1 			config1;
+	tdc7200_config2 			config2;
+	tdc7200_intmask 			intmask;
+
+	tdc7200_result_registers 	results;
+	int32_t						times[6];
+	int32_t						clocks[5];
+	int32_t						lsb;
 } tdc7200_config;
 
 void 		tdc7200_init();
-uint8_t 	tdc7200_start();
 void		tdc7200_trigger();
+uint8_t 	tdc7200_push();
+void 		tdc7200_readresults();
 
 //Data Fetching
-uint32_t 	tdc7200_calibration();
-int32_t 	tdc7200_tof(uint8_t index);
+int32_t 	tdc7200_tof(uint8_t index, uint8_t average_bits);
 
 void 		tdc7200_setstops(uint8_t stops);
 void		tdc7200_setstopmask(uint16_t mask);

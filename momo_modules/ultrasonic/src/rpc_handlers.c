@@ -1,18 +1,24 @@
-#include "mib12_api.h"
-#include "protocol_defines.h"
 #include "platform.h"
+#include "watchdog.h"
+#include "port.h"
+#include "mib12_api.h"
+#include "watchdog.h"
+#include "ioc.h"
+#include "wpu.h"
 #include "communication.h"
+#include "tdc1000.h"
+#include "tdc7200.h"
 #include "measure.h"
+#include "state.h"
+#include "autoconf.h"
+#include "automeasure.h"
+#include <stdint.h>
 
-extern uint8_t test_level_measurement;
-extern uint8_t take_delta_tof_measurement;
-extern uint8_t find_noise_floor_flag;
-extern uint8_t find_variance_flag;
-extern uint8_t optimize_flag;
-extern uint8_t take_tof_measurement_flag;
+extern module_state	state;
+extern int32_t last_automatic_reading;
 
-extern int32_t tof1[5];
-extern int32_t tof2[5];
+extern int32_t 		tof1[5];
+extern int32_t 		tof2[5];
 
 uint8_t set_power(uint8_t length)
 {
@@ -32,49 +38,16 @@ uint8_t get_parameters(uint8_t length)
 	return kNoErrorStatus;
 }
 
-uint8_t read_tdc7200_register(uint8_t length)
+uint8_t find_signal_strength_rpc(uint8_t length)
 {
-	mib_buffer[0] = tdc7200_read8(mib_buffer[0]);
-
-	bus_slave_returndata(1);
-
-	return kNoErrorStatus;
+	state.flags.find_signal_strength = 1;
+	return kAsynchronousResponseStatus;
 }
 
-uint8_t read_tdc7200_register24(uint8_t length)
+uint8_t find_optimal_gain_rpc(uint8_t length)
 {
-	uint32_t result = tdc7200_read24(mib_buffer[0]);
-
-	mib_buffer[0] = result & 0xFF;
-	mib_buffer[1] = result >> 8 & 0xFF;
-	mib_buffer[2] = result >> 16 & 0xFF;
-
-	bus_slave_returndata(3);
-
-	return kNoErrorStatus;
-}
-
-uint8_t write_tdc7200_register(uint8_t length)
-{
-	tdc7200_write8(mib_buffer[0], mib_buffer[2]);
-
-	return kNoErrorStatus;
-}
-
-uint8_t read_tdc1000_register(uint8_t length)
-{
-	mib_buffer[0] = tdc1000_read8(mib_buffer[0]);
-	
-	bus_slave_returndata(1);
-
-	return kNoErrorStatus;
-}
-
-uint8_t write_tdc1000_register(uint8_t length)
-{
-	tdc1000_write8(mib_buffer[0], mib_buffer[2]);
-
-	return kNoErrorStatus;
+	state.flags.find_optimal_gain = 1;
+	return kAsynchronousResponseStatus;
 }
 
 /*
@@ -88,21 +61,20 @@ uint8_t write_tdc1000_register(uint8_t length)
 
 uint8_t perform_test_level_measurement(uint8_t length)
 {
-	test_level_measurement = 1;
+	state.flags.test_level_measurement = 1;
 	
 	return kAsynchronousResponseStatus;
 }
 
-uint8_t find_noise_floor(uint8_t length)
+uint8_t find_pulse_variance_rpc(uint8_t length)
 {
-	find_noise_floor_flag = 1;
-
+	state.flags.find_pulse_variance = 1;
 	return kAsynchronousResponseStatus;
 }
 
 uint8_t take_delta_tof(uint8_t length)
 {
-	take_delta_tof_measurement = 1;
+	state.flags.take_delta_tof_measurement = 1;
 	return kAsynchronousResponseStatus;
 }
 
@@ -115,19 +87,13 @@ uint8_t set_measurement_parameters(uint8_t length)
 
 uint8_t get_variance(uint8_t length)
 {
-	find_variance_flag = 1;
+	state.flags.find_variance = 1;
 	return kAsynchronousResponseStatus;
 }
 
 uint8_t measure_tof(uint8_t length)
 {
-	take_tof_measurement_flag = 1;
-	return kAsynchronousResponseStatus;
-}
-
-uint8_t get_optimal_settings(uint8_t length)
-{
-	optimize_flag = 1;
+	state.flags.take_tof_measurement = 1;
 	return kAsynchronousResponseStatus;
 }
 
@@ -156,5 +122,14 @@ uint8_t get_tof(uint8_t length)
 		bus_slave_returndata(20);
 	}
 
+	return kNoErrorStatus;
+}
+
+uint8_t get_last_reading(uint8_t length)
+{
+	int32_t *mib = (int32_t *)mib_buffer;
+	mib[0] = last_automatic_reading;
+
+	bus_slave_returndata(4);
 	return kNoErrorStatus;
 }

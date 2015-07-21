@@ -9,23 +9,19 @@
 #include "port.h"
 #include "timerx.h"
 
-#define kMedianWindowSize			11
-#define kNumTOFPulses				5
-#define kNumberOfTriggerSettings	128
-#define kOptimizationMeasurements	10
-#define kMaximumTOFDelta			500000LL
+//int32_t measurements[kMedianWindowSize];
 
-int32_t measurements[kMedianWindowSize];
 
 int32_t tof1[kNumTOFPulses];
 int32_t tof2[kNumTOFPulses];
+
+int16_t measurements[kMeasurementBufferSize];
 
 int32_t 	delta_tof_accum;
 uint16_t 	num_measurements;
 uint16_t	desired_measurements;
 uint16_t 	desired_shift;
 
-uint8_t 	g_noise_floor;
 uint8_t 	g_gain;
 uint8_t 	g_pulses;
 uint8_t		g_threshold;
@@ -56,18 +52,17 @@ const trigger_condition triggers[kNumberOfTriggerSettings] =
 };
 
 //Trigger levels in nanovolts
-const uint32_t trigger_levels[8] = {35000000ULL, 50000000ULL, 75000000ULL, 125000000ULL, 220000000ULL, 410000000ULL, 775000000ULL, 1500000000ULL};
+//const uint32_t trigger_levels[8] = {35000000ULL, 50000000ULL, 75000000ULL, 125000000ULL, 220000000ULL, 410000000ULL, 775000000ULL, 1500000000ULL};
 
 //Gain levels in V/V encoded as fixed point .3 decimal digits (so * 1000)
 //So integer division between a trigger_level and a gain_level produces a trigger voltage in microvolts
-const uint32_t gain_levels[16] = {1000ULL, 1412ULL, 1995ULL, 2818ULL, 3981ULL, 5623ULL, 7943ULL, 10000ULL, 11220ULL, 14125ULL, 19952ULL, 28183ULL, 39810ULL, 56234ULL, 79432ULL, 112201ULL};
+//const uint32_t gain_levels[16] = {1000ULL, 1412ULL, 1995ULL, 2818ULL, 3981ULL, 5623ULL, 7943ULL, 10000ULL, 11220ULL, 14125ULL, 19952ULL, 28183ULL, 39810ULL, 56234ULL, 79432ULL, 112201ULL};
 
 void initialize_parameters()
 {
 	uint8_t lna, gain;
 	uint8_t stops;
 
-	g_noise_floor 	= 0;
 	g_pulses		= 5;
 	g_mask 			= 8*8;
 	g_threshold 	= 1;
@@ -91,15 +86,17 @@ void initialize_parameters()
 	tdc7200_setstops(0b100);
 }
 
-void set_parameters(uint8_t gain, uint8_t threshold, uint8_t pulses, uint16_t mask)
+void set_gain_index(uint8_t index)
+{
+	set_gain(triggers[index].gain, triggers[index].threshold);
+}
+
+void set_gain(uint8_t gain, uint8_t threshold)
 {
 	uint8_t lna = (gain < 20)
 ;
 	g_gain = gain;
 	g_threshold = threshold;
-	g_pulses = pulses;
-	g_mask = mask;
-
 
 	if (gain >= 20)
 		gain -= 20;
@@ -107,6 +104,15 @@ void set_parameters(uint8_t gain, uint8_t threshold, uint8_t pulses, uint16_t ma
 	gain /= 3;
 
 	tdc1000_setgain(gain, lna, threshold);
+}
+
+void set_parameters(uint8_t gain, uint8_t threshold, uint8_t pulses, uint16_t mask)
+{
+	set_gain(gain, threshold);
+
+	g_pulses = pulses;
+	g_mask = mask;
+
 	tdc1000_setexcitation(pulses, pulses);
 	tdc7200_setstopmask(mask);
 }
@@ -121,181 +127,37 @@ void fill_parameters()
 	mib_buffer[5] = 0;
 }
 
-/*
- * Given a situation where the probes are not connected to each other acoustically
- * so there should be no signal, attempt to figure out where the noise floor is.
- *
- * Find the noise floor by starting with the highest trigger voltage (highest threshold with lowest gain)
- * and then decreasing the trigger until the device triggers without any signal present, indicating that
- * noise is causing the triggering.
- *
- * TODO: 
- *	- 	We can use a mask with a large mask value to make this work even with a signal present, at the cost
- *  	of a longer measurement time.  This would require leaving the TDC1000 on forever without a timeout.
- *
- */
-
-uint8_t noise_floor_index()
-{
-	int8_t i = kNumberOfTriggerSettings-1;
-	trigger_condition trigger;
-	uint8_t gain_index = 0;
-
-	for (i=kNumberOfTriggerSettings-1; i>=0; --i)
-	{
-		UltrasoundError err;
-
-		trigger = triggers[i];
-		set_parameters(trigger.gain, trigger.threshold, g_pulses, g_mask);
-
-		err = measure_delta_tof(NULL, 1);
-		if (err != kNoSignalError)
-			break;
-	}
-
-	if (i < 0)
-		return 0;
-
-	return i;
-}
-
-uint32_t noise_floor_voltage(uint32_t *threshold, uint32_t *gain)
-{
-	uint8_t index = noise_floor_index();	
-	trigger_condition trigger = triggers[index];
-	uint8_t gain_index = 0;
-
-	//Figure out the index that corresponds to this gain setting
-	if (trigger.gain == 20 || trigger.gain > 21)
-	{
-		trigger.gain -= 20;
-		gain_index = 8;
-	}
-
-	gain_index += trigger.gain / 3;
-
-	*threshold = trigger_levels[trigger.threshold];
-	*gain = gain_levels[gain_index];
-
-	return trigger_levels[trigger.threshold] / gain_levels[gain_index];
-}
-
-/*
- * Find the combination of trigger voltage and gain that minimizes the standard
- * deviation of a delta TOF measurement given the stop mask that we have.
- *
- * Notes:
- * - This routine is very slow since the PIC16LF1847 has neither a hardware multiplier
- *   nor a hardware divider unit.
- */
-
-/*int32_t find_variance(const trigger_condition cond)
-{
-	uint8_t i;
-	int32_t M_k = 0, M_k1 = 0;
-	int32_t S_k = 0, S_k1 = 0;
-
-	enable_power();
-
-	for (i=1; i<=kOptimizationMeasurements; ++i)
-	{
-		int32_t 		delta;
-		UltrasoundError err;
-
-		set_parameters(cond.gain, cond.threshold, g_pulses, g_mask);
-		err = measure_delta_tof(&delta, 0);
-
-		if (err != kNoUltrasoundError)
-		{
-			disable_power();
-			return -1;
-		}
-
-		if (i == 1)
-		{
-			M_k = delta;
-			S_k = 0;
-		}
-		else
-		{
-			M_k1 = M_k;
-			S_k1 = S_k;
-
-			M_k += (delta - M_k1)/i;
-			S_k += (delta - M_k1)*(delta - M_k);
-		}
-	}
-
-	disable_power();
-	return S_k/(i-1);
-}*/
-
-/*UltrasoundError optimize_settings(trigger_condition *out, int32_t *out_variance)
-{
-	uint8_t i;
-	int32_t best_variance = INT32_MAX;
-	int8_t  best_i = -1;
-
-	for (i=g_noise_floor; i < kNumberOfTriggerSettings; ++i)
-	{
-		int32_t variance = find_variance(triggers[i]);
-		if (variance < 0)
-			continue;
-
-		if (variance < best_variance)
-		{
-			best_i = i;
-			best_variance = variance;
-		}
-	}
-
-	if (best_i == -1)
-		return kNoSignalError;
-
-	*out = triggers[best_i];
-	*out_variance = best_variance;
-
-	//Save off our optimized settings
-	g_gain = triggers[best_i].gain;
-	g_threshold = triggers[best_i].threshold;
-
-	return kNoUltrasoundError;
-}*/
-
-/*
- * Make a delta TOF measurement and remove noise with a built-in
- * fixed size median filter
- */
-
-UltrasoundError measure_delta_tof(uint8_t control_power, uint8_t averages)
+UltrasoundError measure_delta_tof(uint8_t control_power, uint8_t average_bits)
 {
 	uint8_t error_code = kNoUltrasoundError;
-	uint8_t i;
-
-	tdc7200_setaverages(averages);
-	tdc1000_prepare_deltatof(averages);
+	uint8_t i;	
 
 	if (control_power)
 		enable_power();
 
 	LATCH(CHSEL) = 0;
 	
-	error_code = take_measurement();
+	tdc7200_trigger();
+	error_code = wait_for_measurement(200);
 	
 	if (error_code == kNoUltrasoundError)
 	{
+		tdc7200_readresults();
+		
 		for (i=0; i<kNumTOFPulses; ++i)
-			tof1[i] = tdc7200_tof(i);
+			tof1[i] = tdc7200_tof(i, average_bits);
 
 		LATCH(CHSEL) = 1;
 
+		tdc1000_reset();
 		tdc7200_trigger();
 		error_code = wait_for_measurement(200);
 
 		if (error_code == kNoUltrasoundError)
 		{
+			tdc7200_readresults();
 			for (i=0; i<kNumTOFPulses; ++i)
-				tof2[i] = tdc7200_tof(i);
+				tof2[i] = tdc7200_tof(i, average_bits);
 		}
 	}
 
@@ -305,15 +167,51 @@ UltrasoundError measure_delta_tof(uint8_t control_power, uint8_t averages)
 	return error_code;
 }
 
+/*
+ * Average 1 << bits measurements quickly to produce an measurement of the delta TOF
+ * Do not robustly look for misaligned pulses on the send and receive side.
+ * bits must be between 0 and 7 inclusive for between 1 and 128 measurements.  For each
+ * measurement, average the delta TOF of the first 4 stops so we actually do 2^(bits + 2)
+ * measurements.
+ */
+
+UltrasoundError fast_accumulate_delta_tof(uint8_t bits)
+{
+	UltrasoundError err;
+
+	tdc1000_prepare_deltatof(bits);
+	tdc7200_setaverages(bits);
+
+	enable_power();	
+	err = measure_delta_tof(0, bits);
+	disable_power();
+
+	if (err != kNoUltrasoundError)
+		return err;
+
+	delta_tof_accum = tof1[1] - tof2[1];
+	//delta_tof_accum += ();
+	//delta_tof_accum += (tof1[1] - tof2[1]);
+	//delta_tof_accum += (tof1[2] - tof2[2]);
+	//delta_tof_accum += (tof1[3] - tof2[3]);
+
+	//delta_tof_accum >>= 2;
+
+	return kNoUltrasoundError;
+}
+
 UltrasoundError accumulate_delta_tof(uint8_t bits)
 {
 	uint8_t num_periods = 0;
+
+	desired_measurements = (uint16_t)1 << (uint16_t)bits;
+	tdc1000_prepare_deltatof(bits);
+	tdc7200_setaverages(0);
 
 	enable_power();
 
 	delta_tof_accum = 0;
 	num_measurements = 0;
-	desired_measurements = 1 << bits;
 	//FIXME: Add bit shift count here;
 
 	tmr_config(ACCUM_TIMER, kTMRPrescale_64, kTMRPostscale1_16);
@@ -347,12 +245,14 @@ UltrasoundError accumulate_delta_tof(uint8_t bits)
 	if (tmr_flag(ACCUM_TIMER))
 		return kTimeoutError;
 
+	delta_tof_accum >>= bits;
+
 	return kNoUltrasoundError;
 }
 
 /*
  * Attempt to accumulate tof difference samples based on the last measurement
- * until we have accumulated the deisred number of samples.  
+ * until we have accumulated the desired number of samples.  
  * Return 1 if we have reached the desired number and 0 otherwise.
  */
 
@@ -405,6 +305,10 @@ int32_t abs32(int32_t val)
 
 UltrasoundError wait_for_measurement(uint8_t timeout)
 {
+	uint8_t result;
+	tdc1000_error 		err1000;
+	tdc7200_intstatus	err7200;
+
 	tmr_config(MEASUREMENT_TIMER, kTMRPrescale_64, kTMRPostscale1_16);
 	tmr_intenable(MEASUREMENT_TIMER) = 0;
 	tmr_flag(MEASUREMENT_TIMER) = 0;
@@ -412,11 +316,19 @@ UltrasoundError wait_for_measurement(uint8_t timeout)
 	tmr_load(MEASUREMENT_TIMER, 0);
 	tmr_setstate(MEASUREMENT_TIMER, 1);
 
-	while (PIN(INT7200))
+	while (PIN(INT7200) && PIN(ERR1000))
 	{
 		if (tmr_flag(MEASUREMENT_TIMER))
 			break;
 	}
+
+	err1000.value = tdc1000_readfast(kTDC1000_ErrorFlagsReg);
+	err7200.value = tdc7200_readfast(kTDC7200_INTStatusReg);
+
+	if (err1000.no_sig)
+		return kNoSignalError;
+	else if(err1000.sig_weak)
+		return kWeakSignalError;
 
 	tmr_setstate(MEASUREMENT_TIMER, 0);
 
@@ -430,38 +342,34 @@ uint8_t take_measurement()
 {
 	uint8_t retval;
 
-	retval = tdc1000_push();
-	
-	if (retval == 0)
-	{	
-		retval = tdc7200_start();
-		if (retval == 0)
-			retval = wait_for_measurement(255);
-	}
+	tdc7200_trigger();
+	retval = wait_for_measurement(255);
 
 	return retval;
 }
 
-/*
- * Insertion sort of the measurment array from low to high
- */
-
-void sort_measurements()
+int16_t calculate_mean()
 {
-	uint8_t i, j;
-	int32_t temp;
+	int32_t mean = 0;
+	uint8_t i;
 
-	for (i=1; i<kMedianWindowSize; ++i)
+	for (i=0; i<kMeasurementBufferSize; ++i)
+		mean += measurements[i];
+	
+	return (mean >> 7);
+}
+
+int32_t calculate_variance()
+{
+	int16_t mean = calculate_mean();
+	int32_t accum = 0;
+	uint8_t i;
+
+	for (i=0; i<kMeasurementBufferSize; ++i)
 	{
-		j = i;
-
-		while (j > 0 && measurements[j] < measurements[j-1])
-		{
-			temp = measurements[j];
-			measurements[j] = measurements[j-1];
-			measurements[j-1] = temp;
-
-			--j;
-		}
+		int32_t diff = measurements[i] - mean;
+		accum += diff*diff;
 	}
+
+	return (accum >> 7);
 }

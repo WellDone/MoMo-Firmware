@@ -11,104 +11,59 @@
 #include "tdc1000.h"
 #include "tdc7200.h"
 #include "measure.h"
-#include "oscillator.h"
+#include "state.h"
+#include "autoconf.h"
+#include "automeasure.h"
 #include <stdint.h>
 
-//#define _XTAL_FREQ			4000000
+//Global State
+module_state	state;
 
 static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index);
-
-uint8_t test_level_measurement;
-uint8_t take_delta_tof_measurement;
-uint8_t find_noise_floor_flag;
-uint8_t find_variance_flag;
-uint8_t optimize_flag;
-uint8_t take_tof_measurement_flag;
+static void process_async_actions();
 
 extern int32_t 	delta_tof_accum;
-extern uint8_t	g_code;
 extern uint16_t num_measurements;
+extern int32_t last_automatic_reading;
 
 void task(void)
 {
-	/*tdc1000_setmode(kTDC1000_TOFMode);
-	tdc1000_setexternal(1);
-	while (1)
+	switch(state.mode)
 	{
-		enable_power();
-		take_measurement();
-		__delay_ms(10);
-		disable_power();
-		__delay_ms(20);
-	}*/
+		case kManualMode:
+		if (state.flags.value)
+			process_async_actions();
+		break;
 
-	/*if (test_level_measurement)
-	{
-		uint8_t return_length = 1;
-		uint8_t retval;
+		case kAutomaticMode:
+		automatic_measurement();
+		break;
+	}
+}
 
-		enable_power();
-		tdc1000_setgain(mib_buffer[4], mib_buffer[6], mib_buffer[8]);
-		tdc1000_setexcitation(mib_buffer[0], mib_buffer[2]);
-		tdc1000_setmode(mib_buffer[12]);
-		tdc1000_setchannel(mib_buffer[14]);
-		
-		if (tdc1000_push() == 0)
-		{	
-			tdc7200_setstopmask(*(uint16_t *)&(mib_buffer[10]));
-			tdc7200_setstops(0b100);
-			retval = tdc7200_start();
-			if (retval == 0)
-			{
-				while (PIN(INT7200) && PIN(ERR1000))
-					;
-
-				if (PIN(INT7200) == 0)
-				{
-					copy_tof_to_mib(0, 0);
-					copy_tof_to_mib(1, 4);
-					copy_tof_to_mib(2, 8);
-					copy_tof_to_mib(3, 12);
-					copy_tof_to_mib(4, 16);
-
-					return_length = 20;
-				}
-				else
-				{
-					mib_buffer[0] = tdc1000_readerror().value;
-					mib_buffer[2] = tdc7200_read8(kTDC7200_INTStatusReg);
-					return_length = 2;
-				}
-			}
-			else
-				mib_buffer[0] = retval;
-		}
-		else
-			mib_buffer[0] = tdc1000_push();
-
-		test_level_measurement = 0;
-
-		disable_power();
-		bus_master_async_callback(return_length);
-	}*/
-
-	if (take_delta_tof_measurement)
+static void process_async_actions()
+{
+	if (state.flags.take_delta_tof_measurement)
 	{
 		UltrasoundError err;
 		int32_t *mib = (int32_t *)mib_buffer;
-		err = accumulate_delta_tof(mib_buffer[0]);
+
+		if (mib_buffer[2] == 0)
+			err = accumulate_delta_tof(mib_buffer[0]);
+		else
+			err = fast_accumulate_delta_tof(mib_buffer[0]);
 
 		mib[0] = delta_tof_accum;
 		mib[1] = num_measurements;
 		mib_buffer[8] = err;
 
-		take_delta_tof_measurement = 0;
+		state.flags.take_delta_tof_measurement = 0;
 
 		bus_master_async_callback(9);
 	}
 
 
-	if (take_tof_measurement_flag)
+	if (state.flags.take_tof_measurement)
 	{
 		uint8_t direction = mib_buffer[0];
 
@@ -119,55 +74,42 @@ void task(void)
 		LATCH(CHSEL) = direction;
 		
 		take_measurement();
+		tdc7200_readresults();
 
 		copy_tof_to_mib(0, 0);
 		copy_tof_to_mib(1, 4);
 		copy_tof_to_mib(2, 8);
 		copy_tof_to_mib(3, 12);
-		mib_buffer[16] = tdc7200_read8(kTDC7200_INTStatusReg);
+		mib_buffer[16] = tdc7200_readfast(kTDC7200_INTStatusReg);
 
 		//copy_tof_to_mib(4, 16);
 
-		take_tof_measurement_flag = 0;
+		state.flags.take_tof_measurement = 0;
 		disable_power();
 
 		bus_master_async_callback(17);
-		
-	}	
-	/*if (find_noise_floor_flag)
-	{
-		uint32_t noise = noise_floor_voltage((uint32_t *)&mib_buffer[4], (uint32_t *)&mib_buffer[8]);
-
-		mib_buffer[0] = (noise >> 0) & 0xFF;
-		mib_buffer[1] = (noise >> 8) & 0xFF;
-		mib_buffer[2] = (noise >> 16) & 0xFF;
-		mib_buffer[3] = (noise >> 24) & 0xFF;
-
-		find_noise_floor_flag = 0;
-		bus_master_async_callback(12);
 	}
 
-	if (find_variance_flag)
+	if (state.flags.find_signal_strength)
 	{
-		find_variance_flag = 0;
-		bus_master_async_callback(4);
+		mib_buffer[0] = find_signal_strength();
+		state.flags.find_signal_strength = 0;
+		bus_master_async_callback(1);
 	}
 
-	if (optimize_flag)
+	if (state.flags.find_optimal_gain)
 	{
-		optimize_flag = 0;
-		bus_master_async_callback(7);
-	}*/
-}
+		mib_buffer[5] = find_optimal_gain((int32_t *)&mib_buffer[0], &mib_buffer[4]);
+		state.flags.find_optimal_gain = 0;
+		bus_master_async_callback(6);
+	}
 
-static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index)
-{
-	int32_t tof = tdc7200_tof(tof_index);
-
-	mib_buffer[mib_index + 0] = (tof >> 0) & 0xFF;
-	mib_buffer[mib_index + 1] = (tof >> 8) & 0xFF;
-	mib_buffer[mib_index + 2] = (tof >> 16) & 0xFF;
-	mib_buffer[mib_index + 3] = (tof >> 24) & 0xFF;
+	if (state.flags.find_pulse_variance)
+	{
+		find_pulse_variance((int32_t *)&mib_buffer[0]);
+		state.flags.find_pulse_variance = 0;
+		bus_master_async_callback(20);
+	}
 }
 
 void interrupt service_isr()
@@ -231,11 +173,11 @@ void initialize(void)
 	tdc1000_setmode(kTDC1000_TOFMode);
 	tdc1000_setexternal(1);
 
-	test_level_measurement = 0;
-	take_delta_tof_measurement = 0;
-	find_noise_floor_flag = 0;
-	optimize_flag = 0;
-	take_tof_measurement_flag = 0;
+	last_automatic_reading = 0;
+
+	state.flags.value = 0;
+	state.mode = kAutomaticMode;
+	state.autostatus = kNotInAutomaticMode;
 }
 
 void main(void)
@@ -249,3 +191,12 @@ void main(void)
 	}
 }
 
+static void copy_tof_to_mib(uint8_t tof_index, uint8_t mib_index)
+{
+	int32_t tof = tdc7200_tof(tof_index, 0);
+
+	mib_buffer[mib_index + 0] = (tof >> 0) & 0xFF;
+	mib_buffer[mib_index + 1] = (tof >> 8) & 0xFF;
+	mib_buffer[mib_index + 2] = (tof >> 16) & 0xFF;
+	mib_buffer[mib_index + 3] = (tof >> 24) & 0xFF;
+}

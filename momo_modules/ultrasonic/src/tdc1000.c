@@ -26,7 +26,7 @@ void tdc1000_init()
 void tdc1000_prepare_deltatof(uint8_t channel_averages)
 {
 	registers.config1.num_avg = channel_averages;
-	registers.config2.ch_swp = 1;
+	registers.config2.ch_swp = 0;
 	registers.config2.ext_chsel = 1;
 	registers.config2.chsel = 0;
 	registers.config2.tof_mode = kTDC1000_MeterMode;
@@ -48,58 +48,23 @@ void tdc1000_setexternal(uint8_t ext)
 	registers.config2.ext_chsel = ext;
 }
 
-uint8_t tdc1000_push()
+void tdc1000_reset()
 {
-	tdc1000_write8(kTDC1000_Config0Reg, registers.config0.value);
-	if (tdc1000_read8(kTDC1000_Config0Reg) != registers.config0.value)
-		return 3;
-
-	tdc1000_write8(kTDC1000_Config1Reg, registers.config1.value);
-	if (tdc1000_read8(kTDC1000_Config1Reg) != registers.config1.value)
-		return 4;
-
-	tdc1000_write8(kTDC1000_Config2Reg, registers.config2.value);
-	if (tdc1000_read8(kTDC1000_Config2Reg) != registers.config2.value)
-		return 5;
-
-	tdc1000_write8(kTDC1000_Config3Reg, registers.config3.value);
-	if (tdc1000_read8(kTDC1000_Config3Reg) != registers.config3.value)
-		return 6;
-
-	tdc1000_write8(kTDC1000_Config4Reg, registers.config4.value);
-	if (tdc1000_read8(kTDC1000_Config4Reg) != registers.config4.value)
-		return 7;
-
-	tdc1000_write8(kTDC1000_TOF_0Reg, registers.tof0.value);
-	if (tdc1000_read8(kTDC1000_TOF_0Reg) != registers.tof0.value)
-		return 8;
-
-	tdc1000_write8(kTDC1000_TOF_1Reg, registers.tof1.value);
-	if (tdc1000_read8(kTDC1000_TOF_1Reg) != registers.tof1.value)
-		return 9;
-
-	tdc1000_write8(kTDC1000_TimeoutReg, registers.timeout.value);
-	if (tdc1000_read8(kTDC1000_TimeoutReg) != registers.timeout.value)
-		return 10;	
-
-	tdc1000_write8(kTDC1000_ClockRateReg, registers.clockrate.value);
-	if (tdc1000_read8(kTDC1000_ClockRateReg) != registers.clockrate.value)
-		return 11;	
-	
-	//Clear error flags
-	tdc1000_write8(kTDC1000_ErrorFlagsReg, 0b11);
-	if (tdc1000_read8(kTDC1000_ErrorFlagsReg) != 0x00)
-		return 12;
-
-	return 0;
+	tdc1000_writefast(kTDC1000_ErrorFlagsReg, 0b11);
 }
 
-tdc1000_error tdc1000_readerror()
+void tdc1000_pushfast()
 {
-	tdc1000_error error;
-
-	error.value = tdc1000_read8(kTDC1000_ErrorFlagsReg);
-	return error;
+	tdc1000_writefast(kTDC1000_Config0Reg, registers.config0.value);
+	tdc1000_writefast(kTDC1000_Config1Reg, registers.config1.value);
+	tdc1000_writefast(kTDC1000_Config2Reg, registers.config2.value);
+	tdc1000_writefast(kTDC1000_Config3Reg, registers.config3.value);
+	tdc1000_writefast(kTDC1000_Config4Reg, registers.config4.value);
+	tdc1000_writefast(kTDC1000_TOF_0Reg, registers.tof0.value);
+	tdc1000_writefast(kTDC1000_TOF_1Reg, registers.tof1.value);
+	tdc1000_writefast(kTDC1000_TimeoutReg, registers.timeout.value);
+	tdc1000_writefast(kTDC1000_ClockRateReg, registers.clockrate.value);
+	tdc1000_writefast(kTDC1000_ErrorFlagsReg, 0b11);
 }
 
 void tdc1000_setgain(PGAGainLevel pga, LNAState lna, EchoThreshold threshold)
@@ -119,6 +84,10 @@ void tdc1000_setmode(MeasurementMode mode)
 
 void tdc1000_setexcitation(uint8_t num_pulses, uint8_t num_expected)
 {
+	//There can be a maximum of 7 expected pulses on the TDC1000
+	if (num_expected > 7)
+		num_expected = 7;
+
 	registers.config1.num_rx = num_expected;
 	registers.config0.num_tx = num_pulses;
 }

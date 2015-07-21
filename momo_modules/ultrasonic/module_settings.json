@@ -23,7 +23,8 @@
 				"CS1000": "A2",
 
 				"MEASUREMENT_TIMER": 2,
-				"ACCUM_TIMER": 4
+				"ACCUM_TIMER": 4,
+				"_XTAL_FREQ" : "32000000ULL"
 			}
 		}
 	},
