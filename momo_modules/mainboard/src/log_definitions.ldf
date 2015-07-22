@@ -79,6 +79,10 @@ ReportFailedRerouteNotice
 "Report failed, switching to secondary route"
 - "New Route" as string
 
+ReportStreamStateExecuted
+"Reporting State Machine Executed a State"
+- "State" as integer
+
 ReportAbandonedNotice
 "Retry count exceeded, abandoning report"
 

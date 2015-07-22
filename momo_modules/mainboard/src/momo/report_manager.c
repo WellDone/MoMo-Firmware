@@ -73,7 +73,7 @@ extern unsigned int last_battery_voltage;
 
 void report_manager_start()
 {
-  if ( get_momo_state_flag( kStateFlagReportingEnabled ) )
+  if ( get_momo_state_flag(kStateFlagReportingEnabled))
     start_report_scheduling();
 }
 
@@ -82,6 +82,7 @@ uint8_t init_report_config(uint8_t call_length)
   strcpy( CONFIG.route_primary, DEFAULT_WEB_ROUTE );
   strcpy( CONFIG.route_secondary, DEFAULT_SMS_ROUTE );
   strcpy( CONFIG.gprs_apn, DEFAULT_GPRS_APN );
+  
   CONFIG.transmit_sequence         = 0;
   CONFIG.report_interval           = kEveryDay;
   CONFIG.report_flags              = kReportFlagDefault;
@@ -291,7 +292,7 @@ bool construct_report()
   return true;
 }
 
-void post_report( void* arg ) 
+void post_report(void* arg) 
 {
   report_stream_abandon();
   LOG_DEBUG(kConstructingReportNotice);
@@ -354,6 +355,6 @@ const char* get_report_route( uint8 index )
 {
   if ( index > 1 )
     return NULL;
-  
+
   return ( index == 0 ) ? CONFIG.route_primary : CONFIG.route_secondary;
 }

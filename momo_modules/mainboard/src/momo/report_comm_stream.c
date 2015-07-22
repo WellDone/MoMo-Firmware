@@ -10,30 +10,93 @@
 
 #define CONFIG current_momo_state.report_config
 
-static char* report_buffer;
-static char* report_route;
-static uint8 report_route_counter;
-static uint8 report_stream_offset;
-ModuleIterator comm_module_iterator;
+static char*    report_buffer;
+static char*    report_route;
+static uint8    report_route_counter;
+static uint8    report_stream_offset;
+static uint8_t  comm_module_address;
+
 bool current_stream_finished;
+bool comm_module_connected;
 uint8 retry_count = 0;
+
+CommStreamState comm_info;
 
 ScheduledTask report_retry_task;
 
 void receive_gsm_stream_response(unsigned char a);
 
+static void report_transition_states(ReportStreamingState new_state);
+static void report_streaming_state_machine(void *arg);
+static void set_comm_destination(unsigned char a);
+static void apn_is_set(uint8_t result);
+static void set_apn();
+
 void init_comm_stream()
 {
   report_retry_task.flags = 0; //Make sure we initialize this to avoid corrupting the scheduler
 
-  comm_module_iterator = create_module_iterator( kMIBCommunicationType );
+  comm_info.address = find_module_by_name("gsmcom");
+  if (comm_info.address == 0)
+    comm_info.streaming_allowed = false;
+  else
+    comm_info.streaming_allowed = true;
+
+  comm_info.last_error = 0;
+  comm_info.state = kIdleState;
+
+  report_route = CONFIG.route_primary;
+}
+
+static void report_streaming_state_machine(void *arg)
+{
+  LOG_DEBUG(kReportStreamStateExecuted);
+  LOG_INT(comm_info.state);
+
+  switch (comm_info.state)
+  {
+    case kIdleState:
+    break;
+
+    case kStartStreamingState:
+    //TODO: check for existing streams ongoing
+    report_transition_states(kSetDestination);
+    break;
+
+    case kSetDestination:
+    report_route_counter = 0;
+    set_comm_destination(0);
+    break;
+
+    case kSetAPN:
+    set_apn();
+    break;
+  }
+}
+
+void report_fatal_error(int code)
+{
+  comm_info.last_error = code;
+  report_transition_states(kErrorOccurredState);
+}
+
+static void report_transition_states(ReportStreamingState new_state)
+{
+  comm_info.state = new_state;
+  taskloop_add(report_streaming_state_machine, NULL);
+}
+
+void report_start_streaming()
+{
+  //FIXME: finish this function
 }
 
 void report_rpc( MIBUnified *cmd, uint8 command, uint8 len )
 {
-  cmd->address = module_iter_address( &comm_module_iterator );
+  cmd->address = comm_module_address;
   cmd->packet.call.command = pack_command(11, command);
   cmd->packet.call.length = len;
+
   bus_master_rpc_async(receive_gsm_stream_response, cmd);
 }
 
@@ -42,6 +105,7 @@ void reset_comm_stream()
   report_stream_offset = 0;
   current_stream_finished = false;
 }
+
 void open_stream()
 {
   ++CONFIG.transmit_sequence;
@@ -50,16 +114,17 @@ void open_stream()
   *((uint16*)cmd.packet.data) = strlen(report_buffer);
   
   LOG_DEBUG(kOpenedCommStreamNotice);
-  LOG_INT(module_iter_address(&comm_module_iterator));
+  LOG_INT(comm_info.address);
   LOG_INT(*((uint16*)cmd.packet.data));
 
   report_rpc( &cmd, 0, 2);
 }
-void set_comm_destination(unsigned char a)
+
+static void set_comm_destination(unsigned char a)
 {
   if ( report_route_counter >= strlen(report_route) )
   {
-    open_stream();
+    report_transition_states(kSetAPN);
     return;
   }
 
@@ -80,41 +145,31 @@ void set_comm_destination(unsigned char a)
 
   report_route_counter += len;
 
-  cmd.address = module_iter_address( &comm_module_iterator );
+  cmd.address = comm_info.address;
   cmd.packet.call.command = pack_command(11, 4);
   cmd.packet.call.length = 2 + len;
   
   bus_master_rpc_async(set_comm_destination, &cmd);
 }
-void set_apn() //TODO: Support non-GSM comm boards
-{
-  report_route_counter = 0;
 
+static void set_apn() //TODO: Support non-GSM comm boards
+{
   LOG_DEBUG(kSetAPNNotice);
   LOG_STRING(CONFIG.gprs_apn);
 
   MIBUnified cmd;
-  cmd.address = module_iter_address( &comm_module_iterator );
+  cmd.address = comm_info.address;
   cmd.packet.call.command = pack_command(10, 9);
   cmd.packet.call.length = strlen(CONFIG.gprs_apn);
 
-  memcpy( cmd.packet.data, CONFIG.gprs_apn, strlen(CONFIG.gprs_apn) );
+  memcpy(cmd.packet.data, CONFIG.gprs_apn, strlen(CONFIG.gprs_apn));
   
-  bus_master_rpc_async(set_comm_destination, &cmd);
+  bus_master_rpc_async(apn_is_set, &cmd);
 }
 
-void next_comm_module( void* arg )
+static void apn_is_set(uint8_t result)
 {
-  module_iter_next( &comm_module_iterator );
-  reset_comm_stream();
-  retry_count = 0;
-  report_route = CONFIG.route_primary;
-  if ( module_iter_get( &comm_module_iterator ) != NULL )
-  {
-    set_apn();
-  }
-  else
-    LOG_DEBUG(kFinishedReportStreamingNotice);
+  report_transition_states(kIdleState);
 }
 
 void stream_to_gsm() {
@@ -143,7 +198,8 @@ void stream_to_gsm() {
 void receive_gsm_stream_response(unsigned char a) 
 {
   LOG_FLUSH();
-  if ( a != kNoMIBError )
+
+  if (a != kNoErrorStatus)
   {
     LOG_CRITICAL(kFailedMessageToCommModuleNotice);
     LOG_INT(a);
@@ -159,41 +215,34 @@ void receive_gsm_stream_response(unsigned char a)
 
 void report_stream_abandon()
 {
-  if ( module_iter_get( &comm_module_iterator ) != NULL )
+  //TODO: finish this function
+  scheduler_remove_task(&report_retry_task);
+}
+
+int report_stream_send(char* buffer)
+{
+  if (comm_info.state == kIdleState && comm_info.streaming_allowed)
   {
-    LOG_DEBUG(kAbandoningCommStreamNotice);
-    current_stream_finished = true;
-    
-    MIBUnified cmd;
-    cmd.address = module_iter_address( &comm_module_iterator );
-    cmd.packet.call.command = pack_command(11, 3);
-    cmd.packet.call.length = 0;
-
-    bus_master_rpc_async(NULL, &cmd);
-
-    while ( module_iter_get( &comm_module_iterator ) != NULL )
-      module_iter_next( &comm_module_iterator );
+    report_buffer = buffer;
+    report_transition_states(kStartStreamingState);
+    return 1;
   }
 
-  scheduler_remove_task( &report_retry_task );
-}
-void report_stream_send( char* buffer )
-{
-  report_buffer = buffer;
-  comm_module_iterator = create_module_iterator( kMIBCommunicationType );
-  taskloop_add( next_comm_module, NULL ); 
+  return 0;
 }
 
 void notify_report_success()
 {
   // TODO: Save success or failure to the report log.
   LOG_DEBUG(kReportSucceededNotice);
-  taskloop_add(next_comm_module, NULL);
+
+  //TODO: finish this function
+  //taskloop_add(next_comm_module, NULL);
 }
 
 void notify_report_failure()
 {
-  if ( !comm_module_iterator.started )
+  /*if ( !comm_module_iterator.started )
     return; // Something else triggered a report, there's nothing to retry
 
   // TODO: Save success or failure to the report log.
@@ -223,5 +272,5 @@ void notify_report_failure()
   {
     LOG_DEBUG(kReportAbandonedNotice);
     taskloop_add( next_comm_module, NULL );
-  }
+  }*/
 }
