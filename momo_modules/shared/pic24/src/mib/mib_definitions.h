@@ -31,7 +31,8 @@ typedef struct
 	uint8	mib_revision : 4;
 	uint8	flags : 4;
 
-	uint8 	name[7];
+	char 	name[6];
+	uint8	reserved;
 	uint8	feature_count;
 } momo_module_descriptor;
 

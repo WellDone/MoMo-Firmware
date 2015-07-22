@@ -3,6 +3,7 @@
 
 #include "platform.h"
 #include "mib_definitions.h"
+#include <stdint.h>
 
 #define MAX_MODULES 32
 #define MODULE_BASE_ADDRESS 11
@@ -25,5 +26,7 @@ ModuleIterator create_module_iterator( uint8 module_type );
 uint8 module_iter_address( ModuleIterator* iter );
 momo_module_descriptor* module_iter_get( ModuleIterator* iter );
 momo_module_descriptor* module_iter_next( ModuleIterator* iter );
+
+uint8_t find_module_by_name(const char *name);
 
 #endif

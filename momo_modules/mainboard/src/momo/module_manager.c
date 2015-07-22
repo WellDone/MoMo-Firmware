@@ -8,6 +8,7 @@ uint8 add_module( momo_module_descriptor* module )
 {
 	if ( the_module_count == MAX_MODULES )
 		return 0;
+
 	memcpy( (void*)(&the_modules[the_module_count]), module, sizeof( momo_module_descriptor ) );
 	return get_module_address( the_module_count++ );
 }
@@ -35,7 +36,20 @@ void clear_modules()
 	the_module_count = 0;
 }
 
-ModuleIterator create_module_iterator( uint8 type )
+uint8_t find_module_by_name(const char *name)
+{
+	uint8_t i;
+
+	for (i=0; i<the_module_count; ++i)
+	{
+		if (strncmp(name, the_modules[i].name, 6) == 0)
+			return get_module_address(i);
+	}
+
+	return 0;
+}
+
+ModuleIterator create_module_iterator(uint8 type)
 {
 	ModuleIterator iter;
 	iter.module_type = type;

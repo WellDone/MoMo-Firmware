@@ -305,15 +305,20 @@ void post_report( void* arg )
   report_stream_send( base64_report_buffer );
 }
 
-void start_report_scheduling() {
+void start_report_scheduling() 
+{
   LOG_DEBUG(kReportSchedulingStartedNotice);
   scheduler_schedule_task( post_report, CONFIG.report_interval, kScheduleForever, &report_task, NULL );
 }
-void stop_report_scheduling() {
+
+void stop_report_scheduling() 
+{
   LOG_DEBUG(kReportSchedulingStoppedNotice);
   scheduler_remove_task( &report_task );
 }
-void set_report_scheduling_interval( AlarmRepeatTime interval ) {
+
+void set_report_scheduling_interval( AlarmRepeatTime interval ) 
+{
   if ( interval >= kNumAlarmTimes )
     return;
 
@@ -323,6 +328,7 @@ void set_report_scheduling_interval( AlarmRepeatTime interval ) {
   
   save_momo_state();
 }
+
 void update_report_route( uint8 index, uint8 start, const char* route, uint8 len )
 {
   if ( index > 1 || start+len >= ROUTE_MAX_LENGTH )
@@ -348,5 +354,6 @@ const char* get_report_route( uint8 index )
 {
   if ( index > 1 )
     return NULL;
+  
   return ( index == 0 ) ? CONFIG.route_primary : CONFIG.route_secondary;
 }
