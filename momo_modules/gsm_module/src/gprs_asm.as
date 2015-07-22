@@ -4,7 +4,7 @@
 #include "buffers.h"
 #include "asm_macros.inc"
 #include "asm_branches.inc"
-#include "mib_locations.inc"
+#include "mib12_api.as"
 
 global _gprs_apn
 global _load_buffer
@@ -28,9 +28,8 @@ BEGINFUNCTION _gprs_set_apn
 	fcall 	_mib_to_fsr0
 	movlw	kAPNBuffer
 	fcall 	_load_buffer
-	banksel param_spec
-	movf 	BANKMASK(param_spec),w
-	andlw 	param_buffer_mask
+	banksel _mib_call_length
+	movf 	BANKMASK(_mib_call_length),w
 	fcall 	_copy
 	clrf	INDF1
 	return

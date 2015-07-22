@@ -13,7 +13,7 @@ void simdet_idle()
 }
 
 
-uint8 simdet_detect()
+uint8_t simdet_detect()
 {
 	PIN_DIR(SIMDET_SENSE, 1);
 	ENSURE_DIGITAL(SIMDET_SENSE);

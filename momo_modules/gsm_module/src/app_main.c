@@ -11,113 +11,145 @@
 #include "http.h"
 #include "simcard.h"
 #include "global_state.h"
+#include "gsm_module.h"
 #include "port.h"
+#include "gsmstream.h"
 #include "intel_hex.h"
 #include "buffers.h"
 #include <string.h>
 
 
-extern uint16 http_response_status;
-static void report_result(bool success)
-{
-	bus_master_begin_rpc();
-	mib_packet.param_spec = plist_empty();
-	mib_packet.feature = 60;
-	mib_packet.command = ( success )? 0xF0 : 0xF1;
-	bus_master_send_rpc(8);
-}
-
-// static void capture_error(void)
-// {
-// 	uint8 len = gsm_read( mib_buffer, kBusMaxMessageSize );
-// 	if ( len == 0 )
-// 		return;
-
-// 	bus_master_begin_rpc();
-// 	bus_master_prepare_rpc( 42, 0x20, plist_with_buffer( 0, len ) );
-// 	bus_master_send_rpc( 8 );
-// }
-
+extern uint16_t http_response_status;
 extern char* uint_buf;
+
 void task(void)
 {
-	wdt_disable();
+	uint8_t result;
 
-	if ( state.callback_pending == 1 )
+	switch(rpc_request)
 	{
-		report_result( state.stream_success );
-		state.callback_pending = 0;
+		//Turn on the GSM Module and send initial configuration commands
+		case kEnableModule:
+		mib_buffer[0] = gsm_ensure_on();
+		mib_buffer[1] = 0;
+
+		rpc_request = kNoRequestedTask;
+		bus_master_async_callback(2);
+		break;
+
+		//Turn off the GSM module
+		case kDisableModule:
+		gsm_module_off();
+		
+		rpc_request = kNoRequestedTask;
+		bus_master_async_callback(0);
+		break;
+
+		//Block until the GSM module is connected to the network (module must already be on)
+		case kConnectToNetwork:
+		mib_buffer[0] = gsm_ensure_registered();
+		mib_buffer[1] = 0;
+
+		rpc_request = kNoRequestedTask;
+		bus_master_async_callback(2);
+		break;
+
+		//Send an arbitrary AT command and receive the response
+		case kSendCommand:
+		gsm_rx_clear();
+		gsm_write(mib_buffer, async_length);
+		result = gsm_cmd( "" );
+
+		gsm_readback(mib_buffer, kMIBBufferSize);
+
+		rpc_request = kNoRequestedTask;
+		bus_master_async_callback(20);
+		break;
+
+		//Open a communication stream to the current comm destination
+		case kOpenStream:
+		mib_buffer[0] = gsm_openstream();
+		mib_buffer[1] = 0;
+
+		rpc_request = kNoRequestedTask;
+		bus_master_async_callback(2);
+		break;
+
+		//Push data to the currently open communication stream
+		case kPushToStream:
+		mib_buffer[0] = gsm_putstream();
+		mib_buffer[1] = 0;
+
+		rpc_request = kNoRequestedTask;
+		bus_master_async_callback(2);
+
+		//Close the currently open communication stream
+		case kCloseStream:
+		mib_buffer[0] = gsm_closestream();
+		mib_buffer[1] = 0;
+
+		rpc_request = kNoRequestedTask;
+		bus_master_async_callback(2);
+
+		default:
+		break;
 	}
 }
 
-void interrupt_handler(void)
+void interrupt service_isr()
 {
-
+	
 }
 
 void initialize(void)
 {	
 	debug_val = 0;
 	http_response_status = 0;
+	rpc_request = kNoRequestedTask;
+	connection_status = kModuleOff;
 	gsm_init();
 }
 
 //MIB Endpoints
-void gsm_rpc_on()
+uint8_t gsm_rpc_on()
+{	
+	rpc_request = kEnableModule;
+
+	return kAsynchronousResponseStatus;
+}
+uint8_t gsm_rpc_off()
 {
-	wdt_disable();
+	rpc_request = kDisableModule;
 	
-	mib_buffer[0] = gsm_on();
-	mib_buffer[1] = 0;
-
-	bus_slave_setreturn(pack_return_status(0,2));
-}
-void gsm_rpc_off()
-{
-	gsm_off();
-	bus_slave_setreturn(pack_return_status(0,0));
+	return kAsynchronousResponseStatus;
 }
 
-void gsm_rpc_power_on()
-{
-	ENSURE_DIGITAL(MODULEPOWERPIN);
-	DRIVE_HI(MODULEPOWERPIN);
-	bus_slave_setreturn(pack_return_status(0,0));
-}
-
-void gsm_rpc_power_off()
-{
-	ENSURE_DIGITAL(MODULEPOWERPIN);
-	DRIVE_LOW(MODULEPOWERPIN);
-	bus_slave_setreturn(pack_return_status(0,0));	
-}
-
-void gsm_rpc_testsim()
+uint8_t gsm_rpc_testsim()
 {
 	mib_buffer[0] = simdet_detect();
 	mib_buffer[1] = 0;
 
-	bus_slave_setreturn(pack_return_status(0,2));	
+	bus_slave_returndata(2);
+
+	return kNoErrorStatus;
 }
 
-void gsm_rpc_dumpbuffer()
+uint8_t gsm_rpc_debug()
 {
-	bus_slave_setreturn(pack_return_status(0, gsm_readback( mib_buffer, kBusMaxMessageSize ) ));
-}
-void gsm_rpc_debug()
-{
-	mib_buffer[0] = state.module_on;
-	mib_buffer[1] = state.callback_pending;
+	mib_buffer[0] = connection_status;
+	mib_buffer[1] = 0;
 	mib_buffer[2] = rx_buffer_start;
 	mib_buffer[3] = rx_buffer_end;
 	mib_buffer[4] = rx_buffer_len;
 	mib_buffer[5] = debug_val;
-	((uint16*)mib_buffer)[3] = http_response_status;
+	((uint16_t*)mib_buffer)[3] = http_response_status;
 
-	bus_slave_setreturn(pack_return_status(0, 8));
+	bus_slave_returndata(8);
+
+	return kNoErrorStatus;
 }
 
-void gsm_rpc_download()
+uint8_t gsm_rpc_download()
 {	
 	// gprs_set_apn( "wap.cingular", 12 );
 	// if ( !gsm_registered() )
@@ -143,7 +175,7 @@ void gsm_rpc_download()
 	// 	return;
 	// }
 
-	// uint8 len;
+	// uint8_t len;
 	// do
 	// {
 	// 	len = http_read( mib_buffer, kBusMaxMessageSize ); // Just read through the entire document, don't return anything.
@@ -153,31 +185,66 @@ void gsm_rpc_download()
 	// gprs_disconnect();
 
 	// bus_slave_setreturn(pack_return_status(0, 0));
+
+	return kNoErrorStatus;
 }
 
-void gsm_rpc_sendcommand()
+uint8_t gsm_rpc_sendcommand()
 {
-	if (state.module_on)
+	if (connection_status > kModuleOff)
 	{
-		gsm_write( mib_buffer, mib_buffer_length() );
-		uint8 result = gsm_cmd( "" );
-		if ( result == GSM_SERIAL_TIMEDOUT || result == GSM_SERIAL_NODATA )
-		{
-			bus_slave_setreturn( pack_return_status(6,0) );
-			return;
-		}
+		rpc_request = kSendCommand;
+		async_length = mib_packet.call.length;
 
-		gsm_rpc_dumpbuffer();
-		return;
+		return kAsynchronousResponseStatus;
 	}
 
-	bus_slave_setreturn(pack_return_status(7,0));
+	return 7;
 }
 
-/*
- * Do not use, required to be defined by startup code that xc8 apparently cannot *NOT* link in even though it is optimized away later.
- */	
+uint8_t gsm_rpc_register()
+{
+	if (connection_status > kModuleOff)
+	{
+		rpc_request = kConnectToNetwork;
+		return kAsynchronousResponseStatus;
+	}
+
+	return 7;
+}
+
+uint8_t gsm_rpc_openstream()
+{
+	rpc_request = kOpenStream;
+	return kAsynchronousResponseStatus;
+}
+
+uint8_t gsm_rpc_pushtostream()
+{
+	rpc_request = kPushToStream;
+	return kAsynchronousResponseStatus;
+}
+
+uint8_t gsm_rpc_closestream()
+{
+	rpc_request = kCloseStream;
+	return kAsynchronousResponseStatus;
+}
+
+uint8_t gsm_rpc_abandonstream()
+{
+	rpc_request = kDisableModule;
+	return kAsynchronousResponseStatus;
+}
+
 void main()
 {
-	
+	initialize();
+
+	while (1)
+	{
+		task();
+
+		asm("sleep");
+	}	
 }

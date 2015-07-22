@@ -16,10 +16,11 @@ Import('env')
 env['INCLUDE'] = incs
 env['NO_STARTUP'] = True
 
-asm_sources = ['app_startup.as', 'mib/mib12_api.as', 'buffers.as', 'gprs_asm.as', 'gsmstream_asm.as']
+asm_sources = ['buffers.as', 'gprs_asm.as', 'gsmstream_asm.as']
 peri = ['../../../shared/pic12/src/peripheral/timer1.c']
+api = ['../../../shared/pic12/src/mib12_api.as']
 
-srcfiles = asm_sources + Glob('./*.c') + peri + [env['MIBFILE']]	
+srcfiles = asm_sources + Glob('./*.c') + peri + [env['MIBFILE']] + api
 
 target = env.xc8('mib12_app_module.hex', srcfiles)
 symtab = env.build_symbols(['mib12_app_module_symbols.h', 'mib12_app_module_symbols.stb', 'mib12_app_module_rom_summary.txt'],['mib12_app_module.sym'])

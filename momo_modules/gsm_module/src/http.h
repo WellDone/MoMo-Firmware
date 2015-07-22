@@ -3,15 +3,15 @@
 
 #include "platform.h"
 
-bool http_init();
-bool http_await_response();
-bool http_head(const char* url);
-bool http_get(const char* url);
-bool http_post(const char* url);
-bool http_read(char* out, uint8 outlen);
-bool http_write_prepare(uint16);
+uint8_t http_init();
+uint8_t http_await_response();
+uint8_t http_head(const char* url);
+uint8_t http_get(const char* url);
+uint8_t http_post(const char* url);
+uint8_t http_read(char* out, uint8_t outlen);
+uint8_t http_write_prepare(uint16_t);
 void http_term();
 
-uint8 http_status();
+uint8_t http_status();
 
 #endif

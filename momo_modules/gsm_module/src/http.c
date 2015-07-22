@@ -6,9 +6,9 @@
 #include "buffers.h"
 #include <stdlib.h>
 
-uint16 http_read_start;
+uint16_t http_read_start;
 char http_buf[32];
-uint16 http_response_status;
+uint16_t http_response_status;
 
 void status_atoi( const char* str )
 {
@@ -21,7 +21,7 @@ void status_atoi( const char* str )
 	}
 }
 
-bool http_init()
+uint8_t http_init()
 {
 	if ( comm_destination_get(0) == 'h'
 		&& comm_destination_get(1) == 't'
@@ -34,7 +34,7 @@ bool http_init()
 	return gsm_cmd( "AT+HTTPINIT" ) == kCMDOK;
 }
 
-bool http_await_response()
+uint8_t http_await_response()
 {
 	gsm_capture_remainder( http_buf, sizeof(http_buf)-1 );
 	gsm_expect( "+HTTPACTION:" );
@@ -49,7 +49,7 @@ bool http_await_response()
 	return true;
 }
 
-bool http_head(const char* url)
+uint8_t http_head(const char* url)
 {
 	http_read_start = 0;
 	gsm_cmd( "AT+HTTPPARA=\"CID\",1" );
@@ -65,7 +65,7 @@ bool http_head(const char* url)
 	return true;
 }
 
-bool http_get(const char* url)
+uint8_t http_get(const char* url)
 {
 	http_read_start = 0;
 	gsm_cmd( "AT+HTTPPARA=\"CID\",1" );
@@ -81,7 +81,7 @@ bool http_get(const char* url)
 	return true;
 }
 
-bool http_write_prepare(uint16 len)
+uint8_t http_write_prepare(uint16_t len)
 {
 	utoa( http_buf, len, 10 );
 	gsm_expect( "DOWNLOAD" );
@@ -89,7 +89,7 @@ bool http_write_prepare(uint16 len)
 	gsm_write_str( http_buf );
 	return gsm_cmd_raw( ",10000", 10 ) == 1;
 }
-bool http_post(const char* url)
+uint8_t http_post(const char* url)
 {
 	http_read_start = 0;
 	gsm_cmd( "AT+HTTPPARA=\"CID\",1" );
@@ -105,7 +105,7 @@ bool http_post(const char* url)
 		return false;
 	return true;
 }
-uint8 http_read(char* out, uint8 out_len)
+uint8_t http_read(char* out, uint8_t out_len)
 {
 	//CAUTION: Untested!
 	
@@ -131,12 +131,12 @@ uint8 http_read(char* out, uint8 out_len)
 	if ( !out )
 		return out_len;
 
-	uint8 i = 0;
+	uint8_t i = 0;
 	while ( http_buf[i++] != '\r' )
 		continue;
 	http_buf[i] = '\0';
 	out_len = atoi( http_buf );
-	uint8 buf_len = out_len + i;
+	uint8_t buf_len = out_len + i;
 	if ( buf_len > ( sizeof(http_buf) - 4 ) )
 		return 0;
 
@@ -147,7 +147,7 @@ uint8 http_read(char* out, uint8 out_len)
 	return out_len;
 }
 
-uint8 http_status()
+uint8_t http_status()
 {
 	return http_response_status;
 }

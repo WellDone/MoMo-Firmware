@@ -6,14 +6,16 @@
 #include <xc.h>
 #include <string.h>
 #include "buffers.h"
+#include "protocol.h"
 
-void gsm_rpc_setapn()
+uint8_t gsm_rpc_setapn()
 {
 	gprs_set_apn();
-	bus_slave_setreturn(pack_return_status(0,0));
+	
+	return kNoErrorStatus;
 }
 
-bool gprs_connect()
+uint8_t gprs_connect()
 {
 	if ( gprs_connected() )
 		return true;
@@ -25,7 +27,7 @@ bool gprs_connect()
 	gsm_cmd( "AT+SAPBR=3,1,\"Contype\",\"GPRS\"" );
 	__delay_ms(100);
 	
-	uint8 retry_count = 4;
+	uint8_t retry_count = 4;
 	do
 	{
 		//Need to wait a longer time for this command because it can take > 3s to return
@@ -43,9 +45,9 @@ bool gprs_connect()
 	
 	return false;
 }
-bool gprs_connected()
+uint8_t gprs_connected()
 {
-	uint8 result;
+	uint8_t result;
 	gsm_expect( "+SAPBR: 1,1" );
 	gsm_expect2( "+SAPBR: 1,3" );
 	result = gsm_cmd_raw( "AT+SAPBR=2,1", kDEFAULT_CMD_TIMEOUT );

@@ -6,10 +6,11 @@
 #include "port.h"
 #include <xc.h>
 
-bool gsm_module_active()
+uint8_t gsm_module_active()
 {
 	return PIN(GSMSTATUSPIN) == 1;
 }
+
 void gsm_module_off()
 {
 	ANALOG_IF_POSSIBLE(MODULEPOWERPIN);
@@ -22,9 +23,11 @@ void gsm_module_off()
 	state.module_on = 0;
 	state.callback_pending = 0;
 	state.stream_in_progress = 0;
+
+	connection_status = kModuleOff;
 }
 
-uint8 gsm_module_on()
+uint8_t gsm_module_on()
 {
 	PIN_DIR(GSMSTATUSPIN, 1);
 	ENSURE_DIGITAL(GSMSTATUSPIN);

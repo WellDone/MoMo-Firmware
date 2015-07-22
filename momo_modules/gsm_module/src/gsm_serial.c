@@ -11,7 +11,7 @@
 #include <string.h>
 
 static char* remainder_buffer;
-static uint8 remainder_buffer_len;
+static uint8_t remainder_buffer_len;
 void gsm_serial_init()
 {
 	#ifdef ALTERNATE_SERIAL
@@ -76,7 +76,7 @@ void gsm_write_char(char c)
 	TXREG = c;
 }
 
-bool gsm_rx()
+uint8_t gsm_rx()
 {
 	if (OERR)
 	{
@@ -119,12 +119,12 @@ void gsm_expect_ok_error()
 	gsm_expect2("ERROR");
 }
 
-void gsm_capture_remainder( char* buf, uint8 max_len )
+void gsm_capture_remainder( char* buf, uint8_t max_len )
 {
 		remainder_buffer = buf;
 		remainder_buffer_len = max_len;
 }
-uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
+uint8_t gsm_await( uint8_t timeout_s ) // NOTE: This function is time-sensitive
 {
 	reset_expected1_ptr();
 	reset_expected2_ptr();
@@ -138,7 +138,7 @@ uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
 
 	do
 	{
-		uint8 value = gsm_check(gsm_rx_peek());
+		uint8_t value = gsm_check(gsm_rx_peek());
 		if (value != 0)
 		{
 			while ( gsm_rx() )
@@ -167,9 +167,9 @@ uint8 gsm_await( uint8 timeout_s ) // NOTE: This function is time-sensitive
  * we are looking for.  We have to check a second time if it does not match since
  * it may match the first character but we were on the 3rd character, for example.
  */
-uint8 gsm_check(uint8 current)
+uint8_t gsm_check(uint8_t current)
 {
-	uint8 result;
+	uint8_t result;
 
 	result = check_inc_expected1(current);
 	if (result == 0xFF)
@@ -188,9 +188,9 @@ uint8 gsm_check(uint8 current)
 	return 0;
 }
 
-uint8 gsm_readback( char* buf, uint8 max_len )
+uint8_t gsm_readback( char* buf, uint8_t max_len )
 {
-	uint8 i = 0;
+	uint8_t i = 0;
 	while ( i < max_len && rx_buffer_len != 0 )
 	{
 		buf[i++] = gsm_rx_pop();
@@ -198,16 +198,16 @@ uint8 gsm_readback( char* buf, uint8 max_len )
 	return i;
 }
 
-uint8 gsm_read( char* buf, uint8 max_len )
+uint8_t gsm_read( char* buf, uint8_t max_len )
 {
-	uint8 timeout_counter = GSM_EXPECT_TIMEOUT;
+	uint8_t timeout_counter = GSM_EXPECT_TIMEOUT;
 	while ( !gsm_rx() )
 	{
 		if ( --timeout_counter == 0 )
 			return GSM_SERIAL_NODATA;
 	}
 
-	uint8 len = 0;
+	uint8_t len = 0;
 	do
 	{
 		if ( buf != NULL )
@@ -224,7 +224,8 @@ void gsm_write_carriage()
 {
 	gsm_write_char('\r');
 }
-void gsm_write(const char* buf, uint8 len)
+
+void gsm_write(const char* buf, uint8_t len)
 {
 	while ( len-- > 0 )
 	{

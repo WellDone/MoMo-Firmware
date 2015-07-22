@@ -25,3 +25,5 @@ _mib_packet equ 0x20
 _mib_buffer equ 0x20 + 4
 _mib_state  equ (_mib_packet + 25)
 _slave_address equ (_mib_state + 0)
+
+_mib_call_length equ (_mib_packet + 0)

@@ -4,7 +4,7 @@
 #include "buffers.h"
 #include "asm_macros.inc"
 #include "asm_branches.inc"
-#include "mib_locations.inc"
+#include "mib12_api.as"
 
 global _mib_to_fsr0, _copy, _add_w_fsr1, _load_buffer
 global _comm_destination
@@ -29,18 +29,16 @@ BEGINFUNCTION _set_comm_destination
 	fcall _add_w_fsr1
 
 	;Calculate needed size and make sure it will fit
-	movf	BANKMASK(param_spec),w
-	andlw 	param_buffer_mask
+	movf	BANKMASK(_mib_call_length),w
 	addwf 	BANKMASK(_mib_buffer),w
-	skipwgtl (GSM_COMM_DESTINATION_LENGTH-1) ;Check if the size would exceed buffer (including added \0)
-		retlw 1
+	;skipwgtl (GSM_COMM_DESTINATION_LENGTH-1) ;Check if the size would exceed buffer (including added \0)
+	;	retlw 1
 
 	fcall _mib_to_fsr0
 	addfsr FSR0, 2		;Offset to start of buffer portion
 
 	;Do the copying
-	movf 	BANKMASK(param_spec),w
-	andlw 	param_buffer_mask
+	movf 	BANKMASK(_mib_call_length),w
 	fcall 	_copy
 	clrf	INDF1
 	retlw 	0

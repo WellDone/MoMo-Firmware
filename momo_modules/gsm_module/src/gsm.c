@@ -8,6 +8,9 @@
 
 char sticky_band[21];
 
+static uint8_t gsm_on();
+static uint8_t gsm_registered();
+
 void gsm_init()
 {
 	sticky_band[0] ='\0';
@@ -16,7 +19,23 @@ void gsm_init()
 	gsm_rx_clear();
 	gprs_init_buffers();
 }
-bool gsm_on()
+
+uint8_t gsm_ensure_on()
+{
+	uint8_t status;
+	if (connection_status < kModuleOnNotConnected)
+	{
+		status = gsm_on();
+		if (status == true)
+			connection_status = kModuleOnNotConnected;
+
+		return status;
+	}
+
+	return 2;
+}
+
+static uint8_t gsm_on()
 {
 	if ( gsm_module_active() )
 		return true;
@@ -37,26 +56,34 @@ bool gsm_on()
 	return true;
 }
 
-bool gsm_register()
-{
-	uint8 timeout_s = GSM_REGISTRATION_TIMEOUT_S;
-	while ( !gsm_registered() )
-	{
-		if ( timeout_s-- == 0 )
-			return false;
-		__delay_ms( 1000 );
-	}
-	return true;
-}
-bool gsm_registered()
+static uint8_t gsm_registered()
 {
 	gsm_expect( "+CREG: 0,1" ); // Registered, home network
 	gsm_expect2( "+CREG: 0,5" ); // Registered, roaming
-	uint8 result = gsm_cmd_raw( "AT+CREG?", kDEFAULT_CMD_TIMEOUT );
+	uint8_t result = gsm_cmd_raw( "AT+CREG?", kDEFAULT_CMD_TIMEOUT );
 
 	__delay_ms(100);
 	
 	return result == 1 || result == 2;
+}
+
+uint8_t gsm_ensure_registered()
+{
+	uint8_t timeout_s = GSM_REGISTRATION_TIMEOUT_S;
+
+	if (connection_status > kModuleOnNotConnected)
+		return 2;
+
+	while ( !gsm_registered() )
+	{
+		if ( timeout_s-- == 0 )
+			return 0;
+
+		__delay_ms( 1000 );
+	}
+
+	connection_status = kModuleOnConnected;
+	return 1;
 }
 
 void gsm_remember_band()
@@ -65,7 +92,7 @@ void gsm_remember_band()
 	gsm_expect( "+CBAND: " );
 	gsm_cmd_raw( "AT+CBAND?" , kDEFAULT_CMD_TIMEOUT );
 	
-	uint8 i = 0;
+	uint8_t i = 0;
 	while ( sticky_band[i] != '\0' && sticky_band[i] != ',' && sticky_band[i] != '\r' && i++ < sizeof(sticky_band)-1 )
 		continue;
 	sticky_band[i] = '\0';
@@ -95,13 +122,13 @@ void gsm_forget_band()
 	sticky_band[8] = '\0';
 }
 
-uint8 gsm_cmd(const char* cmd)
+uint8_t gsm_cmd(const char* cmd)
 {
 	//Clear out rcreg so that when we call gsm_await we don't start our timeout
 	//immediately.
 	gsm_clear_receive();
 
-	uint8 retval;
+	uint8_t retval;
 	gsm_expect_ok_error();
 	gsm_write_str(cmd);
 	gsm_write_char('\r');
@@ -112,7 +139,7 @@ uint8 gsm_cmd(const char* cmd)
 	return retval;
 }
 
-uint8 gsm_cmd_raw(const char* cmd, uint8 timeout)
+uint8_t gsm_cmd_raw(const char* cmd, uint8_t timeout)
 {
 	gsm_clear_receive();
 

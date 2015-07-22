@@ -18,134 +18,121 @@
 #include "http.h"
 #include "gsm_defines.h"
 #include <string.h>
+#include "protocol_defines.h"
 
 //Defined in buffers.as
 extern char comm_destination[65];
 
-void gsm_rpc_setcommdestination()
+uint8_t gsm_rpc_setcommdestination()
 {
 	if (set_comm_destination() == 1)
-		bus_slave_setreturn(pack_return_status(7,0));
-	else
-		bus_slave_setreturn(pack_return_status(0,0));
+		return 7;
+	
+	return kNoErrorStatus;	
 }
 
- void gsm_openstream()
- {
- 	if ( state.stream_in_progress )
- 	{
- 		gsm_off(); // Prioritize later streams in case we got hung-up somehow.
- 		__delay_ms( 1000 );
- 	}
- 	state.stream_in_progress = 1;
+uint8_t gsm_openstream()
+{
+	if (state.stream_in_progress)
+	{
+		gsm_off(); // Prioritize later streams in case we got hung-up somehow.
+		__delay_ms(1000);
+	}
 
- 	if (!gsm_on())
- 	{
- 		bus_slave_setreturn(pack_return_status(6,0));
- 		return;
- 	}
+	state.stream_in_progress = 1;
 
- 	if (simdet_detect() == 0)
- 	{
- 		bus_slave_setreturn(pack_return_status(6,0));
- 		return;
- 	}
+	if (gsm_ensure_on() == 0)
+		return 1;
 
- 	if ( gsm_register() )
- 	{
- 		gsm_remember_band(); // Timeout after 4 minutes
+	if (simdet_detect() == 0)
+		return 2;
 
- 		if (comm_destination_get(0) == '+' )
-	 	{
+	if (gsm_ensure_registered() != 0)
+	{
+		gsm_remember_band(); // Timeout after 2 minutes
+
+		if (comm_destination_get(0) == '+' )
+ 		{
 	 		state.stream_type = kStreamSMS;
-	 		if ( !sms_prepare( comm_destination, strlen(comm_destination) ) )
-	 		{
+	 		if (!sms_prepare( comm_destination, strlen(comm_destination)))
 	 			state.stream_in_progress = 0;
-	 		}
 	 	}
-	 	else
+ 	 	else
 	 	{	
 	 		state.stream_type = kStreamGPRS;
 	 		if ( !gprs_connect()
 	 			|| !http_init()
-	 			|| !http_write_prepare( plist_get_int16(0) ) )
+	 			|| !http_write_prepare( *((uint16_t *)mib_buffer ) ))
 	 		{
 	 			state.stream_in_progress = 0;
 	 		}
 	 	}
- 	}
- 	else
- 	{
- 		gsm_forget_band();
- 		state.stream_in_progress = 0;
- 	}
-
- 	if ( state.stream_in_progress == 0 )
- 	{
- 		gsm_off();
-		bus_slave_setreturn( pack_return_status(6, 0) );
- 	}
- 	else
- 	{
- 		bus_slave_setreturn(pack_return_status(0,0));
- 	}
- }
-
- void gsm_putstream()
- {
- 	if ( !state.stream_in_progress )
- 	{
- 		bus_slave_setreturn(pack_return_status(7,0));
- 		return;
- 	}
-
- 	gsm_write( mib_buffer, mib_buffer_length() );
- 	__delay_ms(1);
-
- 	bus_slave_setreturn(pack_return_status(0,0));
- }
-
- void gsm_closestream()
- {
- 	if ( !state.stream_in_progress )
- 	{
- 		bus_slave_setreturn(pack_return_status(7,0));
- 		return;
- 	}
-
- 	uint8 result = 0, timeout_10s = 8*6; // 8 minutes
-	if ( state.stream_type == kStreamSMS )
+	}
+	else
 	{
-		if ( sms_send() )
+		gsm_forget_band();
+		state.stream_in_progress = 0;
+	}
+
+	if (state.stream_in_progress == 0)
+	{
+		gsm_off();
+		return 3;
+	}
+	
+	return kNoErrorStatus;
+}
+
+uint8_t gsm_putstream()
+{
+	if (!state.stream_in_progress)
+		return 7;
+
+	gsm_write(mib_buffer, async_length);
+	__delay_ms(1);
+
+	return kNoErrorStatus;
+}
+
+uint8_t gsm_closestream()
+{
+ 	uint8_t result = 0, timeout_10s = 8*6; // 8 minutes
+
+ 	if ( !state.stream_in_progress )
+ 		return 7;
+
+	if (state.stream_type == kStreamSMS)
+	{
+		if (sms_send())
 		{
 	 		gsm_off();
-	 		bus_slave_setreturn(pack_return_status(0,0));
-	 		return;
+	 		return kNoErrorStatus;
 		}
 
 		gsm_expect( "+CMGS:" );
 		gsm_expect2( "ERROR" );
+
 		do
 		{
-			result = gsm_await( 10 );
+			result = gsm_await(10);
 			if ( result == 1 || --timeout_10s == 0 )
 				break;
 		}
-		while ( true );	
+		while (true);
 	}
 	else
 	{
-		if ( !http_post(comm_destination) )
+		if (!http_post(comm_destination))
 		{
 			gsm_off();
-			bus_slave_setreturn(pack_return_status(6,0));
-			return;
+			return 6;
 		}
+
 		do
 		{
 			result = http_await_response();
 
-			if ( result || --timeout_10s == 0 )
+			if (result || --timeout_10s == 0)
 				break;
 		}
 		while (true);
@@ -153,38 +140,13 @@ void gsm_rpc_setcommdestination()
 		result = ( ( result && http_status() == 200 )? 1 : 2 );
 		
 		// TODO: do something with the result
-		// if ( result == 1 )
-		// {
-		// 	while ( http_read( NULL, 20 ) != 0 )
-		// 		continue;
-		// }
 	}
 
 	state.stream_in_progress = 0;
 	state.callback_pending = 1;
 	state.stream_success = ( result == 1 ) ? 1 : 0;
-	bus_slave_setreturn(pack_return_status(0,0));
+	
 	gsm_off();
+	return kNoErrorStatus;
+}
 
-		// if ( result == 2 && state.stream_type == kStreamSMS )
-		// {
-		// 	capture_error();
-		// }
-		// else
-		// {
-		// 	uint_buf[5] = '\0';
-			
-		// 	strcpy( mib_buffer, "GPRS ERROR : " );
-		// 	strcpy( mib_buffer+13, uint_buf );
-
-		// 	bus_master_begin_rpc();
-		// 	bus_master_prepare_rpc( 42, 0x20, plist_with_buffer( 0, 13+strlen(uint_buf) ) );
-		// 	bus_master_send_rpc( 8 );
-		// }
- }
-
- void gsm_abandonstream()
- {
- 	gsm_off();
- 	bus_slave_setreturn(pack_return_status(0,0));
- }

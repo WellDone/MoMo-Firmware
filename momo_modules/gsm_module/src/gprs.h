@@ -7,8 +7,8 @@
 
 void gprs_init_buffers();
 void gprs_set_apn();
-bool gprs_connect();
-bool gprs_connected();
+uint8_t gprs_connect();
+uint8_t gprs_connected();
 void gprs_disconnect();
 
 #endif

@@ -3,7 +3,7 @@
 
 #include "platform.h"
 
-bool sms_prepare(const char* destination, uint8 length);
-bool sms_send();
+uint8_t sms_prepare(const char* destination, uint8_t length);
+uint8_t sms_send();
 
 #endif
