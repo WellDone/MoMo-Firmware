@@ -80,7 +80,7 @@ uint8_t gsm_openstream()
 		return 3;
 	}
 	
-	return kNoErrorStatus;
+	return 0;
 }
 
 uint8_t gsm_putstream()
@@ -91,7 +91,7 @@ uint8_t gsm_putstream()
 	gsm_write(mib_buffer, async_length);
 	__delay_ms(1);
 
-	return kNoErrorStatus;
+	return 0;
 }
 
 uint8_t gsm_closestream()
@@ -106,7 +106,7 @@ uint8_t gsm_closestream()
 		if (sms_send())
 		{
 	 		gsm_off();
-	 		return kNoErrorStatus;
+	 		return 0;
 		}
 
 		gsm_expect( "+CMGS:" );
@@ -147,6 +147,6 @@ uint8_t gsm_closestream()
 	state.stream_success = ( result == 1 ) ? 1 : 0;
 	
 	gsm_off();
-	return kNoErrorStatus;
+	return 0;
 }
 

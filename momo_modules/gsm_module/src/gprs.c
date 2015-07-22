@@ -17,7 +17,7 @@ uint8_t gsm_rpc_setapn()
 
 uint8_t gprs_connect()
 {
-	if ( gprs_connected() )
+	if (gprs_connected())
 		return true;
 
 	gsm_write_str( "AT+SAPBR=3,1,\"APN\",\"" );

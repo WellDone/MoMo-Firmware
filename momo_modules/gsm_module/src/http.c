@@ -8,6 +8,7 @@
 
 uint16_t http_read_start;
 char http_buf[32];
+
 uint16_t http_response_status;
 
 void status_atoi( const char* str )
@@ -83,19 +84,21 @@ uint8_t http_get(const char* url)
 
 uint8_t http_write_prepare(uint16_t len)
 {
-	utoa( http_buf, len, 10 );
+	utoa(http_buf, len, 10);
 	gsm_expect( "DOWNLOAD" );
 	gsm_write_str( "AT+HTTPDATA=" );
-	gsm_write_str( http_buf );
-	return gsm_cmd_raw( ",10000", 10 ) == 1;
+	gsm_write_str(http_buf);
+	
+	return gsm_cmd_raw(",10000", 10) == 1;
 }
+
 uint8_t http_post(const char* url)
 {
 	http_read_start = 0;
-	gsm_cmd( "AT+HTTPPARA=\"CID\",1" );
-	gsm_cmd( "AT+HTTPPARA=\"CONTENT\",\"text/plain\"" );
+	gsm_cmd("AT+HTTPPARA=\"CID\",1" );
+	gsm_cmd("AT+HTTPPARA=\"CONTENT\",\"text/plain\"");
 	
-	gsm_write_str( "AT+HTTPPARA=\"URL\",\"" );
+	gsm_write_str("AT+HTTPPARA=\"URL\",\"");
 	gsm_write_str( url );
 	gsm_cmd( "\"" );
 
@@ -103,8 +106,10 @@ uint8_t http_post(const char* url)
 
 	if ( gsm_cmd( "AT+HTTPACTION=1" ) != kCMDOK )
 		return false;
+
 	return true;
 }
+
 uint8_t http_read(char* out, uint8_t out_len)
 {
 	//CAUTION: Untested!

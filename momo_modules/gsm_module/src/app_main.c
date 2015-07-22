@@ -222,6 +222,8 @@ uint8_t gsm_rpc_openstream()
 uint8_t gsm_rpc_pushtostream()
 {
 	rpc_request = kPushToStream;
+
+	async_length = mib_packet.call.length;
 	return kAsynchronousResponseStatus;
 }
 
