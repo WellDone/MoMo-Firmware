@@ -1,0 +1,3 @@
+import autobuild
+
+autobuild.autobuild_pic12('hello_world', test_dir='test', modulefile='module_settings.json')
