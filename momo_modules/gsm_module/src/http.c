@@ -100,7 +100,7 @@ GSMError http_write_prepare(uint16_t len)
 	return kHTTPTimeoutPreparingWrite;
 }
 
-uint8_t http_post(const char* url)
+GSMError http_post(const char* url)
 {
 	http_read_start = 0;
 	if (gsm_cmd("AT+HTTPPARA=\"CID\",1" ) != kCMDOK)

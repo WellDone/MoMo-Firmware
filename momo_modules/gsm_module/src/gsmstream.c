@@ -2,8 +2,6 @@
  *
  * Endpoints for opening and dumping data to a text message stream.
  *
- *
- *
  */
 
 #include "gsmstream.h"
