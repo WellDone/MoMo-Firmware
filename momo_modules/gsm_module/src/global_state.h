@@ -1,3 +1,5 @@
+#ifndef __global_state_h__
+#define __global_state_h__
 
 #include "platform.h"
 
@@ -6,12 +8,9 @@ typedef union
 {
 	struct
 	{
-		volatile uint8_t module_on:1;
-		volatile uint8_t callback_pending:1;
 		volatile uint8_t stream_in_progress:1;
 		volatile uint8_t stream_type:1;
-		volatile uint8_t stream_success:1;
-		volatile uint8_t unused:3;
+		volatile uint8_t unused:6;
 	};
 
 	volatile uint8_t gsm_state;
@@ -38,6 +37,32 @@ typedef enum
 	kCloseStream
 } RequestedTask;
 
+typedef enum
+{
+	kNoGSMError = 0,
+	kSIMNotDetected,
+	kModuleCouldNotTurnOn,
+	kModuleNotOnWhenExpected,
+	kGSMTimeoutWaitingForNetwork,
+	kGPRSTimeoutAwaitingCGREG,
+	kGPRSErrorSettingBearerType,
+	kGPRSErrorSettingAPN,
+	kGPRSTimeoutWaitingBearer,
+	kGPRSErrorDisconnecting,
+	kStreamNotInProgress,
+	kStreamAlreadyInProgress,
+	kHTTPCouldNotEnableSSL,
+	kHTTPCouldNotInitialize,
+	kHTTPTimeoutPreparingWrite,
+	kHTTPCouldNotSetCID,
+	kHTTPCouldNotSetContentType,
+	kHTTPCouldNotSetURL,
+	kHTTPCouldNotSetRedirection,
+	kHTTPCouldNotPostData,
+	kHTTPTimeoutWaitingForPost,
+	kHTTPFailureCodeReturned
+} GSMError;
+
 #define kStreamSMS 0
 #define kStreamGPRS 1
 
@@ -55,3 +80,5 @@ prefix ModuleState 				state;
 prefix ModuleInfo				connection_status;
 prefix volatile RequestedTask 	rpc_request;
 prefix volatile uint8_t 		async_length;
+
+#endif

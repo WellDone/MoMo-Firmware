@@ -5,6 +5,7 @@
 #define GSM_RECEIVE_BUFFER_LENGTH	100
 #define GSM_APN_LENGTH				21
 #define GSM_COMM_DESTINATION_LENGTH	65
+#define GSM_MAX_SUPPORTED_REPORT	255
 
 //Buffer IDs
 #define kReceiveBuffer 			0

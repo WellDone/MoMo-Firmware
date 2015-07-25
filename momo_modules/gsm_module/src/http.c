@@ -11,7 +11,7 @@ char http_buf[32];
 
 uint16_t http_response_status;
 
-void status_atoi( const char* str )
+void status_atoi(const char* str)
 {
 	http_response_status = 0;
 	while ( *str >= '0' && *str <= '9' )
@@ -22,7 +22,7 @@ void status_atoi( const char* str )
 	}
 }
 
-uint8_t http_init()
+GSMError http_init()
 {
 	if ( comm_destination_get(0) == 'h'
 		&& comm_destination_get(1) == 't'
@@ -30,22 +30,27 @@ uint8_t http_init()
 		&& comm_destination_get(3) == 'p'
 		&& comm_destination_get(4) == 's' )
 	{
-		gsm_cmd( "AT+HTTPSSL=1" );
+		if (gsm_cmd( "AT+HTTPSSL=1" ) != kCMDOK)
+			return kHTTPCouldNotEnableSSL;
 	}
-	return gsm_cmd( "AT+HTTPINIT" ) == kCMDOK;
+
+	if (gsm_cmd( "AT+HTTPINIT" ) != kCMDOK)
+		return kHTTPCouldNotInitialize;
+
+	return kNoGSMError;
 }
 
 uint8_t http_await_response()
 {
-	gsm_capture_remainder( http_buf, sizeof(http_buf)-1 );
+	gsm_capture_remainder(http_buf, sizeof(http_buf)-1);
 	gsm_expect( "+HTTPACTION:" );
-	if ( gsm_await( 10 ) != 1 )
+	if (gsm_await( 10 ) != 1)
 		return false;
 	
 	// Skip the first two remainder characters, which are:
 	//   '1', '2', or '3'
 	//   ','
-	status_atoi( http_buf + 2 );
+	status_atoi(http_buf + 2);
 	
 	return true;
 }
@@ -82,32 +87,40 @@ uint8_t http_get(const char* url)
 	return true;
 }
 
-uint8_t http_write_prepare(uint16_t len)
+GSMError http_write_prepare(uint16_t len)
 {
 	utoa(http_buf, len, 10);
 	gsm_expect( "DOWNLOAD" );
 	gsm_write_str( "AT+HTTPDATA=" );
 	gsm_write_str(http_buf);
 	
-	return gsm_cmd_raw(",10000", 10) == 1;
+	if (gsm_cmd_raw(",10000", 10) == kCMDOK)
+		return kNoGSMError;
+
+	return kHTTPTimeoutPreparingWrite;
 }
 
 uint8_t http_post(const char* url)
 {
 	http_read_start = 0;
-	gsm_cmd("AT+HTTPPARA=\"CID\",1" );
-	gsm_cmd("AT+HTTPPARA=\"CONTENT\",\"text/plain\"");
+	if (gsm_cmd("AT+HTTPPARA=\"CID\",1" ) != kCMDOK)
+		return kHTTPCouldNotSetCID;
+
+	if (gsm_cmd("AT+HTTPPARA=\"CONTENT\",\"text/plain\"") != kCMDOK)
+		return kHTTPCouldNotSetContentType;
 	
 	gsm_write_str("AT+HTTPPARA=\"URL\",\"");
 	gsm_write_str( url );
-	gsm_cmd( "\"" );
+	if (gsm_cmd( "\"" ) != kCMDOK)
+		return kHTTPCouldNotSetURL;
 
-	gsm_cmd( "AT+HTTPPARA=\"REDIR\",1" );
+	if (gsm_cmd( "AT+HTTPPARA=\"REDIR\",1" ) != kCMDOK)
+		return kHTTPCouldNotSetRedirection;
 
-	if ( gsm_cmd( "AT+HTTPACTION=1" ) != kCMDOK )
-		return false;
+	if (gsm_cmd( "AT+HTTPACTION=1" ) != kCMDOK)
+		return kHTTPCouldNotPostData;
 
-	return true;
+	return kNoGSMError;
 }
 
 uint8_t http_read(char* out, uint8_t out_len)
@@ -118,10 +131,10 @@ uint8_t http_read(char* out, uint8_t out_len)
 		out_len = sizeof(http_buf) - 4; // two digits for the length, \r\n
 
 	gsm_write_str( "AT+HTTPREAD=" );
-	utoa( http_buf, http_read_start, 10 );
+	utoa(http_buf, http_read_start, 10);
 	gsm_write_str( http_buf );
 	gsm_write_char( ',' );
-	utoa( http_buf, out_len, 10 );
+	utoa(http_buf, out_len, 10);
 	gsm_write_str( http_buf );
 	http_read_start += out_len;
 
@@ -152,12 +165,12 @@ uint8_t http_read(char* out, uint8_t out_len)
 	return out_len;
 }
 
-uint8_t http_status()
+uint16_t http_status()
 {
 	return http_response_status;
 }
 
 void http_term()
 {
-	gsm_cmd( "AT+HTTPTERM" );
+	gsm_cmd("AT+HTTPTERM");
 }

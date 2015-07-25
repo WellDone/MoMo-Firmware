@@ -2,16 +2,19 @@
 #define __http_h__
 
 #include "platform.h"
+#include "global_state.h"
 
-uint8_t http_init();
+GSMError http_init();
+GSMError http_write_prepare(uint16_t len);
+
 uint8_t http_await_response();
 uint8_t http_head(const char* url);
 uint8_t http_get(const char* url);
 uint8_t http_post(const char* url);
 uint8_t http_read(char* out, uint8_t outlen);
-uint8_t http_write_prepare(uint16_t);
+
 void http_term();
 
-uint8_t http_status();
+uint16_t http_status();
 
 #endif

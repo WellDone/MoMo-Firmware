@@ -31,122 +31,144 @@ uint8_t gsm_rpc_setcommdestination()
 	return kNoErrorStatus;	
 }
 
-uint8_t gsm_openstream()
+GSMError gsm_openstream()
 {
+	GSMError result;
+
+	//FIXME: just return an error code here
 	if (state.stream_in_progress)
 	{
 		gsm_off(); // Prioritize later streams in case we got hung-up somehow.
 		__delay_ms(1000);
 	}
 
-	state.stream_in_progress = 1;
+	result = simdet_detect();
+	if (result != kNoGSMError)
+		return result;
 
-	if (gsm_ensure_on() == 0)
-		return 1;
+	result = gsm_ensure_on();
+	if (result != kNoGSMError)
+		return result;
 
-	if (simdet_detect() == 0)
-		return 2;
 
-	if (gsm_ensure_registered() != 0)
+	result = gsm_ensure_registered();
+	if (result != kNoGSMError)
+		goto stream_failure;
+
+	gsm_remember_band();
+
+	//TODO: Restructure this in terms of error codes
+	if (comm_destination_get(0) == '+' )
 	{
-		gsm_remember_band(); // Timeout after 2 minutes
-
-		if (comm_destination_get(0) == '+' )
- 		{
-	 		state.stream_type = kStreamSMS;
-	 		if (!sms_prepare( comm_destination, strlen(comm_destination)))
-	 			state.stream_in_progress = 0;
-	 	}
- 	 	else
-	 	{	
-	 		state.stream_type = kStreamGPRS;
-	 		if ( !gprs_connect()
-	 			|| !http_init()
-	 			|| !http_write_prepare( *((uint16_t *)mib_buffer ) ))
-	 		{
-	 			state.stream_in_progress = 0;
-	 		}
-	 	}
-	}
+		state.stream_type = kStreamSMS;
+		if (!sms_prepare( comm_destination, strlen(comm_destination)))
+			goto stream_failure;
+ 	}
 	else
-	{
-		gsm_forget_band();
-		state.stream_in_progress = 0;
-	}
+ 	{	
 
-	if (state.stream_in_progress == 0)
-	{
-		gsm_off();
-		return 3;
-	}
-	
-	return 0;
+ 		result = gprs_ensure_registered();
+ 		if (result != kNoGSMError)
+ 			goto stream_failure;
+
+ 		result = gprs_connect();
+ 		if (result != kNoGSMError)
+ 			goto stream_failure;
+
+ 		result = http_init();
+ 		if (result != kNoGSMError)
+ 			goto stream_failure;
+
+		result = http_write_prepare(*((uint16_t *)mib_buffer));
+		if (result != kNoGSMError)
+			goto stream_failure;
+
+ 		 state.stream_type = kStreamGPRS;
+ 	}
+
+	state.stream_in_progress = 1;
+	return kNoGSMError;
+
+	//This stream could not be opened so make sure the module is off for us to try again
+	stream_failure:
+	gsm_off();
+	return result;
 }
 
-uint8_t gsm_putstream()
+GSMError gsm_putstream()
 {
 	if (!state.stream_in_progress)
-		return 7;
+		return kStreamNotInProgress;
 
 	gsm_write(mib_buffer, async_length);
 	__delay_ms(1);
 
-	return 0;
+	return kNoGSMError;
 }
 
-uint8_t gsm_closestream()
+GSMError gsm_closestream()
 {
- 	uint8_t result = 0, timeout_10s = 8*6; // 8 minutes
+	GSMError error = kNoGSMError;
+ 	uint8_t result = 0;
+ 	uint8_t post_timeout = 8*6; 		//8 minutes since each call times out in 10s
 
- 	if ( !state.stream_in_progress )
- 		return 7;
+ 	if (!state.stream_in_progress)
+ 		return kStreamNotInProgress;
 
 	if (state.stream_type == kStreamSMS)
 	{
 		if (sms_send())
 		{
 	 		gsm_off();
-	 		return 0;
+	 		return kNoGSMError;
 		}
 
-		gsm_expect( "+CMGS:" );
-		gsm_expect2( "ERROR" );
+		gsm_expect("+CMGS:");
+		gsm_expect2("ERROR");
 
 		do
 		{
 			result = gsm_await(10);
-			if ( result == 1 || --timeout_10s == 0 )
+			if ( result == 1 || --post_timeout == 0 )
 				break;
 		}
 		while (true);
 	}
 	else
 	{
-		if (!http_post(comm_destination))
-		{
-			gsm_off();
-			return 6;
-		}
+		error = http_post(comm_destination);
+		if (error != kNoGSMError)
+			goto streaming_error;
 
 		do
 		{
 			result = http_await_response();
 
-			if (result || --timeout_10s == 0)
+			if (result)
 				break;
 		}
-		while (true);
+		while (--post_timeout != 0);
 		
-		result = ( ( result && http_status() == 200 )? 1 : 2 );
-		
-		// TODO: do something with the result
+		if (!result)
+		{
+			error = kHTTPTimeoutWaitingForPost;
+			goto streaming_error;
+		}
+		else if (http_status() != 200)
+		{
+			error = kHTTPFailureCodeReturned;
+			goto streaming_error;
+		}
+
+		//TODO: We were successful here, check to see if we should leave the connection
+		//		open for additional checks
+		state.stream_in_progress = 0;
+		gsm_off();
+		return kNoGSMError;	
 	}
 
-	state.stream_in_progress = 0;
-	state.callback_pending = 1;
-	state.stream_success = ( result == 1 ) ? 1 : 0;
-	
+	streaming_error:
 	gsm_off();
-	return 0;
+	return error;
 }
 

@@ -27,12 +27,13 @@ uint8_t gsm_ensure_on()
 	{
 		status = gsm_on();
 		if (status == true)
+		{
 			connection_status = kModuleOnNotConnected;
-
-		return status;
+			return kNoGSMError;
+		}
 	}
 
-	return 2;
+	return kModuleCouldNotTurnOn;
 }
 
 static uint8_t gsm_on()
@@ -71,19 +72,23 @@ uint8_t gsm_ensure_registered()
 {
 	uint8_t timeout_s = GSM_REGISTRATION_TIMEOUT_S;
 
-	if (connection_status > kModuleOnNotConnected)
-		return 2;
+	if (connection_status == kModuleOff)
+		return kModuleNotOnWhenExpected;
 
-	while ( !gsm_registered() )
+	while (!gsm_registered())
 	{
 		if ( timeout_s-- == 0 )
-			return 0;
+		{
+			gsm_forget_band();
+			return kGSMTimeoutWaitingForNetwork;
+		}
 
-		__delay_ms( 1000 );
+		__delay_ms(1000);
 	}
 
+	gsm_remember_band();
 	connection_status = kModuleOnConnected;
-	return 1;
+	return kNoGSMError;
 }
 
 void gsm_remember_band()
@@ -124,11 +129,12 @@ void gsm_forget_band()
 
 uint8_t gsm_cmd(const char* cmd)
 {
+	uint8_t retval;
+
 	//Clear out rcreg so that when we call gsm_await we don't start our timeout
 	//immediately.
 	gsm_clear_receive();
 
-	uint8_t retval;
 	gsm_expect_ok_error();
 	gsm_write_str(cmd);
 	gsm_write_char('\r');
@@ -145,7 +151,8 @@ uint8_t gsm_cmd_raw(const char* cmd, uint8_t timeout)
 
 	gsm_write_str(cmd);
 	gsm_write_char('\r');
-	return gsm_await( timeout );
+
+	return gsm_await(timeout);
 }
 void gsm_off()
 {

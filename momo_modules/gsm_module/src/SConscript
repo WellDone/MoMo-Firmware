@@ -16,7 +16,7 @@ Import('env')
 env['INCLUDE'] = incs
 env['NO_STARTUP'] = True
 
-asm_sources = ['buffers.as', 'gprs_asm.as', 'gsmstream_asm.as']
+asm_sources = ['buffers_asm.as', 'gprs_asm.as', 'gsmstream_asm.as']
 peri = ['../../../shared/pic12/src/peripheral/timer1.c']
 api = ['../../../shared/pic12/src/mib12_api.as']
 

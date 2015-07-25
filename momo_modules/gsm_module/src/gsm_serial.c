@@ -121,8 +121,8 @@ void gsm_expect_ok_error()
 
 void gsm_capture_remainder( char* buf, uint8_t max_len )
 {
-		remainder_buffer = buf;
-		remainder_buffer_len = max_len;
+	remainder_buffer = buf;
+	remainder_buffer_len = max_len;
 }
 uint8_t gsm_await( uint8_t timeout_s ) // NOTE: This function is time-sensitive
 {
@@ -141,23 +141,24 @@ uint8_t gsm_await( uint8_t timeout_s ) // NOTE: This function is time-sensitive
 		uint8_t value = gsm_check(gsm_rx_peek());
 		if (value != 0)
 		{
-			while ( gsm_rx() )
+			//Clock in the rest of the response until we timeout
+			while (gsm_rx())
 			{
-				if ( remainder_buffer && remainder_buffer_len > 1 )
+				if (remainder_buffer && remainder_buffer_len > 1)
 				{
 					*(remainder_buffer++) = gsm_rx_peek();
 					--remainder_buffer_len;
 				}
-				continue;
 			}
 
-			if ( remainder_buffer && remainder_buffer_len != 0 )
+			if (remainder_buffer && remainder_buffer_len != 0)
 				*remainder_buffer = '\0';
 
+			remainder_buffer = NULL; //Make sure we don't capture the remainder forever
 			return value;
 		}
 	}
-	while ( gsm_rx() || gsm_rx() ); // Try twice to get a char, to be a little more robust.
+	while (gsm_rx() || gsm_rx()); // Try twice to get a char, to be a little more robust.
 	
 	return GSM_SERIAL_TIMEDOUT;
 }
