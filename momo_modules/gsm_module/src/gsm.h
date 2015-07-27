@@ -2,6 +2,7 @@
 #define __gsm_h__
 
 #include "platform.h"
+#include "global_state.h"
 
 #define kCMDOK 1
 #define kCMDERR 2
@@ -12,7 +13,7 @@
 
 void gsm_init();
 
-uint8_t gsm_ensure_on();
+GSMError gsm_ensure_on();
 uint8_t gsm_ensure_registered();
 
 void gsm_remember_band();

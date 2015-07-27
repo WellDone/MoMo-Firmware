@@ -37,8 +37,9 @@ BEGINFUNCTION _set_comm_destination
 	fcall _mib_to_fsr0
 	addfsr FSR0, 2		;Offset to start of buffer portion
 
-	;Do the copying
+	;Do the copying (subtract 2 because of the 2 bytes in the beginning of the buffer occupied by the offset)
 	movf 	BANKMASK(_mib_call_length),w
+	addlw	-2
 	fcall 	_copy
 	clrf	INDF1
 	retlw 	0

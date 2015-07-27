@@ -23,4 +23,5 @@ APIVersion = "1.1";
 2816: _gsm_rpc_openstream(1, no);
 2817: _gsm_rpc_pushtostream(0, yes);
 2818: _gsm_rpc_closestream(0, no);
+
 2820: _gsm_rpc_setcommdestination(1, yes);

@@ -8,7 +8,7 @@
 
 char sticky_band[21];
 
-static uint8_t gsm_on();
+static GSMError gsm_on();
 static uint8_t gsm_registered();
 
 void gsm_init()
@@ -20,41 +20,52 @@ void gsm_init()
 	gprs_init_buffers();
 }
 
-uint8_t gsm_ensure_on()
-{
-	uint8_t status;
-	if (connection_status < kModuleOnNotConnected)
-	{
-		status = gsm_on();
-		if (status == true)
-		{
-			connection_status = kModuleOnNotConnected;
-			return kNoGSMError;
-		}
-	}
-
-	return kModuleCouldNotTurnOn;
+GSMError gsm_ensure_on()
+{	
+	return gsm_on();
 }
 
-static uint8_t gsm_on()
+static GSMError gsm_on()
 {
-	if ( gsm_module_active() )
-		return true;
+	GSMError error;
+	if (gsm_module_active())
+		return kNoGSMError;
 
-	if ( !gsm_module_on()
-		|| gsm_cmd( "ATE0" ) != kCMDOK
-		|| gsm_cmd( "AT+CMEE=1" ) != kCMDOK
-		|| gsm_cmd( "AT+CMGF=1" ) != kCMDOK )
+	if (!gsm_module_on())
 	{
-		gsm_module_off();
-		return false;
+		error = kModuleCouldNotTurnOn;
+		goto handle_error;
+	}
+
+	if (gsm_cmd( "ATE0" ) != kCMDOK)
+	{
+		error = kModuleCouldNotDisableEchoing;
+		goto handle_error;
+	}
+
+	if (gsm_cmd( "AT+CMEE=1" ) != kCMDOK)
+	{
+		error = kModuleCouldNotSetErrorFormat;
+		goto handle_error;
+	}
+
+	if (gsm_cmd( "AT+CMGF=1" ) != kCMDOK)
+	{
+		error = kCouldNotSetSMSFormat;
+		goto handle_error;
 	}
 
 	__delay_ms(1000);
 
 	gsm_rx_clear();
 	gsm_recall_band();
-	return true;
+
+	connection_status = kModuleOnNotConnected;
+	return kNoGSMError;
+
+	handle_error:
+	gsm_module_off();
+	return error;
 }
 
 static uint8_t gsm_registered()

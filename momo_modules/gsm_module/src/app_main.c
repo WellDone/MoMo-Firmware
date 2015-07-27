@@ -58,7 +58,7 @@ void task(void)
 		case kSendCommand:
 		gsm_rx_clear();
 		gsm_write(mib_buffer, async_length);
-		result = gsm_cmd( "" );
+		result = gsm_cmd("");
 
 		gsm_readback(mib_buffer, kMIBBufferSize);
 
