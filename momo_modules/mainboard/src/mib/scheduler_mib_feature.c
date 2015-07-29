@@ -25,7 +25,7 @@ static uint8 next_dequeue_rpc_id = 0;
 #define MAX_SCHEDULED_CALLBACKS 16
 static RPCCallback callbacks[MAX_SCHEDULED_CALLBACKS];
 
-static void rpc_done( uint8 status )
+static void rpc_done(uint8 status, void *state)
 {
     uint8 index;
     for ( index = 0; index < MAX_SCHEDULED_CALLBACKS; ++index )
@@ -59,7 +59,7 @@ static void callback( void* arg )
     if ( next_queue_rpc_id == 0 )
         next_queue_rpc_id = 1;
 
-    bus_master_rpc_async( rpc_done, &cmd );
+    bus_master_rpc_async(rpc_done, &cmd, NULL);
 }
 
 uint8_t schedule_callback(uint8_t length)

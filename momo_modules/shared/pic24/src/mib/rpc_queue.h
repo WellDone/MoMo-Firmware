@@ -10,10 +10,11 @@
 typedef struct {
 	mib_rpc_function callback;
 	MIBUnified 		 data;
+	void *			 state;
 } rpc_info;
 
 void rpc_queue_init();
-void rpc_queue( mib_rpc_function callback, const MIBUnified *data);
+void rpc_queue( mib_rpc_function callback, const MIBUnified *data, void *state);
 inline void rpc_dequeue(rpc_info* out);
 inline const rpc_info* rpc_queue_peek();
 inline bool rpc_queue_full();

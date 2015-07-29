@@ -24,7 +24,7 @@ enum
 #define pack_command(feature, command)	((((uint16_t)feature << 8)) | command)
 
 //Callback type for master rpc routines
-typedef void (*mib_rpc_function)(unsigned char);
+typedef void (*mib_rpc_function)(unsigned char status, void *state);
 
 typedef enum 
 {

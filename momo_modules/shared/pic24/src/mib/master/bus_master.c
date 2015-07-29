@@ -13,7 +13,7 @@ void 			bus_master_handleerror();
 void 			bus_master_sendrpc();
 void 			bus_master_readresult(unsigned int length);
 void 			bus_master_rpc_async_do();
-void 			bus_master_queue_async_rpc(uint8_t sender, mib_rpc_function callback);
+void 			bus_master_queue_async_rpc(uint8_t sender, mib_rpc_function callback, void *state);
 void 			bus_master_init_async();
 
 
@@ -30,13 +30,14 @@ void bus_master_init_async()
 		async_rpcs[i].sender = 0;
 		async_rpcs[i].flags = 0;
 		async_rpcs[i].callback = NULL;
+		async_rpcs[i].state = NULL;
 	}
 }
 
 /*
  * Place this asynchronous RPC in the queue in the first open spot
  */
-void bus_master_queue_async_rpc(uint8_t sender, mib_rpc_function callback)
+void bus_master_queue_async_rpc(uint8_t sender, mib_rpc_function callback, void *state)
 {
 	unsigned int i=0;
 
@@ -46,6 +47,7 @@ void bus_master_queue_async_rpc(uint8_t sender, mib_rpc_function callback)
 		{
 			async_rpcs[i].sender = sender;
 			async_rpcs[i].callback = callback;
+			async_rpcs[i].state = state;
 			break;
 		}
 	}
@@ -76,7 +78,7 @@ void bus_master_finish_async_rpc(uint8_t sender)
 
 				mib_unified.packet.response.status_value = status;
 
-				async_rpcs[i].callback(status);
+				async_rpcs[i].callback(status, async_rpcs[i].state);
 			}
 
 			//Free up this spot in the async RPC queue
@@ -120,9 +122,9 @@ static void bus_master_finish(bool send_stop)
 	}
 
 	if (mib_unified.packet.response.status_value == kAsynchronousResponseStatus)
-		bus_master_queue_async_rpc(master_rpcdata->data.address, mib_state.master_callback);
+		bus_master_queue_async_rpc(master_rpcdata->data.address, mib_state.master_callback, master_rpcdata->state);
 	else if (mib_state.master_callback != NULL)
-		mib_state.master_callback(mib_unified.packet.response.status_value);
+		mib_state.master_callback(mib_unified.packet.response.status_value, master_rpcdata->state);
 }
 
 void bus_master_init()
@@ -142,13 +144,13 @@ void bus_master_rpc_async_do( void* arg )
 	rpc_dequeue(NULL);
 }
 
-void bus_master_rpc_async(mib_rpc_function callback, MIBUnified *data)
+void bus_master_rpc_async(mib_rpc_function callback, MIBUnified *data, void *state)
 {
 	data->packet.call.sender = mib_state.my_address;
 	data->packet.call.flags_and_length &= 0b00011111; //Make sure the flags are cleared out
 
 	bus_append_checksum((unsigned char*)&(data->packet), kMIBMessageNoChecksumSize);	
-	rpc_queue(callback, data);
+	rpc_queue(callback, data, state);
 
 	if (mib_state.rpc_done)
 		bus_master_rpc_async_do(NULL);

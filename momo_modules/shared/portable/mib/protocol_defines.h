@@ -70,6 +70,7 @@
 
 //Well-Known MIB Addresses
 #define kMIBControllerAddress		8
+#define kMIBInvalidAddress			126
 #define kMIBUnenumeratedAddress		127
 
 //Defined MIB Hardware Types

@@ -16,6 +16,6 @@ typedef struct
 
 void beacon_init(AlarmRepeatTime sample_interval, unsigned int beacon_interval, unsigned int addr, unsigned int rpc);
 void beacon_callback(void *data);
-void beacon_update(uint8_t status);
+void beacon_update(uint8_t status, void *state);
 
 #endif

@@ -18,6 +18,8 @@ void init_momo_config( unsigned int subsection_index )
 {
   fb_init( &config_block, subsection_index, sizeof(MoMoState) );
   load_momo_state();
+
+  
 }
 
 void reset_momo_state()

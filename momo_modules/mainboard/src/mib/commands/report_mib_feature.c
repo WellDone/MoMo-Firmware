@@ -5,7 +5,7 @@
 #include "bus_slave.h"
 #include "momo_config.h"
 #include "report_log.h"
-#include "report_comm_stream.h"
+#include "comm_stream.h"
 #include "system_log.h"
 #include <string.h>
 
@@ -13,6 +13,7 @@
 
 extern char base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 
+CommStreamState test_stream;
 
 static uint8_t start_scheduled_reporting(uint8_t length)
 {
@@ -187,15 +188,13 @@ static uint8_t clear_report_log_mib(uint8_t length)
 	return kNoErrorStatus;
 }
 
-static uint8_t handle_report_stream_success(uint8_t length)
+static uint8_t test_comm_streaming(uint8_t length)
 {
-	notify_report_success();
-	return kNoErrorStatus;
-}
+	uint8_t address = plist_get_int16(0);
 
-static uint8_t handle_report_stream_failure(uint8_t length)
-{
-	notify_report_failure();
+	commstream_init(&test_stream);
+	commstream_start(&test_stream, address, "Test report content!", strlen("Test report content!"));
+
 	return kNoErrorStatus;
 }
 
@@ -221,7 +220,6 @@ DEFINE_MIB_FEATURE_COMMANDS(reporting) {
 	{ 0x12, init_report_config},
 	{ 0x13, set_reporting_apn},
 	{ 0x14, get_reporting_apn},
-	{ 0xF0, handle_report_stream_success},
-	{ 0xF1, handle_report_stream_failure}
+	{ 0x15, test_comm_streaming}
 };
 DEFINE_MIB_FEATURE(reporting);

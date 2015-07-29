@@ -40,56 +40,34 @@ SanityCheckResetNotice
 SubmoduleAddressRequestNotice
 "A submodule asked for an address"
 
-SetAPNNotice
-"Setting GPRS APN"
-- "APN" as string
 
-SetCommDestinationNotice
-"Setting comm module stream destination"
-- "Start Index" as integer, format unsigned
-- "Length" as integer, format unsigned
-- "Buffer" as string
-
-OpenedCommStreamNotice
-"Opening a communication stream"
-- "Comm Module Address" as integer, format unsigned
-- "Report Length" as integer, format unsigned
-
-FinishedReportStreamingNotice
-"Finished streaming report to all comm modules"
-
-ClosingCommStreamNotice
-"Closing comm stream"
-
-StreamingCommDataNotice
-"Streaming data"
-- "Streamed data" as string
-
-AbandoningCommStreamNotice
-"Abandoning current report stream"
-
-ReportSucceededNotice
-"Report succeeded"
-
-ReportFailedRetryNotice
-"Report failed, retrying"
-- "Retry Count" as integer, format unsigned
-
-ReportFailedRerouteNotice
-"Report failed, switching to secondary route"
-- "New Route" as string
-
-ReportStreamStateExecuted
-"Reporting State Machine Executed a State"
+CommStreamStateExecuted
+"CommStream State Machine Executed a State"
+- "Destination Address" as integer
 - "State" as integer
 
-ReportAbandonedNotice
-"Retry count exceeded, abandoning report"
+CommStreamFatalError
+"CommStream state machine encountered a fatal error and is aborting the streaming process"
+- "Destination Address" as integer
+- "Error Code" as integer
 
-FailedMessageToCommModuleNotice
-"Failed to send a message to a comm module"
-- "Error Code" as integer, format unsigned
+CommStreamSettingAPN
+"Sending APN to comm module"
+- "Destination Address" as integer
+- "APN" as string
 
+CommStreamSettingDestination
+"Sending destination to comm module"
+- "Destination Address" as integer
+- "Destination" as string
+- "Offset" as integer
+- "Length" as integer
+
+CommStreamSendingData
+"Sending data to the comm module"
+- "Destination Address" as integer
+- "Data" as string
+- "Length" as integer
 
 ConstructingReportNotice
 "Constructing report"
@@ -99,6 +77,10 @@ ReportConstructedNotice
 
 FailedToConstructReportError
 "Failed to construct report"
+
+ReportCouldNotBeStreamed
+"Report could not be streamed because an error occurred starting the comm streaming state machine"
+- "Error Code" as integer
 
 ReportSchedulingStartedNotice
 "Report scheduling started"

@@ -21,11 +21,11 @@ void beacon_callback(void *data)
 	cmd.address = bc_state.addr;
 	cmd.packet.call.command = bc_state.rpc;
 	cmd.packet.call.length = 0;
-	bus_master_rpc_async(beacon_update, &cmd);
+	bus_master_rpc_async(beacon_update, &cmd, NULL);
 }
 
 //FIXME: This does not currently work with the new btle implementation
-void beacon_update(uint8_t status)
+void beacon_update(uint8_t status, void *state)
 {
 	unsigned char update[23];
 

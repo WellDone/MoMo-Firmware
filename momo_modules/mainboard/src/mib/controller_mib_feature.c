@@ -106,13 +106,13 @@ uint8_t register_module(uint8_t length)
 	if (length != kMIBBufferSize)
 		return kCallbackError;
 
-	uint8 addr = add_module( (momo_module_descriptor*)plist_get_buffer(0) );
+	uint8 addr = add_module((momo_module_descriptor*)plist_get_buffer(0));
 	if (addr == 0)
 		return kCallbackError;
 
 	LOG_DEBUG(kSubmoduleAddressRequestNotice);
 	
-	bus_slave_return_int16( addr );
+	bus_slave_return_int16(addr);
 
 	return kNoErrorStatus;
 }

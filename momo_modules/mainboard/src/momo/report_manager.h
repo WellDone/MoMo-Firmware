@@ -68,6 +68,7 @@ typedef struct
 } ReportConfiguration;
 
 void report_manager_start();
+void report_manager_init();
 uint8_t init_report_config(uint8_t call_length);
 bool construct_report();
 void post_report( void* );

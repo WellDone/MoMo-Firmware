@@ -45,7 +45,7 @@ static uint8_t 			bt_decode_nibble(char *data);
 static uint8_t 			bt_decode_byte(char *data);
 
 static void 			bt_process_mib_packet(void *arg);
-static void 			bt_return_mib_response(uint8_t status);
+static void 			bt_return_mib_response(uint8_t status, void *state);
 
 static BluetoothResult 	bt_setupservices();
 static BluetoothResult 	bt_load_script();
@@ -512,10 +512,10 @@ void bt_process_mib_packet(void *arg)
 	memcpy((char*)&mib_packet.packet, bt_data.cmd_payload+1, kMIBMessageSize);
 	mib_packet.address = (uint8_t)bt_data.cmd_payload[0];
 
-	bus_master_rpc_async(bt_return_mib_response, &mib_packet);
+	bus_master_rpc_async(bt_return_mib_response, &mib_packet, NULL);
 }
 
-void bt_return_mib_response(uint8_t status)
+void bt_return_mib_response(uint8_t status, void *state)
 {
 	char *packet = (char *)&mib_unified.packet;
 

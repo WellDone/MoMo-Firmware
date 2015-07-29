@@ -3,19 +3,21 @@
 
 #include "bus.h"
 #include "rtcc.h"
+#include <stdint.h>
 
 #define kMaxAsyncRPCNUmber	16
 
 typedef struct
 {
-	uint8_t			 	sender;
-	uint8_t				flags;
-	mib_rpc_function 	callback;
+	uint8_t			 			sender;
+	uint8_t						flags;
+	mib_rpc_function 			callback;
+	void 						*state;
 } async_rpc_data;
 
 //Master Routines
 void bus_master_callback();
-void bus_master_rpc_async(mib_rpc_function callback, MIBUnified *data);
+void bus_master_rpc_async(mib_rpc_function callback, MIBUnified *data, void *state);
 void bus_master_init();
 void bus_master_finish_async_rpc(uint8_t sender);
 

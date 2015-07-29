@@ -16,7 +16,7 @@ void rpc_queue_init()
 	ringbuffer_create( &the_rpc_queue, the_rpc_queue_data, sizeof(rpc_info), RPC_QUEUE_SIZE );
 }
 
-void rpc_queue(mib_rpc_function callback, const MIBUnified *data)
+void rpc_queue(mib_rpc_function callback, const MIBUnified *data, void *state)
 {
 	uninterruptible_start();
 	if ( rpc_queue_full() ) 
@@ -27,6 +27,7 @@ void rpc_queue(mib_rpc_function callback, const MIBUnified *data)
 	}
 	rpc_info info;
 	info.callback = callback;
+	info.state = state;
 	memcpy(&info.data, data, sizeof(MIBUnified));
 
 	ringbuffer_push(&the_rpc_queue, &info);
