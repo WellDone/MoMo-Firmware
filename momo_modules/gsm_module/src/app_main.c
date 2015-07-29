@@ -56,14 +56,21 @@ void task(void)
 
 		//Send an arbitrary AT command and receive the response
 		case kSendCommand:
-		gsm_rx_clear();
-		gsm_write(mib_buffer, async_length);
-		result = gsm_cmd("");
+		if (async_length > 0)
+		{
+			gsm_write(mib_buffer, async_length);
+			rpc_request = kNoRequestedTask;
+			bus_master_async_callback(0);
+		}
+		else
+		{
+			gsm_rx_clear();
+			result = gsm_cmd("");
+			gsm_readback(mib_buffer, kMIBBufferSize);
 
-		gsm_readback(mib_buffer, kMIBBufferSize);
-
-		rpc_request = kNoRequestedTask;
-		bus_master_async_callback(20);
+			rpc_request = kNoRequestedTask;
+			bus_master_async_callback(20);
+		}
 		break;
 
 		//Open a communication stream to the current comm destination
@@ -82,6 +89,7 @@ void task(void)
 
 		rpc_request = kNoRequestedTask;
 		bus_master_async_callback(2);
+		break;
 
 		//Close the currently open communication stream
 		case kCloseStream:
@@ -90,6 +98,7 @@ void task(void)
 
 		rpc_request = kNoRequestedTask;
 		bus_master_async_callback(2);
+		break;
 
 		default:
 		break;

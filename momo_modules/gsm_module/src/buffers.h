@@ -23,7 +23,6 @@ extern uint8_t rx_buffer_len;
 
 extern char gprs_apn[GSM_APN_LENGTH];
 
-
 void reset_expected1_ptr();
 void reset_expected2_ptr();
 

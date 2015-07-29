@@ -113,6 +113,7 @@ void gsm_remember_band()
 		continue;
 	sticky_band[i] = '\0';
 }
+
 void gsm_recall_band()
 {
 	if ( sticky_band[0] != '\0' )
