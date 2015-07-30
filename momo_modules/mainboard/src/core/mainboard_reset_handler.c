@@ -1,5 +1,4 @@
 #include "mainboard_reset_handler.h"
-
 #include "rtcc.h"
 #include "uart.h"
 #include "task_manager.h"

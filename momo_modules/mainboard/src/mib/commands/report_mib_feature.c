@@ -222,4 +222,5 @@ DEFINE_MIB_FEATURE_COMMANDS(reporting) {
 	{ 0x14, get_reporting_apn},
 	{ 0x15, test_comm_streaming}
 };
+
 DEFINE_MIB_FEATURE(reporting);

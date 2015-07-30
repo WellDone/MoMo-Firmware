@@ -184,3 +184,12 @@ CouldNotAdvertise
 
 StartedBroadcastNotice
 "Started unconnectably broadcasting BTLE data"
+
+
+CMClearingOldConfigData
+"Found old Config Manager settings with an unsupported version, blowing them away to start fresh"
+- "Old Major Version" as integer
+- "Old Minor Version" as integer
+
+CMOverwritingUnknownData
+"Incorrect magic number found in Config Manager control subsector, blowing configuration away and starting over"
