@@ -142,7 +142,7 @@ CommandStatus handle_rtcc(command_params *params)
     return kSuccess;
 }
 
-static void rpc_callback(unsigned char status) 
+static void rpc_callback(unsigned char status, void *param) 
 {
     int i;
     uint8_t len=0;
@@ -211,7 +211,7 @@ CommandStatus handle_binrpc(command_params *params)
     for(i=0; i<kMIBBufferSize; ++i)
         data.packet.data[i] = buffer[i+4];
 
-    bus_master_rpc_async(rpc_callback, &data);
+    bus_master_rpc_async(rpc_callback, &data, NULL);
     return kPending;
 }
 
