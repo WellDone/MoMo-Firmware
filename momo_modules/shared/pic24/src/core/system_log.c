@@ -137,12 +137,12 @@ bool read_system_log( uint16 index, GenericLogEntry *out)
 
 void clear_system_log()
 {
-	flash_queue_reset( &log_queue );
+	flash_queue_reset(&log_queue);
 }
 
 uint16 system_log_count()
 {
-	return flash_queue_count( &log_queue );
+	return flash_queue_count(&log_queue);
 }
 
 void flush_log(void* arg)
@@ -154,6 +154,7 @@ void flush_log(void* arg)
 		ringbuffer_pop(&log_buffer, NULL);
 	}
 }
+
 void commit_log_entry()
 {
 	if (lazy_system_logging && !flush_task_pending)

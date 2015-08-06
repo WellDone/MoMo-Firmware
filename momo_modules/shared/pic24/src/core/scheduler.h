@@ -22,15 +22,15 @@
 
 struct ScheduledTask_t
 {
-	task_callback 	callback;
-	void*           argument;
+	task_callback 			callback;
+	void*           		argument;
 	
-	unsigned char 	flags;
-	unsigned char 	remaining_calls;
+	unsigned char 			flags;
+	unsigned char 			remaining_calls;
 
-	int 			task_list;
+	int 					task_list;
 
-	struct ScheduledTask_t *next;
+	struct ScheduledTask_t 	*next;
 };
 
 typedef struct ScheduledTask_t ScheduledTask;
@@ -52,6 +52,7 @@ void scheduler_schedule_task( task_callback func,
                               unsigned char numtimes,
                               ScheduledTask /*out*/ *saved_task,
                               void *argument );
+
 void scheduler_remove_task(ScheduledTask *task);
 
 #endif

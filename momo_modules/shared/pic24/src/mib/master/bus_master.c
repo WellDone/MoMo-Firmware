@@ -195,7 +195,7 @@ void bus_master_sendrpc()
 
 	//If we're sending this packet to ourselves, just execute the callback
 	//We can't execute this here because the call to bus_master_finish can requeue the RPC.
-	if (master_rpcdata->data.address == kMIBControllerAddress)
+	if (master_rpcdata->data.address == mib_state.my_address)
 		taskloop_add_critical(bus_master_localrpc, NULL);
 	else
 	{

@@ -81,7 +81,7 @@ void handle_all_resets_after(unsigned int type)
     }
 
     //sanity_check_schedule();
-    //report_manager_start();
+    report_manager_start();
 
     LOG_CRITICAL(kDeviceInitializedNotice);
 }

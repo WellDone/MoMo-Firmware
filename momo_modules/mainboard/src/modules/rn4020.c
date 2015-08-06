@@ -252,21 +252,23 @@ BluetoothResult bt_init()
 void bt_configure_automode()
 {
 	//Setup CN on connection pin so that we know when there's a connection pending
-	//Pin E4, CN62
-	_ANSE4 = 0;
-	DIR(E4) = INPUT;
-	_CN62IE = 1;
+	//Pin F6, CN84
+	DIR(F6) = INPUT;
+	_CN84IE = 1;
 	_CNIF = 0;
 	_CNIP = 0b010;
 	_CNIE = 1;
 
 	BT_RX_IE = 0;
+
+	if (PIN(F6))
+		bt_open_connection(NULL);
 }
 
 BluetoothResult bt_load_script()
 {
 	BluetoothResult result;
-	const char *script = "@PW_ON\nA,07D0\n|O,04,04\n@CONN\n|O,04,00\n@DISCON\nA,07D0\n|O,04,04\n\x1b";
+	const char *script = "@PW_ON\nA,07D0\n@DISCON\nA,07D0\n\x1b";
 	unsigned int script_length = strlen(script);
 
 	result = bt_enable_module();
@@ -627,12 +629,12 @@ void __attribute__((interrupt,no_auto_psv)) _DMA0Interrupt()
 void __attribute__((interrupt,no_auto_psv)) _CNInterrupt()
 {
 	//Read register to clear mismatch
-	uint16_t value = PORTE;
+	uint16_t value = PORTF;
 
-	if (value & (1 << 4))
-		taskloop_add(bt_close_connection, NULL);
-	else
+	if (value & (1 << 6))
 		taskloop_add(bt_open_connection, NULL);
+	else
+		taskloop_add(bt_close_connection, NULL);
 
 	_CNIF = 0;
 }

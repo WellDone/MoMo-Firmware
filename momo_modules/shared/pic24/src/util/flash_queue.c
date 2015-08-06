@@ -202,6 +202,7 @@ flash_queue_walker new_flash_queue_walker( const flash_queue* queue, uint32 offs
 
   return walker;
 }
+
 uint8 flash_queue_walk( flash_queue_walker* walker, void* data, uint8 batch_size )
 {
   bool wrapped, new_subsection;

@@ -36,6 +36,7 @@ void flash_queue_create( flash_queue* queue,
                          uint8 start_subsection,
                          uint8 element_size,
                          uint8 subsection_count ); //subsection_count must be >= 2
+
 void flash_queue_reset( flash_queue* queue );
 
 void flash_queue_queue( flash_queue* queue, const void* data );
