@@ -40,6 +40,10 @@ SanityCheckResetNotice
 SubmoduleAddressRequestNotice
 "A submodule asked for an address"
 
+SettingTestSectors
+"Setting the number of sectors in the test flash queue"
+- "Number of sectors" as integer, format unsigned
+
 
 CommStreamStateExecuted
 "CommStream State Machine Executed a State"

@@ -18,6 +18,7 @@
 #include "perf.h"
 #include "log_definitions.h"
 #include "rn4020.h"
+#include "flashqueue2.h"
 
 #include "momo_config.h"
 #include "sensor_event_log.h"
@@ -364,6 +365,53 @@ uint8_t con_safe_mode(uint8_t length)
 	return kNoErrorStatus;
 }
 
+fq_data test_queue;
+
+uint8_t fq2_init(uint8_t length)
+{
+	fq_init(&test_queue, plist_get_int16(0), kTestSector1, plist_get_int16(1), plist_get_int16(2));
+	return kNoErrorStatus;
+}
+
+uint8_t fq2_get_address(uint8_t length)
+{
+	plist_set_int16(0, (unsigned int)&test_queue);
+
+	bus_slave_set_returnbuffer_length(2);
+	return kNoErrorStatus;
+}
+
+uint8_t fq2_queueN(uint8_t length)
+{
+	unsigned int n = plist_get_int16(0);
+	unsigned int start = plist_get_int16(1);
+	unsigned int i;
+	unsigned char buffer[256];
+
+	for (i=0; i<test_queue.element_size; ++i)
+		buffer[i] = 0;
+
+	for (i=start; i<start+n; ++i)
+	{
+		buffer[0] = i & 0xFF;
+		buffer[1] = i >> 8;
+
+		fq_push(&test_queue, buffer);
+	}
+
+	return kNoErrorStatus;
+}
+
+uint8_t fq2_pop(uint8_t length)
+{
+	unsigned int  retval;
+
+	retval = fq_pop(&test_queue, plist_get_buffer(1));
+	plist_set_int16(0, retval);
+
+	bus_slave_set_returnbuffer_length(2 + test_queue.element_size);
+	return kNoErrorStatus;
+}
 
 DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x00, register_module},
@@ -397,6 +445,10 @@ DEFINE_MIB_FEATURE_COMMANDS(controller) {
 	{0x26, get_perf_counter},
 	{0x27, bt_debug_buffer},
 	{0x28, echo},
-	{0x29, con_safe_mode}
+	{0x29, con_safe_mode},
+	{0x30, fq2_init},
+	{0x31, fq2_queueN},
+	{0x32, fq2_get_address},
+	{0x33, fq2_pop}
 };
 DEFINE_MIB_FEATURE(controller);

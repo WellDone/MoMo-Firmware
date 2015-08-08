@@ -21,7 +21,8 @@ enum
 	kFirmwareConfigSubector			= MEMORY_SECTION_TO_SUB(kConfigurationSector) + 1,
 	kRN4020ConfigSubsector			= MEMORY_SECTION_TO_SUB(kConfigurationSector) + 2,
 	kConfigManagerControlSubsector 	= MEMORY_SECTION_TO_SUB(kConfigurationSector) + 3,
-	kConfigManagerDataSubsector		= MEMORY_SECTION_TO_SUB(kConfigurationSector) + 4
+	kConfigManagerDataSubsector		= MEMORY_SECTION_TO_SUB(kConfigurationSector) + 4,
+	kTestSector1					= MEMORY_SECTION_TO_SUB(kConfigurationSector) + 5
 };
 
 //LogSector subsector assignments
