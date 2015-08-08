@@ -118,7 +118,7 @@ static void bus_master_finish(bool send_stop)
 	{
 		i2c_finish_transmission(); 
 		for(i=0; i<200; ++i)
-			;			
+			;
 	}
 
 	if (mib_unified.packet.response.status_value == kAsynchronousResponseStatus)
@@ -213,9 +213,15 @@ void bus_master_readresult(unsigned int length)
 
 void bus_master_handleerror()
 {
+	unsigned int i;
+	
 	switch(mib_unified.packet.response.status_value)
 	{
 		case kChecksumMismatchStatus:
+		i2c_finish_transmission(); 
+		for(i=0; i<200; ++i)
+			;
+
 		bus_master_sendrpc(master_rpcdata->data.address);
 		break;
 

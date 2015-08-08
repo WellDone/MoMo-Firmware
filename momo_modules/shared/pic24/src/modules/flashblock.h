@@ -13,8 +13,8 @@
  * that indicates the latest valid version of the data.  It is persistent across
  * a power loss and the data is always recoverable from the flash.  It uses one complete
  * flash subsector (4kb) divided as follows:
- * 8 bytes 		- header
- * 120 bytes 	- reserved (currently unused)
+ * 10 bytes 	- header
+ * 118 bytes 	- reserved (currently unused)
  * 128 bytes 	- bitmap of written locations
  * 3840 bytes 	- log of data entries
  *
@@ -43,17 +43,20 @@
   	  regained.  All data will be lost however. 
  */
 
-#define kFBMagic			0xFABB
+#define kFBMagic			0xFABC
 #define kFBBitMapOffset		128ULL
 #define kFBDataOffset		256ULL
 
 #define kFBSentinel			0xFFFF
 
+//10 bytes
 typedef struct
 {
 	unsigned int 	magic;
 	unsigned int 	subsector;
 	unsigned int 	current;
+	unsigned int 	version;
+
 	unsigned char 	item_size;
 	unsigned char	bin_shift;
 } flash_block_info;
@@ -65,7 +68,7 @@ typedef enum
 	kFBDidNotMatch = 2
 } FBStatus;
 
-FBStatus 		fb_init(flash_block_info *info, unsigned int subsector, unsigned char size);
+FBStatus 		fb_init(flash_block_info *info, unsigned int subsector, unsigned char size, unsigned int version);
 void 			fb_write(flash_block_info *info, const void *data);
 void 			fb_read(flash_block_info *info, void *data);
 int 			fb_count(flash_block_info *info);

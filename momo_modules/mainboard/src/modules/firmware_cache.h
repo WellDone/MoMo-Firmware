@@ -4,6 +4,8 @@
 #include "memory_manager.h"
 #include "flashblock.h"
 
+#define kFirmwareCacheStructureVersion	1
+
 #define kNumModuleFirmwareBuckets		4
 #define kNumControllerFirmwareBuckets 	2
 #define kControllerFirmwareBucket 		kNumModuleFirmwareBuckets

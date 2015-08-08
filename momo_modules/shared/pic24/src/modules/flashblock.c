@@ -2,7 +2,7 @@
 
 #ifndef __NO_FLASH__
 
-FBStatus fb_init(flash_block_info *info, unsigned int subsector, unsigned char size)
+FBStatus fb_init(flash_block_info *info, unsigned int subsector, unsigned char size, unsigned int version)
 {
 	FBStatus status;
 
@@ -10,7 +10,7 @@ FBStatus fb_init(flash_block_info *info, unsigned int subsector, unsigned char s
 
 	if (info->magic != kFBMagic)
 		status = kFBNewlyInitialized;
-	else if (size != info->item_size || subsector != info->subsector)
+	else if (size != info->item_size || subsector != info->subsector || info->version != version)
 		status = kFBDidNotMatch;
 	else
 		status = kFBAlreadyInitialized;
@@ -23,7 +23,8 @@ FBStatus fb_init(flash_block_info *info, unsigned int subsector, unsigned char s
 		info->current = 0;
 		info->item_size = size;
 		info->bin_shift = fb_nextpow2(size);
-
+		info->version = version;
+		
 		if (info->bin_shift < 2)
 			info->bin_shift = 2;
 

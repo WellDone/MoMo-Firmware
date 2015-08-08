@@ -33,7 +33,7 @@ static const uint8				bucket_lengths[kNumFirmwareBuckets] = { \
 
 void fc_init( uint8 memory_subsection )
 {
-	fb_init(&fc_flashlog, memory_subsection, sizeof(firmware_cache_state));
+	fb_init(&fc_flashlog, memory_subsection, sizeof(firmware_cache_state), kFirmwareCacheStructureVersion);
 
 	if (fb_count(&fc_flashlog) > 0)
 		fb_read(&fc_flashlog, &fc_state);

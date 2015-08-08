@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include "protocol_defines.h"
 
+#define kRN4020StructureVersion				1
 /*
  * Service and Characteristic IDs for BTLE MIB characteristics
  */

@@ -39,7 +39,7 @@ typedef struct ScheduledTask_t ScheduledTask;
 typedef struct
 {
 	//Task lists
-	ScheduledTask *tasks[kNumAlarmTimes];
+	ScheduledTask 	*tasks[kNumAlarmTimes];
 
 	AlarmRepeatTime call_frequency;
 } SchedulerState;

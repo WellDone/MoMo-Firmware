@@ -6,6 +6,8 @@
 #include "flash_queue.h"
 #include "report_manager.h"
 
+#define kMomoConfigStructureVersion		1
+
 typedef struct {
   uint16              state_flags;
   uint32              uuid;

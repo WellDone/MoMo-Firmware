@@ -21,12 +21,12 @@ static bool lazy_system_logging = true;
 static void ensure_log_space();
 static void commit_log_entry();
 
-void init_system_log( uint8 start_subsection, uint8 subsection_count )
+void init_system_log(uint8 start_subsection, uint8 subsection_count)
 {
-	ringbuffer_create( &log_buffer, log_buffer_data, sizeof(GenericLogEntry), LOG_BUFFER_SIZE );
+	ringbuffer_create(&log_buffer, log_buffer_data, sizeof(GenericLogEntry), LOG_BUFFER_SIZE);
 
 	#ifndef __NO_FLASH__
-	flash_queue_create( &log_queue, start_subsection, sizeof(GenericLogEntry), subsection_count );
+	flash_queue_create(&log_queue, start_subsection, sizeof(GenericLogEntry), subsection_count);
 	#endif
 }
 
@@ -69,7 +69,7 @@ void log_integer(unsigned int value)
 	if (!ringbuffer_empty(&log_buffer))
 	{
 		entry = (GenericLogEntry*)ringbuffer_peeklast(&log_buffer);
-		if (entry->header.type == kIntegerListType && entry->header.length < (LOG_DATA_SIZE -2))
+		if (entry->header.type == kIntegerListType && entry->header.length < (LOG_DATA_SIZE - 2))
 		{
 			entry->data[entry->header.length++] = value & 0xFF;
 			entry->data[entry->header.length++] = value >> 8;

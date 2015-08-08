@@ -97,7 +97,7 @@ BluetoothResult bt_init()
 	bt_data.checksum_errors = 0;
 
 	//Check our state
-	fb_init(&rn4020_fb, kRN4020ConfigSubsector, sizeof(rn4020_persistant_state));
+	fb_init(&rn4020_fb, kRN4020ConfigSubsector, sizeof(rn4020_persistant_state), kRN4020StructureVersion);
 	if (fb_count(&rn4020_fb) > 0)
 		fb_read(&rn4020_fb, &rn4020_state);
 	else

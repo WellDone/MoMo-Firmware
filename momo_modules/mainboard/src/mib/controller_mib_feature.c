@@ -178,7 +178,7 @@ uint8_t test_fb_init(uint8_t length)
 	uint16 sub = plist_get_int16(0);
 	uint16 val;
 	
-	val = fb_init(&fb_info, sub, 20);
+	val = fb_init(&fb_info, sub, 20, 1);
 
 	plist_set_int16(0, val);
 	plist_set_int16(1, fb_info.magic);
@@ -298,7 +298,7 @@ uint8_t log_count(uint8_t length)
 uint8_t read_log(uint8_t length)
 {
 	GenericLogEntry log_buffer;
-	if (!read_system_log( plist_get_int16(0), &log_buffer ))
+	if (!read_system_log(plist_get_int16(0), &log_buffer))
 		return kCallbackError;
 	else
 		bus_slave_return_buffer((BYTE*)(&log_buffer), sizeof(GenericLogEntry));

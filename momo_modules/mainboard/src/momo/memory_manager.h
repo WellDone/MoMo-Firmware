@@ -3,13 +3,14 @@
 
 #include "memory.h"
 
-#define kConfigurationSector 		  0
-#define kMIBFirmwareSector			  1 			//Must be right before ControllerFirmwareSector
-#define kControllerFirmwareSector	2				//Cannot be moved (see push_firmware_start for details)
-#define kBackupFirmwareSector		  3
-#define kSensorDataSector			    4
-#define kLogSector                15
-#define kSensorLogSubsectors		  ((kLogSector - kSensorDataSector)*16)
+#define kConfigurationSector			0
+#define kMIBFirmwareSector				1 			//Must be right before ControllerFirmwareSector
+#define kControllerFirmwareSector		2				//Cannot be moved (see push_firmware_start for details)
+#define kBackupFirmwareSector			3
+#define kSensorDataSector				4
+#define kLogSector 						15
+
+#define kSensorLogSubsectors		  	((kLogSector - kSensorDataSector)*16)
 
 #define kNumFlashSectors			    16
 

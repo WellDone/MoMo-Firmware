@@ -16,7 +16,7 @@ volatile ConfigState config_state;
 
 void init_momo_config( unsigned int subsection_index )
 {
-  fb_init( &config_block, subsection_index, sizeof(MoMoState) );
+  fb_init(&config_block, subsection_index, sizeof(MoMoState), kMomoConfigStructureVersion);
   load_momo_state();
 
   

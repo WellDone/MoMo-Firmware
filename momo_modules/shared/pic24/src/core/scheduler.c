@@ -5,7 +5,7 @@
 #include "system_log.h"
 #include "log_definitions.h"
 
-static SchedulerState state;
+SchedulerState state;
 
 //Internal functions
 static void scheduler_update_rate();
