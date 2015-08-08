@@ -114,6 +114,10 @@ void i2c_receive_message()
 int i2c_receive_byte()
 {
 	unsigned char data = I2C1RCV;
+
+	if (i2c_msg->data_ptr >= i2c_msg->last_data)
+		return 1;
+
 	*(i2c_msg->data_ptr++) = data;
 	i2c_msg->checksum += data;
 

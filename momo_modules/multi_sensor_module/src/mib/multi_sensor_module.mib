@@ -1,17 +1,16 @@
-ModuleName = "multmod";
-ModuleType = 8;
-ModuleFlags = 0;
+ModuleName = "mulmod";
+ModuleVersion = "1.1.0";
+APIVersion = "1.1";
 
-feature 20
-0: _check_v1(0, no);
-1: _check_v2(0, no);
-2: _scheduled_callback(0, no);
-3: _set_damp_parameter(2, no);
-4: _power_analog(1, no);
-5: _acquire_voltage(0, no);
-6: _acquire_pulse(0, no);
-7: _number_of_pulses(0, no);
-8: _read_pulse(1, no);
-9: _read_periods(0, no);
-10: _read_median_interval(0, no);
-11: _set_push_status(1, no);
+5120: _check_v1(0, no);
+5121: _check_v2(0, no);
+5122: _scheduled_callback(0, no);
+5123: _set_damp_parameter(2, no);
+5124: _power_analog(1, no);
+5125: _acquire_voltage(0, no);
+5126: _acquire_pulse(0, no);
+5127: _number_of_pulses(0, no);
+5128: _read_pulse(1, no);
+5129: _read_periods(0, no);
+5130: _read_median_interval(0, no);
+5131: _set_push_status(1, no);

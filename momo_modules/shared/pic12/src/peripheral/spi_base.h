@@ -2,6 +2,7 @@
 #include <xc.h>
 #include "peripheral_def.h"
 #include "platform.h"
+#include <stdint.h>
 
 #define SPICON1MASK		0b00011111
 #define SPISTATMASK		0b11000000
@@ -55,18 +56,18 @@ typedef union
 {
 	struct 
 	{
-		uint8	mode: 4;
-		uint8 	line_idle : 1;
-		uint8	buffer_overwrite: 1;
-		uint8	clock_edge : 1;
-		uint8	sample_time: 1;
+		uint8_t	mode: 4;
+		uint8_t line_idle : 1;
+		uint8_t	buffer_overwrite: 1;
+		uint8_t	clock_edge : 1;
+		uint8_t	sample_time: 1;
 	};
 
-	uint8 value;
+	uint8_t value;
 } SPIConfig;
 
 //Peripheral Module API
 void  p_fun(spi, N, configure)(SPIConfig config);		//spiN_init
-void  p_fun(spi, N, setrate)(uint8 rate);				//spiN_setrate
+void  p_fun(spi, N, setrate)(uint8_t rate);				//spiN_setrate
 void  p_fun(spi, N, setstate)(PeripheralState state);   //spiN_setenabled
-uint8 p_fun(spi, N, transfer)(uint8 val);
+uint8_t p_fun(spi, N, transfer)(uint8_t val);

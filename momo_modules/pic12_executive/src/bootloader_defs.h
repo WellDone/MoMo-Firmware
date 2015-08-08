@@ -12,7 +12,7 @@
  */
 
 #define kBootloaderBufferSize 		(kFlashRowSize*2)
-#define kBootloaderBufferLoc		0x20	//bootloader uses first 2N bytes of ram in bank0 to cache flash row
+#define kBootloaderBufferLoc		0x3d
 
 #define kMIBRequestWords			8
 #define kMIBRequestSize				(kMIBRequestWords*2)
@@ -21,6 +21,14 @@
 
 #define kNumFlashRows				(kFlashMemorySize / kFlashRowSize)
 #define kMIBStructRow				((2048 / kFlashRowSize) - 1)
+
+#define kFirmwareIDOffset 			11
+#define kFirmwareSourceOffset 		12
+#define kMagicNumberOffset 			13
+
+#define kFirmwareIDBufferOffset		((kFlashRowSize - 5) << 1)
+#define kFirmwareSourceBufferOffset	((kFlashRowSize - 4) << 1)
+#define kMagicNumberBufferOffset	((kFlashRowSize - 3) << 1)
 
 //Check and make sure that we are running on a platform that we support
 #if (kFlashRowSize != 16) && (kFlashRowSize != 32)

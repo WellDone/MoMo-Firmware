@@ -3,37 +3,30 @@
 
 #ifndef __NO_FLASH__
 
-void flash_queue_create( flash_queue* queue,
-                         uint8 start_subsection,
-                         uint8 element_size,
-                         uint8 subsection_count )
+void flash_queue_create(flash_queue* queue, uint8_t start_subsection, uint8_t element_size, uint8_t subsection_count)
 {
-  queue->start_address = MEMORY_SUBSECTION_ADDR( start_subsection+1 );
-  queue->end_address = MEMORY_SUBSECTION_ADDR( start_subsection + subsection_count );
+    queue->start_address = MEMORY_SUBSECTION_ADDR(start_subsection+1);
+    queue->end_address = MEMORY_SUBSECTION_ADDR(start_subsection + subsection_count);
 
-  queue->elem_size = element_size;
+    queue->elem_size = element_size;
 
-  fb_init( &queue->counters_block, start_subsection, sizeof( flash_queue_counters ) );
-  if ( fb_count( &queue->counters_block ) > 0 )
-  {
-    fb_read( &queue->counters_block, &queue->counters );
-  }
-  else
-  {
-    flash_queue_reset( queue );
-  }
+    fb_init(&queue->counters_block, start_subsection, sizeof(flash_queue_counters), kFlashQueueStructureVersion);
+    if (fb_count(&queue->counters_block) > 0)
+        fb_read(&queue->counters_block, &queue->counters);
+    else
+        flash_queue_reset(queue);
 }
 
-static inline void save_queue_counters( flash_queue* queue )
+static inline void save_queue_counters(flash_queue* queue)
 {
-  //TODO: Batch these writes...?
-  fb_write( &queue->counters_block, &queue->counters );
+  fb_write(&queue->counters_block, &queue->counters);
 }
+
 void flash_queue_reset( flash_queue* queue )
 {
-  queue->counters.start = queue->counters.end = queue->start_address;
-  queue->wrapped = false;
-  save_queue_counters( queue );
+    queue->counters.start = queue->counters.end = queue->start_address;
+    queue->wrapped = false;
+    save_queue_counters(queue);
 }
 
 void increment_queue_pointer( const flash_queue* queue, uint32 *ptr, uint32 *next_ptr, bool* wrapped, bool* new_subsection )
@@ -157,7 +150,8 @@ bool flash_queue_peek( flash_queue* queue, void* data ) {
   return true;
 }
 
-uint32 flash_queue_count( const flash_queue* queue ) {
+uint32_t flash_queue_count(const flash_queue* queue) 
+{
   uint8 rem = MEMORY_SUBSECTION_SIZE % queue->elem_size;
   if ( !queue->wrapped || queue->counters.end >= queue->counters.start ) {
     uint8 subsections = MEMORY_ADDR_SUBSECTION( queue->counters.end ) - MEMORY_ADDR_SUBSECTION( queue->counters.start );
@@ -202,6 +196,7 @@ flash_queue_walker new_flash_queue_walker( const flash_queue* queue, uint32 offs
 
   return walker;
 }
+
 uint8 flash_queue_walk( flash_queue_walker* walker, void* data, uint8 batch_size )
 {
   bool wrapped, new_subsection;

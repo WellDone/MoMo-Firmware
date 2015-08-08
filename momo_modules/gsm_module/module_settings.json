@@ -28,8 +28,8 @@
 				"GSMPOWERPIN": "A3",
 				"GSMRESETPIN": "B3",
 				"GSMSTATUSPIN": "A7",
-				"SIMDET_POW": "A1",
-				"SIMDET_SENSE": "A0",
+				"SIMDET_POW": "A0",
+				"SIMDET_SENSE": "A1",
 				"ALTERNATE_SERIAL": 1
 			}
 		}

@@ -18,7 +18,7 @@ _copy_to_mib:
 	movlw low(_mib_packet)
 	movwf FSR1L
 
-	movlw 3
+	movlw 4
 	call _copy
 
 	movlw high(_mib_buffer)

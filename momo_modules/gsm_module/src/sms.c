@@ -3,7 +3,7 @@
 #include "gsm_serial.h"
 #include "mib12_api.h"
 
-bool sms_prepare(const char* destination, uint8 length)
+uint8_t sms_prepare(const char* destination, uint8_t length)
 {
 	gsm_write_str("AT+CMGS=\"");
  	gsm_write(destination, length);
@@ -11,7 +11,7 @@ bool sms_prepare(const char* destination, uint8 length)
  	gsm_expect( ">" );
  	return gsm_await( 5 );
 }
-bool sms_send()
+uint8_t sms_send()
 {
 	gsm_write_char( 0x1A );
  	gsm_expect( "+CMGS" );

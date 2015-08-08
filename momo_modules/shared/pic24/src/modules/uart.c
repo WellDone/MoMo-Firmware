@@ -25,7 +25,7 @@ void configure_uart1(uart_parameters *params)
     if (params->baud > HIBAUDMIN)
     {
         U1MODEbits.BRGH = 1;
-        U1BRG = 16;//69;//CALC_BAUDHI(params->baud); FIXME
+        U1BRG = CALC_BAUDHI(params->baud);
     }
     else
     {

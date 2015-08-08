@@ -16,24 +16,6 @@ void 	prepare_reflash(uint8 source);
 void 	enter_bootloader();
 void 	get_half_row();
 
-//1 Byte
-typedef union
-{
-	struct
-	{
-		uint8 timer_running	: 1; //set when we receive an edge on ALARM so that we can check for 2 edges in one timeout period
-		uint8 valid_app 	: 1;
-		uint8 bootload_mode : 1;
-		uint8 registered	: 1;
-		uint8 dirty_reset 	: 1; //cannot change, referenced in watchdog.as
-		uint8 slave_active 	: 1; //cannot change, referenced in i2c_utilities.as
-		uint8 first_read	: 1;
-		uint8 trapped		: 1; 
-	};
-
-	uint8 status;
-} MIBExecutiveStatus;
-
 #endif
 
 

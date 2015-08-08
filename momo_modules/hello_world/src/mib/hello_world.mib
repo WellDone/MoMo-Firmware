@@ -1,0 +1,10 @@
+ModuleName = "helloW";
+ModuleVersion = "1.1.0";
+APIVersion = "1.1";
+
+5120: _check_v1(0, no);
+5121: _check_v2(0, no);
+
+5123: _set_damp_parameter(2, no);
+5124: _power_analog(1, no);
+5125: _acquire_voltage(0, no);

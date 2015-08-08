@@ -2,7 +2,7 @@
 #include "scheduler.h"
 #include "momo_config.h"
 #include "sensor_event_log.h"
-#include "report_comm_stream.h"
+#include "comm_stream.h"
 #include "utilities.h"
 #include "uart.h"
 #include "base64.h"
@@ -10,6 +10,7 @@
 #include "perf.h"
 #include "system_log.h"
 #include "report_log.h"
+#include "comm_stream.h"
 #include "log_definitions.h"
 #include <stdlib.h>
 #include <string.h>
@@ -63,25 +64,33 @@ static ScheduledTask  report_task;
 char                  base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 static sensor_event   event_buffer[EVENT_BUFFER_SIZE];
 
+static CommStreamState streaming_state;
+
 //TODO: Implement dynamic report routing based on an initial "registration" ping to the coordinator address
 #define DEFAULT_WEB_ROUTE "https://strato.welldone.org/gateway/http"
 #define DEFAULT_SMS_ROUTE "+14159928370"
 // UK ALT +447903568420
-#define DEFAULT_GPRS_APN "JTM2M"
+#define DEFAULT_GPRS_APN "m2m.tele2.com"
 
 extern unsigned int last_battery_voltage;
 
 void report_manager_start()
 {
-  if ( get_momo_state_flag( kStateFlagReportingEnabled ) )
+  if ( get_momo_state_flag(kStateFlagReportingEnabled))
     start_report_scheduling();
 }
 
-void init_report_config()
+void report_manager_init()
+{
+    commstream_init(&streaming_state);
+}
+
+uint8_t init_report_config(uint8_t call_length)
 {
   strcpy( CONFIG.route_primary, DEFAULT_WEB_ROUTE );
   strcpy( CONFIG.route_secondary, DEFAULT_SMS_ROUTE );
   strcpy( CONFIG.gprs_apn, DEFAULT_GPRS_APN );
+  
   CONFIG.transmit_sequence         = 0;
   CONFIG.report_interval           = kEveryDay;
   CONFIG.report_flags              = kReportFlagDefault;
@@ -92,7 +101,7 @@ void init_report_config()
   //Make sure we initialize this scheduled task.
   report_task.flags = 0;
 
-  init_comm_stream();
+  return kNoErrorStatus;
 }
 
 void update_interval_headers( Report* header, AlarmRepeatTime interval )
@@ -289,29 +298,42 @@ bool construct_report()
   return true;
 }
 
-void post_report( void* arg ) 
+void post_report(void* arg) 
 {
-  report_stream_abandon();
+  CommStreamError error;
+  //report_stream_abandon();
   LOG_DEBUG(kConstructingReportNotice);
-  if (!construct_report( CONFIG.report_interval ))
+  if (!construct_report(CONFIG.report_interval))
   {
     LOG_CRITICAL(kFailedToConstructReportError);
     return; //TODO: Recover
   }
 
   LOG_DEBUG(kReportConstructedNotice);
-  report_stream_send( base64_report_buffer );
+
+  //FIXME: Find this address dynamically
+  error = commstream_start(&streaming_state, 11, base64_report_buffer, strlen(base64_report_buffer));
+  if (error != kCSNoError)
+  {
+    LOG_CRITICAL(kReportCouldNotBeStreamed);
+    LOG_INT(error);
+  }
 }
 
-void start_report_scheduling() {
+void start_report_scheduling() 
+{
   LOG_DEBUG(kReportSchedulingStartedNotice);
   scheduler_schedule_task( post_report, CONFIG.report_interval, kScheduleForever, &report_task, NULL );
 }
-void stop_report_scheduling() {
+
+void stop_report_scheduling() 
+{
   LOG_DEBUG(kReportSchedulingStoppedNotice);
   scheduler_remove_task( &report_task );
 }
-void set_report_scheduling_interval( AlarmRepeatTime interval ) {
+
+void set_report_scheduling_interval( AlarmRepeatTime interval ) 
+{
   if ( interval >= kNumAlarmTimes )
     return;
 
@@ -321,6 +343,7 @@ void set_report_scheduling_interval( AlarmRepeatTime interval ) {
   
   save_momo_state();
 }
+
 void update_report_route( uint8 index, uint8 start, const char* route, uint8 len )
 {
   if ( index > 1 || start+len >= ROUTE_MAX_LENGTH )
@@ -342,9 +365,10 @@ void set_gprs_apn( const char* apn, uint8 len )
   save_momo_state();
 }
 
-const char* get_report_route( uint8 index )
+const char* get_report_route(uint8 index)
 {
   if ( index > 1 )
     return NULL;
+
   return ( index == 0 ) ? CONFIG.route_primary : CONFIG.route_secondary;
 }

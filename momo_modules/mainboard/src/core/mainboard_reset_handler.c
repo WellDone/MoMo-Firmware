@@ -1,5 +1,4 @@
 #include "mainboard_reset_handler.h"
-
 #include "rtcc.h"
 #include "uart.h"
 #include "task_manager.h"
@@ -36,9 +35,9 @@ void handle_all_resets_before(unsigned int type)
     //All modules that need to schedule tasks MUST BE called after
     //rtcc is on and enabled. Use the SOSC oscillator since the internal RC
     //32.25 khz oscillator is +- 20% precision, causing lots of skew.
-    if (!rtcc_enabled() || _RTCLK != kRTCCSoscSource)
+    if (!rtcc_enabled() || _RTCLK != kRTCCLPRCSource)
     {
-        configure_rtcc(kRTCCSoscSource);
+        configure_rtcc(kRTCCLPRCSource);
         enable_rtcc();
         rtcc_disabled = 1;
     }
@@ -70,10 +69,18 @@ void handle_all_resets_after(unsigned int type)
     /*
      * Add code that should be called after all other reset code here
      */
+    BluetoothResult err;
 
     battery_init();
-    //bt_init();
-    sanity_check_schedule();
+    
+    err = bt_init();
+    if (err != kBT_NoError)
+    {
+        LOG_CRITICAL(kBTModuleNotInitiailizeCorrectly);
+        LOG_INT(err);
+    }
+
+    //sanity_check_schedule();
     report_manager_start();
 
     LOG_CRITICAL(kDeviceInitializedNotice);

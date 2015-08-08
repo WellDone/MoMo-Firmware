@@ -39,126 +39,6 @@ CommandStatus handle_echo_params(command_params *params)
   return kSuccess;
 }
 
-CommandStatus handle_adc(command_params *params)
-{
-    char *cmd;
-
-    if (params->num_params < 1)
-    {
-        print( "You must pass a subcommand to the adc command.\r\n");
-        return kFailure;
-    }
-
-    cmd = get_param_string(params, 0);
-
-    if (strcmp(cmd, "acquire") == 0)
-    {
-        int num_samples = 1;
-        if (params->num_params == 2)
-        {
-            atoi_small( get_param_string(params, 1), &num_samples );
-        }
-        ADCConfig config;
-        unsigned int channels = 0;
-
-        ADD_CHANNEL(channels, 1);
-        ADD_CHANNEL(channels, 5);
-        ADD_CHANNEL(channels, kBandgapReference);
-        ADD_CHANNEL(channels, kHalfBandgapReference);
-
-        config.output_format = kUIntegerFormat;
-        config.trigger = kInternalCounter;
-        config.reference = kVDDVSS;
-        config.enable_in_idle = 0;
-        config.sample_autostart = 1;
-        config.scan_input = 0;
-        config.alternate_muxes = 0;
-        config.autosample_wait = 0b11111;
-
-        config.oneshot = 1;
-        config.num_samples = num_samples;
-
-        adc_configure(&config);
-        adc_setup_scan(channels);
-        _PCFG1 = 0;
-        _TRISA1 = 1;
-        adc_enable();
-        sendf(DEBUG_UART, "ADC Enabled, acquiring %d samples\r\n", num_samples);
-    }
-    else if (strcmp(cmd, "get") == 0)
-    {
-        ADCConfig config;
-        unsigned int val;
-
-        config.output_format = kUIntegerFormat;
-        config.trigger = kInternalCounter;
-        config.reference = kVDDVSS;
-        config.enable_in_idle = 0;
-        config.sample_autostart = 1;
-        config.scan_input = 0;
-        config.alternate_muxes = 0;
-        config.autosample_wait = 0b11111;
-
-        config.oneshot = 1;
-        config.num_samples = 1;
-
-        adc_configure(&config);
-        adc_set_channel(1);
-        _PCFG1 = 0;
-        _TRISA1 = 1;
-        val = adc_convert_one();
-
-        sendf(DEBUG_UART, "Read: %d\r\n", val);
-    }
-    else if (strcmp(cmd, "cal") == 0)
-    {
-        ADCConfig config;
-        unsigned int val;
-
-        config.output_format = kUIntegerFormat;
-        config.trigger = kInternalCounter;
-        config.reference = kVDDVSS;
-        config.enable_in_idle = 0;
-        config.sample_autostart = 1;
-        config.scan_input = 0;
-        config.alternate_muxes = 0;
-        config.autosample_wait = 0b11111;
-
-        config.oneshot = 1;
-        config.num_samples = 1;
-
-        adc_configure(&config);
-        adc_set_channel(1);
-        _PCFG1 = 0;
-        _TRISA1 = 1;
-        _OFFCAL = 1;
-        val = adc_convert_one();
-        _OFFCAL = 0;
-
-        sendf(DEBUG_UART, "Calibration: %d\r\n", val);
-    }
-    else if (strcmp(cmd, "read") == 0)
-    {
-        unsigned int i=0;
-        sends(DEBUG_UART, "Dumping ADC buffer\r\n");
-        for (i=0; i<kADCBufferSize; ++i)
-        {
-            sendf(DEBUG_UART, "Reading %d: %d\r\n", i, adc_buffer[i]);
-        }
-    }
-    else if (strcmp(cmd, "disable") == 0)
-    {
-        adc_disable();
-        sends(DEBUG_UART, "ADC Disabled\r\n");
-    }
-    else
-    {
-        sendf(DEBUG_UART, "Unknown adc command: %s", cmd);
-        return kFailure;
-    }
-    return kSuccess;
-}
-
 CommandStatus handle_device(command_params *params)
 {
     char *cmd;
@@ -262,21 +142,25 @@ CommandStatus handle_rtcc(command_params *params)
     return kSuccess;
 }
 
-static void rpc_callback(unsigned char status) 
+static void rpc_callback(unsigned char status, void *param) 
 {
     int i;
+    uint8_t len=0;
     put(DEBUG_UART, status);
 
-    if ( status != kNoMIBError )
+    if (status_is_error(status) || status == kModuleBusyStatus)
     {
         set_command_result( false );
         return;
     }
 
-    //Command was successful
-    put(DEBUG_UART, bus_get_returnvalue_length());
+    if (packet_has_data(status))
+        len = mib_unified.packet.response.length;
 
-    for (i=0; i<bus_get_returnvalue_length(); ++i)
+    //Command was successful
+    put(DEBUG_UART, len);
+
+    for (i=0; i<len; ++i)
         put(DEBUG_UART, plist_get_buffer(0)[i]);
 
     set_command_result( true );
@@ -321,14 +205,13 @@ CommandStatus handle_binrpc(command_params *params)
     }
 
     data.address = buffer[0];
-    data.bus_command.feature = buffer[1];
-    data.bus_command.command = buffer[2];
-    data.bus_command.param_spec = buffer[3];
+    data.packet.call.command = (((uint16_t)buffer[1]) << 8) | buffer[2];
+    data.packet.call.length = buffer[3];
 
-    for(i=0; i<kBusMaxMessageSize; ++i)
-        data.mib_buffer[i] = buffer[i+4];
+    for(i=0; i<kMIBBufferSize; ++i)
+        data.packet.data[i] = buffer[i+4];
 
-    bus_master_rpc_async(rpc_callback, &data);
+    bus_master_rpc_async(rpc_callback, &data, NULL);
     return kPending;
 }
 

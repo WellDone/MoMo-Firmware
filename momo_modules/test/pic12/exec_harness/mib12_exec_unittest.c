@@ -25,5 +25,11 @@ void initialize(void)
 
 void main()
 {
-	
+	initialize();
+
+	while(1)
+	{
+		task();
+		asm("sleep");
+	}
 } 

@@ -12,9 +12,14 @@
 #include <string.h>
 
 //Mocked functions
-void asm_sleep()
+void asm_safe_sleep()
 {
 	// do nothing
+}
+
+void asm_sleep()
+{
+	
 }
 
 void asm_reset()
@@ -93,7 +98,7 @@ void noncritical_task_3(void *arg) {
 void queue_rpc(void *arg) {
 	MIBUnified data;
 	TEST_ASSERT_FALSE( rpc_queue_full() );
-	rpc_queue( NULL, &data);
+	rpc_queue( NULL, &data, NULL);
 }
 void dequeue_rpc(void *arg) {
 	TEST_ASSERT_FALSE( rpc_queue_empty() );

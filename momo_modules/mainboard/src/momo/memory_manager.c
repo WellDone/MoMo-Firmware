@@ -13,7 +13,7 @@ void flash_memory_init()
   init_momo_config( kMomoConfigSubsector );
   fc_init( kFirmwareConfigSubector );
 
-  init_sensor_event_log( MEMORY_SECTION_TO_SUB( kSensorDataSector ),  kSensorLogSubsectors );
-  init_system_log( kSystemLogSubsector, 8 );
-  init_report_log( kReportLogSubsector, 8 );
+  init_sensor_event_log(MEMORY_SECTION_TO_SUB(kSensorDataSector),  kSensorLogSubsectors);
+  init_system_log(kSystemLogSubsector, 8);
+  init_report_log(kReportLogSubsector, 8);
 }

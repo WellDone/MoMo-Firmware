@@ -2,6 +2,7 @@
 #define __gsm_h__
 
 #include "platform.h"
+#include "global_state.h"
 
 #define kCMDOK 1
 #define kCMDERR 2
@@ -11,17 +12,16 @@
 #define GSM_REGISTRATION_TIMEOUT_S 120
 
 void gsm_init();
-bool gsm_on();
 
-bool gsm_register();
-bool gsm_registered();
+GSMError gsm_ensure_on();
+uint8_t gsm_ensure_registered();
 
 void gsm_remember_band();
 void gsm_recall_band();
 void gsm_forget_band();
 
-uint8 gsm_cmd(const char* cmd);
-uint8 gsm_cmd_raw(const char* cmd, uint8 timeout);
+uint8_t gsm_cmd(const char* cmd);
+uint8_t gsm_cmd_raw(const char* cmd, uint8_t timeout);
 void gsm_off();
 
 #endif

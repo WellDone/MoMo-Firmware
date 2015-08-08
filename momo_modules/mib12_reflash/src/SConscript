@@ -21,9 +21,10 @@ if info.row_size == 32:
 else:
 	env['ROMEND'] = env['ROMSTART'] + 95
 
-asm_sources = ['app_startup.as', 'mib/mib12_api.as', 'flash_memory.as']
+asm_sources = ['app_startup.as', 'flash_memory.as']
+api = ['../../../shared/pic12/src/mib12_api.as']
 
-srcfiles = asm_sources + Glob('./*.c') + [env['MIBFILE']]									
+srcfiles = asm_sources + Glob('./*.c') + [env['MIBFILE']] + api								
 
 target = env.xc8('mib12_app_module.hex', srcfiles)
 symtab = env.build_symbols(['mib12_app_module_symbols.h', 'mib12_app_module_symbols.stb'],['mib12_app_module.sym'])

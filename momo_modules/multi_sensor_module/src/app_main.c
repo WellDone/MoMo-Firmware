@@ -12,6 +12,7 @@
 #include "state.h"
 #include "pulse.h" 
 #include "alarm_repeat_times.h"
+#include <stdint.h>
 
 MultiSensorState state;
 
@@ -58,8 +59,8 @@ void task(void)
 
 		state.push_pending = 0;
 
-		bus_master_begin_rpc();
-		mib_buffer[0] = mib_address;
+		bus_master_begin_rpc(8);
+		mib_buffer[0] = slave_address;
 		mib_buffer[1] = 0;
 
 		mib_buffer[2] = 0;
@@ -70,7 +71,7 @@ void task(void)
 		mib_buffer[6] = 0;
 		mib_buffer[7] = 0;
 
-		bus_master_prepare_rpc(70, 0, plist_with_buffer(2, 4));
+		bus_master_prepare_rpc(70, 0);
 		bus_master_send_rpc(8);
 
 		//Start counting again
@@ -81,7 +82,7 @@ void task(void)
 	wdt_enable();
 }
 
-void interrupt_handler(void)
+void interrupt service_isr() 
 {
 	if (ioc_flag_b(PULSE_IOC))
 	{
@@ -138,9 +139,9 @@ void initialize(void)
 	ioc_enable_b();
 	periods = 0;
 	
-	bus_master_begin_rpc();
+	bus_master_begin_rpc(8);
 
-	mib_buffer[0] = mib_address;
+	mib_buffer[0] = slave_address;
 	mib_buffer[1] = 0;
 
 	mib_buffer[2] = 2;
@@ -148,37 +149,45 @@ void initialize(void)
 
 	mib_buffer[4] = kEveryMinute;
 	mib_buffer[5] = 0;
-	bus_master_prepare_rpc(43, 0, plist_ints(3));
+	bus_master_prepare_rpc(43, 0);
 
-	bus_master_send_rpc(8);
+	bus_master_send_rpc(6);
 }
 
 void main()
 {
+	initialize();
 
+	while(1)
+	{
+		task();
+		asm("sleep");
+	}
 }
 
-void check_v1()
+uint8_t check_v1(uint8_t length)
 {
 	sample_v1();
 
 	mib_buffer[0] = (adc_result & 0xFF);
 	mib_buffer[1] = (adc_result >> 8) & 0xFF;
 
-	bus_slave_setreturn(pack_return_status(0, 2));
+	bus_slave_returndata(2);
+	return kNoErrorStatus;
 }
 
-void check_v2()
+uint8_t check_v2(uint8_t length)
 {
 	sample_v2();
 
 	mib_buffer[0] = (adc_result & 0xFF);
 	mib_buffer[1] = (adc_result >> 8) & 0xFF;
 
-	bus_slave_setreturn(pack_return_status(0, 2));
+	bus_slave_returndata(2);
+	return kNoErrorStatus;
 }
 
-void acquire_voltage()
+uint8_t acquire_voltage(uint8_t length)
 {
 	damp_enable();
 	sample_analog();
@@ -187,80 +196,87 @@ void acquire_voltage()
 	mib_buffer[0] = (adc_result & 0xFF);
 	mib_buffer[1] = (adc_result >> 8) & 0xFF;
 
-	bus_slave_setreturn(pack_return_status(0, 2));
+	bus_slave_returndata(2);
+	return kNoErrorStatus;
 }
 
-void set_damp_parameter()
+uint8_t set_damp_parameter(uint8_t length)
 {
 	if (mib_buffer[0] >= kNumParameters)
-	{
-		bus_slave_setreturn(pack_return_status(6, 0));
-		return;
-	}
+		return 6;
 
 	damp_set_parameter((AmplifierSetting)mib_buffer[0], mib_buffer[2]);
-	bus_slave_setreturn(pack_return_status(0, 0));
+	
+	return kNoErrorStatus;
 }
 
-void power_analog()
+uint8_t power_analog(uint8_t length)
 {
 	set_analog_power(mib_buffer[0]);
-	bus_slave_setreturn(pack_return_status(0, 0));
+	
+	return kNoErrorStatus;
 }
 
-void acquire_pulse()
+uint8_t acquire_pulse(uint8_t length)
 {
 	state.acquire_pulse = 1;
-	bus_slave_setreturn(pack_return_status(0, 0));
+	return kNoErrorStatus;
 }
 
-void number_of_pulses()
+uint8_t number_of_pulses(uint8_t length)
 {
 	mib_buffer[0] = pulse_count() & 0xFF;
 	mib_buffer[1] = pulse_count() >> 8;
 	mib_buffer[2] = pulse_invalid_count() & 0xFF;
 	mib_buffer[3] = pulse_invalid_count() >> 8;
 
-	bus_slave_setreturn(pack_return_status(0, 4));
+	bus_slave_returndata(4);
+	return kNoErrorStatus;
 }
 
-void read_pulse()
+uint8_t read_pulse(uint8_t length)
 {
-	uint8 pulse = mib_buffer[0];
+	uint8_t pulse = mib_buffer[0];
 
 	mib_buffer[0] = pulse_width(pulse) & 0xFF;
 	mib_buffer[1] = pulse_width(pulse) >> 8;
 	mib_buffer[2] = pulse_interval(pulse) & 0xFF;
 	mib_buffer[3] = pulse_interval(pulse) >> 8;
 
-	bus_slave_setreturn(pack_return_status(0, 4));
+	bus_slave_returndata(4);
+	return kNoErrorStatus;
 }
 
-void scheduled_callback()
+uint8_t scheduled_callback(uint8_t length)
 {
 	state.push_pending = 1;
+
+	return kNoErrorStatus;
 }
 
-void read_periods()
+uint8_t read_periods(uint8_t length)
 {
 	mib_buffer[0] = periods & 0xFF;
 	mib_buffer[1] = periods >> 8;
 
-	bus_slave_setreturn(pack_return_status(0, 2));
+	bus_slave_returndata(2);
+	return kNoErrorStatus;
 }
 
-void set_push_status()
+uint8_t set_push_status(uint8_t length)
 {
 	state.push_disabled = !(mib_buffer[0] > 0);
-	bus_slave_setreturn(pack_return_status(0, 0));
+	
+	return kNoErrorStatus;
 }
 
-void read_median_interval()
+uint8_t read_median_interval(uint8_t length)
 {
 	uint16_t median = pulse_median_interval();
 
 	mib_buffer[0] = median & 0xFF;
 	mib_buffer[1] = median >> 8;
 
-	bus_slave_setreturn(pack_return_status(0, 2));
+	bus_slave_returndata(2);
+	return kNoErrorStatus;
 }

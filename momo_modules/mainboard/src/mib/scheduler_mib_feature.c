@@ -25,7 +25,7 @@ static uint8 next_dequeue_rpc_id = 0;
 #define MAX_SCHEDULED_CALLBACKS 16
 static RPCCallback callbacks[MAX_SCHEDULED_CALLBACKS];
 
-static void rpc_done( uint8 status )
+static void rpc_done(uint8 status, void *state)
 {
     uint8 index;
     for ( index = 0; index < MAX_SCHEDULED_CALLBACKS; ++index )
@@ -51,18 +51,18 @@ static void callback( void* arg )
 
     MIBUnified cmd;
     cmd.address = cb->address;
-    cmd.bus_command.feature = cb->feature;
-    cmd.bus_command.command = cb->command;
-    cmd.bus_command.param_spec = plist_empty();
+    cmd.packet.call.command = (cb->feature << 8) | cb->command;
+    cmd.packet.call.length = 0;
 
     SET_BIT(cb->flags, kRPCInProgress);
     cb->rpc_id = next_queue_rpc_id++;
     if ( next_queue_rpc_id == 0 )
         next_queue_rpc_id = 1;
-    bus_master_rpc_async( rpc_done, &cmd );
+
+    bus_master_rpc_async(rpc_done, &cmd, NULL);
 }
 
-void schedule_callback()
+uint8_t schedule_callback(uint8_t length)
 {
     uint8 address = plist_get_int16(0) & 0xFF;
     uint8 feature = plist_get_int16(1) >> 8;
@@ -87,10 +87,12 @@ void schedule_callback()
         }
     }
     if ( index == 16 )
-        bus_slave_seterror(kCallbackError);
+        return kCallbackError;
+
+    return kNoErrorStatus;
 }
 
-void stop_scheduled_callback()
+uint8_t stop_scheduled_callback(uint8_t length)
 {
     uint8 address = plist_get_int16(0) & 0xFF;
     uint8 feature = plist_get_int16(1) >> 8;
@@ -109,9 +111,11 @@ void stop_scheduled_callback()
             callbacks[index].address = 0;
         }
     }
+
+    return kNoErrorStatus;
 }
 
-void get_callback_map()
+uint8_t get_callback_map(uint8_t length)
 {
     uint16 callback_map = 0;
 
@@ -122,23 +126,25 @@ void get_callback_map()
             callback_map |= 0x1 << index;
     }
     bus_slave_return_int16( callback_map );
+
+    return kNoErrorStatus;
 }
 
-void describe_callback()
+uint8_t describe_callback(uint8_t length)
 {
     uint8 index = plist_get_int8(0);
     if ( index >= MAX_SCHEDULED_CALLBACKS || callbacks[index].address == 0 )
-    {
-        bus_slave_seterror( kCallbackError );
-        return;
-    }
+        return kCallbackError;
+
     bus_slave_return_buffer( &(callbacks[index]), sizeof(RPCCallback) );
+
+    return kNoErrorStatus;
 }
 
 DEFINE_MIB_FEATURE_COMMANDS(scheduler) {
-    {0x00, schedule_callback, plist_spec(3,false) },
-    {0x01, stop_scheduled_callback, plist_spec(3,false) },
-    {0x02, get_callback_map, plist_spec(0,false) },
-    {0x03, describe_callback, plist_spec(1,false) }
+    {0x00, schedule_callback},
+    {0x01, stop_scheduled_callback},
+    {0x02, get_callback_map},
+    {0x03, describe_callback}
 };
 DEFINE_MIB_FEATURE(scheduler);

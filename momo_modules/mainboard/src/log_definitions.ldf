@@ -40,52 +40,38 @@ SanityCheckResetNotice
 SubmoduleAddressRequestNotice
 "A submodule asked for an address"
 
-SetAPNNotice
-"Setting GPRS APN"
+SettingTestSectors
+"Setting the number of sectors in the test flash queue"
+- "Number of sectors" as integer, format unsigned
+
+
+CommStreamStateExecuted
+"CommStream State Machine Executed a State"
+- "Destination Address" as integer
+- "State" as integer
+
+CommStreamFatalError
+"CommStream state machine encountered a fatal error and is aborting the streaming process"
+- "Destination Address" as integer
+- "Error Code" as integer
+
+CommStreamSettingAPN
+"Sending APN to comm module"
+- "Destination Address" as integer
 - "APN" as string
 
-SetCommDestinationNotice
-"Setting comm module stream destination"
-- "Start Index" as integer, format unsigned
-- "Length" as integer, format unsigned
-- "Buffer" as string
+CommStreamSettingDestination
+"Sending destination to comm module"
+- "Destination Address" as integer
+- "Destination" as string
+- "Offset" as integer
+- "Length" as integer
 
-OpenedCommStreamNotice
-"Opening a communication stream"
-- "Comm Module Address" as integer, format unsigned
-- "Report Length" as integer, format unsigned
-
-FinishedReportStreamingNotice
-"Finished streaming report to all comm modules"
-
-ClosingCommStreamNotice
-"Closing comm stream"
-
-StreamingCommDataNotice
-"Streaming data"
-- "Streamed data" as string
-
-AbandoningCommStreamNotice
-"Abandoning current report stream"
-
-ReportSucceededNotice
-"Report succeeded"
-
-ReportFailedRetryNotice
-"Report failed, retrying"
-- "Retry Count" as integer, format unsigned
-
-ReportFailedRerouteNotice
-"Report failed, switching to secondary route"
-- "New Route" as string
-
-ReportAbandonedNotice
-"Retry count exceeded, abandoning report"
-
-FailedMessageToCommModuleNotice
-"Failed to send a message to a comm module"
-- "Error Code" as integer, format unsigned
-
+CommStreamSendingData
+"Sending data to the comm module"
+- "Destination Address" as integer
+- "Data" as string
+- "Length" as integer
 
 ConstructingReportNotice
 "Constructing report"
@@ -96,18 +82,28 @@ ReportConstructedNotice
 FailedToConstructReportError
 "Failed to construct report"
 
+ReportCouldNotBeStreamed
+"Report could not be streamed because an error occurred starting the comm streaming state machine"
+- "Error Code" as integer
+
 ReportSchedulingStartedNotice
 "Report scheduling started"
 
 ReportSchedulingStoppedNotice
 "Report scheduling stopped"
 
-
-CouldNotAdvertise
-"Could not start bluetooth module advertisements"
+BTModuleNotInitiailizeCorrectly
+"Could not initialize BTLE module"
+- "Error Code" as integer, format unsigned
 
 BTModuleInitializedCorrectly
 "Correctly initialized the BTLE module"
+
+BTModuleInAutonomousMode
+"Correctly set BTLE Module to autonomous mode upon next reset"
+
+BTModuleRunningInAutonomousMode
+"The BTLE Module has started up in autonmous mode"
 
 BTAdvertisementSuccessful
 "Succesfully started bluetooth advertisement"
@@ -133,11 +129,71 @@ BTCouldNotCommunicate
 BTCouldNotTalkAt115200
 "Attempted to communicate with the BTLE module at 115200 baud and could not"
 - "Error Code" as integer, format unsigned
+- "Receive Buffer" as string
+
+BTConnectionTimedout
+"No activity on the bluetooth connection for longer than the timeout period, so we're forcing the connection closed"
 
 BTResetBaud
 "Sucessfully set the baud rate of the BTLE module down to 38400"
 
+BTReceivedUnsolicitedData
+"Received an unsolicited message from the RN4020 module"
+- "Message" as string, format repr
+
+BTReceivedUnknownMessage
+"Received an unsolicited message from the RN4020 module"
+- "Message" as string, format repr
+
+BTReceivedMIBPacket
+"Received a MIB packet from the RN4020 module"
+- "Packet" as string, format repr
+
+BTReceivedConnection
+"Received a BTLE connection notice"
+
+BTConnectionStopped
+"BTLE Connection Stopped"
+
+BTCouldNotEnterMLDP
+"Error entering MLDP mode"
+
+BTCouldNotLeaveMDLP
+"Error leaving MLDP mode"
+
+BTMLPDEvent
+"MLPD Event signaled"
+- "Level" as integer, formwat unsigned
+
 BTCouldNotResetBaud
 "Could not reset the baud rate of the BTLE module"
 - "Error Code" as integer, format unsigned
+- "Buffer Length" as integer, format unsigned
 - "Receive Buffer" as string
+
+BTLoadedScript
+"Successfully loaded the command script onto the RN4020"
+
+BTServiceSpecification
+"Displaying Current BTLE Module Server Settings"
+- "Settings" as integer, format hex
+
+BTWrongName
+"BTLE module name is not correct, current name is logged below"
+- "Name" as string
+
+CouldNotAdvertise
+"Could not start advertising"
+- "Error Code" as integer, format unsigned
+
+StartedBroadcastNotice
+"Started unconnectably broadcasting BTLE data"
+
+
+CMClearingOldConfigData
+"Found old Config Manager settings with an unsupported version, blowing them away to start fresh"
+- "Old Major Version" as integer
+- "Old Minor Version" as integer
+
+CMOverwritingUnknownData
+"Incorrect magic number found in Config Manager control subsector, blowing configuration away and starting over"

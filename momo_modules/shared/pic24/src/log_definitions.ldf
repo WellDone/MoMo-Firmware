@@ -23,3 +23,15 @@ SleepTimeMessage
 - "Sleeping Ticks" as integer, format unsigned 
 - "Number of prevented sleeps" as integer, format unsigned
 - "Tasks" as list of fw_task, format address
+
+AsyncRPCQueueFullError
+"Attempted to to queue an synchronous RPC but the queue was full so it was dropped"
+- "sender" as integer, format unsigned
+
+CouldNotFindRPCError
+"Received an asynchronous response, but could not find a record of making the call"
+- "sender" as integer, format unsigned
+
+SentRPCToOurselvesMessage
+"Sent an RPC to ourselves"
+- "contents" as string, format repr

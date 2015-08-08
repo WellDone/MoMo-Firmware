@@ -3,10 +3,11 @@
 
 DEFINE_FEATURE_MAP()
 {
-	MIB_FEATURE(test),
+	MIB_FEATURE(async),
 	MIB_FEATURE(controller),
 	MIB_FEATURE(firmware_cache),
 	MIB_FEATURE(reporting),
+	MIB_FEATURE(config),
 	MIB_FEATURE(sensor),
 	MIB_FEATURE(scheduler)
 };

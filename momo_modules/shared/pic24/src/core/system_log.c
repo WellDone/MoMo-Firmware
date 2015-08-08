@@ -1,13 +1,15 @@
 #include "system_log.h"
-#include "flash_queue.h"
+#include "flashqueue2.h"
 #include "ringbuffer.h"
 #include "task_manager.h"
 #include "utilities.h"
 #include <string.h>
 
+#define kSystemLogVersion	1
+
 //Global variables for the system_log module
 #ifndef __NO_FLASH__
-static flash_queue log_queue;
+static fq_data log_queue;
 #endif
 
 static ringbuffer log_buffer;
@@ -21,12 +23,12 @@ static bool lazy_system_logging = true;
 static void ensure_log_space();
 static void commit_log_entry();
 
-void init_system_log( uint8 start_subsection, uint8 subsection_count )
+void init_system_log(uint8 start_subsection, uint8 subsection_count)
 {
-	ringbuffer_create( &log_buffer, log_buffer_data, sizeof(GenericLogEntry), LOG_BUFFER_SIZE );
+	ringbuffer_create(&log_buffer, log_buffer_data, sizeof(GenericLogEntry), LOG_BUFFER_SIZE);
 
 	#ifndef __NO_FLASH__
-	flash_queue_create( &log_queue, start_subsection, sizeof(GenericLogEntry), subsection_count );
+	fq_init(&log_queue, kSystemLogVersion, start_subsection, sizeof(GenericLogEntry), subsection_count);
 	#endif
 }
 
@@ -69,7 +71,7 @@ void log_integer(unsigned int value)
 	if (!ringbuffer_empty(&log_buffer))
 	{
 		entry = (GenericLogEntry*)ringbuffer_peeklast(&log_buffer);
-		if (entry->header.type == kIntegerListType && entry->header.length < (LOG_DATA_SIZE -2))
+		if (entry->header.type == kIntegerListType && entry->header.length < (LOG_DATA_SIZE - 2))
 		{
 			entry->data[entry->header.length++] = value & 0xFF;
 			entry->data[entry->header.length++] = value >> 8;
@@ -128,21 +130,21 @@ void ensure_log_space()
 
 bool read_system_log( uint16 index, GenericLogEntry *out)
 {
-	flash_queue_walker walker = new_flash_queue_walker(&log_queue, index);
-	if (flash_queue_walk( &walker, (void*)out, 1) == 0)
-		return false;
-	else
-		return true;
+	fq_walker_data walker;
+
+	fqwalker_init(&walker, &log_queue, index);
+	
+	return fqwalker_next(&walker, out);	
 }
 
 void clear_system_log()
 {
-	flash_queue_reset( &log_queue );
+	fq_clear(&log_queue);
 }
 
 uint16 system_log_count()
 {
-	return flash_queue_count( &log_queue );
+	return fq_count(&log_queue);
 }
 
 void flush_log(void* arg)
@@ -150,10 +152,11 @@ void flush_log(void* arg)
 	flush_task_pending = false;
 	while ( !ringbuffer_empty( &log_buffer ) )
 	{
-		flash_queue_queue(&log_queue, ringbuffer_peek( &log_buffer ));
+		fq_push(&log_queue, ringbuffer_peek( &log_buffer ));
 		ringbuffer_pop(&log_buffer, NULL);
 	}
 }
+
 void commit_log_entry()
 {
 	if (lazy_system_logging && !flush_task_pending)

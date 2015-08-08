@@ -16,15 +16,17 @@ volatile ConfigState config_state;
 
 void init_momo_config( unsigned int subsection_index )
 {
-  fb_init( &config_block, subsection_index, sizeof(MoMoState) );
+  fb_init(&config_block, subsection_index, sizeof(MoMoState), kMomoConfigStructureVersion);
   load_momo_state();
+
+  
 }
 
 void reset_momo_state()
 {
   current_momo_state.state_flags = 0;
   current_momo_state.uuid = 0;
-  init_report_config();
+  init_report_config(0);
   config_state = kClean;
   save_momo_state();
 }

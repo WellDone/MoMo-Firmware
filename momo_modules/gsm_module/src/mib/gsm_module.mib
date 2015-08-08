@@ -1,29 +1,27 @@
 #gsm_module
-#Momo Core Module v1.0
-#By Tim Burke (2/3/2014)
+#Momo Core Module v2.0
+#By Tim Burke (7/21/2015)
 
 #Module Information
-ModuleName = "gsm_com";
-ModuleType = 2;
-ModuleFlags = 0;
+ModuleName = "gsmcom";
+ModuleVersion = "1.0.0";
+APIVersion = "1.1";
 
 #Supported Feature Information
-feature 10
-0: _gsm_rpc_on(0, no);
-1: _gsm_rpc_power_on(0, no);
-2: _gsm_rpc_sendcommand(0, yes);
-3: _gsm_rpc_testsim(0, no);
-4: _gsm_rpc_dumpbuffer(0, no);
-5: _gsm_rpc_off(0, no);
-6: _gsm_rpc_power_off(0, no);
-7: _gsm_rpc_debug(0, no);
-8: _gsm_rpc_download(0, no);
-9: _gsm_rpc_setapn(0, yes);
+#feature 10
+2560: _gsm_rpc_on(0, no);
+2561: _gsm_rpc_register(0, no);
+2562: _gsm_rpc_sendcommand(0, yes);
+2563: _gsm_rpc_testsim(0, no);
+2565: _gsm_rpc_off(0, no);
+2567: _gsm_rpc_debug(0, no);
+2568: _gsm_rpc_download(0, no);
+2569: _gsm_rpc_setapn(0, yes);
 
 #Communication Channel Feature
-feature 11
-0: _gsm_openstream(1, no);
-1: _gsm_putstream(0, yes);
-2: _gsm_closestream(0, no);
-3: _gsm_abandonstream(0, no);
-4: _gsm_rpc_setcommdestination(1, yes);
+#feature 11
+2816: _gsm_rpc_openstream(1, no);
+2817: _gsm_rpc_pushtostream(0, yes);
+2818: _gsm_rpc_closestream(0, no);
+
+2820: _gsm_rpc_setcommdestination(1, yes);

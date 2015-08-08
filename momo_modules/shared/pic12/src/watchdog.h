@@ -11,14 +11,11 @@
 
 enum
 {
+	k16MSTimeout = 0b00100,
 	k1SecondTimeout  = 0b010100,
 	k4SecondTimeout  = 0b011000,
 	k8SecondTimeout  = 0b011010,
 	k16SecondTimeout = 0b011100
 };
-
-void wdt_pushenabled();
-void wdt_popenabled();
-void wdt_settimeout(uint8 timeout);
 
 #endif

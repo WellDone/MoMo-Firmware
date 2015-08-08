@@ -1,4 +1,3 @@
-;Assembly routines for dealing with I2C things in an efficient way
 ;very quickly and with minimal code overhead
 
 
@@ -10,16 +9,25 @@
 ASM_INCLUDE_GLOBALS()
 
 global _bus_slave_read_callback, _bus_slave_startcommand
-global _i2c_loadbuffer, _i2c_incptr, _i2c_read, _i2c_write
+global _i2c_loadbuffer
 
 PSECT text_i2c_slave,local,class=CODE,delta=2
 
-;If we just received an address, call callback to handle either read of write
+;If we just received an address, call callback to handle either read or write
 ;Otherwise send or receive the next byte in the i2c_buffer
 BEGINFUNCTION _i2c_slave_interrupt
-	banksel SSP1STAT
+	;If CKP is not low, then we are being called after receiving a NACK from a master
+	;for our last transmitted data byte. We should do nothing here.  It is important to
+	;do nothing otherwise a race condition could occur where this interrupt is executing
+	;while the master is sending an RS condition to read data from us again.  In that case;
+	;we could proceed like we received a write address, when in fact we did not.
+	banksel SSP1CON1
+	btfsc BANKMASK(SSP1CON1), 4 ;Check if CKP is down
+		return
+
 	btfsc 	BANKMASK(SSP1STAT), 5
 		goto 	transferdata
+
 	;We just received our address (mask out to get just the read or write status)
 	movf 	BANKMASK(SSP1BUF),w
 	andlw 	0b1
@@ -30,7 +38,11 @@ BEGINFUNCTION _i2c_slave_interrupt
 
 	;We did not receive an address, so send or receive the next byte of the i2c buffer
 	transferdata:
-	call _i2c_loadbuffer
+	banksel curr_loc
+	clrf FSR0H
+	movf BANKMASK(curr_loc),w
+	movwf FSR0L
+
 	banksel SSP1STAT
 	bcf 	BANKMASK(SSP1CON1),6			;Clear SSPOV bit always
 
@@ -45,3 +57,33 @@ BEGINFUNCTION _i2c_slave_interrupt
 	bsf   BANKMASK(SSP1CON1),4 	;Release the clock
 	return
 ENDFUNCTION _i2c_slave_interrupt
+
+;Increment the i2c buffer pointer unless it would 
+;cause an overflow
+;FIXME: Add an overflow bit so that we don't keep sending checksum errors
+BEGINFUNCTION _i2c_incptr
+	banksel curr_loc
+	movlw 	(_mib_packet + kMIBMessageSize)
+	xorwf	BANKMASK(curr_loc),w
+	btfsc 	ZERO
+		return 			;if buffer is full, do not increment
+	incf 	BANKMASK(curr_loc),f
+	return
+ENDFUNCTION _i2c_incptr
+
+;Given that FSR0 contains the buffer pointer
+;read 1 byte from i2c and attempt to increment
+;the buffer pointer.
+BEGINFUNCTION _i2c_read
+	banksel SSP1BUF
+	movf BANKMASK(SSP1BUF),w
+	movwf INDF0
+	goto _i2c_incptr
+ENDFUNCTION _i2c_read
+
+BEGINFUNCTION _i2c_write
+	banksel SSP1BUF
+	movf  INDF0,w
+	movwf BANKMASK(SSP1BUF)
+	goto _i2c_incptr
+ENDFUNCTION _i2c_write

@@ -46,6 +46,6 @@
 #define ioc_detect_rising(port, pin, val)	ioc_make_macro_r(port, ioc_detect_rising)(pin, val)
 #define ioc_flag(port, pin)					ioc_make_macro_r(port, ioc_flag)(pin)
 
-#define ioc_disable()					IOCIE=0 
+#define ioc_disable()						IOCIE=0
 
 #endif

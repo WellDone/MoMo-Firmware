@@ -6,6 +6,8 @@
 
 #ifndef __NO_FLASH__
 
+#define kFlashQueueStructureVersion   2
+
 /*
   Derivitave of ringbuffer.c, implemented as an in-flash ringbuffer.
   Overwrites oldest values when ringbuffer is full.
@@ -13,18 +15,19 @@
 
 typedef struct {
 	uint32   start; //the first valid item
-  uint32   end;   //one past the last valid item
+	uint32   end;   //one past the last valid item
 } flash_queue_counters;
 
-typedef struct {
-  uint8                elem_size;
-  uint32               start_address;
-  uint32               end_address;
-  bool                 wrapped;
+typedef struct 
+{
+	uint8_t					elem_size;
+	uint32_t				start_address;
+	uint32_t				end_address;
+	bool					wrapped;
 
-  flash_block_info     counters_block;
+	flash_block_info		counters_block;
 
-  flash_queue_counters counters;
+	flash_queue_counters counters;
 } flash_queue;
 
 typedef struct {
@@ -32,10 +35,11 @@ typedef struct {
   const flash_queue* queue;
 } flash_queue_walker;
 
-void flash_queue_create( flash_queue* queue,
-                         uint8 start_subsection,
-                         uint8 element_size,
-                         uint8 subsection_count ); //subsection_count must be >= 2
+void flash_queue_create(flash_queue *queue,
+						 uint8 start_subsection,
+						 uint8 element_size,
+						 uint8 subsection_count ); //subsection_count must be >= 2
+
 void flash_queue_reset( flash_queue* queue );
 
 void flash_queue_queue( flash_queue* queue, const void* data );

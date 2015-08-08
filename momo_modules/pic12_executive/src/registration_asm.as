@@ -1,12 +1,9 @@
 ;registration_asm.as
 
 #include <xc.inc>
-#include "constants.h"
 #include "asm_branches.inc"
 #include "asm_locations.h"
-
-#define __DEFINES_ONLY__
-#include "mib_definitions.h"
+#include "mib12_block.h"
 
 ASM_INCLUDE_GLOBALS()
 
@@ -16,7 +13,7 @@ global _copy_fsr, _bus_master_send_rpc, _bus_master_begin_rpc
 PSECT text_asm_register,local,class=CODE,delta=2
 
 BEGINFUNCTION _register_module
-	
+	movlw kMIBControllerAddress
 	call _bus_master_begin_rpc
 	;check if there's a valid application module loaded
 	call 	_get_magic
@@ -36,38 +33,34 @@ BEGINFUNCTION _register_module
 
 	copy_and_send:
 	call _mib_to_fsr0
-	movlw kModuleDescriptorSize
+	movlw 11
 	call _copy_fsr
 
 	;mib_buffer now has the module descriptor
 	;send it to controller endpoint(42, 0)
-	banksel _mib_data
+	banksel _mib_packet
 	movlw 42
-	movwf BANKMASK(bus_feature)
-	
-	clrf  BANKMASK(bus_command)
-	
-	movlw plist_with_buffer(0, kModuleDescriptorSize)
-	movwf BANKMASK(bus_spec)
+	movwf BANKMASK(bus_cmdhi)
+	clrf  BANKMASK(bus_cmdlo)
 
-	movlw kMIBControllerAddress
+	movlw 20
 	call _bus_master_send_rpc
 
-	;Check if we were successful (return value == 0)
+	;Check if we were successful (return value == 0 with app defined and has_data bits set)
 	;return 0 if we failed
-	skipel 0
+	skipel 0xc0
 		retlw 0
 
 	;If the call was successful, our address is in the first byte of the 
 	;mib buffer
-	banksel _mib_data
+	banksel _mib_packet
 	movf BANKMASK(mib_buffer),w
 	return
 ENDFUNCTION _register_module
 
 BEGINREGION module_info
 retlw kModuleHWType
-retlw kMIBExecutiveOnlyType
+retlw 0x00
 retlw (kMIBVersion1 << 4) | 0
 db	  'N','O',' ','A','P','P',' '
 retlw 1

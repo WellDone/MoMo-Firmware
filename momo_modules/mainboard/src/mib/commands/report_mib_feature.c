@@ -5,7 +5,7 @@
 #include "bus_slave.h"
 #include "momo_config.h"
 #include "report_log.h"
-#include "report_comm_stream.h"
+#include "comm_stream.h"
 #include "system_log.h"
 #include <string.h>
 
@@ -13,178 +13,214 @@
 
 extern char base64_report_buffer[BASE64_REPORT_MAX_LENGTH+1];
 
+CommStreamState test_stream;
 
-static void start_scheduled_reporting(void)
+static uint8_t start_scheduled_reporting(uint8_t length)
 {
 	set_momo_state_flag( kStateFlagReportingEnabled, true );
 	start_report_scheduling();
+
+	return kNoErrorStatus;
 }
 
-static void stop_scheduled_reporting(void)
+static uint8_t stop_scheduled_reporting(uint8_t length)
 {
 	set_momo_state_flag( kStateFlagReportingEnabled, false );
 	stop_report_scheduling();
+
+	return kNoErrorStatus;
 }
 
-static void get_scheduled_reporting(void)
+static uint8_t get_scheduled_reporting(uint8_t length)
 {
 	bus_slave_return_int16( get_momo_state_flag( kStateFlagReportingEnabled ) );
+
+	return kNoErrorStatus;
 }
 
-static void send_report(void)
+static uint8_t send_report(uint8_t length)
 {
 	taskloop_add( post_report, NULL );
+
+	return kNoErrorStatus;
 }
 
-static void set_reporting_interval(void)
+static uint8_t set_reporting_interval(uint8_t length)
 {
 	set_report_scheduling_interval( plist_get_int16(0) );
+
+	return kNoErrorStatus;
 }
-static void get_reporting_interval(void)
+static uint8_t get_reporting_interval(uint8_t length)
 {
 	bus_slave_return_int16( current_momo_state.report_config.report_interval );
+
+	return kNoErrorStatus;
 }
 
-static void set_reporting_route(void)
+static uint8_t set_reporting_route(uint8_t length)
 {
 	update_report_route( (plist_get_int16(0) >> 8) & 0xFF
 	                   , plist_get_int16(0) & 0xFF
 	                   , (const char*)plist_get_buffer(1)
 	                   , plist_get_buffer_length() );
+
+	return kNoErrorStatus;
 }
-static void get_reporting_route(void)
+static uint8_t get_reporting_route(uint8_t length)
 {
 	const char* route = get_report_route( ( plist_get_int16(0) >> 8 ) & 0xFF );
 	if ( !route )
 	{
-		bus_slave_seterror( kUnknownError );
-		return;
+		return kUnknownError;
 	}
+
 	uint8 start = plist_get_int16(0) & 0xFF;
 	uint8 len = strlen( route ) - start;
 	if ( len < 0 )
 	{
-		bus_slave_seterror( kCallbackError );
-		return;
+		return kCallbackError;
 	}
 
-	if ( len > kBusMaxMessageSize )
-		len = kBusMaxMessageSize;
+	if ( len > kMIBBufferSize )
+		len = kMIBBufferSize;
+
 	bus_slave_return_buffer( route + start, len );
+
+	return kNoErrorStatus;
 }
 
-static void set_reporting_apn(void)
+static uint8_t set_reporting_apn(uint8_t length)
 {
 	set_gprs_apn( (const char*)plist_get_buffer(0), plist_get_buffer_length() );
+	return kNoErrorStatus;
 }
-static void get_reporting_apn(void)
+static uint8_t get_reporting_apn(uint8_t length)
 {
 	bus_slave_return_buffer( current_momo_state.report_config.gprs_apn, strlen(current_momo_state.report_config.gprs_apn) );
+	return kNoErrorStatus;
 }
 
-static void set_reporting_flags(void)
+static uint8_t set_reporting_flags(uint8_t length)
 {
 	current_momo_state.report_config.report_flags = plist_get_int16(0);	
+	return kNoErrorStatus;
 }
-static void get_reporting_flags(void)
+static uint8_t get_reporting_flags(uint8_t length)
 {
 	bus_slave_return_int16( current_momo_state.report_config.report_flags );
+	return kNoErrorStatus;
 }
 
-static void set_reporting_aggregates(void)
+static uint8_t set_reporting_aggregates(uint8_t length)
 {
 	current_momo_state.report_config.bulk_aggregates = plist_get_int16(0);	
 	current_momo_state.report_config.interval_aggregates = plist_get_int16(1);	
+	return kNoErrorStatus;
 }
-static void get_reporting_aggregates(void)
+
+static uint8_t get_reporting_aggregates(uint8_t length)
 {
 	plist_set_int16( 0, current_momo_state.report_config.bulk_aggregates );
 	plist_set_int16( 1, current_momo_state.report_config.interval_aggregates );
-	bus_slave_setreturn( pack_return_status( kNoMIBError, 4 ) );
+	bus_slave_set_returnbuffer_length(4);
+
+	return kNoErrorStatus;
 }
 
-static void build_report()
+static uint8_t build_report(uint8_t length)
 {
 	construct_report();
+	return kNoErrorStatus;
 }
 
-static void get_report()
+static uint8_t get_report(uint8_t length)
 {
 	uint16 offset = plist_get_int16(0);
 	memcpy(plist_get_buffer(0), base64_report_buffer+offset, 20);
-	bus_slave_setreturn( pack_return_status(kNoMIBError, 20 ));
+	bus_slave_set_returnbuffer_length(20);
+
+	return kNoErrorStatus;
 }
 
-static void get_reporting_sequence(void)
+static uint8_t get_reporting_sequence(uint8_t length)
 {
 	bus_slave_return_int16( current_momo_state.report_config.transmit_sequence );
+
+	return kNoErrorStatus;
 }
 
 static BYTE report_buffer[RAW_REPORT_MAX_LENGTH];
-static void read_report_log_mib(void)
+static uint8_t read_report_log_mib(uint8_t call_length)
 {
 	uint16 index = plist_get_int16(0);
 	uint16 offset = plist_get_int16(1);
 	if ( offset >= RAW_REPORT_MAX_LENGTH )
 	{
-		bus_slave_seterror( kCallbackError );
-		return;
+		return kCallbackError;
 	}
+
 	uint8 length = RAW_REPORT_MAX_LENGTH - offset;
-	if ( length > kBusMaxMessageSize )
-		length = kBusMaxMessageSize;
+
+	if ( length > kMIBBufferSize )
+		length = kMIBBufferSize;
 
 	if ( report_log_read( index, (void*)&report_buffer, 1 ) == 0 )
 	{
 		// No more entries
-		bus_slave_seterror( kCallbackError );
-		return;
+		return kCallbackError;
 	}
 
 	bus_slave_return_buffer( report_buffer+offset, length );
+
+	return kNoErrorStatus;
 }
-static void count_report_log_mib(void)
+
+static uint8_t count_report_log_mib(uint8_t length)
 {
 	bus_slave_return_int16( report_log_count() );
+	return kNoErrorStatus;
 }
-static void clear_report_log_mib(void)
+
+static uint8_t clear_report_log_mib(uint8_t length)
 {
 	report_log_clear();
+	return kNoErrorStatus;
 }
 
-static void handle_report_stream_success(void)
+static uint8_t test_comm_streaming(uint8_t length)
 {
-	notify_report_success();
-}
+	uint8_t address = plist_get_int16(0);
 
-static void handle_report_stream_failure(void)
-{
-	notify_report_failure();
+	commstream_init(&test_stream);
+	commstream_start(&test_stream, address, "Test report content!", strlen("Test report content!"));
+
+	return kNoErrorStatus;
 }
 
 DEFINE_MIB_FEATURE_COMMANDS(reporting) {
-	{ 0x00, send_report, plist_spec_empty() },
-	{ 0x01, start_scheduled_reporting, plist_spec_empty() },
-	{ 0x02, stop_scheduled_reporting, plist_spec_empty() },
-	{ 0x03, set_reporting_interval, plist_spec(1, false) },
-	{ 0x04, get_reporting_interval, plist_spec_empty() },
-	{ 0x05, set_reporting_route, plist_spec(1, true) },
-	{ 0x06, get_reporting_route, plist_spec(1, false) },
-	{ 0x07, set_reporting_flags, plist_spec(1, false) },
-	{ 0x08, get_reporting_flags, plist_spec_empty() },
-	{ 0x09, set_reporting_aggregates, plist_spec(2, false) },
-	{ 0x0A, get_reporting_aggregates, plist_spec_empty() },
-	{ 0x0B, get_reporting_sequence, plist_spec_empty() },
-	{ 0x0C, build_report, plist_spec_empty() },
-	{ 0x0D, get_report, plist_spec(1, false) },
-	{ 0x0E, get_scheduled_reporting, plist_spec_empty() },
-	{ 0x0F, read_report_log_mib, plist_spec(2, false) },
-	{ 0x10, count_report_log_mib, plist_spec_empty() },
-	{ 0x11, clear_report_log_mib, plist_spec_empty() },
-	{ 0x12, init_report_config, plist_spec_empty() },
-	{ 0x13, set_reporting_apn, plist_spec(0,true) },
-	{ 0x14, get_reporting_apn, plist_spec_empty() },
-	{ 0xF0, handle_report_stream_success, plist_spec_empty() },
-	{ 0xF1, handle_report_stream_failure, plist_spec_empty() }
+	{ 0x00, send_report},
+	{ 0x01, start_scheduled_reporting},
+	{ 0x02, stop_scheduled_reporting},
+	{ 0x03, set_reporting_interval},
+	{ 0x04, get_reporting_interval},
+	{ 0x05, set_reporting_route},
+	{ 0x06, get_reporting_route},
+	{ 0x07, set_reporting_flags},
+	{ 0x08, get_reporting_flags},
+	{ 0x09, set_reporting_aggregates},
+	{ 0x0A, get_reporting_aggregates},
+	{ 0x0B, get_reporting_sequence},
+	{ 0x0C, build_report},
+	{ 0x0D, get_report},
+	{ 0x0E, get_scheduled_reporting},
+	{ 0x0F, read_report_log_mib},
+	{ 0x10, count_report_log_mib},
+	{ 0x11, clear_report_log_mib},
+	{ 0x12, init_report_config},
+	{ 0x13, set_reporting_apn},
+	{ 0x14, get_reporting_apn},
+	{ 0x15, test_comm_streaming}
 };
+
 DEFINE_MIB_FEATURE(reporting);

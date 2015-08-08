@@ -6,6 +6,6 @@
 #include "platform.h"
 
 void simdet_idle();
-uint8 simdet_detect();
+uint8_t simdet_detect();
 
 #endif

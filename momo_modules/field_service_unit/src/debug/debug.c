@@ -4,6 +4,7 @@
 #include "task_manager.h"
 #include "reset_manager.h"
 #include "pme.h"
+#include "ioport.h"
 
 static volatile char __attribute__((space(data))) debug_buffer[UART_BUFFER_SIZE+1];
 static uart_newline_callback debug_callback;
@@ -14,7 +15,7 @@ void debug_init()
     
     peripheral_enable(kUART1Module);
 
-    params.baud = 115200;
+    params.baud = 125000;
     params.hw_flowcontrol = 0;
     params.parity = NoParity;
     configure_uart(DEBUG_UART, &params);
@@ -49,5 +50,5 @@ void debug_setup_handler(uart_newline_callback handler)
 
 int momo_attached()
 {
-  return !(ALARM_PIN == 0 && _RB8 == 0 && _RB9 == 0);
+  return !(ALARM_PIN == 0 && PIN(SDA) == 0 && PIN(SCL) == 0);
 }

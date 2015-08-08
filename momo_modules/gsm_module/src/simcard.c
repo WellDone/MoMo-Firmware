@@ -3,6 +3,7 @@
 #include "simcard.h"
 #include "gsm_defines.h"
 #include "port.h"
+#include "global_state.h"
 
 void simdet_idle()
 {
@@ -13,7 +14,7 @@ void simdet_idle()
 }
 
 
-uint8 simdet_detect()
+uint8_t simdet_detect()
 {
 	PIN_DIR(SIMDET_SENSE, 1);
 	ENSURE_DIGITAL(SIMDET_SENSE);
@@ -24,12 +25,14 @@ uint8 simdet_detect()
 
 	__delay_ms(10);
 
-	if (PIN(SIMDET_SENSE) == 0)
+	//When SIM card not inserted, SIMDET_SENSE and SIMDET_POW are connected
+	//When SIM card is inserted, they are *not* connected.
+	if (PIN(SIMDET_SENSE) == 1)
 	{
 		simdet_idle();
-		return 0;
+		return kSIMNotDetected;
 	}
 
 	simdet_idle();
-	return 1;
+	return kNoGSMError;
 }

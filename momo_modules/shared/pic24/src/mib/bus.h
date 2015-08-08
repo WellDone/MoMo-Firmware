@@ -5,15 +5,13 @@
 #include "mib_hal.h"
 #include "i2c.h"
 #include "protocol.h"
+#include "mib_definitions.h"
 
 //Bus error codes that can be returned
 enum
 {
 	kNoMIBError = 0,
-	kUnsupportedCommand = 1,
-	kWrongParameterType = 2,
 	kParameterTooLong = 3,
-	kChecksumError = 4,
 	kUnknownError = 6,
 	kCallbackError = 7,
 	kSlaveNotAvailable = 255
@@ -22,8 +20,11 @@ enum
 //Need these because XC8 is really bad at optimizing bit operations
 #define set_master_state(state)			mib_state.master_state = state
 #define set_slave_state(state)			mib_state.slave_state = state
-#define bus_has_returnvalue()			(mib_state.bus_returnstatus.len != 0)
-#define bus_get_returnvalue_length()	(mib_unified.bus_returnstatus.len)
+
+#define pack_command(feature, command)	((((uint16_t)feature << 8)) | command)
+
+//Callback type for master rpc routines
+typedef void (*mib_rpc_function)(unsigned char status, void *state);
 
 typedef enum 
 {
@@ -49,24 +50,15 @@ typedef struct
 	volatile uint8			first_read;
 	volatile uint8 			master_state;
 	volatile uint8			rpc_done;
+
+	uint8_t					my_address;
 } MIBState;
 
 typedef struct
 {
-	unsigned char 			address;
-	union
-	{
-		MIBCommandPacket	bus_command;	//3 bytes
-		struct
-		{
-			unsigned char 		 padding;
-			MIBReturnValueHeader bus_returnstatus;//1 byte
-			unsigned char		 status_checksum;
-		};
-	};
-
-	unsigned char 		mib_buffer[kBusMaxMessageSize];
-	unsigned char		buffer_checksum;	//need potentially one more byte for checksum if mib_buffer is completely full
+	uint8_t					return_length;
+	uint8_t 				address;
+	MIBPacket				packet;
 } MIBUnified; 
 
 /*
@@ -79,8 +71,6 @@ typedef struct
 #include "mib_state.h"
 
 #endif
-
-uint8 plist_param_length(uint8 plist);
 
 //Bus transmission functions
 void bus_send(unsigned char address, unsigned char *buffer, unsigned char len);

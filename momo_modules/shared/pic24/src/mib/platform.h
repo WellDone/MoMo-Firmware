@@ -8,7 +8,4 @@
 
 #include "common_types.h"
 
-//Optimize the i2c code by 
-#define ALWAYS_ASSUME_BUS_MESSAGE
-#define bank1 
 #endif

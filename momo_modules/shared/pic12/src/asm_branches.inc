@@ -59,7 +59,14 @@ skipel MACRO lit
 ENDM
 
 ;skip if W > literal
-skipwgtl MACRO lit
+;skipwgtl MACRO lit
+;	sublw lit
+;	btfss STATUS && 0x7F, 0
+;ENDM
+
+;FIXME: This has not been verified to work correctly
+;skip if W <= literal
+skipwltel MACRO lit
 	sublw lit
 	btfss STATUS && 0x7F, 0
 ENDM

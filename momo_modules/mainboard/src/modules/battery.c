@@ -22,7 +22,6 @@ void battery_init()
     LAT(CHARGE_ENABLE) = 0;
     ENSURE_DIGITAL(CHARGE_ENABLE);
 
-
 	//Store ADC configuration
     batt_adc_config.output_format = kUIntegerFormat;
     batt_adc_config.trigger = kInternalCounter;
@@ -65,7 +64,7 @@ void battery_set_charging_allowed(int allowed)
 		disable_charging();
 }
 
-void report_battery()
+uint8_t report_battery(uint8_t length)
 {
     unsigned int voltage;
 
@@ -74,4 +73,6 @@ void report_battery()
     voltage = adc_convert_one();
 
     bus_slave_return_int16(voltage);
+
+    return kNoErrorStatus;
 }

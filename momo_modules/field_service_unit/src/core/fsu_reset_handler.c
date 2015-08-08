@@ -5,10 +5,16 @@
 #include "uart.h"
 #include "task_manager.h"
 #include "scheduler.h"
+#include "mib_features.h"
 #include "debug.h"
 #include "oscillator.h"
 #include "pme.h"
 #include "bus.h"
+
+DEFINE_FEATURE_MAP()
+{
+    MIB_FEATURE(async)
+};
 
 static bool mclr_triggered;
 void handle_all_resets_before(unsigned int type)
@@ -16,12 +22,13 @@ void handle_all_resets_before(unsigned int type)
     //Add code here that should be called before all other reset code
     disable_unneeded_peripherals();
     configure_interrupts();
-    oscillator_init();
+    set_sosc_status(1); //Secondary oscillator always needs to be enabled
     taskloop_init();
     scheduler_init();
     debug_init();
 
     bus_init( 10 );
+    REGISTER_FEATURE_MAP();
 
     mclr_triggered = false;
 }

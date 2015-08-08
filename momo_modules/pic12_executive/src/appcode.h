@@ -3,12 +3,6 @@
 #ifndef __appcode_h__
 #define __appcode_h__
 
-#include "constants.h"
-
-extern void call_app_init();	
-extern void call_app_interrupt();
-extern void call_app_task();
-
 //Only call pagesel when there are multiple rom pages
 #ifdef kMultipageDevice
 #define reset_page()			asm("pagesel($)")
@@ -17,5 +11,11 @@ extern void call_app_task();
 #endif
 
 #define sleep()  				asm("sleep")
+
+#define goto_address_r(address)	asm("goto " # address)
+#define goto_address(address)	goto_address_r(address)
+
+#define goto_application()		goto_address(kApplicationAddress)
+#define goto_interrupt()		goto_address(kApplicationAddress+4)
 
 #endif

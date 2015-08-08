@@ -6,8 +6,8 @@
 #include "gsm_defines.h"
 #include "platform.h"
 
-bool gsm_module_active();
-uint8 gsm_module_on();
-void gsm_module_off();
+uint8_t gsm_module_active();
+uint8_t gsm_module_on();
+void 	gsm_module_off();
 
 #endif

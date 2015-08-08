@@ -1,15 +1,12 @@
 #include "oscillator.h"
 #include "pic24.h"
 #include "utilities.h"
-
-//internal utility functions
-static inline void write_osccon_h(unsigned char value);
-static inline void write_osccon_l(unsigned char value);
+#include "ioport.h"
 
 void oscillator_init()
 {
     set_oscillator_speed(k8MhzFRC, false);
-    set_sosc_status(1); //Secondary oscillator always needs to be enabled, disable sosc
+    set_sosc_status(1); //Secondary oscillator always needs to be enabled
 }
 
 int set_oscillator_speed(FRCPostscaler speed, int use_pll)
@@ -27,30 +24,26 @@ int set_oscillator_speed(FRCPostscaler speed, int use_pll)
     oscconl = OSCCONL;
 
     //select new speed
-    oscconh &= ~(0b111 << 8);
+    oscconh &= 0b11111000;
 
     if (use_pll)
         oscconh |= kFRCDIVPLL;
     else
         oscconh |= kFRCDIV;
 
-    write_osccon_h(oscconh);
+    __builtin_write_OSCCONH(oscconh);
 
     _RCDIV = speed;
 
+    CLEAR_BIT(oscconl, 0);
+    __builtin_write_OSCCONL(oscconl);
+
     SET_BIT(oscconl, 0);
-    write_osccon_l(oscconl);
+    __builtin_write_OSCCONL(oscconl);
 
     //Wait for the switch to happen
     while (_OSWEN)
         ;
-
-    //If we're using the PLL, wait for it to stabilize
-    if (use_pll)
-    {
-        while (_LOCK)
-            ;
-    }
 
     uninterruptible_end();
 
@@ -71,7 +64,7 @@ void set_sosc_status(int enabled)
     else
         CLEAR_BIT(oscl, 1); //Clear bit
 
-    write_osccon_l(oscl);
+    __builtin_write_OSCCONL(oscl);
 }
 
 /*
@@ -83,33 +76,3 @@ int get_sosc_status()
 {
     return (OSCCONL & (1<<1)) >> 1;
 }
-
-/*
- * Disable interrupts and write the given value to the low byte of OSCCON,
- * from: http://www.microchip.com/forums/m544753.aspx
- */
-static inline void write_osccon_l(unsigned char value)
-{
-    int temp1, temp2, temp3;
-
-    asm ("MOV #OSCCONL, %0\n\t"
-            "MOV #0x46, %1\n\t"
-            "MOV #0x57, %2\n\t"
-            "disi #3\n\t"
-            "mov.b %1,[%0]\n\t"
-            "mov.b %2,[%0]\n\t"
-            "mov.b %3,[%0]" : "=r"(temp1), "=r"(temp2), "=r"(temp3) : "r"(value));
- }
-
-static inline void write_osccon_h(unsigned char value)
-{
-    int temp1, temp2, temp3;
-
-    asm ("MOV #OSCCONH, %0\n\t"
-            "MOV #0x78, %1\n\t"
-            "MOV #0x9A, %2\n\t"
-            "disi #3\n\t"
-            "mov.b %1,[%0]\n\t"
-            "mov.b %2,[%0]\n\t"
-            "mov.b %3,[%0]" : "=r"(temp1), "=r"(temp2), "=r"(temp3) : "r"(value));
- }

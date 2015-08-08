@@ -28,15 +28,19 @@ def build_exec_for_chip(arch):
 	Export('env')
 	SConscript(os.path.join(dirs['build'], 'SConscript'))
 
-	prods = [os.path.join(dirs['build'], 'mib12_executive_patched.hex'), os.path.join(dirs['build'], 'mib12_executive_symbols.h'), os.path.join(dirs['build'], 'mib12_executive_symbols.stb')]
+	prods = [os.path.join(dirs['build'], 'mib12_executive_patched.hex'), 
+			 os.path.join(dirs['build'], 'mib12_executive_symbols.h'), 
+			 os.path.join(dirs['build'], 'mib12_executive_symbols.stb'),
+			 os.path.join(dirs['build'], 'mib12_executive_rom_summary.txt')]
 
 	suffix = arch.arch_name()
 
 	hexfile = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_%s.hex' % suffix), prods[0])
 	symheader = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_symbols_%s.h' % suffix), prods[1])
 	symtable = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_symbols_%s.stb' % suffix), prods[2])
-	
-	return [hexfile, symheader, symtable]
+	romusage = env.InstallAs(os.path.join(dirs['output'], 'mib12_executive_rom_summary_%s.txt' % suffix), prods[3])
+
+	return [hexfile, symheader, symtable, romusage]
 
 try:
 	#Build for all targets

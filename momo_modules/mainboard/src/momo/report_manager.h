@@ -3,6 +3,7 @@
 
 #include "platform.h"
 #include "rtcc.h"
+#include <stdint.h>
 
 #define MOMO_REPORT_VERSION 3
 #define pack_report_interval(type, step)	(((step&0xF) << 4) | (type&0xF))
@@ -67,7 +68,8 @@ typedef struct
 } ReportConfiguration;
 
 void report_manager_start();
-void init_report_config();
+void report_manager_init();
+uint8_t init_report_config(uint8_t call_length);
 bool construct_report();
 void post_report( void* );
 void start_report_scheduling();
